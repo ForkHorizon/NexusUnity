@@ -1,0 +1,3 @@
+[submodule "Assets/NexusUnity"]
+	path = Assets/NexusUnity
+	url = git@github.com:Daliys/NexusUnity.git
