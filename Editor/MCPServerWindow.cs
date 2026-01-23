@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
@@ -29,7 +31,6 @@ namespace UnityMCP.Editor
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
 
-            // Check if we should auto-restart
             if (SessionState.GetBool("MCP_Server_Running", false))
             {
                 StartServer();
@@ -74,14 +75,12 @@ namespace UnityMCP.Editor
 
             if (!string.IsNullOrEmpty(pendingScript) && pendingGoId != 0)
             {
-                // Clear state
                 SessionState.EraseString("MCP_PendingAttach_Script");
                 SessionState.EraseInt("MCP_PendingAttach_GO");
 
                 var go = EditorUtility.InstanceIDToObject(pendingGoId) as GameObject;
                 if (go != null)
                 {
-                     // Search all assemblies for the type
                      Type type = null;
                      foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                      {
@@ -105,7 +104,6 @@ namespace UnityMCP.Editor
         private void OnGUI()
         {
             GUILayout.Label("Unity MCP Server", EditorStyles.boldLabel);
-
             GUILayout.Label($"Status: {(_isRunning ? "Running" : "Stopped")}");
 
             if (!_isRunning)
@@ -158,9 +156,6 @@ namespace UnityMCP.Editor
                 _httpListener.Close();
                 _httpListener = null;
             }
-
-            // _serverThread will exit on its own
-
             Debug.Log("MCP Server stopped");
         }
 
@@ -200,7 +195,13 @@ namespace UnityMCP.Editor
             catch (Exception e)
             {
                 statusCode = 500;
-                responseString = $"{{\"jsonrpc\": \"2.0\", \"error\": {{\"code\": -32603, \"message\": \"{e.Message}\"}}, \"id\": null}}";
+                var errObj = new JObject
+                {
+                    ["jsonrpc"] = "2.0",
+                    ["error"] = new JObject { ["code"] = -32603, ["message"] = e.Message },
+                    ["id"] = null
+                };
+                responseString = errObj.ToString();
                 Debug.LogError($"Error handling request: {e.Message}");
             }
 
@@ -221,31 +222,44 @@ namespace UnityMCP.Editor
 
         private string ProcessJsonRpc(string json)
         {
-            JsonRpcRequest request = null;
+            JObject request;
             try
             {
-                request = JsonUtility.FromJson<JsonRpcRequest>(json);
+                request = JObject.Parse(json);
             }
             catch
             {
-                return $"{{\"jsonrpc\": \"2.0\", \"error\": {{\"code\": -32700, \"message\": \"Parse error\"}}, \"id\": null}}";
+                return new JObject
+                {
+                    ["jsonrpc"] = "2.0",
+                    ["error"] = new JObject { ["code"] = -32700, ["message"] = "Parse error" },
+                    ["id"] = null
+                }.ToString();
             }
 
-            if (request == null || string.IsNullOrEmpty(request.method))
+            if (request["method"] == null)
             {
-                return $"{{\"jsonrpc\": \"2.0\", \"error\": {{\"code\": -32600, \"message\": \"Invalid Request\"}}, \"id\": null}}";
+                return new JObject
+                {
+                    ["jsonrpc"] = "2.0",
+                    ["error"] = new JObject { ["code"] = -32600, ["message"] = "Invalid Request" },
+                    ["id"] = request["id"]
+                }.ToString();
             }
 
-            string result = "null";
+            string method = request["method"].ToString();
+            JToken id = request["id"];
+            JToken requestParams = request["params"];
+
+            JToken result = null;
             string error = null;
 
-            // Dispatch to main thread and wait
             ManualResetEvent signal = new ManualResetEvent(false);
 
             Enqueue(() => {
                 try
                 {
-                    result = ExecuteMethod(request);
+                    result = ExecuteMethod(method, requestParams);
                 }
                 catch (Exception e)
                 {
@@ -259,77 +273,100 @@ namespace UnityMCP.Editor
 
             signal.WaitOne();
 
+            JObject response = new JObject
+            {
+                ["jsonrpc"] = "2.0",
+                ["id"] = id
+            };
+
             if (error != null)
             {
-                return $"{{\"jsonrpc\": \"2.0\", \"error\": {{\"code\": -32000, \"message\": \"{error}\"}}, \"id\": {request.id}}}";
+                response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
             }
-
-            return $"{{\"jsonrpc\": \"2.0\", \"result\": {result}, \"id\": {request.id}}}";
-        }
-
-        private string ExecuteMethod(JsonRpcRequest request)
-        {
-            switch (request.method)
+            else
             {
+                response["result"] = result;
+            }
+
+            return response.ToString();
+        }
+
+        private JToken ExecuteMethod(string method, JToken p)
+        {
+            switch (method)
+            {
+                case "initialize":
+                    return Initialize(p);
                 case "create_primitive":
-                    return CreatePrimitive(request.@params);
+                    return CreatePrimitive(p);
                 case "attach_script":
-                    return AttachScript(request.@params);
+                    return AttachScript(p);
                 default:
-                    throw new Exception($"Method not found: {request.method}");
+                    throw new Exception($"Method not found: {method}");
             }
         }
 
-        private string CreatePrimitive(JsonRpcParams p)
+        private JToken Initialize(JToken p)
         {
-            if (p == null || string.IsNullOrEmpty(p.primitive_type)) throw new Exception("primitive_type is required");
+             return new JObject
+             {
+                 ["protocolVersion"] = "2024-11-05",
+                 ["capabilities"] = new JObject(),
+                 ["serverInfo"] = new JObject
+                 {
+                     ["name"] = "Unity MCP Server",
+                     ["version"] = "0.0.1"
+                 }
+             };
+        }
 
+        private JToken CreatePrimitive(JToken p)
+        {
+            if (p == null || p["primitive_type"] == null) throw new Exception("primitive_type is required");
+
+            string typeStr = p["primitive_type"].ToString();
             PrimitiveType type;
             try
             {
-                type = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), p.primitive_type, true);
+                type = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), typeStr, true);
             }
             catch
             {
-                throw new Exception($"Invalid primitive type: {p.primitive_type}");
+                throw new Exception($"Invalid primitive type: {typeStr}");
             }
 
             var go = GameObject.CreatePrimitive(type);
-            go.name = "MCP_" + p.primitive_type;
+            go.name = "MCP_" + typeStr;
 
             Selection.activeGameObject = go;
 
-            return $"\"Created {go.name}\"";
+            return $"Created {go.name}";
         }
 
-        private string AttachScript(JsonRpcParams p)
+        private JToken AttachScript(JToken p)
         {
-            if (p == null || string.IsNullOrEmpty(p.script_name)) throw new Exception("script_name is required");
+            if (p == null || p["script_name"] == null) throw new Exception("script_name is required");
 
-            string scriptName = p.script_name;
-            // Sanitize script name
+            string scriptName = p["script_name"].ToString();
             scriptName = scriptName.Replace(" ", "_");
 
-            string content = !string.IsNullOrEmpty(p.script_content) ? p.script_content :
+            string content = (p["script_content"] != null) ? p["script_content"].ToString() :
                 $"using UnityEngine;\npublic class {scriptName} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {scriptName}\"); }} }}";
 
             string fileName = $"{scriptName}.cs";
             string path = Path.Combine("Assets", fileName);
 
-            // Just write the file
             File.WriteAllText(path, content);
 
-            // Store pending attach info
             if (Selection.activeGameObject != null)
             {
                 SessionState.SetString("MCP_PendingAttach_Script", scriptName);
                 SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetInstanceID());
             }
 
-            // Refresh to trigger compilation
             AssetDatabase.Refresh();
 
-            return $"\"Script {scriptName} created at {path}. Compilation triggered. It will be attached to {Selection.activeGameObject?.name} automatically after reload.\"";
+            return $"Script {scriptName} created at {path}. Compilation triggered. It will be attached to {Selection.activeGameObject?.name} automatically after reload.";
         }
 
         private void HandleMainThreadQueue()
@@ -351,22 +388,5 @@ namespace UnityMCP.Editor
         {
             _mainThreadQueue.Enqueue(action);
         }
-    }
-
-    [Serializable]
-    public class JsonRpcRequest
-    {
-        public string jsonrpc;
-        public string method;
-        public JsonRpcParams @params;
-        public int id;
-    }
-
-    [Serializable]
-    public class JsonRpcParams
-    {
-        public string primitive_type;
-        public string script_name;
-        public string script_content;
     }
 }
