@@ -1,0 +1,17 @@
+{
+  "name": "com.custom.unity.mcp",
+  "version": "0.0.1",
+  "displayName": "Unity MCP Server",
+  "description": "A Model Context Protocol server for Unity Editor to allow LLMs to interact with the Editor.",
+  "unity": "2021.3",
+  "keywords": [
+    "mcp",
+    "ai",
+    "llm",
+    "tools"
+  ],
+  "author": {
+    "name": "Daliys",
+    "email": "Daliys133@gmail.com"
+  }
+}
