@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.2.0] - 2026-01-26
+
+### Added
+- **Console Log Capturing**: Added ability to capture Unity console logs in real-time.
+- **Log API**: New JSON-RPC methods `read_logs` and `clear_logs` for external log retrieval and management.
+- **Port Update**: Default port moved to `8081` to avoid common local development conflicts.
+
 ## [1.1.0] - 2026-01-26
 
 ### Changed

@@ -10,7 +10,7 @@ The primary component of this library is the Model Context Protocol (MCP) server
 - **Server**: Runs on a background thread using `System.Net.HttpListener`.
 - **Main Thread Dispatching**: Since Unity APIs are not thread-safe, all Editor operations are queued and executed on the main thread via `EditorApplication.update`.
 - **Persistence**: Uses `SessionState` to maintain server state and pending operations across assembly reloads.
-- **Port**: 8080 (Default).
+- **Port**: 8081 (Default).
 
 ### JSON-RPC 2.0 Methods
 
@@ -29,6 +29,17 @@ The primary component of this library is the Model Context Protocol (MCP) server
   - `script_name`: Class name for the new component.
   - `script_content` (Optional): Source code for the script.
 - **Result**: Creates the `.cs` file in `Assets/` and schedules an automatic attachment to the `Selection.activeGameObject` after compilation is finished.
+
+#### `read_logs`
+- **Params**:
+  - `count` (Optional): Max number of logs to return (Default: 50).
+  - `filter_type` (Optional): Filter by LogType string (e.g. "Error", "Warning").
+  - `search_text` (Optional): Filter by substring in the message.
+- **Result**: Returns an array of `LogEntry` objects including message, type, timestamp, and repeat count.
+
+#### `clear_logs`
+- **Params**: None.
+- **Result**: Returns a confirmation string after clearing the internal log buffer.
 
 ### Best Practices for Extension
 If you wish to add new methods to the library:

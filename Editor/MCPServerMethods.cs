@@ -157,11 +157,14 @@ namespace UnityMCP.Editor
             string path = Path.Combine("Assets", $"{scriptName}.cs");
             File.WriteAllText(path, content);
 
-            if (Selection.activeGameObject != null)
+            if (Selection.activeGameObject == null)
             {
-                SessionState.SetString("MCP_PendingAttach_Script", scriptName);
-                SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetInstanceID());
+                AssetDatabase.Refresh();
+                return $"Script {scriptName} created at {path}. No target GameObject selected.";
             }
+
+            SessionState.SetString("MCP_PendingAttach_Script", scriptName);
+            SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetInstanceID());
 
             AssetDatabase.Refresh();
             return $"Script {scriptName} created at {path}. Compilation triggered.";

@@ -247,6 +247,13 @@ namespace UnityMCP.Editor
             }
         }
 
+        /// <summary>
+        /// Retrieves the captured logs with optional filtering.
+        /// </summary>
+        /// <param name="count">Max number of logs to return.</param>
+        /// <param name="filterType">Optional filter for log type (e.g. "Error").</param>
+        /// <param name="searchText">Optional search text to filter messages.</param>
+        /// <returns>A list of matching log entries.</returns>
         public static List<LogEntry> GetLogs(int count, string filterType, string searchText)
         {
             lock (_logLock)
@@ -268,6 +275,9 @@ namespace UnityMCP.Editor
             }
         }
 
+        /// <summary>
+        /// Clears all captured log entries.
+        /// </summary>
         public static void ClearLogs()
         {
             lock (_logLock)
