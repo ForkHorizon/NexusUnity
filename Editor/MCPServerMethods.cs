@@ -152,7 +152,7 @@ namespace UnityMCP.Editor
             if (p == null || p["script_name"] == null) throw new Exception("script_name is required");
             string scriptName = SanitizeScriptName(p["script_name"].ToString());
             string content = (p["script_content"] != null) ? p["script_content"].ToString().Replace("\\n", "\n") :
-                $"using UnityEngine;\npublic class {scriptName} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {scriptName}\"); }} }}";
+                GetDefaultScript(scriptName);
 
             string path = Path.Combine("Assets", $"{scriptName}.cs");
             File.WriteAllText(path, content);
@@ -173,8 +173,21 @@ namespace UnityMCP.Editor
         private static string SanitizeScriptName(string name)
         {
             string sanitized = System.Text.RegularExpressions.Regex.Replace(name, @"[^a-zA-Z0-9_]", "_");
+            if (string.IsNullOrEmpty(sanitized)) return "NewScript";
             if (char.IsDigit(sanitized[0])) sanitized = "_" + sanitized;
             return sanitized;
+        }
+
+        private static string GetDefaultScript(string name)
+        {
+            return "using UnityEngine;\n\n" +
+                   "public class " + name + " : MonoBehaviour\n" +
+                   "{\n" +
+                   "    void Start()\n" +
+                   "    {\n" +
+                   "        Debug.Log(\"Hello from " + name + "!\");\n" +
+                   "    }\n" +
+                   "}";
         }
 
         /// <summary>
