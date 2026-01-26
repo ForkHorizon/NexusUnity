@@ -95,8 +95,33 @@ namespace UnityMCP.Editor
                 case "initialize": return Initialize(p);
                 case "create_primitive": return CreatePrimitive(p);
                 case "attach_script": return AttachScript(p);
+                case "read_logs": return ReadLogs(p);
+                case "clear_logs": return ClearLogs(p);
                 default: throw new Exception($"Method not found: {method}");
             }
+        }
+
+        private static JToken ReadLogs(JToken p)
+        {
+            int count = 50;
+            string filterType = null;
+            string searchText = null;
+
+            if (p != null)
+            {
+                if (p["count"] != null) count = (int)p["count"];
+                if (p["filter_type"] != null) filterType = p["filter_type"].ToString();
+                if (p["search_text"] != null) searchText = p["search_text"].ToString();
+            }
+
+            var logs = MCPServerWindow.GetLogs(count, filterType, searchText);
+            return JArray.FromObject(logs);
+        }
+
+        private static JToken ClearLogs(JToken p)
+        {
+            MCPServerWindow.ClearLogs();
+            return "Logs cleared";
         }
 
         private static JToken Initialize(JToken p)

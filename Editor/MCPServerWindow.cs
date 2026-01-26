@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -21,6 +23,10 @@ namespace UnityMCP.Editor
         private const int PORT = 8080;
         private static readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
 
+        private static readonly List<LogEntry> _logEntries = new List<LogEntry>();
+        private static readonly object _logLock = new object();
+        private const int MAX_LOG_ENTRIES = 1000;
+
         /// <summary>
         /// Shows the MCP Server window.
         /// </summary>
@@ -35,6 +41,7 @@ namespace UnityMCP.Editor
             EditorApplication.update += HandleMainThreadQueue;
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
+            Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
             if (SessionState.GetBool("MCP_Server_Running", false))
             {
@@ -47,6 +54,7 @@ namespace UnityMCP.Editor
             EditorApplication.update -= HandleMainThreadQueue;
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
+            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             StopServer();
         }
 
@@ -214,6 +222,58 @@ namespace UnityMCP.Editor
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);
+        }
+
+        private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
+        {
+            lock (_logLock)
+            {
+                if (_logEntries.Count > 0)
+                {
+                    var last = _logEntries[_logEntries.Count - 1];
+                    if (last.message == condition && last.stackTrace == stackTrace && last.type == type.ToString())
+                    {
+                        last.count++;
+                        return;
+                    }
+                }
+
+                if (_logEntries.Count >= MAX_LOG_ENTRIES)
+                {
+                    _logEntries.RemoveAt(0);
+                }
+
+                _logEntries.Add(new LogEntry(condition, stackTrace, type));
+            }
+        }
+
+        public static List<LogEntry> GetLogs(int count, string filterType, string searchText)
+        {
+            lock (_logLock)
+            {
+                var query = _logEntries.AsEnumerable();
+
+                if (!string.IsNullOrEmpty(filterType))
+                {
+                    query = query.Where(l => l.type.Equals(filterType, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    query = query.Where(l => l.message.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0);
+                }
+
+                var list = query.ToList();
+                return list.Skip(Math.Max(0, list.Count - count)).ToList();
+            }
+        }
+
+        public static void ClearLogs()
+        {
+            lock (_logLock)
+            {
+                _logEntries.Clear();
+            }
         }
     }
 }
