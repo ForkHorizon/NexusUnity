@@ -15,7 +15,7 @@ namespace UnityMCP.Editor
     {
         private HttpListener _httpListener;
         private Thread _serverThread;
-        private bool _isRunning = false;
+        private volatile bool _isRunning = false;
         private const int Port = 8080;
         private static readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
 
@@ -150,12 +150,24 @@ namespace UnityMCP.Editor
         private void StopServer()
         {
             _isRunning = false;
+
             if (_httpListener != null)
             {
-                _httpListener.Stop();
-                _httpListener.Close();
-                _httpListener = null;
+                try
+                {
+                    _httpListener.Stop();
+                    _httpListener.Close();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Error stopping HttpListener: {e.Message}");
+                }
+                finally
+                {
+                    _httpListener = null;
+                }
             }
+
             Debug.Log("MCP Server stopped");
         }
 
@@ -168,8 +180,8 @@ namespace UnityMCP.Editor
                     var context = _httpListener.GetContext();
                     ThreadPool.QueueUserWorkItem((_) => HandleRequest(context));
                 }
-                catch (HttpListenerException) { }
-                catch (ObjectDisposedException) { }
+                catch (HttpListenerException) { } // Expected on stop
+                catch (ObjectDisposedException) { } // Expected on stop
                 catch (Exception e)
                 {
                     Debug.LogError($"Server loop error: {e.Message}");
@@ -216,7 +228,7 @@ namespace UnityMCP.Editor
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error sending response: {e.Message}");
+                Debug.LogWarning($"Error sending response: {e.Message}");
             }
         }
 
@@ -237,41 +249,53 @@ namespace UnityMCP.Editor
                 }.ToString();
             }
 
+            JToken id = request["id"]; // Can be null for notifications
             if (request["method"] == null)
             {
                 return new JObject
                 {
                     ["jsonrpc"] = "2.0",
-                    ["error"] = new JObject { ["code"] = -32600, ["message"] = "Invalid Request" },
-                    ["id"] = request["id"]
+                    ["error"] = new JObject { ["code"] = -32600, ["message"] = "Invalid Request: method missing" },
+                    ["id"] = id
                 }.ToString();
             }
 
             string method = request["method"].ToString();
-            JToken id = request["id"];
             JToken requestParams = request["params"];
 
             JToken result = null;
             string error = null;
 
-            ManualResetEvent signal = new ManualResetEvent(false);
+            // Use ManualResetEventSlim for lighter weight
+            using (var signal = new ManualResetEventSlim(false))
+            {
+                Enqueue(() => {
+                    try
+                    {
+                        result = ExecuteMethod(method, requestParams);
+                    }
+                    catch (Exception e)
+                    {
+                        error = e.Message;
+                    }
+                    finally
+                    {
+                        signal.Set();
+                    }
+                });
 
-            Enqueue(() => {
-                try
+                // Wait with timeout (e.g. 10 seconds) to prevent permanent hang
+                if (!signal.Wait(10000))
                 {
-                    result = ExecuteMethod(method, requestParams);
+                    error = "Request timed out waiting for Main Thread";
                 }
-                catch (Exception e)
-                {
-                    error = e.Message;
-                }
-                finally
-                {
-                    signal.Set();
-                }
-            });
+            }
 
-            signal.WaitOne();
+            JObject response = new JObject
+            {
+                ["jsonrpc"] = "2.0",
+                ["id"] = id
+            };
 
             JObject response = new JObject
             {
@@ -308,6 +332,7 @@ namespace UnityMCP.Editor
 
         private JToken Initialize(JToken p)
         {
+             // p can be null or empty, that's fine for initialize
              return new JObject
              {
                  ["protocolVersion"] = "2024-11-05",
@@ -348,7 +373,10 @@ namespace UnityMCP.Editor
             if (p == null || p["script_name"] == null) throw new Exception("script_name is required");
 
             string scriptName = p["script_name"].ToString();
-            scriptName = scriptName.Replace(" ", "_");
+            // Basic sanitization
+            scriptName = System.Text.RegularExpressions.Regex.Replace(scriptName, @"[^a-zA-Z0-9_]", "_");
+
+            if (char.IsDigit(scriptName[0])) scriptName = "_" + scriptName;
 
             string content = (p["script_content"] != null) ? p["script_content"].ToString() :
                 $"using UnityEngine;\npublic class {scriptName} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {scriptName}\"); }} }}";
@@ -371,6 +399,7 @@ namespace UnityMCP.Editor
 
         private void HandleMainThreadQueue()
         {
+            // Process all pending actions
             while (_mainThreadQueue.TryDequeue(out var action))
             {
                 try
