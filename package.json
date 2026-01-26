@@ -13,5 +13,8 @@
   "author": {
     "name": "Daliys",
     "email": "Daliys133@gmail.com"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
   }
 }
