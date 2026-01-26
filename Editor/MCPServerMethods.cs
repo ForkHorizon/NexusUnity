@@ -151,7 +151,7 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["script_name"] == null) throw new Exception("script_name is required");
             string scriptName = SanitizeScriptName(p["script_name"].ToString());
-            string content = (p["script_content"] != null) ? p["script_content"].ToString() :
+            string content = (p["script_content"] != null) ? p["script_content"].ToString().Replace("\\n", "\n") :
                 $"using UnityEngine;\npublic class {scriptName} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {scriptName}\"); }} }}";
 
             string path = Path.Combine("Assets", $"{scriptName}.cs");
