@@ -6,19 +6,24 @@ using System.Text;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Editor window that runs a local MCP (Model Context Protocol) server to interact with Unity from external tools.
+    /// </summary>
     public class MCPServerWindow : EditorWindow
     {
         private HttpListener _httpListener;
         private Thread _serverThread;
         private volatile bool _isRunning = false;
-        private const int Port = 8080;
+        private const int PORT = 8080;
         private static readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
 
+        /// <summary>
+        /// Shows the MCP Server window.
+        /// </summary>
         [MenuItem("Tools/MCP Server")]
         public static void ShowWindow()
         {
@@ -65,40 +70,7 @@ namespace UnityMCP.Editor
                 StartServer();
             }
 
-            CheckPendingAttachments();
-        }
-
-        private void CheckPendingAttachments()
-        {
-            string pendingScript = SessionState.GetString("MCP_PendingAttach_Script", "");
-            int pendingGoId = SessionState.GetInt("MCP_PendingAttach_GO", 0);
-
-            if (!string.IsNullOrEmpty(pendingScript) && pendingGoId != 0)
-            {
-                SessionState.EraseString("MCP_PendingAttach_Script");
-                SessionState.EraseInt("MCP_PendingAttach_GO");
-
-                var go = EditorUtility.InstanceIDToObject(pendingGoId) as GameObject;
-                if (go != null)
-                {
-                     Type type = null;
-                     foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                     {
-                         type = assembly.GetType(pendingScript);
-                         if (type != null) break;
-                     }
-
-                     if (type != null)
-                     {
-                         go.AddComponent(type);
-                         Debug.Log($"[MCP] Successfully attached {pendingScript} to {go.name}");
-                     }
-                     else
-                     {
-                         Debug.LogError($"[MCP] Could not find type {pendingScript} to attach.");
-                     }
-                }
-            }
+            MCPServerMethods.CheckPendingAttachments();
         }
 
         private void OnGUI()
@@ -131,14 +103,14 @@ namespace UnityMCP.Editor
             try
             {
                 _httpListener = new HttpListener();
-                _httpListener.Prefixes.Add($"http://localhost:{Port}/");
+                _httpListener.Prefixes.Add($"http://localhost:{PORT}/");
                 _httpListener.Start();
 
                 _isRunning = true;
                 _serverThread = new Thread(ServerLoop);
                 _serverThread.Start();
 
-                Debug.Log($"MCP Server started on port {Port}");
+                Debug.Log($"MCP Server started on port {PORT}");
             }
             catch (Exception e)
             {
@@ -180,8 +152,8 @@ namespace UnityMCP.Editor
                     var context = _httpListener.GetContext();
                     ThreadPool.QueueUserWorkItem((_) => HandleRequest(context));
                 }
-                catch (HttpListenerException) { } // Expected on stop
-                catch (ObjectDisposedException) { } // Expected on stop
+                catch (HttpListenerException) { }
+                catch (ObjectDisposedException) { }
                 catch (Exception e)
                 {
                     Debug.LogError($"Server loop error: {e.Message}");
@@ -191,9 +163,6 @@ namespace UnityMCP.Editor
 
         private void HandleRequest(HttpListenerContext context)
         {
-            string responseString = "";
-            int statusCode = 200;
-
             try
             {
                 string requestBody;
@@ -202,21 +171,19 @@ namespace UnityMCP.Editor
                     requestBody = reader.ReadToEnd();
                 }
 
-                responseString = ProcessJsonRpc(requestBody);
+                string responseString = MCPServerMethods.ProcessJsonRpc(requestBody);
+                SendResponse(context, responseString, 200);
             }
             catch (Exception e)
             {
-                statusCode = 500;
-                var errObj = new JObject
-                {
-                    ["jsonrpc"] = "2.0",
-                    ["error"] = new JObject { ["code"] = -32603, ["message"] = e.Message },
-                    ["id"] = null
-                };
-                responseString = errObj.ToString();
+                var errObj = MCPServerMethods.CreateErrorResponse(null, -32603, e.Message);
+                SendResponse(context, errObj, 500);
                 Debug.LogError($"Error handling request: {e.Message}");
             }
+        }
 
+        private void SendResponse(HttpListenerContext context, string responseString, int statusCode)
+        {
             try
             {
                 byte[] buffer = Encoding.UTF8.GetBytes(responseString);
@@ -232,187 +199,18 @@ namespace UnityMCP.Editor
             }
         }
 
-        private string ProcessJsonRpc(string json)
-        {
-            JObject request;
-            try
-            {
-                request = JObject.Parse(json);
-            }
-            catch
-            {
-                return new JObject
-                {
-                    ["jsonrpc"] = "2.0",
-                    ["error"] = new JObject { ["code"] = -32700, ["message"] = "Parse error" },
-                    ["id"] = null
-                }.ToString();
-            }
-
-            JToken id = request["id"]; // Can be null for notifications
-            if (request["method"] == null)
-            {
-                return new JObject
-                {
-                    ["jsonrpc"] = "2.0",
-                    ["error"] = new JObject { ["code"] = -32600, ["message"] = "Invalid Request: method missing" },
-                    ["id"] = id
-                }.ToString();
-            }
-
-            string method = request["method"].ToString();
-            JToken requestParams = request["params"];
-
-            JToken result = null;
-            string error = null;
-
-            // Use ManualResetEventSlim for lighter weight
-            using (var signal = new ManualResetEventSlim(false))
-            {
-                Enqueue(() => {
-                    try
-                    {
-                        result = ExecuteMethod(method, requestParams);
-                    }
-                    catch (Exception e)
-                    {
-                        error = e.Message;
-                    }
-                    finally
-                    {
-                        signal.Set();
-                    }
-                });
-
-                // Wait with timeout (e.g. 10 seconds) to prevent permanent hang
-                if (!signal.Wait(10000))
-                {
-                    error = "Request timed out waiting for Main Thread";
-                }
-            }
-
-            JObject response = new JObject
-            {
-                ["jsonrpc"] = "2.0",
-                ["id"] = id
-            };
-
-            JObject response = new JObject
-            {
-                ["jsonrpc"] = "2.0",
-                ["id"] = id
-            };
-
-            if (error != null)
-            {
-                response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
-            }
-            else
-            {
-                response["result"] = result;
-            }
-
-            return response.ToString();
-        }
-
-        private JToken ExecuteMethod(string method, JToken p)
-        {
-            switch (method)
-            {
-                case "initialize":
-                    return Initialize(p);
-                case "create_primitive":
-                    return CreatePrimitive(p);
-                case "attach_script":
-                    return AttachScript(p);
-                default:
-                    throw new Exception($"Method not found: {method}");
-            }
-        }
-
-        private JToken Initialize(JToken p)
-        {
-             // p can be null or empty, that's fine for initialize
-             return new JObject
-             {
-                 ["protocolVersion"] = "2024-11-05",
-                 ["capabilities"] = new JObject(),
-                 ["serverInfo"] = new JObject
-                 {
-                     ["name"] = "Unity MCP Server",
-                     ["version"] = "0.0.1"
-                 }
-             };
-        }
-
-        private JToken CreatePrimitive(JToken p)
-        {
-            if (p == null || p["primitive_type"] == null) throw new Exception("primitive_type is required");
-
-            string typeStr = p["primitive_type"].ToString();
-            PrimitiveType type;
-            try
-            {
-                type = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), typeStr, true);
-            }
-            catch
-            {
-                throw new Exception($"Invalid primitive type: {typeStr}");
-            }
-
-            var go = GameObject.CreatePrimitive(type);
-            go.name = "MCP_" + typeStr;
-
-            Selection.activeGameObject = go;
-
-            return $"Created {go.name}";
-        }
-
-        private JToken AttachScript(JToken p)
-        {
-            if (p == null || p["script_name"] == null) throw new Exception("script_name is required");
-
-            string scriptName = p["script_name"].ToString();
-            // Basic sanitization
-            scriptName = System.Text.RegularExpressions.Regex.Replace(scriptName, @"[^a-zA-Z0-9_]", "_");
-
-            if (char.IsDigit(scriptName[0])) scriptName = "_" + scriptName;
-
-            string content = (p["script_content"] != null) ? p["script_content"].ToString() :
-                $"using UnityEngine;\npublic class {scriptName} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {scriptName}\"); }} }}";
-
-            string fileName = $"{scriptName}.cs";
-            string path = Path.Combine("Assets", fileName);
-
-            File.WriteAllText(path, content);
-
-            if (Selection.activeGameObject != null)
-            {
-                SessionState.SetString("MCP_PendingAttach_Script", scriptName);
-                SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetInstanceID());
-            }
-
-            AssetDatabase.Refresh();
-
-            return $"Script {scriptName} created at {path}. Compilation triggered. It will be attached to {Selection.activeGameObject?.name} automatically after reload.";
-        }
-
         private void HandleMainThreadQueue()
         {
-            // Process all pending actions
             while (_mainThreadQueue.TryDequeue(out var action))
             {
-                try
-                {
-                    action?.Invoke();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Error executing on main thread: {e.Message}");
-                }
+                try { action?.Invoke(); }
+                catch (Exception e) { Debug.LogError($"Error executing on main thread: {e.Message}"); }
             }
         }
 
+        /// <summary>
+        /// Enqueues an action to be executed on the Unity main thread.
+        /// </summary>
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);
