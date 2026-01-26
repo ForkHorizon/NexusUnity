@@ -9,6 +9,7 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 - **Extensible Architecture**: Easily add new JSON-RPC methods to interact with any Unity subsystem.
 - **Primitive Generation**: Built-in methods to create and manipulate GameObjects via external commands.
 - **Dynamic Scripting**: Create and attach C# scripts to GameObjects on-the-fly.
+- **Editor UI Automation**: Inspect and interact with Unity Editor windows and UI elements (UI Toolkit).
 
 ## 📂 Internal Structure
 

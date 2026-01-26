@@ -1,8 +1,11 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -97,9 +100,159 @@ namespace UnityMCP.Editor
                 case "attach_script": return AttachScript(p);
                 case "read_logs": return ReadLogs(p);
                 case "clear_logs": return ClearLogs(p);
+                case "ui_list_windows": return UIListWindows(p);
+                case "ui_get_hierarchy": return UIGetHierarchy(p);
+                case "ui_click": return UIClick(p);
+                case "ui_input_text": return UIInputText(p);
                 default: throw new Exception($"Method not found: {method}");
             }
         }
+
+        #region UI Instruments
+
+        private static JToken UIListWindows(JToken p)
+        {
+            var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            JArray list = new JArray();
+            foreach (var w in windows)
+            {
+                if (w.rootVisualElement != null && w.rootVisualElement.visible)
+                {
+                    list.Add(new JObject {
+                        ["title"] = w.titleContent.text,
+                        ["type"] = w.GetType().FullName,
+                        ["instanceId"] = w.GetInstanceID()
+                    });
+                }
+            }
+            return list;
+        }
+
+        private static JToken UIGetHierarchy(JToken p)
+        {
+            if (p == null || p["window_title"] == null) throw new Exception("window_title is required");
+            string title = p["window_title"].ToString();
+
+            var w = FindWindow(title);
+            if (w == null) throw new Exception($"Window '{title}' not found");
+
+            return SerializeVisualElement(w.rootVisualElement);
+        }
+
+        private static JToken UIClick(JToken p)
+        {
+            if (p == null || p["window_title"] == null || p["element_name"] == null)
+                throw new Exception("window_title and element_name are required");
+
+            string title = p["window_title"].ToString();
+            string elName = p["element_name"].ToString();
+
+            var w = FindWindow(title);
+            if (w == null) throw new Exception($"Window '{title}' not found");
+
+            var el = FindElementByName(w.rootVisualElement, elName);
+            if (el == null) throw new Exception($"Element '{elName}' not found in '{title}'");
+
+            using (var evt = ClickEvent.GetPooled())
+            {
+                evt.target = el;
+                el.SendEvent(evt);
+            }
+
+            // Also support Button specific .clicked event which might not be triggered by generic SendEvent depending on implementation
+            if (el is Button btn)
+            {
+                // UI Toolkit buttons usually fire via ClickEvent, but we can double check or rely on event.
+                // Standard Button.Clicked() is internal or handled via event.
+                // Creating a navigation submit event often helps too.
+                // But SendEvent(ClickEvent) is the standard way.
+            }
+
+            return $"Clicked {elName} in {title}";
+        }
+
+        private static JToken UIInputText(JToken p)
+        {
+            if (p == null || p["window_title"] == null || p["element_name"] == null || p["text"] == null)
+                throw new Exception("window_title, element_name, and text are required");
+
+            string title = p["window_title"].ToString();
+            string elName = p["element_name"].ToString();
+            string text = p["text"].ToString();
+
+            var w = FindWindow(title);
+            if (w == null) throw new Exception($"Window '{title}' not found");
+
+            var el = FindElementByName(w.rootVisualElement, elName);
+            if (el == null) throw new Exception($"Element '{elName}' not found in '{title}'");
+
+            if (el is TextField tf)
+            {
+                tf.value = text;
+            }
+            else if (el is Label lbl)
+            {
+                lbl.text = text;
+            }
+            else
+            {
+                // Generic attempt via reflection for "value" or "text" property?
+                // For now, stick to strong types.
+                throw new Exception($"Element '{elName}' (Type: {el.GetType().Name}) is not a TextField or Label");
+            }
+
+            return $"Set text of {elName} to '{text}'";
+        }
+
+        private static EditorWindow FindWindow(string title)
+        {
+            var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            // Match exact title or Type name
+            return windows.FirstOrDefault(w => w.titleContent.text == title || w.GetType().Name == title);
+        }
+
+        private static VisualElement FindElementByName(VisualElement root, string name)
+        {
+            if (root == null) return null;
+            // Depth-first search
+            if (root.name == name) return root;
+
+            foreach (var child in root.Children())
+            {
+                var found = FindElementByName(child, name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static JObject SerializeVisualElement(VisualElement ve)
+        {
+            var obj = new JObject
+            {
+                ["name"] = ve.name,
+                ["type"] = ve.GetType().Name,
+                ["visible"] = ve.visible,
+                ["enabled"] = ve.enabledSelf
+            };
+
+            if (ve is TextElement te) obj["text"] = te.text;
+            if (ve is TextField tf) obj["value"] = tf.value;
+            // Add other specific properties as needed
+
+            if (ve.childCount > 0)
+            {
+                var children = new JArray();
+                foreach (var child in ve.Children())
+                {
+                    children.Add(SerializeVisualElement(child));
+                }
+                obj["children"] = children;
+            }
+
+            return obj;
+        }
+
+        #endregion
 
         private static JToken ReadLogs(JToken p)
         {

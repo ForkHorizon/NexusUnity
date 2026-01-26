@@ -41,6 +41,28 @@ The primary component of this library is the Model Context Protocol (MCP) server
 - **Params**: None.
 - **Result**: Returns a confirmation string after clearing the internal log buffer.
 
+#### `ui_list_windows`
+- **Params**: None.
+- **Result**: Returns an array of open EditorWindows with their title, type, and instance ID.
+
+#### `ui_get_hierarchy`
+- **Params**:
+  - `window_title`: The title of the window to inspect.
+- **Result**: Returns a recursive JSON structure representing the visual element tree of the window.
+
+#### `ui_click`
+- **Params**:
+  - `window_title`: The title of the target window.
+  - `element_name`: The name of the visual element to click.
+- **Result**: Confirmation string.
+
+#### `ui_input_text`
+- **Params**:
+  - `window_title`: The title of the target window.
+  - `element_name`: The name of the target text field.
+  - `text`: The text to input.
+- **Result**: Confirmation string.
+
 ### Best Practices for Extension
 If you wish to add new methods to the library:
 1. Locate `MCPServerMethods.cs`.
