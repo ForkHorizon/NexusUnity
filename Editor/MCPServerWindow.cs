@@ -18,7 +18,7 @@ namespace UnityMCP.Editor
         private HttpListener _httpListener;
         private Thread _serverThread;
         private volatile bool _isRunning = false;
-        private const int PORT = 8080;
+        private const int PORT = 8081;
         private static readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
 
         /// <summary>
