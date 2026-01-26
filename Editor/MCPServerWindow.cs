@@ -297,6 +297,12 @@ namespace UnityMCP.Editor
                 ["id"] = id
             };
 
+            JObject response = new JObject
+            {
+                ["jsonrpc"] = "2.0",
+                ["id"] = id
+            };
+
             if (error != null)
             {
                 response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
