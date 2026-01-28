@@ -5,7 +5,13 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 ## [1.3.0] - 2026-01-28
 
 ### Added
-- **Modular Partial Classes**: Refactored `MCPServerMethods` and `MCPServerWindow` into modular partial classes for better maintainability (Scene, Asset, UI, Component, Core, etc.).
+- **Comprehensive API Expansion**: Documented and stabilized 28 JSON-RPC methods covering:
+  - **Scene Management**: `open_scene`, `create_scene`, `save_scene`.
+  - **GameObject Logic**: `create_game_object`, `destroy_game_object`, `set_transform`, `set_parent`.
+  - **Component Interaction**: `add_component`, `inspect_component`, `update_component`.
+  - **Asset Management**: `list_assets`, `create_material`, `refresh_asset_database`, `import_asset`.
+  - **Prefab Support**: `instantiate_prefab`.
+- **Modular Partial Classes**: Refactored `MCPServerMethods` and `MCPServerWindow` into modular files (Scene, Asset, UI, Component, Core, etc.).
 - **Universal AI Diagnostic Tools**: Integrated robust, project-independent diagnostic and linting scripts in the `AI/` folder.
 - **Enhanced Linter**: Improved method length detection logic to support non-public methods and standard Unity lifecycle functions.
 - **Full XML Documentation**: Comprehensive documentation for all public APIs across the modularized library.

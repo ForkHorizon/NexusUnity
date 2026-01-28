@@ -4,11 +4,12 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 ## 🚀 Features
 
-- **Unity MCP Server**: An integrated HTTP-based server implementing the Model Context Protocol.
-- **Main Thread Execution**: Safe execution of Unity API calls from background server threads.
-- **Modular Architecture**: Clean separation of concerns using partial classes (Scene, Asset, UI, Component, Core).
-- **Universal AI Tools**: Project-independent diagnostic and linting tools for high code quality.
+- **Full Unity Editor Control**: 28+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
+- **Modular Architecture**: Clean separation of concerns using partial classes for better maintainability.
+- **UI Toolkit Automation**: Inspect and interact with Unity Editor windows and visual elements.
+- **Universal AI Tools**: Project-independent diagnostic and linting tools to maintain high code quality.
 - **Console Log Capturing**: Real-time retrieval of Unity console logs via MCP.
+- **Main Thread Execution**: Safe execution of Unity API calls from background server threads.
 
 ## 📂 Internal Structure
 

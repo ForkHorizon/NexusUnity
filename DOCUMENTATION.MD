@@ -1,72 +1,174 @@
 # Technical Documentation - NexusUnity
 
-This document provides technical details for the `NexusUnity` library.
+This document provides a comprehensive reference for the `NexusUnity` library.
 
 ## 🔌 Unity MCP Server
 
-The primary component of this library is the Model Context Protocol (MCP) server, which enables external tools to interact with the Unity Editor via JSON-RPC 2.0.
+The library implements a Model Context Protocol (MCP) server that enables external tools to interact with the Unity Editor via JSON-RPC 2.0.
 
 ### Architecture
 - **Server**: Runs on a background thread using `System.Net.HttpListener`.
-- **Main Thread Dispatching**: Since Unity APIs are not thread-safe, all Editor operations are queued and executed on the main thread via `EditorApplication.update`.
-- **Persistence**: Uses `SessionState` to maintain server state and pending operations across assembly reloads.
-- **Port**: 8081 (Default).
+- **Main Thread Dispatching**: Unity APIs are not thread-safe; all Editor operations are executed on the main thread via `EditorApplication.update`.
+- **Persistence**: Uses `SessionState` and `EditorPrefs` to maintain state across assembly reloads.
+- **Port**: 8081 (Default). Configurable via Project Settings or CLI.
 
-### JSON-RPC 2.0 Methods
+---
+
+## 🛠 JSON-RPC 2.0 API Reference
+
+### Core & System
 
 #### `initialize`
-- **Result**: Returns server metadata and capabilities.
-```json
-{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "0.0.1" } }
-```
-
-#### `create_primitive`
-- **Params**: `primitive_type` (Enum string: `Cube`, `Sphere`, `Capsule`, `Cylinder`, `Plane`, `Quad`).
-- **Result**: Confirms creation and focuses the new object in the hierarchy.
-
-#### `attach_script`
-- **Params**: 
-  - `script_name`: Class name for the new component.
-  - `script_content` (Optional): Source code for the script.
-- **Result**: Creates the `.cs` file in `Assets/` and schedules an automatic attachment to the `Selection.activeGameObject` after compilation is finished.
+Returns server capabilities and metadata.
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.3.0" } }`
 
 #### `read_logs`
+Retrieves captured console logs.
 - **Params**:
-  - `count` (Optional): Max number of logs to return (Default: 50).
-  - `filter_type` (Optional): Filter by LogType string (e.g. "Error", "Warning").
-  - `search_text` (Optional): Filter by substring in the message.
-- **Result**: Returns an array of `LogEntry` objects including message, type, timestamp, and repeat count.
+  - `count` (int, optional): Max logs to return (Default: 50).
+  - `filter_type` (string, optional): "Log", "Warning", "Error", etc.
+  - `search_text` (string, optional): String to search in message/stacktrace.
+- **Result**: Array of `LogEntry` objects.
 
 #### `clear_logs`
-- **Params**: None.
-- **Result**: Returns a confirmation string after clearing the internal log buffer.
+Clears the internal log buffer.
+- **Result**: `"Logs cleared"`
+
+#### `test_coroutine`
+Starts a test asynchronous operation in the editor.
+- **Result**: `"Started"`
+
+---
+
+### Scene & GameObject Lifecycle
+
+#### `open_scene`
+Opens a specific scene file.
+- **Params**: `path` (string): Relative to project root (e.g., "Assets/Scenes/Main.unity").
+
+#### `create_scene`
+Creates a new scene.
+- **Params**: `name` (string, optional): "New Scene" by default.
+
+#### `save_scene`
+Saves the currently active scene.
+
+#### `get_game_object`
+Returns serialized details of a GameObject.
+- **Params**: `instance_id` (int): Unity Instance ID.
+
+#### `get_active_game_object`
+Returns the currently selected GameObject in the editor.
+
+#### `get_root_game_objects`
+Returns an array of all top-level GameObjects in the active scene.
+
+#### `create_game_object`
+Creates a new empty GameObject.
+- **Params**: 
+  - `name` (string): Required.
+  - `parent_id` (int, optional): Instance ID of the parent.
+
+#### `create_primitive`
+Creates a standard Unity primitive (Cube, Sphere, etc.).
+- **Params**: `primitive_type` (string): "Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad".
+
+#### `destroy_game_object`
+Deletes an object from the scene (Undo-supported).
+- **Params**: `instance_id` (int).
+
+#### `instantiate_prefab`
+Creates an instance of a prefab asset.
+- **Params**: `path` (string): Path to the prefab asset.
+
+---
+
+### Transforms & Components
+
+#### `set_transform`
+Updates an object's position.
+- **Params**:
+  - `instance_id` (int).
+  - `position` (object, optional): `{ "x": float, "y": float, "z": float }`.
+
+#### `set_parent`
+Sets the parent of an object.
+- **Params**: `instance_id` (int), `parent_id` (int).
+
+#### `add_component`
+Adds a project component or built-in Unity component.
+- **Params**: `instance_id` (int), `component_name` (string).
+
+#### `inspect_component`
+Returns all public fields and properties of a specific component.
+- **Params**: `instance_id` (int), `component_name` (string).
+
+#### `update_component`
+Updates component values using Unity's `JsonUtility.FromJsonOverwrite`.
+- **Params**:
+  - `instance_id` (int).
+  - `component_name` (string).
+  - `json_data` (string): JSON representation of the component data to overwrite.
+
+#### `attach_script`
+Generates a C# script and schedules it for attachment to the current selection.
+- **Params**: `script_name` (string), `script_content` (string, optional).
+
+---
+
+### Asset Management
+
+#### `list_assets`
+Lists project assets.
+- **Params**: 
+  - `filter` (string, optional): t:[type], l:[label], etc.
+  - `folders` (array, optional): Folders to search within.
+
+#### `create_material`
+Generates a new material asset.
+- **Params**: `name` (string), `shader` (string, optional - Default: "Standard").
+
+#### `refresh_asset_database`
+Forces Unity to re-scan for asset changes.
+
+#### `import_asset`
+Triggers an immediate import of a specific path.
+- **Params**: `path` (string).
+
+---
+
+### UI Toolkit Automation
 
 #### `ui_list_windows`
-- **Params**: None.
-- **Result**: Returns an array of open EditorWindows with their title, type, and instance ID.
+Returns an array of all open `EditorWindow` instances.
 
 #### `ui_get_hierarchy`
-- **Params**:
-  - `window_title`: The title of the window to inspect.
-- **Result**: Returns a recursive JSON structure representing the visual element tree of the window.
+Generates a JSON tree of all `VisualElement` objects in a window.
+- **Params**: `window_title` (string).
 
 #### `ui_click`
-- **Params**:
-  - `window_title`: The title of the target window.
-  - `element_name`: The name of the visual element to click.
-- **Result**: Confirmation string.
+Simulates a click on a VisualElement by name.
+- **Params**: `window_title` (string), `element_name` (string).
 
 #### `ui_input_text`
-- **Params**:
-  - `window_title`: The title of the target window.
-  - `element_name`: The name of the target text field.
-  - `text`: The text to input.
-- **Result**: Confirmation string.
+Injects text into a text field in an Editor Window.
+- **Params**: `window_title` (string), `element_name` (string), `text` (string).
 
-### Best Practices for Extension
-If you wish to add new methods to the library:
-1. Identify the appropriate partial class (e.g., `MCPServerMethods.Scene.cs` for scene logic).
-2. For specific logic not covered by existing files, create a new partial part `MCPServerMethods.[Name].cs`.
-3. Add the method name to the switch-case in `ExecuteMethod` within `MCPServerMethods.cs`.
-4. Implement the method as a `static JToken` function.
-5. Ensure any Unity API calls are within the `Enqueue` block if they are part of a larger asynchronous workflow.
+---
+
+## ⚙️ Configuration & Tooling
+
+### Project Settings
+Go to **Edit > Project Settings > Unity MCP Server** to:
+- Configure the default server port (Default: 8081).
+
+### Command Line Arguments
+When launching Unity from terminal, you can override the port:
+```bash
+./Unity -projectPath . --mcp-port 9090
+```
+
+### Universal AI Tools (`AI/`)
+A collection of scripts for CI/CD and automated code quality:
+- `diagnose.sh`: Universal project health and compilation check.
+- `linter.sh`: Orchestrates file length, method length, and documentation checks.
