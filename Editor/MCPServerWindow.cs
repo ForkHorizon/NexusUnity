@@ -173,6 +173,30 @@ namespace UnityMCP.Editor
         {
             try
             {
+                // Security: CSRF Protection
+                string origin = context.Request.Headers["Origin"];
+                if (!string.IsNullOrEmpty(origin) && origin != "null")
+                {
+                    bool allowed = false;
+                    try
+                    {
+                        Uri uri = new Uri(origin);
+                        if (string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(uri.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase))
+                        {
+                            allowed = true;
+                        }
+                    }
+                    catch { }
+
+                    if (!allowed)
+                    {
+                        string errorJson = "{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32000, \"message\": \"Forbidden: Invalid Origin\"}, \"id\": null}";
+                        SendResponse(context, errorJson, 403);
+                        return;
+                    }
+                }
+
                 string requestBody;
                 using (var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding))
                 {
