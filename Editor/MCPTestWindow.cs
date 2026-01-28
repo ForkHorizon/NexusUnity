@@ -4,18 +4,34 @@ using UnityEngine.UIElements;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Simple test window with input and buttons for UI interaction testing.
+    /// </summary>
     public class MCPTestWindow : EditorWindow
     {
+        /// <summary>
+        /// Stores the last input value for verification.
+        /// </summary>
         public static string LastInputValue = "";
+
+        /// <summary>
+        /// Tracks if the test button has been clicked.
+        /// </summary>
         public static bool ButtonClicked = false;
 
-        [MenuItem("Tools/MCP Test Window")]
+        /// <summary>
+        /// Shows the MCP Test window.
+        /// </summary>
+        [MenuItem("Window/Unity MCP/Test Window")]
         public static void ShowWindow()
         {
             MCPTestWindow wnd = GetWindow<MCPTestWindow>();
             wnd.titleContent = new GUIContent("MCPTestWindow");
         }
 
+        /// <summary>
+        /// Creates the UI for the test window using UI Toolkit.
+        /// </summary>
         public void CreateGUI()
         {
             // Reset state

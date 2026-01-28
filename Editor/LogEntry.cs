@@ -10,15 +10,15 @@ namespace UnityMCP.Editor
     public class LogEntry
     {
         /// <summary>The message content of the log.</summary>
-        public string message;
+        public string Message;
         /// <summary>The stack trace associated with the log.</summary>
-        public string stackTrace;
+        public string StackTrace;
         /// <summary>The type of log (Log, Warning, Error, etc.).</summary>
-        public string type;
+        public string Type;
         /// <summary>The time the log was captured.</summary>
-        public string timestamp;
+        public string Timestamp;
         /// <summary>The number of times this specific log has occurred consecutively.</summary>
-        public int count;
+        public int Count;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LogEntry"/> class.
@@ -28,11 +28,11 @@ namespace UnityMCP.Editor
         /// <param name="type">The type of log.</param>
         public LogEntry(string message, string stackTrace, LogType type)
         {
-            this.message = message;
-            this.stackTrace = stackTrace;
-            this.type = type.ToString();
-            this.timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
-            this.count = 1;
+            this.Message = message;
+            this.StackTrace = stackTrace;
+            this.Type = type.ToString();
+            this.Timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+            this.Count = 1;
         }
     }
 }

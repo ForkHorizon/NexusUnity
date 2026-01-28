@@ -6,26 +6,24 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 - **Unity MCP Server**: An integrated HTTP-based server implementing the Model Context Protocol.
 - **Main Thread Execution**: Safe execution of Unity API calls from background server threads.
-- **Extensible Architecture**: Easily add new JSON-RPC methods to interact with any Unity subsystem.
-- **Primitive Generation**: Built-in methods to create and manipulate GameObjects via external commands.
-- **Dynamic Scripting**: Create and attach C# scripts to GameObjects on-the-fly.
-- **Editor UI Automation**: Inspect and interact with Unity Editor windows and UI elements (UI Toolkit).
+- **Modular Architecture**: Clean separation of concerns using partial classes (Scene, Asset, UI, Component, Core).
+- **Universal AI Tools**: Project-independent diagnostic and linting tools for high code quality.
+- **Console Log Capturing**: Real-time retrieval of Unity console logs via MCP.
 
 ## 📂 Internal Structure
 
-- `Editor/`: Documentation and implementation of the MCP Server window and processing logic.
-  - `MCPServerWindow.cs`: Manages the server lifecycle and editor UI.
-  - `MCPServerMethods.cs`: Contains the core request handling and Unity API integration.
-  - `UnityMCP.Editor.asmdef`: Assembly definition for the editor tools.
-- `Runtime/`: Placeholder for runtime-side MCP integrations.
-  - `UnityMCP.Runtime.asmdef`: Assembly definition for runtime components.
+- `Editor/`: Modularized implementation of the MCP Server and processing logic.
+  - `MCPServerWindow*.cs`: Partial classes managing the server lifecycle, UI, and log capturing.
+  - `MCPServerMethods*.cs`: Partial classes containing the core request handling (Scene, Asset, UI manipulation).
+  - `UnityMCP.Editor.asmdef`: Assembly definition with required dependencies (EditorCoroutines, Newtonsoft.Json).
+- `Runtime/`: Core runtime components for the library.
 
 ## 🚦 Usage
 
 ### Starting the Server
-1. Go to **Tools > MCP Server** in the Unity menu.
+1. Go to **Window > Unity MCP > Server** in the Unity menu.
 2. Click **Start Server**.
-3. The library will start listening on `http://localhost:8080/`.
+3. The library will start listening on `http://localhost:8081/`. (Default port 8081).
 
 ### Integration
 External tools can send JSON-RPC 2.0 requests to this endpoint to interact with the Unity Editor. See `DOCUMENTATION.MD` for the full protocol specification.

@@ -65,7 +65,8 @@ The primary component of this library is the Model Context Protocol (MCP) server
 
 ### Best Practices for Extension
 If you wish to add new methods to the library:
-1. Locate `MCPServerMethods.cs`.
-2. Add the method name to the switch-case in `ExecuteMethod`.
-3. Implement the method as a `static JToken` function.
-4. Ensure any Unity API calls are within the `Enqueue` block if they are part of a larger asynchronous workflow.
+1. Identify the appropriate partial class (e.g., `MCPServerMethods.Scene.cs` for scene logic).
+2. For specific logic not covered by existing files, create a new partial part `MCPServerMethods.[Name].cs`.
+3. Add the method name to the switch-case in `ExecuteMethod` within `MCPServerMethods.cs`.
+4. Implement the method as a `static JToken` function.
+5. Ensure any Unity API calls are within the `Enqueue` block if they are part of a larger asynchronous workflow.

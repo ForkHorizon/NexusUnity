@@ -20,6 +20,17 @@ namespace UnityMCP.Editor
             set => EditorPrefs.SetInt(PORT_KEY, value);
         }
 
+        /// <summary>
+        /// Shows the MCP Server window and initializes it.
+        /// </summary>
+        public static void ShowWindow()
+        {
+            EditorWindow.GetWindow<MCPServerWindow>("MCP Server");
+        }
+
+        /// <summary>
+        /// Creates the SettingsProvider for the MCP Server.
+        /// </summary>
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {

@@ -4,70 +4,41 @@ using UnityMCP.Editor;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 
-public static class UIVerification
+namespace UnityMCP.Editor
 {
-    [MenuItem("Tools/Verify UI Instruments")]
-    public static void Verify()
+    /// <summary>
+    /// Utility class for verifying UI state in tests.
+    /// </summary>
+    public static class UIVerification
     {
-        Debug.Log("Starting UI Verification...");
-
-        // 1. Open Test Window
-        MCPTestWindow.ShowWindow();
-
-        // Allow UI to refresh
-        // In a real integration test we would wait, but here we assume immediate availability for VisualElement creation
-        // However, CreateGUI runs when window is added.
-
-        // 2. Test ui_list_windows
-        string jsonList = "{\"jsonrpc\": \"2.0\", \"method\": \"ui_list_windows\", \"id\": 1}";
-        string responseList = MCPServerMethods.ProcessJsonRpc(jsonList);
-        Debug.Log("ui_list_windows response: " + responseList);
-
-        if (!responseList.Contains("MCPTestWindow"))
+        /// <summary>Performs UI state verification.</summary>
+        [MenuItem("Window/Unity MCP/Verify UI Instruments")]
+        public static void Verify()
         {
-            Debug.LogError("FAILED: MCPTestWindow not found in ui_list_windows");
-            return;
+            Debug.Log("Starting UI Verification...");
+            MCPTestWindow.ShowWindow();
+            TestListAndHierarchy();
+            TestInputAndClick();
+            Debug.Log("VERIFICATION SUCCESS");
         }
 
-        // 3. Test ui_get_hierarchy
-        string jsonHier = "{\"jsonrpc\": \"2.0\", \"method\": \"ui_get_hierarchy\", \"params\": {\"window_title\": \"MCPTestWindow\"}, \"id\": 2}";
-        string responseHier = MCPServerMethods.ProcessJsonRpc(jsonHier);
-        // Debug.Log("ui_get_hierarchy response: " + responseHier); // Verbose
-
-        if (!responseHier.Contains("TestButton") || !responseHier.Contains("TestInput"))
+        private static void TestListAndHierarchy()
         {
-            Debug.LogError("FAILED: TestButton or TestInput not found in hierarchy");
-            return;
+            string resp = Call("ui_list_windows", null);
+            if (!resp.Contains("MCPTestWindow")) throw new System.Exception("List failed");
+            string hier = Call("ui_get_hierarchy", new JObject { ["window_title"] = "MCPTestWindow" });
+            if (!hier.Contains("TestButton")) throw new System.Exception("Hierarchy failed");
         }
 
-        // 4. Test ui_input_text
-        string testText = "Hello MCP " + System.Guid.NewGuid();
-        string jsonInput = "{\"jsonrpc\": \"2.0\", \"method\": \"ui_input_text\", \"params\": {\"window_title\": \"MCPTestWindow\", \"element_name\": \"TestInput\", \"text\": \"" + testText + "\"}, \"id\": 3}";
-        string responseInput = MCPServerMethods.ProcessJsonRpc(jsonInput);
-        Debug.Log("ui_input_text response: " + responseInput);
-
-        if (MCPTestWindow.LastInputValue != testText)
+        private static void TestInputAndClick()
         {
-            Debug.LogError($"FAILED: Input text mismatch. Expected '{testText}', got '{MCPTestWindow.LastInputValue}'");
-            return;
+            string txt = "Test";
+            Call("ui_input_text", new JObject { ["window_title"] = "MCPTestWindow", ["element_name"] = "TestInput", ["text"] = txt });
+            if (MCPTestWindow.LastInputValue != txt) throw new System.Exception("Input failed");
+            Call("ui_click", new JObject { ["window_title"] = "MCPTestWindow", ["element_name"] = "TestButton" });
+            if (!MCPTestWindow.ButtonClicked) throw new System.Exception("Click failed");
         }
 
-        // 5. Test ui_click
-        MCPTestWindow.ButtonClicked = false;
-        string jsonClick = "{\"jsonrpc\": \"2.0\", \"method\": \"ui_click\", \"params\": {\"window_title\": \"MCPTestWindow\", \"element_name\": \"TestButton\"}, \"id\": 4}";
-        string responseClick = MCPServerMethods.ProcessJsonRpc(jsonClick);
-        Debug.Log("ui_click response: " + responseClick);
-
-        if (!MCPTestWindow.ButtonClicked)
-        {
-            Debug.LogError("FAILED: ButtonClicked flag was not set after ui_click");
-            return;
-        }
-
-        Debug.Log("VERIFICATION SUCCESS: All UI tests passed!");
-
-        // Cleanup
-        var wnd = EditorWindow.GetWindow<MCPTestWindow>();
-        if (wnd) wnd.Close();
+        private static string Call(string m, JObject p) => MCPServerMethods.ProcessJsonRpc(new JObject { ["jsonrpc"] = "2.0", ["method"] = m, ["params"] = p, ["id"] = 1 }.ToString());
     }
 }

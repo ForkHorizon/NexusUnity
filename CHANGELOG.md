@@ -2,6 +2,19 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.3.0] - 2026-01-28
+
+### Added
+- **Modular Partial Classes**: Refactored `MCPServerMethods` and `MCPServerWindow` into modular partial classes for better maintainability (Scene, Asset, UI, Component, Core, etc.).
+- **Universal AI Diagnostic Tools**: Integrated robust, project-independent diagnostic and linting scripts in the `AI/` folder.
+- **Enhanced Linter**: Improved method length detection logic to support non-public methods and standard Unity lifecycle functions.
+- **Full XML Documentation**: Comprehensive documentation for all public APIs across the modularized library.
+
+### Fixed
+- Fixed missing assembly references for `EditorCoroutines`.
+- Resolved naming convention violations and method length issues.
+- Optimized UI verification scripts and error handling.
+
 ## [1.2.0] - 2026-01-26
 
 ### Added
