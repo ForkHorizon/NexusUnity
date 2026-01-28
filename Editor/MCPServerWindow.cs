@@ -171,6 +171,34 @@ namespace UnityMCP.Editor
 
         private void HandleRequest(HttpListenerContext context)
         {
+            // Security Checks
+
+            // 1. Host Header Validation (DNS Rebinding Protection)
+            // Use Url.Host to reliably parse the host (handling ports and IPv6)
+            string host = context.Request.Url.Host;
+            if (!host.Equals("localhost", StringComparison.OrdinalIgnoreCase) &&
+                !host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+            {
+                SendResponse(context, "Invalid Host Header", 403);
+                return;
+            }
+
+            // 2. Method Validation
+            if (context.Request.HttpMethod != "POST")
+            {
+                context.Response.AddHeader("Allow", "POST");
+                SendResponse(context, "Method Not Allowed", 405);
+                return;
+            }
+
+            // 3. Content-Type Validation (CSRF Protection)
+            if (context.Request.ContentType == null ||
+                !context.Request.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+            {
+                SendResponse(context, "Unsupported Media Type: Content-Type must be application/json", 415);
+                return;
+            }
+
             try
             {
                 string requestBody;
