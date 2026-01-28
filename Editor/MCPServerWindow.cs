@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.WebSockets;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
 
@@ -22,7 +23,9 @@ namespace UnityMCP.Editor
         private HttpListener _httpListener;
         private Thread _serverThread;
         private volatile bool _isRunning = false;
-        private const int PORT = 8081;
+        private static int _port = 8081;
+        private static int? _cliPortOverride = null;
+        private volatile bool _isCompiling = false;
         private static readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
 
         // WebSocket Client Fields
@@ -46,7 +49,12 @@ namespace UnityMCP.Editor
 
         private void OnEnable()
         {
+            ParseCommandLineArgs();
+            _port = _cliPortOverride ?? MCPSettings.Port;
+
             EditorApplication.update += HandleMainThreadQueue;
+            CompilationPipeline.compilationStarted += OnCompilationStarted;
+            CompilationPipeline.compilationFinished += OnCompilationFinished;
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
@@ -60,11 +68,39 @@ namespace UnityMCP.Editor
         private void OnDisable()
         {
             EditorApplication.update -= HandleMainThreadQueue;
+            CompilationPipeline.compilationStarted -= OnCompilationStarted;
+            CompilationPipeline.compilationFinished -= OnCompilationFinished;
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             StopServer();
             DisconnectWebSocket();
+        }
+
+        private void ParseCommandLineArgs()
+        {
+            string[] args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--mcp-port" && i + 1 < args.Length)
+                {
+                    if (int.TryParse(args[i + 1], out int p))
+                    {
+                        _cliPortOverride = p;
+                        Debug.Log($"[MCP] Port overridden by CLI: {_cliPortOverride}");
+                    }
+                }
+            }
+        }
+
+        private void OnCompilationStarted(object obj)
+        {
+            _isCompiling = true;
+        }
+
+        private void OnCompilationFinished(object obj)
+        {
+            _isCompiling = false;
         }
 
         private void OnBeforeAssemblyReload()
@@ -93,7 +129,19 @@ namespace UnityMCP.Editor
         private void OnGUI()
         {
             GUILayout.Label("Unity MCP Server", EditorStyles.boldLabel);
+
+            GUILayout.BeginHorizontal();
             GUILayout.Label($"Status: {(_isRunning ? "Running" : "Stopped")}");
+            var rect = GUILayoutUtility.GetRect(20, 20);
+            EditorGUI.DrawRect(rect, _isRunning ? Color.green : Color.red);
+            GUILayout.EndHorizontal();
+
+            if (_isCompiling)
+            {
+                EditorGUILayout.HelpBox("Compiling...", MessageType.Info);
+            }
+
+            GUILayout.Label($"Port: {(_cliPortOverride ?? MCPSettings.Port)} {(_cliPortOverride.HasValue ? "(CLI)" : "")}");
 
             if (!_isRunning)
             {
@@ -137,17 +185,19 @@ namespace UnityMCP.Editor
         {
             if (_isRunning) return;
 
+            _port = _cliPortOverride ?? MCPSettings.Port;
+
             try
             {
                 _httpListener = new HttpListener();
-                _httpListener.Prefixes.Add($"http://localhost:{PORT}/");
+                _httpListener.Prefixes.Add($"http://localhost:{_port}/");
                 _httpListener.Start();
 
                 _isRunning = true;
                 _serverThread = new Thread(ServerLoop);
                 _serverThread.Start();
 
-                Debug.Log($"MCP Server started on port {PORT}");
+                Debug.Log($"MCP Server started on port {_port}");
             }
             catch (Exception e)
             {
@@ -200,6 +250,13 @@ namespace UnityMCP.Editor
 
         private void HandleRequest(HttpListenerContext context)
         {
+            if (_isCompiling)
+            {
+                string errorJson = "{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32000, \"message\": \"Server is busy compiling\"}, \"id\": null}";
+                SendResponse(context, errorJson, 503);
+                return;
+            }
+
             // Security Checks
 
             // 1. Host Header Validation (DNS Rebinding Protection)
@@ -303,6 +360,14 @@ namespace UnityMCP.Editor
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);
+        }
+
+        /// <summary>
+        /// Starts an Editor Coroutine.
+        /// </summary>
+        public static void StartCoroutine(System.Collections.IEnumerator routine)
+        {
+             Unity.EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(routine);
         }
 
         private async void ConnectWebSocket()

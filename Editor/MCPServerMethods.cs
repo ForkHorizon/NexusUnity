@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Newtonsoft.Json.Linq;
@@ -123,6 +124,7 @@ namespace UnityMCP.Editor
                 case "instantiate_prefab": return InstantiatePrefab(p);
                 case "get_root_game_objects": return GetRootGameObjects(p);
                 case "get_active_game_object": return GetActiveGameObject(p);
+                case "test_coroutine": return TestCoroutine(p);
                 default: throw new Exception($"Method not found: {method}");
             }
         }
@@ -660,6 +662,7 @@ namespace UnityMCP.Editor
                 throw new Exception($"Invalid primitive type: {typeStr}");
 
             var go = GameObject.CreatePrimitive((PrimitiveType)type);
+            Undo.RegisterCreatedObjectUndo(go, "Create Primitive");
             go.name = "MCP_" + typeStr;
             Selection.activeGameObject = go;
             return $"Created {go.name}";
@@ -706,6 +709,19 @@ namespace UnityMCP.Editor
                    "        Debug.Log(\"Hello from " + name + "!\");\n" +
                    "    }\n" +
                    "}";
+        }
+
+        private static JToken TestCoroutine(JToken p)
+        {
+            MCPServerWindow.StartCoroutine(WaitAndLog());
+            return "Coroutine started (logs in 2 seconds)";
+        }
+
+        private static System.Collections.IEnumerator WaitAndLog()
+        {
+            Debug.Log("[MCP] Coroutine started");
+            yield return new EditorWaitForSeconds(2.0f);
+            Debug.Log("[MCP] Coroutine finished after 2 seconds");
         }
 
         /// <summary>
