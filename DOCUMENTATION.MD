@@ -20,7 +20,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.4.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.5.0" } }`
 
 #### `read_logs`
 Retrieves captured console logs.
@@ -180,6 +180,11 @@ Returns all defined Tags and Layers in the project.
 Highight an object in the Unity Editor.
 - **Params**: `instance_id` (int).
 
+#### `get_children`
+Returns all direct children of a GameObject.
+- **Params**: `instance_id` (int).
+- **Result**: `[{ name, instance_id, active }]`
+
 ---
 
 ### Editor State & Control
@@ -202,7 +207,89 @@ Starts or stops the game.
 Triggers a menu command by path.
 - **Params**: `item_path` (string): e.g., "Edit/Select All".
 
+#### `pause_play_mode`
+Pauses or unpauses Play Mode.
+- **Params**: `value` (bool, optional).
+- **Result**: `{ is_paused: bool }`.
+
+#### `step_frame`
+Advances one frame while paused.
+
+#### `get_editor_state`
+Returns current editor state flags.
+- **Result**: `{ is_playing, is_paused, is_compiling, active_scene, platform }`.
+
+#### `get_project_info`
+Returns basic project metadata.
+- **Result**: `{ project_path, unity_version, platform, product_name, company_name }`.
+
 ---
+
+### Hierarchy Manipulation
+
+#### `get_children`
+Returns all direct children of a GameObject.
+- **Params**: `instance_id` (int).
+- **Result**: `[{ name, instance_id, active }]`.
+
+#### `duplicate_object`
+Creates a copy of a GameObject (Undo-supported).
+- **Params**: `instance_id` (int).
+- **Result**: `{ name, instance_id }`.
+
+#### `set_active`
+Enables or disables a GameObject explicitly.
+- **Params**: `instance_id` (int), `active` (bool).
+
+#### `set_enabled`
+Enables or disables a specific Component.
+- **Params**: `instance_id` (int), `component_name` (string), `enabled` (bool).
+
+#### `remove_component`
+Removes a component from an object (Undo-supported).
+- **Params**: `instance_id` (int), `component_name` (string).
+
+#### `set_sibling_index`
+Changes object order in hierarchy.
+- **Params**: `instance_id` (int), `index` (int | "first" | "last").
+
+---
+
+### File I/O
+
+#### `read_file`
+Reads text content from a project file.
+- **Params**: `path` (string).
+- **Result**: `{ content, length }`.
+
+#### `write_file`
+Writes text content to a project file (triggers import).
+- **Params**: `path` (string), `content` (string).
+
+---
+
+### Extended Asset Management
+
+#### `move_asset`
+Moves or renames an asset.
+- **Params**: `old_path` (string), `new_path` (string).
+
+#### `delete_asset`
+Deletes an asset file.
+- **Params**: `path` (string).
+
+#### `copy_asset`
+Duplicates an asset file.
+- **Params**: `source_path` (string), `dest_path` (string).
+
+#### `get_dependencies`
+Returns all assets required by a target asset.
+- **Params**: `path` (string), `recursive` (bool, optional - Default: true).
+- **Result**: `[ path1, path2, ... ]`.
+
+#### `create_folder`
+Creates a new folder in the project.
+- **Params**: `path` (string): e.g., "Assets/NewFolder".
 
 ### UI Toolkit Automation
 

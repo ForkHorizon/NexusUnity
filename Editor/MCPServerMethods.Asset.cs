@@ -67,5 +67,51 @@ namespace UnityMCP.Editor
             PrefabUtility.RevertPrefabInstance(go, InteractionMode.UserAction);
             return "Overrides reverted";
         }
+
+        /// <summary>Moves or renames an asset.</summary>
+        private static JToken MoveAsset(JToken p)
+        {
+            if (p?["old_path"] == null || p["new_path"] == null) throw new Exception("old_path and new_path required");
+            string result = AssetDatabase.MoveAsset(p["old_path"].ToString(), p["new_path"].ToString());
+            if (!string.IsNullOrEmpty(result)) throw new Exception(result);
+            return "OK";
+        }
+
+        /// <summary>Deletes an asset file.</summary>
+        private static JToken DeleteAsset(JToken p)
+        {
+            if (p?["path"] == null) throw new Exception("path required");
+            if (!AssetDatabase.DeleteAsset(p["path"].ToString())) throw new Exception("Delete failed");
+            return "OK";
+        }
+
+        /// <summary>Duplicates an asset file.</summary>
+        private static JToken CopyAsset(JToken p)
+        {
+            if (p?["source_path"] == null || p["dest_path"] == null) throw new Exception("source_path and dest_path required");
+            if (!AssetDatabase.CopyAsset(p["source_path"].ToString(), p["dest_path"].ToString())) throw new Exception("Copy failed");
+            return "OK";
+        }
+
+        /// <summary>Returns all assets required by a target asset.</summary>
+        private static JToken GetDependencies(JToken p)
+        {
+            if (p?["path"] == null) throw new Exception("path required");
+            bool recursive = p["recursive"]?.Value<bool>() ?? true;
+            var deps = AssetDatabase.GetDependencies(p["path"].ToString(), recursive);
+            return new JArray(deps);
+        }
+
+        /// <summary>Creates a new folder in the project.</summary>
+        private static JToken CreateFolder(JToken p)
+        {
+            if (p?["path"] == null) throw new Exception("path required (e.g., 'Assets/NewFolder')");
+            string path = p["path"].ToString();
+            string parent = System.IO.Path.GetDirectoryName(path).Replace("\\", "/");
+            string name = System.IO.Path.GetFileName(path);
+            string guid = AssetDatabase.CreateFolder(parent, name);
+            if (string.IsNullOrEmpty(guid)) throw new Exception("Failed to create folder");
+            return "OK";
+        }
     }
 }

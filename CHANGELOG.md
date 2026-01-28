@@ -2,6 +2,16 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.5.0] - 2026-01-28
+
+### Added
+- **Gap Closure Release**: 17 new JSON-RPC methods expanding toolset to 59 total.
+- **Hierarchy Manipulation**: `get_children`, `duplicate_object`, `set_active`, `set_enabled`, `remove_component`, `set_sibling_index`.
+- **File I/O**: `read_file`, `write_file` for direct project file manipulation.
+- **Asset Management**: `move_asset`, `delete_asset`, `copy_asset`, `get_dependencies`, `create_folder`.
+- **Editor State**: `get_editor_state`, `pause_play_mode`, `step_frame`, `get_project_info`.
+- **Architectural Scaling**: Dispatcher refactored into tiered sub-methods for maintainability.
+
 ## [1.4.0] - 2026-01-28
 
 ### Added
