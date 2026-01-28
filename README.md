@@ -4,12 +4,12 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 ## 🚀 Features
 
-- **Full Unity Editor Control**: 28+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
+- **Full Unity Editor Control**: 42+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
+- **AI Power Tools (v1.4.0)**: Advanced search, selection control, and prefab lifecycle management.
+- **Surgical Property Editing**: Precise manipulation of single fields without full JSON state transfers.
+- **Editor Automation**: Remote control for Play Mode, Undo/Redo, and Menu Commands.
 - **Modular Architecture**: Clean separation of concerns using partial classes for better maintainability.
 - **UI Toolkit Automation**: Inspect and interact with Unity Editor windows and visual elements.
-- **Universal AI Tools**: Project-independent diagnostic and linting tools to maintain high code quality.
-- **Console Log Capturing**: Real-time retrieval of Unity console logs via MCP.
-- **Main Thread Execution**: Safe execution of Unity API calls from background server threads.
 
 ## 📂 Internal Structure
 

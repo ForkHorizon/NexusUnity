@@ -43,5 +43,29 @@ namespace UnityMCP.Editor
             AssetDatabase.ImportAsset(p["path"].ToString());
             return "Imported";
         }
+
+        private static JToken CreatePrefab(JToken p)
+        {
+            if (p == null || p["instance_id"] == null || p["path"] == null) throw new Exception("instance_id and path required");
+            var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
+            PrefabUtility.SaveAsPrefabAsset(go, p["path"].ToString());
+            return $"Prefab created at {p["path"]}";
+        }
+
+        private static JToken ApplyPrefabOverrides(JToken p)
+        {
+            if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
+            var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
+            PrefabUtility.ApplyPrefabInstance(go, InteractionMode.UserAction);
+            return "Overrides applied";
+        }
+
+        private static JToken RevertPrefabOverrides(JToken p)
+        {
+            if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
+            var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
+            PrefabUtility.RevertPrefabInstance(go, InteractionMode.UserAction);
+            return "Overrides reverted";
+        }
     }
 }

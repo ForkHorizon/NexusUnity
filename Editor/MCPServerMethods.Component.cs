@@ -26,7 +26,7 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
-            return JToken.FromObject(comp);
+            return JToken.FromObject(comp, new Newtonsoft.Json.JsonSerializer { ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore });
         }
 
         private static JToken UpdateComponent(JToken p)

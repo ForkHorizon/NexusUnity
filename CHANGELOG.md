@@ -2,6 +2,17 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.4.0] - 2026-01-28
+
+### Added
+- **AI Power Tools Expansion**: 14 new JSON-RPC methods to enable 100% AI-driven workflows.
+- **Advanced Discovery**: New `find_objects`, `get_object_path`, `list_scenes`, and `get_tags_and_layers` methods.
+- **Editor Control**: Added `undo`, `redo`, `toggle_play_mode`, and `execute_menu_item`.
+- **Selection & View**: New `set_selection`, `focus_scene_view`, and `ping_object` for improved visual feedback.
+- **Surgical Edits**: New `set_property` method for precise manipulation of single values (bool, int, float, string, Vector3).
+- **Prefab Lifecycle**: New `create_prefab`, `apply_prefab_overrides`, and `revert_prefab_overrides`.
+- **Architectural Scaling**: Refactored the core dispatcher into categorized sub-methods to maintain clean code standards.
+
 ## [1.3.0] - 2026-01-28
 
 ### Added

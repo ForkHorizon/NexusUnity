@@ -20,7 +20,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.3.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.4.0" } }`
 
 #### `read_logs`
 Retrieves captured console logs.
@@ -81,6 +81,18 @@ Deletes an object from the scene (Undo-supported).
 Creates an instance of a prefab asset.
 - **Params**: `path` (string): Path to the prefab asset.
 
+#### `create_prefab`
+Converts a scene GameObject into a prefab asset.
+- **Params**: `instance_id` (int), `path` (string).
+
+#### `apply_prefab_overrides`
+Saves instance changes back to the source prefab.
+- **Params**: `instance_id` (int).
+
+#### `revert_prefab_overrides`
+Resets an instance to its prefab defaults.
+- **Params**: `instance_id` (int).
+
 ---
 
 ### Transforms & Components
@@ -114,6 +126,13 @@ Updates component values using Unity's `JsonUtility.FromJsonOverwrite`.
 Generates a C# script and schedules it for attachment to the current selection.
 - **Params**: `script_name` (string), `script_content` (string, optional).
 
+#### `set_property`
+Surgical update of a single property using SerializedObject.
+- **Params**: 
+  - `instance_id` (int)
+  - `property_name` (string): e.g., "m_IsActive", "m_TagString".
+  - `value` (bool | int | float | string | object): Object for Vector3 `{x,y,z}`.
+
 ---
 
 ### Asset Management
@@ -134,6 +153,54 @@ Forces Unity to re-scan for asset changes.
 #### `import_asset`
 Triggers an immediate import of a specific path.
 - **Params**: `path` (string).
+
+---
+
+### Discovery & Search
+
+#### `find_objects`
+Search the hierarchy with regex and filters.
+- **Params**: 
+  - `name` (string, optional): Regex for object name.
+  - `tag` (string, optional).
+  - `type` (string, optional): Component type name.
+- **Result**: Array of GameObject summaries.
+
+#### `get_object_path`
+Returns the full hierarchy path (breadcrumb).
+- **Params**: `instance_id` (int).
+
+#### `list_scenes`
+Lists all `.unity` files in the project.
+
+#### `get_tags_and_layers`
+Returns all defined Tags and Layers in the project.
+
+#### `ping_object`
+Highight an object in the Unity Editor.
+- **Params**: `instance_id` (int).
+
+---
+
+### Editor State & Control
+
+#### `set_selection`
+Sets the active selection in the editor.
+- **Params**: `instance_ids` (array of int).
+
+#### `focus_scene_view`
+Frames the current selection in the Scene View camera.
+
+#### `undo` / `redo`
+Triggers Unity's native Undo or Redo operation.
+
+#### `toggle_play_mode`
+Starts or stops the game.
+- **Params**: `value` (bool, optional): Explicit target state.
+
+#### `execute_menu_item`
+Triggers a menu command by path.
+- **Params**: `item_path` (string): e.g., "Edit/Select All".
 
 ---
 
