@@ -4,6 +4,7 @@ using System.Threading;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Newtonsoft.Json.Linq;
@@ -104,9 +105,354 @@ namespace UnityMCP.Editor
                 case "ui_get_hierarchy": return UIGetHierarchy(p);
                 case "ui_click": return UIClick(p);
                 case "ui_input_text": return UIInputText(p);
+                case "list_assets": return ListAssets(p);
+                case "create_material": return CreateMaterial(p);
+                case "refresh_asset_database": return RefreshAssetDatabase(p);
+                case "import_asset": return ImportAsset(p);
+                case "open_scene": return OpenScene(p);
+                case "create_scene": return CreateScene(p);
+                case "save_scene": return SaveScene(p);
+                case "get_game_object": return GetGameObject(p);
+                case "create_game_object": return CreateGameObject(p);
+                case "destroy_game_object": return DestroyGameObject(p);
+                case "set_transform": return SetTransform(p);
+                case "set_parent": return SetParent(p);
+                case "add_component": return AddComponent(p);
+                case "inspect_component": return InspectComponent(p);
+                case "update_component": return UpdateComponent(p);
+                case "instantiate_prefab": return InstantiatePrefab(p);
                 default: throw new Exception($"Method not found: {method}");
             }
         }
+
+        #region Component & Prefab
+
+        private static JToken AddComponent(JToken p)
+        {
+            if (p == null || p["instance_id"] == null || p["component_name"] == null)
+                throw new Exception("instance_id and component_name required");
+
+            int id = (int)p["instance_id"];
+            string componentName = p["component_name"].ToString();
+
+            var go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            if (go == null) throw new Exception($"GameObject {id} not found");
+
+            Type type = FindType(componentName);
+            if (type == null) throw new Exception($"Type '{componentName}' not found");
+
+            var component = Undo.AddComponent(go, type);
+            return $"Added {componentName} to {go.name}";
+        }
+
+        private static JToken InspectComponent(JToken p)
+        {
+            if (p == null || p["instance_id"] == null || p["component_name"] == null)
+                throw new Exception("instance_id and component_name required");
+
+            int id = (int)p["instance_id"];
+            string componentName = p["component_name"].ToString();
+
+            var go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            if (go == null) throw new Exception($"GameObject {id} not found");
+
+            var component = go.GetComponent(componentName);
+            if (component == null) throw new Exception($"Component '{componentName}' not found on {go.name}");
+
+            return JObject.Parse(JsonUtility.ToJson(component, true));
+        }
+
+        private static JToken UpdateComponent(JToken p)
+        {
+            if (p == null || p["instance_id"] == null || p["component_name"] == null || p["json_data"] == null)
+                throw new Exception("instance_id, component_name, and json_data required");
+
+            int id = (int)p["instance_id"];
+            string componentName = p["component_name"].ToString();
+            string jsonData = p["json_data"].ToString(); // Expecting raw JSON string or object?
+            // If json_data is a JObject, ToString() returns formatted JSON which FromJsonOverwrite accepts.
+
+            var go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            if (go == null) throw new Exception($"GameObject {id} not found");
+
+            var component = go.GetComponent(componentName);
+            if (component == null) throw new Exception($"Component '{componentName}' not found on {go.name}");
+
+            Undo.RecordObject(component, "Update Component");
+            JsonUtility.FromJsonOverwrite(jsonData, component);
+
+            return $"Updated {componentName} on {go.name}";
+        }
+
+        private static JToken InstantiatePrefab(JToken p)
+        {
+            if (p == null || p["path"] == null) throw new Exception("path is required");
+            string path = p["path"].ToString();
+
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null) throw new Exception($"Prefab not found at {path}");
+
+            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Undo.RegisterCreatedObjectUndo(instance, "Instantiate Prefab");
+
+            if (p["parent_id"] != null)
+            {
+                int parentId = (int)p["parent_id"];
+                var parent = EditorUtility.InstanceIDToObject(parentId) as GameObject;
+                if (parent != null) instance.transform.SetParent(parent.transform);
+            }
+
+            if (p["position"] != null) instance.transform.position = ParseVector3(p["position"], instance.transform.position);
+            if (p["rotation"] != null) instance.transform.eulerAngles = ParseVector3(p["rotation"], instance.transform.eulerAngles);
+
+            Selection.activeGameObject = instance;
+            return SerializeGameObject(instance);
+        }
+
+        private static Type FindType(string name)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var type = assembly.GetType(name);
+                if (type != null) return type;
+                // Try ignoring namespace?
+                type = assembly.GetTypes().FirstOrDefault(t => t.Name == name);
+                if (type != null) return type;
+            }
+            return null;
+        }
+
+        #endregion
+
+        #region GameObject Control
+
+        private static JToken GetGameObject(JToken p)
+        {
+            if (p == null) throw new Exception("params required");
+
+            GameObject go = null;
+
+            if (p["instance_id"] != null)
+            {
+                int id = (int)p["instance_id"];
+                go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            }
+            else if (p["name"] != null)
+            {
+                // Simple search by name (inefficient for large scenes but simple)
+                string name = p["name"].ToString();
+                go = GameObject.Find(name);
+            }
+
+            if (go == null) throw new Exception("GameObject not found");
+
+            return SerializeGameObject(go);
+        }
+
+        private static JToken CreateGameObject(JToken p)
+        {
+            if (p == null || p["name"] == null) throw new Exception("name is required");
+            string name = p["name"].ToString();
+
+            GameObject go = new GameObject(name);
+
+            if (p["parent_id"] != null)
+            {
+                int parentId = (int)p["parent_id"];
+                var parent = EditorUtility.InstanceIDToObject(parentId) as GameObject;
+                if (parent != null) go.transform.SetParent(parent.transform);
+            }
+
+            Undo.RegisterCreatedObjectUndo(go, "Create Object");
+            Selection.activeGameObject = go;
+
+            return SerializeGameObject(go);
+        }
+
+        private static JToken DestroyGameObject(JToken p)
+        {
+            if (p == null || p["instance_id"] == null) throw new Exception("instance_id is required");
+            int id = (int)p["instance_id"];
+
+            var go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            if (go == null) throw new Exception($"GameObject with ID {id} not found");
+
+            Undo.DestroyObjectImmediate(go);
+            return $"Destroyed GameObject {id}";
+        }
+
+        private static JToken SetTransform(JToken p)
+        {
+            if (p == null || p["instance_id"] == null) throw new Exception("instance_id is required");
+            int id = (int)p["instance_id"];
+
+            var go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            if (go == null) throw new Exception($"GameObject with ID {id} not found");
+
+            Undo.RecordObject(go.transform, "Set Transform");
+
+            if (p["position"] != null) go.transform.position = ParseVector3(p["position"], go.transform.position);
+            if (p["rotation"] != null) go.transform.eulerAngles = ParseVector3(p["rotation"], go.transform.eulerAngles); // Input as Euler
+            if (p["scale"] != null) go.transform.localScale = ParseVector3(p["scale"], go.transform.localScale);
+
+            return SerializeGameObject(go);
+        }
+
+        private static JToken SetParent(JToken p)
+        {
+            if (p == null || p["instance_id"] == null) throw new Exception("instance_id is required");
+            int id = (int)p["instance_id"];
+
+            var go = EditorUtility.InstanceIDToObject(id) as GameObject;
+            if (go == null) throw new Exception($"GameObject with ID {id} not found");
+
+            Transform newParent = null;
+            if (p["parent_id"] != null)
+            {
+                int parentId = (int)p["parent_id"];
+                var parentGo = EditorUtility.InstanceIDToObject(parentId) as GameObject;
+                if (parentGo != null) newParent = parentGo.transform;
+            }
+
+            Undo.SetTransformParent(go.transform, newParent, "Set Parent");
+            return $"Set parent of {go.name} to {(newParent != null ? newParent.name : "root")}";
+        }
+
+        private static JObject SerializeGameObject(GameObject go)
+        {
+            return new JObject
+            {
+                ["name"] = go.name,
+                ["instance_id"] = go.GetInstanceID(),
+                ["position"] = new JObject { ["x"] = go.transform.position.x, ["y"] = go.transform.position.y, ["z"] = go.transform.position.z },
+                ["rotation"] = new JObject { ["x"] = go.transform.eulerAngles.x, ["y"] = go.transform.eulerAngles.y, ["z"] = go.transform.eulerAngles.z },
+                ["scale"] = new JObject { ["x"] = go.transform.localScale.x, ["y"] = go.transform.localScale.y, ["z"] = go.transform.localScale.z }
+            };
+        }
+
+        private static Vector3 ParseVector3(JToken token, Vector3 defaultValue)
+        {
+            if (token == null) return defaultValue;
+
+            float x = token["x"] != null ? (float)token["x"] : defaultValue.x;
+            float y = token["y"] != null ? (float)token["y"] : defaultValue.y;
+            float z = token["z"] != null ? (float)token["z"] : defaultValue.z;
+
+            return new Vector3(x, y, z);
+        }
+
+        #endregion
+
+        #region Asset Management
+
+        private static JToken ListAssets(JToken p)
+        {
+            string filter = "t:Object";
+            string[] searchInFolders = null;
+
+            if (p != null)
+            {
+                if (p["filter"] != null) filter = p["filter"].ToString();
+                if (p["folders"] != null) searchInFolders = p["folders"].ToObject<string[]>();
+            }
+
+            string[] guids = AssetDatabase.FindAssets(filter, searchInFolders);
+            JArray list = new JArray();
+
+            // Limit results to avoid massive payloads
+            int limit = 100;
+            foreach (string guid in guids.Take(limit))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                list.Add(new JObject
+                {
+                    ["path"] = path,
+                    ["guid"] = guid,
+                    ["type"] = AssetDatabase.GetMainAssetTypeAtPath(path).Name
+                });
+            }
+
+            return list;
+        }
+
+        private static JToken CreateMaterial(JToken p)
+        {
+            if (p == null || p["name"] == null) throw new Exception("name is required");
+            string name = p["name"].ToString();
+            string shaderName = p["shader"] != null ? p["shader"].ToString() : "Standard";
+
+            Shader shader = Shader.Find(shaderName);
+            if (shader == null) throw new Exception($"Shader '{shaderName}' not found");
+
+            Material mat = new Material(shader);
+            string path = Path.Combine("Assets", $"{name}.mat");
+            path = AssetDatabase.GenerateUniqueAssetPath(path);
+
+            AssetDatabase.CreateAsset(mat, path);
+            AssetDatabase.SaveAssets();
+
+            return $"Material created at {path}";
+        }
+
+        private static JToken RefreshAssetDatabase(JToken p)
+        {
+            AssetDatabase.Refresh();
+            return "AssetDatabase refreshed";
+        }
+
+        private static JToken ImportAsset(JToken p)
+        {
+            if (p == null || p["path"] == null) throw new Exception("path is required");
+            string path = p["path"].ToString();
+            AssetDatabase.ImportAsset(path);
+            return $"Imported asset at {path}";
+        }
+
+        #endregion
+
+        #region Scene Management
+
+        private static JToken OpenScene(JToken p)
+        {
+            if (p == null || p["path"] == null) throw new Exception("path is required");
+            string path = p["path"].ToString();
+
+            if (!File.Exists(path)) throw new Exception($"Scene file not found: {path}");
+
+            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                EditorSceneManager.OpenScene(path);
+                return $"Opened scene: {path}";
+            }
+            return "Open scene cancelled by user";
+        }
+
+        private static JToken CreateScene(JToken p)
+        {
+            string name = "New Scene";
+            if (p != null && p["name"] != null) name = p["name"].ToString();
+
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+
+            // We can't set the name until we save, but we can return the path if we saved it?
+            // Usually new scenes are untitled.
+            return "Created new scene";
+        }
+
+        private static JToken SaveScene(JToken p)
+        {
+            if (p == null || p["path"] == null) throw new Exception("path is required");
+            string path = p["path"].ToString();
+
+            if (!path.EndsWith(".unity")) path += ".unity";
+
+            var scene = EditorSceneManager.GetActiveScene();
+            bool success = EditorSceneManager.SaveScene(scene, path);
+
+            return success ? $"Saved scene to {path}" : "Failed to save scene";
+        }
+
+        #endregion
 
         #region UI Instruments
 
