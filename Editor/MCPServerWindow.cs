@@ -6,6 +6,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Net.WebSockets;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
@@ -22,6 +24,12 @@ namespace UnityMCP.Editor
         private volatile bool _isRunning = false;
         private const int PORT = 8081;
         private static readonly ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
+
+        // WebSocket Client Fields
+        private ClientWebSocket _webSocket;
+        private CancellationTokenSource _wsCts;
+        private string _wsUrl = "ws://localhost:8080";
+        private bool _wsConnected = false;
 
         private static readonly List<LogEntry> _logEntries = new List<LogEntry>();
         private static readonly object _logLock = new object();
@@ -56,6 +64,7 @@ namespace UnityMCP.Editor
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             StopServer();
+            DisconnectWebSocket();
         }
 
         private void OnBeforeAssemblyReload()
@@ -100,6 +109,26 @@ namespace UnityMCP.Editor
                 {
                     StopServer();
                     SessionState.SetBool("MCP_Server_Running", false);
+                }
+            }
+
+            GUILayout.Space(20);
+            GUILayout.Label("WebSocket Client Bridge", EditorStyles.boldLabel);
+            _wsUrl = EditorGUILayout.TextField("Bridge URL", _wsUrl);
+
+            if (!_wsConnected)
+            {
+                if (GUILayout.Button("Connect to Bridge"))
+                {
+                    ConnectWebSocket();
+                }
+            }
+            else
+            {
+                GUILayout.Label("Status: Connected");
+                if (GUILayout.Button("Disconnect"))
+                {
+                    DisconnectWebSocket();
                 }
             }
         }
@@ -274,6 +303,109 @@ namespace UnityMCP.Editor
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);
+        }
+
+        private async void ConnectWebSocket()
+        {
+            if (_webSocket != null) return;
+
+            try
+            {
+                _webSocket = new ClientWebSocket();
+                _wsCts = new CancellationTokenSource();
+                await _webSocket.ConnectAsync(new Uri(_wsUrl), _wsCts.Token);
+                _wsConnected = true;
+                Debug.Log($"Connected to MCP Bridge at {_wsUrl}");
+
+                // Fire and forget receive loop on background thread.
+                // Critical: Must run on background thread to avoid deadlock with Main Thread Dispatcher.
+                _ = Task.Run(ReceiveWebsocketLoop);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"WebSocket connection failed: {e.Message}");
+                DisconnectWebSocket();
+            }
+        }
+
+        private void DisconnectWebSocket()
+        {
+            if (_wsCts != null)
+            {
+                _wsCts.Cancel();
+                _wsCts.Dispose();
+                _wsCts = null;
+            }
+
+            if (_webSocket != null)
+            {
+                try
+                {
+                    // We can't wait too long on main thread or GUI thread
+                    _webSocket.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Error disposing websocket: {e.Message}");
+                }
+                finally {
+                    _webSocket = null;
+                }
+            }
+
+            _wsConnected = false;
+            // Debug.Log("WebSocket disconnected");
+        }
+
+        private async Task ReceiveWebsocketLoop()
+        {
+            var buffer = new byte[32768]; // 32KB buffer
+            try
+            {
+                while (_webSocket != null && _webSocket.State == WebSocketState.Open && !_wsCts.IsCancellationRequested)
+                {
+                    WebSocketReceiveResult result;
+                    using (var ms = new MemoryStream())
+                    {
+                        do
+                        {
+                            result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _wsCts.Token).ConfigureAwait(false);
+                            if (result.MessageType == WebSocketMessageType.Close) break;
+                            ms.Write(buffer, 0, result.Count);
+                        } while (!result.EndOfMessage);
+
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None).ConfigureAwait(false);
+                            _wsConnected = false;
+                            break;
+                        }
+
+                        if (result.MessageType == WebSocketMessageType.Text)
+                        {
+                            string msg = Encoding.UTF8.GetString(ms.ToArray());
+
+                            // Process Request
+                            string response = MCPServerMethods.ProcessJsonRpc(msg);
+
+                            // Send Response
+                            if (!string.IsNullOrEmpty(response) && _webSocket != null && _webSocket.State == WebSocketState.Open)
+                            {
+                                byte[] respBytes = Encoding.UTF8.GetBytes(response);
+                                await _webSocket.SendAsync(new ArraySegment<byte>(respBytes), WebSocketMessageType.Text, true, _wsCts.Token).ConfigureAwait(false);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (_wsCts != null && !_wsCts.IsCancellationRequested)
+                {
+                    Debug.LogError($"WebSocket receive error: {e.Message}");
+                }
+                _wsConnected = false;
+            }
         }
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
