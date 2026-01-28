@@ -121,6 +121,8 @@ namespace UnityMCP.Editor
                 case "inspect_component": return InspectComponent(p);
                 case "update_component": return UpdateComponent(p);
                 case "instantiate_prefab": return InstantiatePrefab(p);
+                case "get_root_game_objects": return GetRootGameObjects(p);
+                case "get_active_game_object": return GetActiveGameObject(p);
                 default: throw new Exception($"Method not found: {method}");
             }
         }
@@ -279,6 +281,23 @@ namespace UnityMCP.Editor
 
             Undo.DestroyObjectImmediate(go);
             return $"Destroyed GameObject {id}";
+        }
+
+        private static JToken GetRootGameObjects(JToken p)
+        {
+            var roots = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+            JArray list = new JArray();
+            foreach (var go in roots)
+            {
+                list.Add(SerializeGameObject(go));
+            }
+            return list;
+        }
+
+        private static JToken GetActiveGameObject(JToken p)
+        {
+            if (Selection.activeGameObject == null) return JValue.CreateNull();
+            return SerializeGameObject(Selection.activeGameObject);
         }
 
         private static JToken SetTransform(JToken p)

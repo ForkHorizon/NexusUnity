@@ -66,6 +66,22 @@ namespace UnityMCP.Editor
             });
             Debug.Log($"Set Transform: {transRes}");
 
+            // 8. Get Root GameObjects
+            string rootsRes = Call("get_root_game_objects", null);
+            Debug.Log($"Get Root GameObjects: {rootsRes}");
+
+            // 9. Get Active GameObject
+            string activeRes = Call("get_active_game_object", null);
+            Debug.Log($"Get Active GameObject: {activeRes}");
+
+            // 10. List Assets
+            string assetsRes = Call("list_assets", new JObject { ["filter"] = "t:Material" });
+            Debug.Log($"List Assets (Materials): {assetsRes}");
+
+            // 11. Read Logs
+            string logsRes = Call("read_logs", new JObject { ["count"] = 5 });
+            Debug.Log($"Read Logs: {logsRes}");
+
             Debug.Log("Verification Complete. Check Console for details.");
         }
 
