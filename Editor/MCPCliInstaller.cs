@@ -53,10 +53,11 @@ namespace UnityMCP.Editor
             string command = $"gemini mcp add nexus-unity python3 \"{scriptPath}\"";
             UnityEngine.Debug.Log($"[MCP] Executing: {command}");
 
+            bool isWindows = Application.platform == RuntimePlatform.WindowsEditor;
             ProcessStartInfo psi = new ProcessStartInfo
             {
-                FileName = "/bin/bash",
-                Arguments = $"-c \"{command}\"",
+                FileName = isWindows ? "cmd.exe" : "/bin/bash",
+                Arguments = isWindows ? $"/c \"{command}\"" : $"-c \"{command}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

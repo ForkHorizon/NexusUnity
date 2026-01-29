@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.5] - 2026-01-29
+
+### Fixed
+- **UPM Installation Fix**: Removed hardcoded precompiled assembly references from `UnityMCP.Editor.asmdef`. This resolves the "Duplicate DLL" errors when importing the library into projects that already use Newtonsoft.Json.
+- **Cross-Platform Installer**: Updated `MCPCliInstaller` to support both Windows (`cmd.exe`) and Mac/Linux (`bash`), ensuring the "Link to Gemini CLI" feature works across all development environments.
+
 ## [1.6.4] - 2026-01-29
 
 ### Fixed
