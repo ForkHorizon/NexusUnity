@@ -13,7 +13,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.8.0" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.8.3" } };
 
         private static JToken CreatePrimitive(JToken p)
         {
@@ -21,7 +21,7 @@ namespace UnityMCP.Editor
             var go = GameObject.CreatePrimitive((PrimitiveType)type);
             Undo.RegisterCreatedObjectUndo(go, "Create Primitive");
             Selection.activeGameObject = go;
-            return $"Created {go.name}";
+            return SerializeGameObject(go);
         }
 
         private static JToken AttachScript(JToken p)

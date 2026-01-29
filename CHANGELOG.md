@@ -2,6 +2,23 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.8.3] - 2026-01-29
+
+### Fixed
+- **Server Lifecycle Persistence**: Refactored `MCPServerWindow` to correctly persist the "Running" state through Unity domain reloads (compilation). The server will now automatically restart after scripts are modified.
+- **Reliable Demo Automation**: Updated `AI/demo_presentation.py` with intelligent waiting logic to handle Unity compilation delays, ensuring smooth recording sessions.
+
+## [1.8.2] - 2026-01-29
+
+### Improved
+- **API Consistency**: Updated `CreatePrimitive` to return full serialized GameObject details (ID and Name) instead of a status string. This enables high-speed automation scripts to immediately interact with newly created objects.
+- **Cinematic Tools**: Released the `AI/demo_presentation.py` script for high-performance autonomous demonstrations.
+
+## [1.8.1] - 2026-01-29
+
+### Added
+- **Cinema Mode**: Introduced the initial cinematic demonstration script for automated scene building and presentation.
+
 ## [1.8.0] - 2026-01-29
 
 ### Added

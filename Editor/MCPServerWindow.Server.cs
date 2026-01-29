@@ -23,9 +23,18 @@ namespace UnityMCP.Editor
             _listener = new HttpListener();
             _listener.Prefixes.Add($"http://*:{_port}/");
             _listener.Start();
-            SessionState.SetBool("MCP_Server_Running", true);
+            SessionState.SetBool("MCP_Server_Running", true); // Persist intent through reloads
             Task.Run(() => ServerLoop(_cts.Token));
             Debug.Log($"[MCP] Server started on port {_port}");
+        }
+
+        private void StopServer()
+        {
+            SessionState.SetBool("MCP_Server_Running", false); // Clear intent
+            _cts?.Cancel();
+            if (_listener != null && _listener.IsListening) _listener.Stop();
+            _isRunning = false;
+            Debug.Log("[MCP] Server stopped manually");
         }
 
         private async Task ServerLoop(CancellationToken token)

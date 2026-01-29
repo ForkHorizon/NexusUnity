@@ -51,7 +51,11 @@ namespace UnityMCP.Editor
         {
             EditorApplication.update -= HandleMainThreadQueue;
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-            StopServer();
+            
+            // Only cancel background tasks, don't clear the persistent "running" intent
+            _cts?.Cancel();
+            if (_listener != null && _listener.IsListening) _listener.Stop();
+            _isRunning = false;
         }
 
         private void ParseCommandLineArgs()
@@ -148,18 +152,11 @@ namespace UnityMCP.Editor
             if (GUILayout.Button("Verify MCP Logs")) LogVerification.Verify();
         }
 
-        private void StopServer()
-        {
-            _cts?.Cancel();
-            _listener?.Stop();
-            _isRunning = false;
-            SessionState.SetBool("MCP_Server_Running", false);
-        }
-
         private void HandleMainThreadQueue()
         {
             while (_mainThreadQueue.TryDequeue(out var action)) action?.Invoke();
         }
+
 
         /// <summary>Enqueues an action to be executed on the main thread.</summary>
         public static void Enqueue(Action action) => _mainThreadQueue.Enqueue(action);
