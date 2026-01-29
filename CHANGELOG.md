@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.5] - 2026-01-29
+
+### Fixed
+- **Regression Fix**: Restored the missing `ParseCommandLineArgs` method in `MCPServerWindow` to resolve compilation errors.
+- **Linter Compliance**: Refactored the CLI installer to adhere to method length limits.
+- **GEMINI.md Update**: Formalized the requirement for mandatory pre-push verification of compilation and functionality.
+
 ## [1.7.4] - 2026-01-29
 
 ### Improved

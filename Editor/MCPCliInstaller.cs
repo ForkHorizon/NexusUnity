@@ -52,29 +52,18 @@ namespace UnityMCP.Editor
         {
             if (Application.platform == RuntimePlatform.WindowsEditor) return name;
 
-            // Common macOS paths for Homebrew and system binaries
-            string[] searchPaths = {
-                $"/opt/homebrew/bin/{name}",
-                $"/usr/local/bin/{name}",
-                $"/usr/bin/{name}",
-                $"/bin/{name}"
-            };
-
+            string[] searchPaths = { $"/opt/homebrew/bin/{name}", $"/usr/local/bin/{name}", $"/usr/bin/{name}", $"/bin/{name}" };
             foreach (string path in searchPaths)
             {
                 if (File.Exists(path)) return path;
             }
 
-            // Fallback to 'which' command
-            ProcessStartInfo psi = new ProcessStartInfo
-            {
-                FileName = "/usr/bin/which",
-                Arguments = name,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            return GetPathFromWhich(name);
+        }
 
+        private static string GetPathFromWhich(string name)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo { FileName = "/usr/bin/which", Arguments = name, RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
             try
             {
                 using (Process p = Process.Start(psi))
@@ -85,36 +74,41 @@ namespace UnityMCP.Editor
                 }
             }
             catch {{ }}
-
-            return name; // Return original name if not found
+            return name;
         }
 
         private static void ExecuteLinkCommand(string scriptPath)
         {
             string geminiPath = ResolveExecutablePath("gemini");
             string pythonPath = ResolveExecutablePath("python3");
-            
             string command = $"{geminiPath} mcp add nexus-unity \"{pythonPath}\" \"{scriptPath}\"";
-            UnityEngine.Debug.Log($"[MCP] Executing: {command}");
+            
+            ProcessStartInfo psi = CreateProcessStartInfo(command);
+            RunInstallerProcess(psi, geminiPath);
+        }
 
+        private static ProcessStartInfo CreateProcessStartInfo(string command)
+        {
             bool isWindows = Application.platform == RuntimePlatform.WindowsEditor;
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = isWindows ? "cmd.exe" : "/bin/bash",
                 Arguments = isWindows ? $"/c \"{command}\"" : $"-c \"{command}\"",
-                RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
 
-            // On macOS, try to add common paths to the PATH env var for the process
             if (!isWindows)
             {
                 string currentPath = psi.EnvironmentVariables["PATH"] ?? "";
                 psi.EnvironmentVariables["PATH"] = $"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:{currentPath}";
             }
+            return psi;
+        }
 
+        private static void RunInstallerProcess(ProcessStartInfo psi, string geminiPath)
+        {
             using (Process p = Process.Start(psi))
             {
                 string error = p.StandardError.ReadToEnd();
@@ -126,7 +120,7 @@ namespace UnityMCP.Editor
                 }
                 else
                 {
-                    string msg = $"Failed to link to Gemini CLI.\n\nExit Code: {p.ExitCode}\nError: {error}\n\nPath used: {geminiPath}\n\nEnsure 'gemini' is installed globally on your macOS system.";
+                    string msg = $"Failed to link to Gemini CLI.\n\nExit Code: {p.ExitCode}\nError: {error}\n\nPath used: {geminiPath}";
                     UnityEngine.Debug.LogError($"[MCP] {msg}");
                     EditorUtility.DisplayDialog("MCP Error", msg, "OK");
                 }

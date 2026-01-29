@@ -47,6 +47,20 @@ namespace UnityMCP.Editor
             CheckCliLinkStatus();
         }
 
+        private void OnDisable()
+        {
+            EditorApplication.update -= HandleMainThreadQueue;
+            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
+            StopServer();
+        }
+
+        private void ParseCommandLineArgs()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+                if (args[i] == "--mcp-port" && int.TryParse(args[i + 1], out int p)) _cliPortOverride = p;
+        }
+
         private void CheckCliLinkStatus()
         {
             // Simple check: run gemini mcp list and see if we are in it
