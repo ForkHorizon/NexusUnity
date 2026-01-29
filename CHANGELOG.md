@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.1] - 2026-01-29
+
+### Changed
+- **UI Consolidation**: Refactored the Unity Editor menu structure. Replaced the cluttered "Window > Unity MCP" submenus with a single, centralized "Window > Nexus Unity" control panel. 
+- **Tabbed Interface**: The new panel features a tabbed layout for managing the Server, Developer Tools, and API Verification in one place.
+
 ## [1.7.0] - 2026-01-29
 
 ### Improved

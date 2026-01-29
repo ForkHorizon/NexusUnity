@@ -24,11 +24,14 @@ namespace UnityMCP.Editor
         private int? _cliPortOverride;
         private bool _isCompiling;
 
+        private int _selectedTab = 0;
+        private readonly string[] _tabs = { "Server", "Tools", "Verification" };
+
         /// <summary>
-        /// Shows the MCP Server window and initializes it.
+        /// Shows the main Nexus Unity window and initializes it.
         /// </summary>
-        [MenuItem("Window/Unity MCP/Server")]
-        public static void ShowWindow() => GetWindow<MCPServerWindow>("MCP Server");
+        [MenuItem("Window/Nexus Unity")]
+        public static void ShowWindow() => GetWindow<MCPServerWindow>("Nexus Unity");
 
         private void OnEnable()
         {
@@ -41,26 +44,48 @@ namespace UnityMCP.Editor
             if (SessionState.GetBool("MCP_Server_Running", false)) StartServer();
         }
 
-        private void OnDisable()
-        {
-            EditorApplication.update -= HandleMainThreadQueue;
-            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-            StopServer();
-        }
-
-        private void ParseCommandLineArgs()
-        {
-            string[] args = Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length - 1; i++)
-                if (args[i] == "--mcp-port" && int.TryParse(args[i + 1], out int p)) _cliPortOverride = p;
-        }
-
         private void OnGUI()
+        {
+            _selectedTab = GUILayout.Toolbar(_selectedTab, _tabs);
+            EditorGUILayout.Space();
+
+            switch (_selectedTab)
+            {
+                case 0: DrawServerTab(); break;
+                case 1: DrawToolsTab(); break;
+                case 2: DrawVerificationTab(); break;
+            }
+        }
+
+        private void DrawServerTab()
         {
             GUILayout.Label("MCP Server Status", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(_isRunning ? $"Running on port {_port}" : "Server Stopped", _isRunning ? MessageType.Info : MessageType.Warning);
-            if (!_isRunning && GUILayout.Button("Start Server")) StartServer();
-            if (_isRunning && GUILayout.Button("Stop Server")) StopServer();
+            
+            if (!_isRunning && GUILayout.Button("Start Server", GUILayout.Height(30))) StartServer();
+            if (_isRunning && GUILayout.Button("Stop Server", GUILayout.Height(30))) StopServer();
+
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Link to Gemini CLI")) MCPCliInstaller.LinkToGemini();
+        }
+
+        private void DrawToolsTab()
+        {
+            GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
+            if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button("Clear All Logs")) ClearLogs();
+        }
+
+        private void DrawVerificationTab()
+        {
+            GUILayout.Label("API Verification", EditorStyles.boldLabel);
+            if (GUILayout.Button("Run Full API Verification")) 
+            {
+                // We'll call the method from MCPVerificationWindow directly if possible, or just open it
+                GetWindow<MCPVerificationWindow>().Show();
+            }
+            if (GUILayout.Button("Verify UI Instruments")) UIVerification.Verify();
+            if (GUILayout.Button("Verify MCP Logs")) LogVerification.Verify();
         }
 
         private void StopServer()

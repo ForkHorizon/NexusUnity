@@ -21,11 +21,11 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Shows the MCP Server window and initializes it.
+        /// Shows the main Nexus Unity window.
         /// </summary>
         public static void ShowWindow()
         {
-            EditorWindow.GetWindow<MCPServerWindow>("MCP Server");
+            EditorWindow.GetWindow<MCPServerWindow>("Nexus Unity");
         }
 
         /// <summary>
@@ -34,9 +34,9 @@ namespace UnityMCP.Editor
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
-            var provider = new SettingsProvider("Project/Unity MCP Server", SettingsScope.Project)
+            var provider = new SettingsProvider("Project/Nexus Unity", SettingsScope.Project)
             {
-                label = "Unity MCP Server",
+                label = "Nexus Unity",
                 guiHandler = (searchContext) =>
                 {
                     EditorGUILayout.Space();

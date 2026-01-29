@@ -12,7 +12,6 @@ namespace UnityMCP.Editor
     public static class UIVerification
     {
         /// <summary>Performs UI state verification.</summary>
-        [MenuItem("Window/Unity MCP/Verify UI Instruments")]
         public static void Verify()
         {
             Debug.Log("Starting UI Verification...");

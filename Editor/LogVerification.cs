@@ -13,7 +13,6 @@ public static class LogVerification
     /// <summary>
     /// Executes a verification sequence: hooks logs, generates test logs, queries via MCP, and validates results.
     /// </summary>
-    [MenuItem("Tools/Verify MCP Logs")]
     public static void Verify()
     {
         Debug.Log("Starting Verification...");

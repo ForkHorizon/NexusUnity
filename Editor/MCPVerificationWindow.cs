@@ -10,7 +10,6 @@ namespace UnityMCP.Editor
     public class MCPVerificationWindow : EditorWindow
     {
         /// <summary>Shows the MCP Verification window.</summary>
-        [MenuItem("Window/Unity MCP/Verification")]
         public static void ShowWindow() => GetWindow<MCPVerificationWindow>("MCP Verification");
 
         private void OnGUI()
