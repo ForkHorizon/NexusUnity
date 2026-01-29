@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.2] - 2026-01-29
+
+### Fixed
+- **CLI Installer Reliability**: Improved the bridge script discovery logic by using directory-relative pathing and a project-wide fallback, ensuring it works across complex project structures and Package Manager setups.
+
 ## [1.6.1] - 2026-01-29
 
 ### Fixed

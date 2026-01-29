@@ -10,24 +10,43 @@ namespace UnityMCP.Editor
         [MenuItem("Window/Unity MCP/Link to Gemini CLI")]
         public static void LinkToGemini()
         {
-            // Dynamically find the script path to support both Assets and Packages folders
-            string[] guids = AssetDatabase.FindAssets("nexus_unity_bridge t:DefaultAsset");
+            // Find the directory where this script is located
+            string[] guids = AssetDatabase.FindAssets("MCPCliInstaller t:Script");
             string scriptPath = "";
             
             foreach (var guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (path.EndsWith("nexus_unity_bridge.py"))
+                if (path.Contains("NexusUnity")) // Ensure we are in our lib, not a name collision
                 {
-                    scriptPath = Path.GetFullPath(path);
-                    break;
+                    string dir = Path.GetDirectoryName(path);
+                    string potentialBridge = Path.Combine(dir, "nexus_unity_bridge.py");
+                    if (File.Exists(Path.GetFullPath(potentialBridge)))
+                    {
+                        scriptPath = Path.GetFullPath(potentialBridge);
+                        break;
+                    }
+                }
+            }
+
+            // Fallback: search all assets for the filename
+            if (string.IsNullOrEmpty(scriptPath))
+            {
+                string[] allPaths = AssetDatabase.GetAllAssetPaths();
+                foreach (var path in allPaths)
+                {
+                    if (path.EndsWith("nexus_unity_bridge.py"))
+                    {
+                        scriptPath = Path.GetFullPath(path);
+                        break;
+                    }
                 }
             }
 
             if (string.IsNullOrEmpty(scriptPath) || !File.Exists(scriptPath))
             {
                 UnityEngine.Debug.LogError("[MCP] Could not find 'nexus_unity_bridge.py' in the project.");
-                EditorUtility.DisplayDialog("MCP Error", "Could not find 'nexus_unity_bridge.py'.\n\nEnsure the library is correctly imported.", "OK");
+                EditorUtility.DisplayDialog("MCP Error", "Could not find 'nexus_unity_bridge.py'.\n\nEnsure the library is correctly imported and that the .py file has not been deleted.", "OK");
                 return;
             }
 
