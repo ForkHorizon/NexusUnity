@@ -81,7 +81,8 @@ namespace UnityMCP.Editor
         {
             string geminiPath = ResolveExecutablePath("gemini");
             string pythonPath = ResolveExecutablePath("python3");
-            string command = $"{geminiPath} mcp add nexus-unity \"{pythonPath}\" \"{scriptPath}\"";
+            // Add --trust flag to mark the local server as trusted, bypassing OAuth/Confirmation
+            string command = $"\"{geminiPath}\" mcp add nexus-unity --trust \"{pythonPath}\" \"{scriptPath}\"";
             
             ProcessStartInfo psi = CreateProcessStartInfo(command);
             RunInstallerProcess(psi, geminiPath);

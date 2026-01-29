@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.7] - 2026-01-29
+
+### Improved
+- **CLI Trusted Connection**: Added the `--trust` flag to the Gemini CLI registration command. This ensures the local Unity server is automatically trusted, bypassing unnecessary OAuth authentication prompts and tool-call confirmation dialogs.
+
 ## [1.7.6] - 2026-01-29
 
 ### Fixed
