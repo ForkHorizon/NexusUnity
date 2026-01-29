@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.2] - 2026-01-29
+
+### Fixed
+- **Regression Fix**: Restored the `ParseCommandLineArgs` method in `MCPServerWindow` which was accidentally removed during the UI refactor, causing compilation errors.
+
 ## [1.7.1] - 2026-01-29
 
 ### Changed
