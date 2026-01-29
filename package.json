@@ -1,6 +1,6 @@
 {
   "name": "com.custom.unity.mcp",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "displayName": "Nexus Unity",
   "description": "A Model Context Protocol server for Unity Editor to allow LLMs to interact with the Editor.",
   "unity": "2021.3",

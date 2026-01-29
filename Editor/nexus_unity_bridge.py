@@ -42,14 +42,18 @@ def main():
             if method == "initialize":
                 res = {
                     "protocolVersion": "2024-11-05", 
-                    "capabilities": {"tools": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.7.8"}
+                    "capabilities": {
+                        "tools": {},
+                        "resources": {},
+                        "prompts": {}
+                    }, 
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.7.9"}
                 }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method == "notifications/initialized":
                 log("Received initialized notification")
                 continue 
-            elif method == "listTools":
+            elif method in ["tools/list", "listTools"]:
                 unity_res = call_unity("list_tools")
                 if "error" in unity_res:
                     log(f"Error fetching tools: {unity_res['error']}")
@@ -58,11 +62,19 @@ def main():
                     tools = unity_res.get("result", [])
                     log(f"Found {len(tools)} tools")
                     response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": tools}}
-            elif method == "callTool":
-                name = request["params"]["name"].replace("unity_", "")
-                args = request["params"].get("arguments", {})
-                log(f"Calling Unity tool: {name}")
-                unity_res = call_unity(name, args)
+            elif method in ["resources/list", "listResources"]:
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": []}}
+            elif method in ["prompts/list", "listPrompts"]:
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {"prompts": []}}
+            elif method == "tools/call" or method == "callTool":
+                # Handle both standard and legacy naming
+                params = request.get("params", {})
+                tool_name = params.get("name", "").replace("unity_", "")
+                tool_args = params.get("arguments", {})
+                
+                log(f"Calling Unity tool: {tool_name}")
+                unity_res = call_unity(tool_name, tool_args)
+                
                 if "error" in unity_res:
                     response = {"jsonrpc": "2.0", "id": req_id, "error": unity_res["error"]}
                 else:

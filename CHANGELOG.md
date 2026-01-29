@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.9] - 2026-01-29
+
+### Fixed
+- **MCP Discovery Fix**: Updated the bridge script to use standard MCP method names (`tools/list`, `resources/list`, `prompts/list`). This resolves the "No prompts, tools, or resources found" error in the Gemini CLI.
+- **Enhanced Capabilities**: Explicitly declared tools, resources, and prompts capabilities in the initialization response.
+
 ## [1.7.8] - 2026-01-29
 
 ### Fixed
