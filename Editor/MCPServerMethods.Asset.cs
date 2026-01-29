@@ -28,6 +28,7 @@ namespace UnityMCP.Editor
             Material mat = new Material(Shader.Find(shader));
             string path = Path.Combine("Assets", $"{name}.mat");
             AssetDatabase.CreateAsset(mat, path);
+            AssetDatabase.SaveAssets();
             return $"Created material at {path}";
         }
 
@@ -49,6 +50,7 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null || p["path"] == null) throw new Exception("instance_id and path required");
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.SaveAsPrefabAsset(go, p["path"].ToString());
+            AssetDatabase.SaveAssets();
             return $"Prefab created at {p["path"]}";
         }
 
@@ -57,6 +59,7 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.ApplyPrefabInstance(go, InteractionMode.UserAction);
+            AssetDatabase.SaveAssets();
             return "Overrides applied";
         }
 

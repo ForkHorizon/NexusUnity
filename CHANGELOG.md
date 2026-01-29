@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.5.1] - 2026-01-29
+
+### Fixed
+- **Dispatcher Routing**: Resolved critical bug where `Hierarchy`, `Asset`, and several `Editor` methods (e.g., `add_component`, `read_file`) were unreachable due to rigid prefix matching.
+- **Asset Persistence**: Added mandatory `AssetDatabase.SaveAssets()` calls after `CreateMaterial`, `CreatePrefab`, and `ApplyPrefabOverrides` to ensure changes are written to disk.
+- **Dispatch Reliability**: Refactored the core dispatcher with explicit capability checks to prevent cascading failures.
+
 ## [1.5.0] - 2026-01-28
 
 ### Added

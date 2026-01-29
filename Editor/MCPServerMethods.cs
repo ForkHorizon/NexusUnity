@@ -64,66 +64,49 @@ namespace UnityMCP.Editor
         private static JToken ExecuteMethod(string method, JToken p)
         {
             if (method.StartsWith("ui_")) return ExecuteUIMethod(method, p);
-            if (method.StartsWith("get_")) return ExecuteDiscoveryMethod(method, p);
-            if (method.StartsWith("set_")) return ExecuteEditorMethod(method, p);
-            return ExecuteCoreMethod(method, p);
+            
+            if (CanHandleScene(method)) return ExecuteSceneMethod(method, p);
+            if (CanHandleDiscovery(method)) return ExecuteDiscoveryMethod(method, p);
+            if (CanHandleEditor(method)) return ExecuteEditorMethod(method, p);
+            if (CanHandleAsset(method)) return ExecuteAssetMethod(method, p);
+            if (CanHandleHierarchy(method)) return ExecuteHierarchyMethod(method, p);
+            if (CanHandleCore(method)) return ExecuteCoreMethod(method, p);
+            
+            throw new Exception($"Method not found: {method}");
         }
+
+        private static bool CanHandleCore(string m) => new[] { "initialize", "read_logs", "clear_logs", "test_coroutine" }.Contains(m);
+        private static bool CanHandleScene(string m) => new[] { "open_scene", "create_scene", "save_scene", "create_game_object", "destroy_game_object", "instantiate_prefab" }.Contains(m);
+        private static bool CanHandleDiscovery(string m) => new[] { "get_game_object", "get_active_game_object", "get_root_game_objects", "get_object_path", "find_objects", "list_scenes", "get_tags_and_layers", "ping_object", "get_children", "get_editor_state", "get_project_info" }.Contains(m);
+        private static bool CanHandleEditor(string m) => new[] { "set_transform", "set_parent", "add_component", "inspect_component", "update_component", "set_property", "undo", "redo", "toggle_play_mode", "execute_menu_item", "set_selection", "focus_scene_view", "set_active", "set_enabled", "set_sibling_index", "pause_play_mode", "step_frame", "attach_script", "create_primitive" }.Contains(m);
+        private static bool CanHandleAsset(string m) => new[] { "move_asset", "delete_asset", "copy_asset", "get_dependencies", "create_folder", "list_assets", "create_material", "refresh_asset_database", "import_asset", "create_prefab", "apply_prefab_overrides", "revert_prefab_overrides" }.Contains(m);
+        private static bool CanHandleHierarchy(string m) => new[] { "duplicate_object", "remove_component", "read_file", "write_file" }.Contains(m);
 
         private static JToken ExecuteCoreMethod(string method, JToken p)
         {
             switch (method)
             {
                 case "initialize": return Initialize(p);
-                case "create_primitive": return CreatePrimitive(p);
-                case "attach_script": return AttachScript(p);
                 case "read_logs": return ReadLogs(p);
                 case "clear_logs": return ClearLogs(p);
-                case "list_assets": return ListAssets(p);
-                case "create_material": return CreateMaterial(p);
-                case "refresh_asset_database": return RefreshAssetDatabase(p);
-                case "import_asset": return ImportAsset(p);
+                case "test_coroutine": return TestCoroutine(p);
+                default: throw new Exception($"Method not found in Core: {method}");
+            }
+        }
+
+        private static JToken ExecuteSceneMethod(string method, JToken p)
+        {
+            switch (method)
+            {
                 case "open_scene": return OpenScene(p);
                 case "create_scene": return CreateScene(p);
                 case "save_scene": return SaveScene(p);
                 case "create_game_object": return CreateGameObject(p);
                 case "destroy_game_object": return DestroyGameObject(p);
                 case "instantiate_prefab": return InstantiatePrefab(p);
-                case "test_coroutine": return TestCoroutine(p);
-                default: return ExecuteCoreMethodExtended(method, p);
+                default: throw new Exception($"Method not found in Scene: {method}");
             }
         }
-
-        private static JToken ExecuteCoreMethodExtended(string method, JToken p)
-        {
-            switch (method)
-            {
-                case "create_prefab": return CreatePrefab(p);
-                case "apply_prefab_overrides": return ApplyPrefabOverrides(p);
-                case "revert_prefab_overrides": return RevertPrefabOverrides(p);
-                case "find_objects": return FindObjects(p);
-                case "list_scenes": return ListScenes(p);
-                case "ping_object": return PingObject(p);
-                case "undo": return UndoMethod(p);
-                case "redo": return RedoMethod(p);
-                case "toggle_play_mode": return TogglePlayMode(p);
-                case "execute_menu_item": return ExecuteMenuItem(p);
-                case "focus_scene_view": return FocusSceneView(p);
-                case "pause_play_mode": return PausePlayMode(p);
-                case "step_frame": return StepFrame(p);
-                case "move_asset": return MoveAsset(p);
-                case "delete_asset": return DeleteAsset(p);
-                case "copy_asset": return CopyAsset(p);
-                case "get_dependencies": return GetDependencies(p);
-                case "create_folder": return CreateFolder(p);
-                case "read_file": return ReadFile(p);
-                case "write_file": return WriteFile(p);
-                case "duplicate_object": return DuplicateObject(p);
-                case "remove_component": return RemoveComponent(p);
-                default: throw new Exception($"Method not found: {method}");
-            }
-        }
-
-
 
         private static JToken ExecuteUIMethod(string method, JToken p)
         {
@@ -177,6 +160,8 @@ namespace UnityMCP.Editor
                 case "set_sibling_index": return SetSiblingIndex(p);
                 case "pause_play_mode": return PausePlayMode(p);
                 case "step_frame": return StepFrame(p);
+                case "attach_script": return AttachScript(p);
+                case "create_primitive": return CreatePrimitive(p);
                 default: throw new Exception($"Editor Method not found: {method}");
             }
         }
@@ -190,8 +175,13 @@ namespace UnityMCP.Editor
                 case "copy_asset": return CopyAsset(p);
                 case "get_dependencies": return GetDependencies(p);
                 case "create_folder": return CreateFolder(p);
-                case "read_file": return ReadFile(p);
-                case "write_file": return WriteFile(p);
+                case "list_assets": return ListAssets(p);
+                case "create_material": return CreateMaterial(p);
+                case "refresh_asset_database": return RefreshAssetDatabase(p);
+                case "import_asset": return ImportAsset(p);
+                case "create_prefab": return CreatePrefab(p);
+                case "apply_prefab_overrides": return ApplyPrefabOverrides(p);
+                case "revert_prefab_overrides": return RevertPrefabOverrides(p);
                 default: throw new Exception($"Asset Method not found: {method}");
             }
         }
@@ -202,6 +192,8 @@ namespace UnityMCP.Editor
             {
                 case "duplicate_object": return DuplicateObject(p);
                 case "remove_component": return RemoveComponent(p);
+                case "read_file": return ReadFile(p);
+                case "write_file": return WriteFile(p);
                 default: throw new Exception($"Hierarchy Method not found: {method}");
             }
         }
