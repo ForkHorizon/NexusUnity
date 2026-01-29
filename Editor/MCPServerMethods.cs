@@ -77,7 +77,7 @@ namespace UnityMCP.Editor
 
         private static bool CanHandleCore(string m)
         {
-            var methods = new[] { "initialize", "read_logs", "clear_logs", "test_coroutine" };
+            var methods = new[] { "initialize", "read_logs", "clear_logs", "test_coroutine", "list_tools" };
             return methods.Contains(m);
         }
         private static bool CanHandleScene(string m)
@@ -114,6 +114,7 @@ namespace UnityMCP.Editor
                 case "read_logs": return ReadLogs(p);
                 case "clear_logs": return ClearLogs(p);
                 case "test_coroutine": return TestCoroutine(p);
+                case "list_tools": return ListTools(p);
                 default: throw new Exception($"Method not found in Core: {method}");
             }
         }

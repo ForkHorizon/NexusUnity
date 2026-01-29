@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.0] - 2026-01-29
+
+### Added
+- **Gemini CLI Integration**: Added a "Link to Gemini CLI" menu item in Unity for one-click setup.
+- **Dynamic Tool Discovery**: Added `list_tools` method that returns JSON schemas for tools, enabling automatic discovery by LLM agents.
+- **Embedded Bridge**: The Python MCP bridge is now included directly in the library's `Editor` folder.
+
 ## [1.5.2] - 2026-01-29
 
 ### Fixed
