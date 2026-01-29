@@ -18,23 +18,40 @@ namespace UnityMCP.Editor
         internal async void StartServer()
         {
             if (_isRunning) return;
-            _isRunning = true;
-            _cts = new CancellationTokenSource();
-            _listener = new HttpListener();
-            _listener.Prefixes.Add($"http://*:{_port}/");
-            _listener.Start();
-            SessionState.SetBool("MCP_Server_Running", true); // Persist intent through reloads
-            Task.Run(() => ServerLoop(_cts.Token));
-            Debug.Log($"[MCP] Server started on port {_port}");
+            try
+            {
+                _isRunning = true;
+                _cts = new CancellationTokenSource();
+                _listener = new HttpListener();
+                _listener.Prefixes.Add($"http://*:{_port}/");
+                _listener.Start();
+                SessionState.SetBool("MCP_Server_Running", true); // Persist intent through reloads
+                Task.Run(() => ServerLoop(_cts.Token));
+                Debug.Log($"[MCP] Server started on port {_port}");
+            }
+            catch (Exception e)
+            {
+                _isRunning = false;
+                Debug.LogError($"[MCP] Failed to start server: {e.Message}");
+            }
         }
 
         internal void StopServer()
         {
             SessionState.SetBool("MCP_Server_Running", false); // Clear intent
-            _cts?.Cancel();
-            if (_listener != null && _listener.IsListening) _listener.Stop();
-            _isRunning = false;
+            CleanupServer();
             Debug.Log("[MCP] Server stopped manually");
+        }
+
+        private void CleanupServer()
+        {
+            _cts?.Cancel();
+            if (_listener != null)
+            {
+                try { if (_listener.IsListening) _listener.Stop(); } catch { }
+                try { _listener.Close(); } catch { }
+            }
+            _isRunning = false;
         }
 
         private async Task ServerLoop(CancellationToken token)

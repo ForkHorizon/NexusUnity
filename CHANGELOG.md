@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.8.5] - 2026-01-29
+
+### Fixed
+- **HttpListener Resource Cleanup**: Added explicit `Close()` calls to the `HttpListener` to ensure sockets are immediately released by the OS, resolving "Port already in use" errors during rapid restarts.
+- **Robust Demo script**: Added error boundary checks to `demo_presentation.py` to prevent script crashes on server connection failures.
+
 ## [1.8.3] - 2026-01-29
 
 ### Fixed

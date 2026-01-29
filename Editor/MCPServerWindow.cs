@@ -73,9 +73,7 @@ namespace UnityMCP.Editor
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             
             // Only cancel background tasks, don't clear the persistent "running" intent
-            _cts?.Cancel();
-            if (_listener != null && _listener.IsListening) _listener.Stop();
-            _isRunning = false;
+            CleanupServer();
         }
 
         private void ParseCommandLineArgs()
