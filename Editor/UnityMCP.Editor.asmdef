@@ -2,8 +2,7 @@
     "name": "UnityMCP.Editor",
     "rootNamespace": "UnityMCP.Editor",
     "references": [
-        "UnityMCP.Runtime",
-        "Unity.EditorCoroutines.Editor"
+        "UnityMCP.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,12 +13,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.editorcoroutines",
-            "expression": "1.0.0",
-            "define": "HAS_EDITOR_COROUTINES"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

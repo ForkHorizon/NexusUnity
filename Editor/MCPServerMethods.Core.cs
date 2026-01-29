@@ -12,7 +12,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.6.8" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.6.9" } };
 
         private static JToken CreatePrimitive(JToken p)
         {
@@ -39,7 +39,11 @@ namespace UnityMCP.Editor
 
         private static JToken ReadLogs(JToken p) => JArray.FromObject(MCPServerWindow.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString()));
         private static JToken ClearLogs(JToken p) { MCPServerWindow.ClearLogs(); return "Logs cleared"; }
-        private static JToken TestCoroutine(JToken p) { MCPServerWindow.StartCoroutine(WaitAndLog()); return "Started"; }
+        private static JToken TestCoroutine(JToken p) 
+        { 
+            EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete (Simulated Coroutine)");
+            return "Started (Simulated)"; 
+        }
 
         private static JToken ListTools(JToken p)
         {
@@ -97,16 +101,6 @@ namespace UnityMCP.Editor
             schema["properties"] = props;
             schema["required"] = new JArray("instance_id");
             return schema;
-        }
-
-        private static System.Collections.IEnumerator WaitAndLog() 
-        { 
-#if HAS_EDITOR_COROUTINES
-            yield return new Unity.EditorCoroutines.Editor.EditorWaitForSeconds(2); 
-#else
-            yield return null;
-#endif
-            Debug.Log("[MCP] Coroutine complete"); 
         }
 
         private static string SanitizeScriptName(string n) => System.Text.RegularExpressions.Regex.Replace(n, @"[^a-zA-Z0-9_]", "_");

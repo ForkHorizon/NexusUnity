@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.9] - 2026-01-29
+
+### Removed
+- **Zero-Dependency Release**: Removed the hard dependency on `com.unity.editorcoroutines`. The library now has **ZERO** mandatory Unity package dependencies besides the built-in `Newtonsoft.Json`.
+- **Test Refactor**: Replaced `TestCoroutine` with a simulated delay using `EditorApplication.delayCall`, ensuring the library remains functional and easy to install in any Unity project without extra steps.
+
 ## [1.6.8] - 2026-01-29
 
 ### Changed

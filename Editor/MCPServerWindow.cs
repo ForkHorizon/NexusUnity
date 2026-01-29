@@ -6,9 +6,6 @@ using System.Net.WebSockets;
 using System.Threading;
 using UnityEditor;
 using UnityEditor.Compilation;
-#if HAS_EDITOR_COROUTINES
-using Unity.EditorCoroutines.Editor;
-#endif
 using UnityEngine;
 
 namespace UnityMCP.Editor
@@ -81,15 +78,5 @@ namespace UnityMCP.Editor
 
         /// <summary>Enqueues an action to be executed on the main thread.</summary>
         public static void Enqueue(Action action) => _mainThreadQueue.Enqueue(action);
-        
-        /// <summary>Starts an Editor Coroutine.</summary>
-        public static void StartCoroutine(System.Collections.IEnumerator r) 
-        {
-#if HAS_EDITOR_COROUTINES
-            EditorCoroutineUtility.StartCoroutineOwnerless(r);
-#else
-            Debug.LogWarning("[MCP] Editor Coroutines package is missing. Install 'com.unity.editorcoroutines' to use this feature.");
-#endif
-        }
     }
 }
