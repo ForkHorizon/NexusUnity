@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.8] - 2026-01-29
+
+### Changed
+- **Dependency Flexibility**: Lowered the minimum required version for `newtonsoft-json` to `2.0.0` in `package.json`. This ensures the library is compatible with a wider range of projects without forcing unnecessary package upgrades or downgrades.
+
 ## [1.6.7] - 2026-01-29
 
 ### Fixed
