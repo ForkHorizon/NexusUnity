@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.3] - 2026-01-29
+
+### Improved
+- **Robust macOS Installer**: Updated the CLI installer to intelligently resolve absolute paths for `gemini` and `python3` on macOS (checking Homebrew and system locations). This fixes the "command not found" error caused by Unity not inheriting terminal PATH variables.
+
 ## [1.7.2] - 2026-01-29
 
 ### Fixed

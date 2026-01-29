@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace UnityMCP.Editor
 {
@@ -13,6 +14,7 @@ namespace UnityMCP.Editor
         /// <summary>
         /// Attempts to link the current Unity project to the local Gemini CLI instance.
         /// </summary>
+        [MenuItem("Window/Nexus Unity/Link to Gemini CLI", false, 10)]
         public static void LinkToGemini()
         {
             string scriptPath = FindBridgeScript();
@@ -47,9 +49,53 @@ namespace UnityMCP.Editor
             return null;
         }
 
+        private static string ResolveExecutablePath(string name)
+        {
+            if (Application.platform == RuntimePlatform.WindowsEditor) return name;
+
+            // Common macOS paths for Homebrew and system binaries
+            string[] searchPaths = {
+                $"/opt/homebrew/bin/{name}",
+                $"/usr/local/bin/{name}",
+                $"/usr/bin/{name}",
+                $"/bin/{name}"
+            };
+
+            foreach (string path in searchPaths)
+            {
+                if (File.Exists(path)) return path;
+            }
+
+            // Fallback to 'which' command
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = "/usr/bin/which",
+                Arguments = name,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                using (Process p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd().Trim();
+                    p.WaitForExit();
+                    if (p.ExitCode == 0 && !string.IsNullOrEmpty(output)) return output;
+                }
+            }
+            catch {{ }}
+
+            return name; // Return original name if not found
+        }
+
         private static void ExecuteLinkCommand(string scriptPath)
         {
-            string command = $"gemini mcp add nexus-unity python3 \"{scriptPath}\"";
+            string geminiPath = ResolveExecutablePath("gemini");
+            string pythonPath = ResolveExecutablePath("python3");
+            
+            string command = $"{geminiPath} mcp add nexus-unity \"{pythonPath}\" \"{scriptPath}\"";
             UnityEngine.Debug.Log($"[MCP] Executing: {command}");
 
             bool isWindows = Application.platform == RuntimePlatform.WindowsEditor;
@@ -63,6 +109,13 @@ namespace UnityMCP.Editor
                 CreateNoWindow = true
             };
 
+            // On macOS, try to add common paths to the PATH env var for the process
+            if (!isWindows)
+            {
+                string currentPath = psi.EnvironmentVariables["PATH"] ?? "";
+                psi.EnvironmentVariables["PATH"] = $"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:{currentPath}";
+            }
+
             using (Process p = Process.Start(psi))
             {
                 string error = p.StandardError.ReadToEnd();
@@ -70,11 +123,11 @@ namespace UnityMCP.Editor
 
                 if (p.ExitCode == 0)
                 {
-                    EditorUtility.DisplayDialog("MCP Success", "Successfully linked NexusUnity to Gemini CLI!", "OK");
+                    EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Gemini CLI!", "OK");
                 }
                 else
                 {
-                    string msg = $"Failed to link to Gemini CLI.\n\nExit Code: {p.ExitCode}\nError: {error}\n\nCommand: {command}\n\nEnsure 'gemini' is installed and accessible in your system path.";
+                    string msg = $"Failed to link to Gemini CLI.\n\nExit Code: {p.ExitCode}\nError: {error}\n\nPath used: {geminiPath}\n\nEnsure 'gemini' is installed globally on your macOS system.";
                     UnityEngine.Debug.LogError($"[MCP] {msg}");
                     EditorUtility.DisplayDialog("MCP Error", msg, "OK");
                 }
