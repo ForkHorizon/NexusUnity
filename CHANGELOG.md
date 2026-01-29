@@ -2,6 +2,16 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.8.0] - 2026-01-29
+
+### Added
+- **Full AI Toolset Release**: Expsosed **all 59+ functionalities** to the Gemini CLI (MCP). This provides the AI with a complete suite of tools for professional game development, including:
+    - **Scene & Hierarchy**: Scene creation, object duplication, parenting, and reordering.
+    - **Components**: Advanced inspection, surgical property edits, and component lifecycle management.
+    - **Assets & Prefabs**: Full UPM-compliant asset manipulation and prefab override support.
+    - **Automation**: Real-time log streaming, Play Mode control, and UI Toolkit automation.
+- **Dynamic Schema Discovery**: Implemented modular JSON schema generation for all tools, ensuring accurate parameter handling by LLM agents.
+
 ## [1.7.9] - 2026-01-29
 
 ### Fixed
