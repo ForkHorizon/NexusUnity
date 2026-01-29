@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.3] - 2026-01-29
+
+### Changed
+- **Branding**: Updated the Package Manager display name to "Nexus Unity".
+
 ## [1.6.2] - 2026-01-29
 
 ### Fixed
