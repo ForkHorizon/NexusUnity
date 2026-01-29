@@ -24,7 +24,7 @@ def call_unity(method, params=None):
             return json.loads(f.read().decode('utf-8'))
     except Exception as e:
         log(f"Unity call failed: {str(e)}")
-        return {"error": {"code": -32000, "message": f"Unity Server unreachable: {str(e)}"}}
+        return {"error": {"code": -32000, "message": f"Unity Server unreachable or error: {str(e)}"}}
 
 def main():
     log("NexusUnity Bridge started")
@@ -43,16 +43,21 @@ def main():
                 res = {
                     "protocolVersion": "2024-11-05", 
                     "capabilities": {"tools": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.7.5"}
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.7.8"}
                 }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method == "notifications/initialized":
                 log("Received initialized notification")
-                continue # Do not respond to notifications
+                continue 
             elif method == "listTools":
                 unity_res = call_unity("list_tools")
-                tools = unity_res.get("result", [])
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": tools}}
+                if "error" in unity_res:
+                    log(f"Error fetching tools: {unity_res['error']}")
+                    response = {"jsonrpc": "2.0", "id": req_id, "error": unity_res["error"]}
+                else:
+                    tools = unity_res.get("result", [])
+                    log(f"Found {len(tools)} tools")
+                    response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": tools}}
             elif method == "callTool":
                 name = request["params"]["name"].replace("unity_", "")
                 args = request["params"].get("arguments", {})
@@ -66,7 +71,6 @@ def main():
                         "id": req_id, 
                         "result": {"content": [{"type": "text", "text": json.dumps(unity_res["result"]) }]}}
             elif req_id is not None:
-                # Only respond to methods if they have an ID (not a notification)
                 response = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Method not found: {method}"}}
             else:
                 log(f"Ignoring notification or unknown method without ID: {method}")

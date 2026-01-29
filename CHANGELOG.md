@@ -2,16 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
-## [1.7.7] - 2026-01-29
-
-### Improved
-- **CLI Trusted Connection**: Added the `--trust` flag to the Gemini CLI registration command. This ensures the local Unity server is automatically trusted, bypassing unnecessary OAuth authentication prompts and tool-call confirmation dialogs.
-
-## [1.7.6] - 2026-01-29
+## [1.7.8] - 2026-01-29
 
 ### Fixed
-- **Bridge Stability**: Hardened the Python MCP bridge to correctly handle JSON-RPC notifications (like `notifications/initialized`) by ignoring them instead of sending error responses. This resolves the "Client is not connected" error in Gemini CLI.
-- **Improved Logging**: Added debug logging to `stderr` in the bridge script for easier troubleshooting.
+- **Bridge Error Reporting**: Improved the Python bridge to explicitly report Unity server errors back to the Gemini CLI, preventing "No tools found" messages when the server is unreachable or returning errors.
+- **Notification Handling**: Ensured the bridge correctly ignores JSON-RPC notifications to maintain connection stability.
 
 ## [1.7.5] - 2026-01-29
 
