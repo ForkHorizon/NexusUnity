@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.6] - 2026-01-29
+
+### Fixed
+- **Bridge Stability**: Hardened the Python MCP bridge to correctly handle JSON-RPC notifications (like `notifications/initialized`) by ignoring them instead of sending error responses. This resolves the "Client is not connected" error in Gemini CLI.
+- **Improved Logging**: Added debug logging to `stderr` in the bridge script for easier troubleshooting.
+
 ## [1.7.5] - 2026-01-29
 
 ### Fixed
