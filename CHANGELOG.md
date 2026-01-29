@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.5.2] - 2026-01-29
+
+### Fixed
+- **Non-Blocking Scene Transitions**: Refactored `OpenScene` and `CreateScene` to automatically save the current scene to a default path if modifications exist, preventing blocking Unity dialogs.
+- **Safer Property Serialization**: Refactored `InspectComponent` to use `SerializedObject` traversal, resolving crashes on internal Unity engine handles.
+- **Component Update Fix**: Switched `UpdateComponent` to `EditorJsonUtility` for reliable engine-type modification.
+
 ## [1.5.1] - 2026-01-29
 
 ### Fixed

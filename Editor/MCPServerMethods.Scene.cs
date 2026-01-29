@@ -15,6 +15,9 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["path"] == null) throw new Exception("path is required");
             string path = p["path"].ToString();
+            
+            EnsureCurrentSceneSaved();
+            
             var scene = EditorSceneManager.OpenScene(path);
             return $"Opened scene {scene.name}";
         }
@@ -22,16 +25,46 @@ namespace UnityMCP.Editor
         private static JToken CreateScene(JToken p)
         {
             string name = p?["name"]?.ToString() ?? "New Scene";
+            
+            EnsureCurrentSceneSaved();
+            
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
             scene.name = name;
             return $"Created scene {name}";
         }
 
+        private static void EnsureCurrentSceneSaved()
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (scene.isDirty)
+            {
+                InternalSaveScene(scene, null);
+            }
+        }
+
         private static JToken SaveScene(JToken p)
         {
-            var scene = EditorSceneManager.GetActiveScene();
-            bool result = EditorSceneManager.SaveScene(scene);
-            return result ? $"Saved scene {scene.name}" : "Failed to save scene";
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            string path = p?["path"]?.ToString();
+            return InternalSaveScene(scene, path);
+        }
+
+        private static JToken InternalSaveScene(UnityEngine.SceneManagement.Scene scene, string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                path = scene.path;
+            }
+
+            if (string.IsNullOrEmpty(path))
+            {
+                path = "Assets/AutoSavedScene.unity";
+                Debug.Log($"[MCP] Saving new scene to default path: {path}");
+            }
+
+            bool result = EditorSceneManager.SaveScene(scene, path);
+            AssetDatabase.SaveAssets();
+            return result ? $"Saved scene to {path}" : "Failed to save scene";
         }
 
         private static JToken GetGameObject(JToken p)
