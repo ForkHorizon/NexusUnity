@@ -26,7 +26,32 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
-            return JToken.FromObject(comp, new Newtonsoft.Json.JsonSerializer { ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore });
+
+            SerializedObject so = new SerializedObject(comp);
+            JObject result = new JObject();
+            SerializedProperty prop = so.GetIterator();
+            bool enterChildren = true;
+            while (prop.NextVisible(enterChildren))
+            {
+                enterChildren = false; // Only enter children for the root
+                try { result[prop.name] = SerializeProperty(prop); } catch { }
+            }
+            return result;
+        }
+
+        private static JToken SerializeProperty(SerializedProperty prop)
+        {
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Integer: return prop.intValue;
+                case SerializedPropertyType.Boolean: return prop.boolValue;
+                case SerializedPropertyType.Float: return prop.floatValue;
+                case SerializedPropertyType.String: return prop.stringValue;
+                case SerializedPropertyType.Vector3: return new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z };
+                case SerializedPropertyType.Color: return prop.colorValue.ToString();
+                case SerializedPropertyType.Enum: return prop.enumDisplayNames[prop.enumValueIndex];
+                default: return prop.propertyType.ToString();
+            }
         }
 
         private static JToken UpdateComponent(JToken p)
@@ -35,7 +60,7 @@ namespace UnityMCP.Editor
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
             Undo.RecordObject(comp, "Update Component");
-            JsonUtility.FromJsonOverwrite(p["json_data"].ToString(), comp);
+            EditorJsonUtility.FromJsonOverwrite(p["json_data"].ToString(), comp);
             return "Updated";
         }
 

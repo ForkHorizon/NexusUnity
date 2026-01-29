@@ -75,12 +75,36 @@ namespace UnityMCP.Editor
             throw new Exception($"Method not found: {method}");
         }
 
-        private static bool CanHandleCore(string m) => new[] { "initialize", "read_logs", "clear_logs", "test_coroutine" }.Contains(m);
-        private static bool CanHandleScene(string m) => new[] { "open_scene", "create_scene", "save_scene", "create_game_object", "destroy_game_object", "instantiate_prefab" }.Contains(m);
-        private static bool CanHandleDiscovery(string m) => new[] { "get_game_object", "get_active_game_object", "get_root_game_objects", "get_object_path", "find_objects", "list_scenes", "get_tags_and_layers", "ping_object", "get_children", "get_editor_state", "get_project_info" }.Contains(m);
-        private static bool CanHandleEditor(string m) => new[] { "set_transform", "set_parent", "add_component", "inspect_component", "update_component", "set_property", "undo", "redo", "toggle_play_mode", "execute_menu_item", "set_selection", "focus_scene_view", "set_active", "set_enabled", "set_sibling_index", "pause_play_mode", "step_frame", "attach_script", "create_primitive" }.Contains(m);
-        private static bool CanHandleAsset(string m) => new[] { "move_asset", "delete_asset", "copy_asset", "get_dependencies", "create_folder", "list_assets", "create_material", "refresh_asset_database", "import_asset", "create_prefab", "apply_prefab_overrides", "revert_prefab_overrides" }.Contains(m);
-        private static bool CanHandleHierarchy(string m) => new[] { "duplicate_object", "remove_component", "read_file", "write_file" }.Contains(m);
+        private static bool CanHandleCore(string m)
+        {
+            var methods = new[] { "initialize", "read_logs", "clear_logs", "test_coroutine" };
+            return methods.Contains(m);
+        }
+        private static bool CanHandleScene(string m)
+        {
+            var methods = new[] { "open_scene", "create_scene", "save_scene", "create_game_object", "destroy_game_object", "instantiate_prefab" };
+            return methods.Contains(m);
+        }
+        private static bool CanHandleDiscovery(string m)
+        {
+            var methods = new[] { "get_game_object", "get_active_game_object", "get_root_game_objects", "get_object_path", "find_objects", "list_scenes", "get_tags_and_layers", "ping_object", "get_children", "get_editor_state", "get_project_info" };
+            return methods.Contains(m);
+        }
+        private static bool CanHandleEditor(string m)
+        {
+            var methods = new[] { "set_transform", "set_parent", "add_component", "inspect_component", "update_component", "set_property", "undo", "redo", "toggle_play_mode", "execute_menu_item", "set_selection", "focus_scene_view", "set_active", "set_enabled", "set_sibling_index", "pause_play_mode", "step_frame", "attach_script", "create_primitive" };
+            return methods.Contains(m);
+        }
+        private static bool CanHandleAsset(string m)
+        {
+            var methods = new[] { "move_asset", "delete_asset", "copy_asset", "get_dependencies", "create_folder", "list_assets", "create_material", "refresh_asset_database", "import_asset", "create_prefab", "apply_prefab_overrides", "revert_prefab_overrides" };
+            return methods.Contains(m);
+        }
+        private static bool CanHandleHierarchy(string m)
+        {
+            var methods = new[] { "duplicate_object", "remove_component", "read_file", "write_file" };
+            return methods.Contains(m);
+        }
 
         private static JToken ExecuteCoreMethod(string method, JToken p)
         {
@@ -182,7 +206,7 @@ namespace UnityMCP.Editor
                 case "create_prefab": return CreatePrefab(p);
                 case "apply_prefab_overrides": return ApplyPrefabOverrides(p);
                 case "revert_prefab_overrides": return RevertPrefabOverrides(p);
-                default: throw new Exception($"Asset Method not found: {method}");
+                default: throw new Exception($"Asset Method not found in Asset: {method}");
             }
         }
 
