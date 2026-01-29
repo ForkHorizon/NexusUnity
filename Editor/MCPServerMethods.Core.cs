@@ -12,7 +12,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.6.6" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.6.7" } };
 
         private static JToken CreatePrimitive(JToken p)
         {
@@ -99,7 +99,15 @@ namespace UnityMCP.Editor
             return schema;
         }
 
-        private static System.Collections.IEnumerator WaitAndLog() { yield return new Unity.EditorCoroutines.Editor.EditorWaitForSeconds(2); Debug.Log("[MCP] Coroutine complete"); }
+        private static System.Collections.IEnumerator WaitAndLog() 
+        { 
+#if HAS_EDITOR_COROUTINES
+            yield return new Unity.EditorCoroutines.Editor.EditorWaitForSeconds(2); 
+#else
+            yield return null;
+#endif
+            Debug.Log("[MCP] Coroutine complete"); 
+        }
 
         private static string SanitizeScriptName(string n) => System.Text.RegularExpressions.Regex.Replace(n, @"[^a-zA-Z0-9_]", "_");
         private static string GetDefaultScript(string n) => $"using UnityEngine;\npublic class {n} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {n}\"); }} }}";

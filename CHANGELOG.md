@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.7] - 2026-01-29
+
+### Fixed
+- **Dependency Hardening**: Added `versionDefines` and conditional compilation for the `EditorCoroutines` package. The library will now compile successfully even if the package is missing in the target project, providing a graceful warning instead of a compilation error.
+
 ## [1.6.6] - 2026-01-29
 
 ### Added
