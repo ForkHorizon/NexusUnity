@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.6] - 2026-01-29
+
+### Added
+- **Security Hardening**: Integrated DNS Rebinding protection by validating the loopback interface for all incoming requests.
+- **CSRF Protection**: Enforced strict `application/json` content-type validation and restricted server communication to `POST` methods only.
+
 ## [1.6.5] - 2026-01-29
 
 ### Fixed

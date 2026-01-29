@@ -47,6 +47,32 @@ namespace UnityMCP.Editor
 
         private void HandleHttpRequest(HttpListenerContext context)
         {
+            // Security: Host Header Validation (DNS Rebinding protection)
+            // Ensure the request is intended for localhost
+            if (!context.Request.Url.IsLoopback)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.Close();
+                return;
+            }
+
+            // Security: Method Validation
+            if (context.Request.HttpMethod != "POST")
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                context.Response.Close();
+                return;
+            }
+
+            // Security: Content-Type Validation (CSRF protection)
+            // Enforce application/json to prevent simple form POSTs from browsers
+            if (context.Request.ContentType == null || !context.Request.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.UnsupportedMediaType;
+                context.Response.Close();
+                return;
+            }
+
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
             string requestBody = reader.ReadToEnd();
             string response = MCPServerMethods.ProcessJsonRpc(requestBody);
