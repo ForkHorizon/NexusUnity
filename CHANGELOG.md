@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.1] - 2026-01-29
+
+### Fixed
+- **Package Manager Support**: Refactored CLI installer to dynamically locate the bridge script, ensuring the "Link to Gemini CLI" feature works when the library is installed as a Unity Package.
+
 ## [1.6.0] - 2026-01-29
 
 ### Added

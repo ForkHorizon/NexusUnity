@@ -10,10 +10,24 @@ namespace UnityMCP.Editor
         [MenuItem("Window/Unity MCP/Link to Gemini CLI")]
         public static void LinkToGemini()
         {
-            string scriptPath = Path.GetFullPath("Assets/NexusUnity/Editor/nexus_unity_bridge.py");
-            if (!File.Exists(scriptPath))
+            // Dynamically find the script path to support both Assets and Packages folders
+            string[] guids = AssetDatabase.FindAssets("nexus_unity_bridge t:DefaultAsset");
+            string scriptPath = "";
+            
+            foreach (var guid in guids)
             {
-                UnityEngine.Debug.LogError($"[MCP] Could not find bridge script at: {scriptPath}");
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (path.EndsWith("nexus_unity_bridge.py"))
+                {
+                    scriptPath = Path.GetFullPath(path);
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(scriptPath) || !File.Exists(scriptPath))
+            {
+                UnityEngine.Debug.LogError("[MCP] Could not find 'nexus_unity_bridge.py' in the project.");
+                EditorUtility.DisplayDialog("MCP Error", "Could not find 'nexus_unity_bridge.py'.\n\nEnsure the library is correctly imported.", "OK");
                 return;
             }
 
