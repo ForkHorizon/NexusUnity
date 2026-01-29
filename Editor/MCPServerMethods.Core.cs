@@ -12,7 +12,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.6.3" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.6.4" } };
 
         private static JToken CreatePrimitive(JToken p)
         {
@@ -26,7 +26,7 @@ namespace UnityMCP.Editor
         private static JToken AttachScript(JToken p)
         {
             string name = SanitizeScriptName(p["script_name"].ToString());
-            string content = p["script_content"]?.ToString().Replace("\\n", "\n") ?? GetDefaultScript(name);
+            string content = p["script_content"]?.ToString().Replace("\n", "\n") ?? GetDefaultScript(name);
             File.WriteAllText(Path.Combine("Assets", $"{name}.cs"), content);
             if (Selection.activeGameObject != null)
             {
@@ -47,13 +47,57 @@ namespace UnityMCP.Editor
                 new JObject { ["name"] = "unity_create_primitive", ["description"] = "Create Cube, Sphere, etc.", ["inputSchema"] = GetPrimitiveSchema() },
                 new JObject { ["name"] = "unity_find_objects", ["description"] = "Search objects by name/tag", ["inputSchema"] = GetSearchSchema() },
                 new JObject { ["name"] = "unity_set_transform", ["description"] = "Move objects", ["inputSchema"] = GetTransformSchema() },
-                new JObject { ["name"] = "unity_read_logs", ["description"] = "Get Unity console", ["inputSchema"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["count"] = new JObject { ["type"] = "integer" } } } }
+                new JObject { ["name"] = "unity_read_logs", ["description"] = "Get Unity console", ["inputSchema"] = GetLogSchema() }
             );
         }
 
-        private static JObject GetPrimitiveSchema() => new JObject { ["type"] = "object", ["properties"] = new JObject { ["primitive_type"] = new JObject { ["type"] = "string", ["enum"] = new JArray("Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad") } }, ["required"] = new JArray("primitive_type") };
-        private static JObject GetSearchSchema() => new JObject { ["type"] = "object", ["properties"] = new JObject { ["name"] = new JObject { ["type"] = "string" }, ["tag"] = new JObject { ["type"] = "string" }, ["type"] = new JObject { ["type"] = "string" } } };
-        private static JObject GetTransformSchema() => new JObject { ["type"] = "object", ["properties"] = new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["position"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["x"] = new JObject { ["type"] = "number" }, ["y"] = new JObject { ["type"] = "number" }, ["z"] = new JObject { ["type"] = "number" } } } }, ["required"] = new JArray("instance_id") };
+        private static JObject GetLogSchema() => new JObject { ["type"] = "object", ["properties"] = new JObject { ["count"] = new JObject { ["type"] = "integer" } } };
+
+        private static JObject GetPrimitiveSchema()
+        {
+            var props = new JObject();
+            var type = new JObject();
+            type["type"] = "string";
+            type["enum"] = new JArray("Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad");
+            props["primitive_type"] = type;
+            
+            var schema = new JObject();
+            schema["type"] = "object";
+            schema["properties"] = props;
+            schema["required"] = new JArray("primitive_type");
+            return schema;
+        }
+
+        private static JObject GetSearchSchema()
+        {
+            var props = new JObject();
+            props["name"] = new JObject { ["type"] = "string" };
+            props["tag"] = new JObject { ["type"] = "string" };
+            props["type"] = new JObject { ["type"] = "string" };
+            
+            var schema = new JObject();
+            schema["type"] = "object";
+            schema["properties"] = props;
+            return schema;
+        }
+
+        private static JObject GetTransformSchema()
+        {
+            var posProps = new JObject();
+            posProps["x"] = new JObject { ["type"] = "number" };
+            posProps["y"] = new JObject { ["type"] = "number" };
+            posProps["z"] = new JObject { ["type"] = "number" };
+
+            var props = new JObject();
+            props["instance_id"] = new JObject { ["type"] = "integer" };
+            props["position"] = new JObject { ["type"] = "object", ["properties"] = posProps };
+
+            var schema = new JObject();
+            schema["type"] = "object";
+            schema["properties"] = props;
+            schema["required"] = new JArray("instance_id");
+            return schema;
+        }
 
         private static System.Collections.IEnumerator WaitAndLog() { yield return new Unity.EditorCoroutines.Editor.EditorWaitForSeconds(2); Debug.Log("[MCP] Coroutine complete"); }
 

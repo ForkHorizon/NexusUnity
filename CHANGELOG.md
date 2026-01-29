@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.6.4] - 2026-01-29
+
+### Fixed
+- **Linter Compliance**: Refactored JSON schema generation and CLI installer code to strictly adhere to the AI-friendly diagnostic limits (method length, parameter counts). This resolves compilation blocks in strict projects.
+
 ## [1.6.3] - 2026-01-29
 
 ### Changed
