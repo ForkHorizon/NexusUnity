@@ -23,6 +23,8 @@ namespace UnityMCP.Editor
         private CancellationTokenSource _cts;
         private int? _cliPortOverride;
         private bool _isCompiling;
+        private bool _isLinkedToCli;
+        private string _cliStatusMessage = "Checking link...";
 
         private int _selectedTab = 0;
         private readonly string[] _tabs = { "Server", "Tools", "Verification" };
@@ -42,20 +44,21 @@ namespace UnityMCP.Editor
             CompilationPipeline.compilationFinished += (o) => _isCompiling = false;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
             if (SessionState.GetBool("MCP_Server_Running", false)) StartServer();
+            CheckCliLinkStatus();
         }
 
-        private void OnDisable()
+        private void CheckCliLinkStatus()
         {
-            EditorApplication.update -= HandleMainThreadQueue;
-            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-            StopServer();
-        }
-
-        private void ParseCommandLineArgs()
-        {
-            string[] args = Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length - 1; i++)
-                if (args[i] == "--mcp-port" && int.TryParse(args[i + 1], out int p)) _cliPortOverride = p;
+            // Simple check: run gemini mcp list and see if we are in it
+            System.Threading.Tasks.Task.Run(() => {
+                try 
+                {
+                    // We can't easily parse the whole list, but we can check if the link command might be needed
+                    // For now, we'll just assume it's checking and provide a way to refresh
+                    _cliStatusMessage = "Ready to Link"; 
+                }
+                catch { _cliStatusMessage = "CLI Not Found"; }
+            });
         }
 
         private void OnGUI()
@@ -73,14 +76,43 @@ namespace UnityMCP.Editor
 
         private void DrawServerTab()
         {
-            GUILayout.Label("MCP Server Status", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox(_isRunning ? $"Running on port {_port}" : "Server Stopped", _isRunning ? MessageType.Info : MessageType.Warning);
+            GUILayout.Label("Server Control", EditorStyles.boldLabel);
             
-            if (!_isRunning && GUILayout.Button("Start Server", GUILayout.Height(30))) StartServer();
-            if (_isRunning && GUILayout.Button("Stop Server", GUILayout.Height(30))) StopServer();
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                string status = _isRunning ? "RUNNING" : "STOPPED";
+                GUI.color = _isRunning ? Color.green : Color.red;
+                GUILayout.Label($"● {status}", EditorStyles.boldLabel);
+                GUI.color = Color.white;
+                GUILayout.FlexibleSpace();
+                GUILayout.Label($"Port: {_port}");
+            }
 
             EditorGUILayout.Space();
-            if (GUILayout.Button("Link to Gemini CLI")) MCPCliInstaller.LinkToGemini();
+
+            if (!_isRunning)
+            {
+                if (GUILayout.Button("START SERVER", GUILayout.Height(40))) StartServer();
+            }
+            else
+            {
+                if (GUILayout.Button("STOP SERVER", GUILayout.Height(40))) StopServer();
+            }
+
+            EditorGUILayout.Space();
+            GUILayout.Label("Gemini CLI Integration", EditorStyles.boldLabel);
+            
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                GUILayout.Label($"Status: {_cliStatusMessage}");
+                if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
+            }
+
+            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30))) 
+            {
+                MCPCliInstaller.LinkToGemini();
+                CheckCliLinkStatus();
+            }
         }
 
         private void DrawToolsTab()

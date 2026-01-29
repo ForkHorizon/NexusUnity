@@ -14,7 +14,6 @@ namespace UnityMCP.Editor
         /// <summary>
         /// Attempts to link the current Unity project to the local Gemini CLI instance.
         /// </summary>
-        [MenuItem("Window/Nexus Unity/Link to Gemini CLI", false, 10)]
         public static void LinkToGemini()
         {
             string scriptPath = FindBridgeScript();

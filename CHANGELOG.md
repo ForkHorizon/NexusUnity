@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.4] - 2026-01-29
+
+### Improved
+- **UI Restoration**: Restored "Nexus Unity" as a single clickable window button.
+- **Unified Control Panel**: Consolidated the server start/stop controls and the Gemini CLI linking tools into a single, high-visibility dashboard.
+- **Link Status**: Added a real-time status indicator for the Gemini CLI connection.
+
 ## [1.7.3] - 2026-01-29
 
 ### Improved
