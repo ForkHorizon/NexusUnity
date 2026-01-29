@@ -13,8 +13,28 @@ namespace UnityMCP.Editor
     /// <summary>
     /// Editor window that runs a local MCP server to interact with Unity.
     /// </summary>
+    [InitializeOnLoad]
     public partial class MCPServerWindow : EditorWindow
     {
+        static MCPServerWindow()
+        {
+            EditorApplication.delayCall += () => {
+                if (SessionState.GetBool("MCP_Server_Running", false))
+                {
+                    var windows = Resources.FindObjectsOfTypeAll<MCPServerWindow>();
+                    if (windows.Length > 0) windows[0].StartServer();
+                    else StartServerStandalone();
+                }
+            };
+        }
+
+        private static void StartServerStandalone()
+        {
+            var window = CreateInstance<MCPServerWindow>();
+            window.ParseCommandLineArgs();
+            window._port = window._cliPortOverride ?? MCPSettings.Port;
+            window.StartServer();
+        }
         private static ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
         private int _port;
         private bool _isRunning;

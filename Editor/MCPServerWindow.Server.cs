@@ -15,7 +15,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public partial class MCPServerWindow
     {
-        private async void StartServer()
+        internal async void StartServer()
         {
             if (_isRunning) return;
             _isRunning = true;
@@ -28,7 +28,7 @@ namespace UnityMCP.Editor
             Debug.Log($"[MCP] Server started on port {_port}");
         }
 
-        private void StopServer()
+        internal void StopServer()
         {
             SessionState.SetBool("MCP_Server_Running", false); // Clear intent
             _cts?.Cancel();
