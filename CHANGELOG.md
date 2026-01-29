@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.7.0] - 2026-01-29
+
+### Improved
+- **CLI Installer Diagnostics**: Enhanced the error reporting logic in the "Link to Gemini CLI" feature to provide more detailed feedback during failures (exit codes, exact error messages, and command output). This helps diagnose environmental path issues on macOS and Windows.
+
 ## [1.6.9] - 2026-01-29
 
 ### Removed

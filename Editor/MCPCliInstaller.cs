@@ -75,8 +75,9 @@ namespace UnityMCP.Editor
                 }
                 else
                 {
-                    UnityEngine.Debug.LogError($"[MCP] Failed to link: {error}");
-                    EditorUtility.DisplayDialog("MCP Error", $"Failed to link to Gemini CLI. Error: {error}", "OK");
+                    string msg = $"Failed to link to Gemini CLI.\n\nExit Code: {p.ExitCode}\nError: {error}\n\nCommand: {command}\n\nEnsure 'gemini' is installed and accessible in your system path.";
+                    UnityEngine.Debug.LogError($"[MCP] {msg}");
+                    EditorUtility.DisplayDialog("MCP Error", msg, "OK");
                 }
             }
         }
