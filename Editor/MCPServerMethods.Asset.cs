@@ -12,6 +12,22 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterAssetMethods()
+        {
+            _methods["move_asset"] = MoveAsset;
+            _methods["delete_asset"] = DeleteAsset;
+            _methods["copy_asset"] = CopyAsset;
+            _methods["get_dependencies"] = GetDependencies;
+            _methods["create_folder"] = CreateFolder;
+            _methods["list_assets"] = ListAssets;
+            _methods["create_material"] = CreateMaterial;
+            _methods["refresh_asset_database"] = RefreshAssetDatabase;
+            _methods["import_asset"] = ImportAsset;
+            _methods["create_prefab"] = CreatePrefab;
+            _methods["apply_prefab_overrides"] = ApplyPrefabOverrides;
+            _methods["revert_prefab_overrides"] = RevertPrefabOverrides;
+        }
+
         private static JToken ListAssets(JToken p)
         {
             string filter = p?["filter"]?.ToString() ?? "";
@@ -110,8 +126,8 @@ namespace UnityMCP.Editor
         {
             if (p?["path"] == null) throw new Exception("path required (e.g., 'Assets/NewFolder')");
             string path = p["path"].ToString();
-            string parent = System.IO.Path.GetDirectoryName(path).Replace("\\", "/");
-            string name = System.IO.Path.GetFileName(path);
+            string parent = Path.GetDirectoryName(path).Replace("\\", "/");
+            string name = Path.GetFileName(path);
             string guid = AssetDatabase.CreateFolder(parent, name);
             if (string.IsNullOrEmpty(guid)) throw new Exception("Failed to create folder");
             return "OK";

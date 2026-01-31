@@ -13,7 +13,16 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.8.8" } };
+        private static void RegisterCoreMethods()
+        {
+            _methods["initialize"] = Initialize;
+            _methods["read_logs"] = ReadLogs;
+            _methods["clear_logs"] = ClearLogs;
+            _methods["test_coroutine"] = TestCoroutine;
+            _methods["list_tools"] = ListTools;
+        }
+
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.8.9" } };
 
         private static JToken CreatePrimitive(JToken p)
         {

@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.8.9] - 2026-01-29
+
+### Performance
+- **High-Performance Dispatcher**: Refactored the internal JSON-RPC dispatcher to use a `Dictionary` for method lookups. This achieves O(1) constant-time performance for tool execution, replacing the previous sequential category checks.
+
 ## [1.8.8] - 2026-01-29
 
 ### Fixed

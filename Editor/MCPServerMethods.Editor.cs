@@ -9,6 +9,25 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterEditorMethods()
+        {
+            _methods["undo"] = UndoMethod;
+            _methods["redo"] = RedoMethod;
+            _methods["toggle_play_mode"] = TogglePlayMode;
+            _methods["execute_menu_item"] = ExecuteMenuItem;
+            _methods["get_tags_and_layers"] = GetTagsAndLayers;
+            _methods["set_property"] = SetProperty;
+            _methods["set_transform"] = SetTransform;
+            _methods["set_parent"] = SetParent;
+            _methods["add_component"] = AddComponent;
+            _methods["inspect_component"] = InspectComponent;
+            _methods["update_component"] = UpdateComponent;
+            _methods["pause_play_mode"] = PausePlayMode;
+            _methods["step_frame"] = StepFrame;
+            _methods["attach_script"] = AttachScript;
+            _methods["create_primitive"] = CreatePrimitive;
+        }
+
         private static JToken UndoMethod(JToken p)
         {
             Undo.PerformUndo();

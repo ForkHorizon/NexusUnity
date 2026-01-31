@@ -11,6 +11,22 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterDiscoveryMethods()
+        {
+            _methods["get_game_object"] = GetGameObject;
+            _methods["get_active_game_object"] = GetActiveGameObject;
+            _methods["get_root_game_objects"] = GetRootGameObjects;
+            _methods["get_object_path"] = GetObjectPath;
+            _methods["find_objects"] = FindObjects;
+            _methods["list_scenes"] = ListScenes;
+            _methods["get_tags_and_layers"] = GetTagsAndLayers;
+            _methods["ping_object"] = PingObject;
+            _methods["get_editor_state"] = GetEditorState;
+            _methods["get_project_info"] = GetProjectInfo;
+            _methods["set_selection"] = SetSelection;
+            _methods["focus_scene_view"] = FocusSceneView;
+        }
+
         private static JToken FindObjects(JToken p)
         {
             string name = p?["name"]?.ToString();

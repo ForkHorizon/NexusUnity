@@ -13,6 +13,14 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterUIMethods()
+        {
+            _methods["ui_list_windows"] = UIListWindows;
+            _methods["ui_get_hierarchy"] = UIGetHierarchy;
+            _methods["ui_click"] = UIClick;
+            _methods["ui_input_text"] = UIInputText;
+        }
+
         private static JToken UIListWindows(JToken p)
         {
             var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();

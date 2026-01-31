@@ -11,6 +11,16 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterSceneMethods()
+        {
+            _methods["open_scene"] = OpenScene;
+            _methods["create_scene"] = CreateScene;
+            _methods["save_scene"] = SaveScene;
+            _methods["create_game_object"] = CreateGameObject;
+            _methods["destroy_game_object"] = DestroyGameObject;
+            _methods["instantiate_prefab"] = InstantiatePrefab;
+        }
+
         private static JToken OpenScene(JToken p)
         {
             if (p == null || p["path"] == null) throw new Exception("path is required");

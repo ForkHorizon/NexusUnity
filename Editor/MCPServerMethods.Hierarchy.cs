@@ -10,6 +10,18 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterHierarchyMethods()
+        {
+            _methods["duplicate_object"] = DuplicateObject;
+            _methods["remove_component"] = RemoveComponent;
+            _methods["read_file"] = ReadFile;
+            _methods["write_file"] = WriteFile;
+            _methods["get_children"] = GetChildren;
+            _methods["set_active"] = SetActive;
+            _methods["set_enabled"] = SetEnabled;
+            _methods["set_sibling_index"] = SetSiblingIndex;
+        }
+
         /// <summary>Returns all direct children of a GameObject.</summary>
         private static JToken GetChildren(JToken p)
         {
@@ -95,9 +107,9 @@ namespace UnityMCP.Editor
         private static JToken ReadFile(JToken p)
         {
             if (p?["path"] == null) throw new System.Exception("path required");
-            string fullPath = ValidatePath(p["path"].ToString());
-            if (!System.IO.File.Exists(fullPath)) throw new System.Exception("File not found");
-            string content = System.IO.File.ReadAllText(fullPath);
+            string path = ValidatePath(p["path"].ToString());
+            if (!System.IO.File.Exists(path)) throw new System.Exception("File not found");
+            string content = System.IO.File.ReadAllText(path);
             return new JObject { ["content"] = content, ["length"] = content.Length };
         }
 
@@ -108,53 +120,100 @@ namespace UnityMCP.Editor
             string fullPath = ValidatePath(p["path"].ToString());
             System.IO.File.WriteAllText(fullPath, p["content"].ToString());
 
-            // Calculate relative path for AssetDatabase
-            string projectRoot = System.IO.Path.GetDirectoryName(Application.dataPath).Replace('\\', '/');
-            string relativePath = fullPath.Length > projectRoot.Length ? fullPath.Substring(projectRoot.Length + 1) : fullPath;
+            // Convert to relative path for AssetDatabase
+            string root = System.IO.Path.GetFullPath(".");
+            string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
 
-            AssetDatabase.ImportAsset(relativePath);
-            return "OK";
-        }
+                    AssetDatabase.ImportAsset(relativePath);
 
-        /// <summary>Returns current editor state flags.</summary>
-        private static JToken GetEditorState(JToken p)
-        {
-            return new JObject
-            {
-                ["is_playing"] = EditorApplication.isPlaying,
-                ["is_paused"] = EditorApplication.isPaused,
-                ["is_compiling"] = EditorApplication.isCompiling,
-                ["active_scene"] = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path,
-                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString()
-            };
-        }
+                        return "OK";
 
-        /// <summary>Pauses or unpauses Play Mode.</summary>
-        private static JToken PausePlayMode(JToken p)
-        {
-            if (p?["value"] != null) EditorApplication.isPaused = p["value"].Value<bool>();
-            else EditorApplication.isPaused = !EditorApplication.isPaused;
-            return new JObject { ["is_paused"] = EditorApplication.isPaused };
-        }
+                    }
 
-        /// <summary>Advances one frame while paused.</summary>
-        private static JToken StepFrame(JToken p)
-        {
-            EditorApplication.Step();
-            return "OK";
-        }
+            
 
-        /// <summary>Returns basic project metadata.</summary>
-        private static JToken GetProjectInfo(JToken p)
-        {
-            return new JObject
-            {
-                ["project_path"] = Application.dataPath.Replace("/Assets", ""),
-                ["unity_version"] = Application.unityVersion,
-                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString(),
-                ["product_name"] = Application.productName,
-                ["company_name"] = Application.companyName
-            };
-        }
-    }
-}
+                    /// <summary>Returns current editor state flags.</summary>
+
+                    private static JToken GetEditorState(JToken p)
+
+                    {
+
+                        return new JObject
+
+                        {
+
+                            ["is_playing"] = EditorApplication.isPlaying,
+
+                            ["is_paused"] = EditorApplication.isPaused,
+
+                            ["is_compiling"] = EditorApplication.isCompiling,
+
+                            ["active_scene"] = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path,
+
+                            ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString()
+
+                        };
+
+                    }
+
+            
+
+                    /// <summary>Pauses or unpauses Play Mode.</summary>
+
+                    private static JToken PausePlayMode(JToken p)
+
+                    {
+
+                        if (p?["value"] != null) EditorApplication.isPaused = p["value"].Value<bool>();
+
+                        else EditorApplication.isPaused = !EditorApplication.isPaused;
+
+                        return new JObject { ["is_paused"] = EditorApplication.isPaused };
+
+                    }
+
+            
+
+                    /// <summary>Advances one frame while paused.</summary>
+
+                    private static JToken StepFrame(JToken p)
+
+                    {
+
+                        EditorApplication.Step();
+
+                        return "OK";
+
+                    }
+
+            
+
+                    /// <summary>Returns basic project metadata.</summary>
+
+                    private static JToken GetProjectInfo(JToken p)
+
+                    {
+
+                        return new JObject
+
+                        {
+
+                            ["project_path"] = Application.dataPath.Replace("/Assets", ""),
+
+                            ["unity_version"] = Application.unityVersion,
+
+                            ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString(),
+
+                            ["product_name"] = Application.productName,
+
+                            ["company_name"] = Application.companyName
+
+                        };
+
+                    }
+
+                }
+
+            }
+
+            
