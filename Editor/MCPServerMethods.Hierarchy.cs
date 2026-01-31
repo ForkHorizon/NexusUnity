@@ -95,9 +95,9 @@ namespace UnityMCP.Editor
         private static JToken ReadFile(JToken p)
         {
             if (p?["path"] == null) throw new System.Exception("path required");
-            string path = p["path"].ToString();
-            if (!System.IO.File.Exists(path)) throw new System.Exception("File not found");
-            string content = System.IO.File.ReadAllText(path);
+            string fullPath = ValidatePath(p["path"].ToString());
+            if (!System.IO.File.Exists(fullPath)) throw new System.Exception("File not found");
+            string content = System.IO.File.ReadAllText(fullPath);
             return new JObject { ["content"] = content, ["length"] = content.Length };
         }
 
@@ -105,9 +105,14 @@ namespace UnityMCP.Editor
         private static JToken WriteFile(JToken p)
         {
             if (p?["path"] == null || p["content"] == null) throw new System.Exception("path and content required");
-            string path = p["path"].ToString();
-            System.IO.File.WriteAllText(path, p["content"].ToString());
-            AssetDatabase.ImportAsset(path);
+            string fullPath = ValidatePath(p["path"].ToString());
+            System.IO.File.WriteAllText(fullPath, p["content"].ToString());
+
+            // Calculate relative path for AssetDatabase
+            string projectRoot = System.IO.Path.GetDirectoryName(Application.dataPath).Replace('\\', '/');
+            string relativePath = fullPath.Length > projectRoot.Length ? fullPath.Substring(projectRoot.Length + 1) : fullPath;
+
+            AssetDatabase.ImportAsset(relativePath);
             return "OK";
         }
 

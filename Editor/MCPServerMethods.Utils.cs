@@ -11,6 +11,38 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        /// <summary>
+        /// Validates that the path is within the project directory to prevent path traversal.
+        /// Returns the absolute path if valid.
+        /// </summary>
+        private static string ValidatePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) throw new System.Exception("Path cannot be empty");
+
+            // Normalize path separators
+            string cleanPath = path.Replace('\\', '/');
+
+            // Get project root (parent of Assets folder)
+            string projectRoot = System.IO.Path.GetDirectoryName(Application.dataPath).Replace('\\', '/');
+
+            // If path is relative, combine with project root
+            if (!System.IO.Path.IsPathRooted(cleanPath))
+            {
+                cleanPath = System.IO.Path.Combine(projectRoot, cleanPath).Replace('\\', '/');
+            }
+
+            // Resolve full path (handles .. and symlinks)
+            string fullPath = System.IO.Path.GetFullPath(cleanPath).Replace('\\', '/');
+
+            // Check if path is within project root
+            if (!fullPath.StartsWith(projectRoot, System.StringComparison.OrdinalIgnoreCase))
+            {
+                throw new System.Exception("Access denied: Path is outside project directory.");
+            }
+
+            return fullPath;
+        }
+
         private static EditorWindow FindWindow(string title)
         {
             return Resources.FindObjectsOfTypeAll<EditorWindow>().FirstOrDefault(w => w.titleContent.text == title);

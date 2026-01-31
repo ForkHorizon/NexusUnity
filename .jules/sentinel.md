@@ -7,3 +7,8 @@
 **Vulnerability:** Relying on `HttpListener` binding to `localhost` is insufficient for preventing DNS Rebinding if the Host header isn't validated.
 **Learning:** `context.Request.Url.IsLoopback` provides a robust, built-in check for ensuring the request targets the local machine, handling IPv4, IPv6, and localhost names correctly.
 **Prevention:** Use `!context.Request.Url.IsLoopback` to reject requests not targeting the loopback interface.
+
+## 2024-05-24 - Unity MCP Path Traversal
+**Vulnerability:** File operations like `read_file` and `write_file` exposed by an MCP server allowed reading/writing arbitrary files outside the project via `..` paths.
+**Learning:** `System.IO` methods like `File.ReadAllText` accept paths outside the project root without restriction. `Path.GetFullPath` is essential to resolve `..` before validation.
+**Prevention:** Implement strict path validation that resolves the full path and checks if it starts with the project root directory before performing any file I/O.

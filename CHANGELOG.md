@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.8.8] - 2026-01-29
+
+### Fixed
+- **Path Traversal Security Fix**: Implemented a strict path validation system for `read_file` and `write_file`. All file paths are now normalized and resolved to ensure they remain within the Unity project root, preventing unauthorized access to sensitive system files.
+
 ## [1.8.7] - 2026-01-29
 
 ### Added
