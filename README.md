@@ -1,37 +1,34 @@
-# NexusUnity
+# Nexus Unity
 
 A core library for Unity providing a built-in Model Context Protocol (MCP) server for seamless interaction with external AI tools and workflows.
 
 ## 🚀 Features
 
 - **Full Unity Editor Control**: 59+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
-- **AI Power Tools (v1.4.0+)**: Advanced search, selection control, and prefab lifecycle management.
-- **Gap Closure (v1.5.0)**: Hierarchy manipulation, file I/O, expanded asset management.
-- **Surgical Property Editing**: Precise manipulation of single fields without full JSON state transfers.
-- **Editor Automation**: Remote control for Play Mode, Undo/Redo, Pause/Step, and Menu Commands.
-- **Modular Architecture**: Clean separation of concerns using partial classes for better maintainability.
+- **Self-Healing Server**: Automatically restarts after Unity domain reloads (compilation) or network errors.
+- **Gemini CLI Native**: One-click integration with the Gemini CLI via the unified dashboard.
+- **Non-Blocking Logic**: Automated scene saving and non-interactive workflows to prevent Editor stalls.
+- **Surgical Property Editing**: Precise manipulation of fields using SerializedObjects traversal.
 - **UI Toolkit Automation**: Inspect and interact with Unity Editor windows and visual elements.
 
 ## 📂 Internal Structure
 
-- `Editor/`: Modularized implementation of the MCP Server and processing logic.
-  - `MCPServerWindow*.cs`: Partial classes managing the server lifecycle, UI, and log capturing.
-  - `MCPServerMethods*.cs`: Partial classes containing the core request handling (Scene, Asset, UI manipulation).
-  - `UnityMCP.Editor.asmdef`: Assembly definition with required dependencies (EditorCoroutines, Newtonsoft.Json).
-- `Runtime/`: Core runtime components for the library.
+- `Editor/`: Modularized implementation of the MCP Server.
+  - `MCPServerWindow*.cs`: Unified tabbed dashboard for server and tool control.
+  - `MCPServerMethods*.cs`: core request handlers categorized by feature.
+  - `MCPCliInstaller.cs`: Cross-platform link logic for Gemini CLI.
+  - `nexus_unity_bridge.py`: Standard MCP stdio translator.
+- `Runtime/`: core runtime components.
 
 ## 🚦 Usage
 
-### Starting the Server
-1. Go to **Window > Unity MCP > Server** in the Unity menu.
-2. Click **Start Server**.
-3. The library will start listening on `http://localhost:8081/`. (Default port 8081).
+### Quick Start
+1. Go to **Window > Nexus Unity** in the Unity menu.
+2. Click **Start Server** (Server will now persist through reloads).
+3. Click **Link to Gemini CLI** to instantly connect your terminal to Unity.
 
 ### Integration
-External tools can send JSON-RPC 2.0 requests to this endpoint to interact with the Unity Editor. See `DOCUMENTATION.MD` for the full protocol specification.
-
-## 📦 Dependencies
-- `Newtonsoft.Json`: Required for robust JSON-RPC parsing.
+External tools can send JSON-RPC 2.0 requests to `http://localhost:8081/`. See `DOCUMENTATION.MD` for the full protocol specification.
 
 ## 📜 License
 Refer to the main project license for details.

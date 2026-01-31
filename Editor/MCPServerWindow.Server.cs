@@ -18,21 +18,36 @@ namespace UnityMCP.Editor
         internal async void StartServer()
         {
             if (_isRunning) return;
-            try
+            
+            int retries = 3;
+            while (retries > 0)
             {
-                _isRunning = true;
-                _cts = new CancellationTokenSource();
-                _listener = new HttpListener();
-                _listener.Prefixes.Add($"http://*:{_port}/");
-                _listener.Start();
-                SessionState.SetBool("MCP_Server_Running", true); // Persist intent through reloads
-                Task.Run(() => ServerLoop(_cts.Token));
-                Debug.Log($"[MCP] Server started on port {_port}");
-            }
-            catch (Exception e)
-            {
-                _isRunning = false;
-                Debug.LogError($"[MCP] Failed to start server: {e.Message}");
+                try
+                {
+                    _isRunning = true;
+                    _cts = new CancellationTokenSource();
+                    _listener = new HttpListener();
+                    _listener.Prefixes.Add($"http://*:{_port}/");
+                    _listener.Start();
+                    SessionState.SetBool("MCP_Server_Running", true);
+                    Task.Run(() => ServerLoop(_cts.Token));
+                    Debug.Log($"[MCP] Server started on port {_port}");
+                    return; // Success
+                }
+                catch (Exception e)
+                {
+                    CleanupServer();
+                    retries--;
+                    if (retries > 0)
+                    {
+                        Debug.LogWarning($"[MCP] Server bind failed ({e.Message}). Retrying in 1s...");
+                        await Task.Delay(1000);
+                    }
+                    else
+                    {
+                        Debug.LogError($"[MCP] Server failed to start after multiple attempts: {e.Message}");
+                    }
+                }
             }
         }
 
@@ -56,11 +71,41 @@ namespace UnityMCP.Editor
 
         private async Task ServerLoop(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                var context = await _listener.GetContextAsync();
-                if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
-                else HandleHttpRequest(context);
+                while (!token.IsCancellationRequested && _listener != null && _listener.IsListening)
+                {
+                    try
+                    {
+                        var context = await _listener.GetContextAsync();
+                        if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
+                        else HandleHttpRequest(context);
+                    }
+                    catch (HttpListenerException e) when (e.ErrorCode == 995) // IO operation aborted (normal during stop)
+                    {
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        if (!token.IsCancellationRequested)
+                            Debug.LogWarning($"[MCP] Error processing request: {e.Message}");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (!token.IsCancellationRequested)
+                    Debug.LogError($"[MCP] Fatal server loop error: {e.Message}");
+            }
+            finally
+            {
+                _isRunning = false;
+                // Auto-restart if we didn't mean to stop
+                if (!token.IsCancellationRequested && SessionState.GetBool("MCP_Server_Running", false))
+                {
+                    Debug.Log("[MCP] Server loop ended unexpectedly. Attempting restart...");
+                    EditorApplication.delayCall += () => StartServer();
+                }
             }
         }
 

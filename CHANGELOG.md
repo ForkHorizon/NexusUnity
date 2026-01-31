@@ -2,6 +2,20 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.8.7] - 2026-01-29
+
+### Added
+- **Stability Release (Self-Healing)**: Implemented a robust crash-recovery loop in the MCP server. It will now automatically attempt to restart and re-bind if a network error or silent crash occurs.
+- **Improved InitializeOnLoad**: Refactored static initialization to reliably restart the server after every Unity domain reload, ensuring zero-interaction persistence.
+- **MCP Discovery Fix**: Added support for standard MCP method names (`tools/list`, `resources/list`, `prompts/list`), resolving visibility issues in Gemini CLI and other strict clients.
+- **Universal Documentation**: Fully updated README, Documentation, and Branding to reflect the unified "Nexus Unity" dashboard and architecture.
+
+## [1.8.6] - 2026-01-29
+
+### Fixed
+- **Self-Healing Server**: Implemented a robust error-recovery loop in the MCP server. If the server loop crashes due to a network error, it will now automatically attempt to self-heal and restart.
+- **Enhanced Cinema Mode**: Upgraded the demonstration script with "Asynchronous Swarm" logic, showcasing the AI's ability to generate and apply complex, per-object organic movement scripts.
+
 ## [1.8.5] - 2026-01-29
 
 ### Fixed

@@ -18,12 +18,12 @@ namespace UnityMCP.Editor
     {
         static MCPServerWindow()
         {
+            // Just ensure OnEnable runs on an instance
             EditorApplication.delayCall += () => {
                 if (SessionState.GetBool("MCP_Server_Running", false))
                 {
                     var windows = Resources.FindObjectsOfTypeAll<MCPServerWindow>();
-                    if (windows.Length > 0) windows[0].StartServer();
-                    else StartServerStandalone();
+                    if (windows.Length == 0) StartServerStandalone();
                 }
             };
         }

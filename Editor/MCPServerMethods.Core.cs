@@ -13,7 +13,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.8.5" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "1.8.7" } };
 
         private static JToken CreatePrimitive(JToken p)
         {
