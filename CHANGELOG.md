@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.9.0] - 2026-01-29
+
+### Added
+- **WebSocket Security Hardening**: Implemented protection against Cross-Site WebSocket Hijacking (CSWSH) and DNS Rebinding for WebSocket connections. The server now validates both the `Origin` header and the loopback interface before accepting any WebSocket upgrades.
+
 ## [1.8.9] - 2026-01-29
 
 ### Performance

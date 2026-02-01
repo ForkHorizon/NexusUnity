@@ -111,6 +111,28 @@ namespace UnityMCP.Editor
 
         private async Task ProcessWebSocket(HttpListenerContext context)
         {
+            // Security: Host Header Validation (DNS Rebinding protection)
+            if (!context.Request.Url.IsLoopback)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.Close();
+                return;
+            }
+
+            // Security: Origin Validation (CSWSH protection)
+            string origin = context.Request.Headers["Origin"];
+            if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out Uri originUri))
+            {
+                // Reject if scheme is http/https AND host is not loopback
+                // This allows non-browser tools (no Origin or null) and local browser apps
+                if ((originUri.Scheme == Uri.UriSchemeHttp || originUri.Scheme == Uri.UriSchemeHttps) && !originUri.IsLoopback)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    context.Response.Close();
+                    return;
+                }
+            }
+
             var wsContext = await context.AcceptWebSocketAsync(null);
             _webSocket = wsContext.WebSocket;
             await ReceiveWebsocketLoop(_cts.Token);
