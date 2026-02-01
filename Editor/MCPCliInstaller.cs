@@ -3,6 +3,7 @@ using UnityEngine;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System;
 
 namespace UnityMCP.Editor
 {
@@ -16,16 +17,45 @@ namespace UnityMCP.Editor
         /// </summary>
         public static void LinkToGemini()
         {
-            string scriptPath = FindBridgeScript();
+            string sourcePath = FindBridgeScript();
 
-            if (string.IsNullOrEmpty(scriptPath))
+            if (string.IsNullOrEmpty(sourcePath))
             {
                 UnityEngine.Debug.LogError("[MCP] Could not find 'nexus_unity_bridge.py' in the project.");
                 EditorUtility.DisplayDialog("MCP Error", "Could not find 'nexus_unity_bridge.py'.\n\nEnsure the library is correctly imported.", "OK");
                 return;
             }
 
-            ExecuteLinkCommand(scriptPath);
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            string destinationPath = Path.Combine(projectRoot, "nexus_unity_bridge.py");
+
+            try
+            {
+                File.Copy(sourcePath, destinationPath, true);
+                UnityEngine.Debug.Log("[MCP] Bridge script deployed to stable location: " + destinationPath);
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[MCP] Failed to deploy bridge script: " + e.Message);
+                EditorUtility.DisplayDialog("MCP Error", "Failed to deploy bridge script to project root.\n\n" + e.Message, "OK");
+                return;
+            }
+
+            ExecuteLinkSequence(destinationPath);
+        }
+
+        private static void ExecuteLinkSequence(string scriptPath)
+        {
+            string geminiPath = ResolveExecutablePath("gemini");
+            string pythonPath = ResolveExecutablePath("python3");
+
+            // 1. Ensure clean slate by removing existing registration
+            string removeCommand = "\"" + geminiPath + "\" mcp remove nexus-unity";
+            RunInstallerProcess(CreateProcessStartInfo(removeCommand), geminiPath, false);
+
+            // 2. Add new registration with stable path
+            string addCommand = "\"" + geminiPath + "\" mcp add nexus-unity --trust \"" + pythonPath + "\" \"" + scriptPath + "\"";
+            RunInstallerProcess(CreateProcessStartInfo(addCommand), geminiPath, true);
         }
 
         private static string FindBridgeScript()
@@ -52,7 +82,12 @@ namespace UnityMCP.Editor
         {
             if (Application.platform == RuntimePlatform.WindowsEditor) return name;
 
-            string[] searchPaths = { $"/opt/homebrew/bin/{name}", $"/usr/local/bin/{name}", $"/usr/bin/{name}", $"/bin/{name}" };
+            string[] searchPaths = { 
+                "/opt/homebrew/bin/" + name, 
+                "/usr/local/bin/" + name, 
+                "/usr/bin/" + name, 
+                "/bin/" + name 
+            };
             foreach (string path in searchPaths)
             {
                 if (File.Exists(path)) return path;
@@ -73,19 +108,8 @@ namespace UnityMCP.Editor
                     if (p.ExitCode == 0 && !string.IsNullOrEmpty(output)) return output;
                 }
             }
-            catch {{ }}
+            catch (Exception) { }
             return name;
-        }
-
-        private static void ExecuteLinkCommand(string scriptPath)
-        {
-            string geminiPath = ResolveExecutablePath("gemini");
-            string pythonPath = ResolveExecutablePath("python3");
-            // Add --trust flag to mark the local server as trusted, bypassing OAuth/Confirmation
-            string command = $"\"{geminiPath}\" mcp add nexus-unity --trust \"{pythonPath}\" \"{scriptPath}\"";
-            
-            ProcessStartInfo psi = CreateProcessStartInfo(command);
-            RunInstallerProcess(psi, geminiPath);
         }
 
         private static ProcessStartInfo CreateProcessStartInfo(string command)
@@ -94,7 +118,7 @@ namespace UnityMCP.Editor
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = isWindows ? "cmd.exe" : "/bin/bash",
-                Arguments = isWindows ? $"/c \"{command}\"" : $"-c \"{command}\"",
+                Arguments = isWindows ? ("/c \"" + command + "\"") : ("-c \"" + command + "\""),
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
@@ -102,28 +126,41 @@ namespace UnityMCP.Editor
 
             if (!isWindows)
             {
-                string currentPath = psi.EnvironmentVariables["PATH"] ?? "";
-                psi.EnvironmentVariables["PATH"] = $"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:{currentPath}";
+                string pathEnv = "";
+                try { pathEnv = psi.EnvironmentVariables["PATH"]; } catch(Exception) {}
+                psi.EnvironmentVariables["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:" + pathEnv;
             }
             return psi;
         }
 
-        private static void RunInstallerProcess(ProcessStartInfo psi, string geminiPath)
+        private static void RunInstallerProcess(ProcessStartInfo psi, string geminiPath, bool showSuccessDialog)
         {
-            using (Process p = Process.Start(psi))
+            try
             {
-                string error = p.StandardError.ReadToEnd();
-                p.WaitForExit();
+                using (Process p = Process.Start(psi))
+                {
+                    string error = p.StandardError.ReadToEnd();
+                    p.WaitForExit();
 
-                if (p.ExitCode == 0)
-                {
-                    EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Gemini CLI!", "OK");
+                    if (p.ExitCode == 0)
+                    {
+                        if (showSuccessDialog)
+                            EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Gemini CLI!", "OK");
+                    }
+                    else if (showSuccessDialog) // Only show error if this was the 'Add' command
+                    {
+                        string msg = "Failed to link to Gemini CLI.\n\nExit Code: " + p.ExitCode + "\nError: " + error + "\n\nPath used: " + geminiPath;
+                        UnityEngine.Debug.LogError("[MCP] " + msg);
+                        EditorUtility.DisplayDialog("MCP Error", msg, "OK");
+                    }
                 }
-                else
+            }
+            catch (Exception e)
+            {
+                if (showSuccessDialog)
                 {
-                    string msg = $"Failed to link to Gemini CLI.\n\nExit Code: {p.ExitCode}\nError: {error}\n\nPath used: {geminiPath}";
-                    UnityEngine.Debug.LogError($"[MCP] {msg}");
-                    EditorUtility.DisplayDialog("MCP Error", msg, "OK");
+                    UnityEngine.Debug.LogError("[MCP] Process start failed: " + e.Message);
+                    EditorUtility.DisplayDialog("MCP Error", "Failed to start installer process: " + e.Message, "OK");
                 }
             }
         }

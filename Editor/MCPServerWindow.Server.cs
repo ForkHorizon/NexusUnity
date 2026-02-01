@@ -18,7 +18,19 @@ namespace UnityMCP.Editor
         internal async void StartServer()
         {
             if (_isRunning) return;
+
+            if (await IsPortOccupiedByAnotherServer())
+            {
+                Debug.LogError($"[MCP] Cannot start server. Port {{_port}} is already being used by another Unity MCP instance.");
+                SessionState.SetBool("MCP_Server_Running", false);
+                return;
+            }
             
+            BindAndStartListener();
+        }
+
+        private async void BindAndStartListener()
+        {
             int retries = 3;
             while (retries > 0)
             {
@@ -31,8 +43,8 @@ namespace UnityMCP.Editor
                     _listener.Start();
                     SessionState.SetBool("MCP_Server_Running", true);
                     Task.Run(() => ServerLoop(_cts.Token));
-                    Debug.Log($"[MCP] Server started on port {_port}");
-                    return; // Success
+                    Debug.Log($"[MCP] Server started on port {{_port}}");
+                    return;
                 }
                 catch (Exception e)
                 {
@@ -40,15 +52,30 @@ namespace UnityMCP.Editor
                     retries--;
                     if (retries > 0)
                     {
-                        Debug.LogWarning($"[MCP] Server bind failed ({e.Message}). Retrying in 1s...");
+                        Debug.LogWarning($"[MCP] Server bind failed ({{e.Message}}). Retrying in 1s...");
                         await Task.Delay(1000);
                     }
-                    else
-                    {
-                        Debug.LogError($"[MCP] Server failed to start after multiple attempts: {e.Message}");
-                    }
+                    else Debug.LogError($"[MCP] Server failed to start after multiple attempts: {{e.Message}}");
                 }
             }
+        }
+
+        private async Task<bool> IsPortOccupiedByAnotherServer()
+        {
+            using var client = new System.Net.Http.HttpClient();
+            client.Timeout = TimeSpan.FromMilliseconds(500); 
+            try
+            {
+                var content = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
+                var response = await client.PostAsync($"http://localhost:{_port}/", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    string body = await response.Content.ReadAsStringAsync();
+                    return body.Contains("Unity MCP Server");
+                }
+            }
+            catch { }
+            return false;
         }
 
         internal void StopServer()
@@ -81,26 +108,25 @@ namespace UnityMCP.Editor
                         if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
                         else HandleHttpRequest(context);
                     }
-                    catch (HttpListenerException e) when (e.ErrorCode == 995) // IO operation aborted (normal during stop)
+                    catch (HttpListenerException e) when (e.ErrorCode == 995) 
                     {
                         break;
                     }
                     catch (Exception e)
                     {
                         if (!token.IsCancellationRequested)
-                            Debug.LogWarning($"[MCP] Error processing request: {e.Message}");
+                            Debug.LogWarning($"[MCP] Error processing request: {{e.Message}}");
                     }
                 }
             }
             catch (Exception e)
             {
                 if (!token.IsCancellationRequested)
-                    Debug.LogError($"[MCP] Fatal server loop error: {e.Message}");
+                    Debug.LogError($"[MCP] Fatal server loop error: {{e.Message}}");
             }
             finally
             {
                 _isRunning = false;
-                // Auto-restart if we didn't mean to stop
                 if (!token.IsCancellationRequested && SessionState.GetBool("MCP_Server_Running", false))
                 {
                     Debug.Log("[MCP] Server loop ended unexpectedly. Attempting restart...");
@@ -111,7 +137,6 @@ namespace UnityMCP.Editor
 
         private async Task ProcessWebSocket(HttpListenerContext context)
         {
-            // Security: Host Header Validation (DNS Rebinding protection)
             if (!context.Request.Url.IsLoopback)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
@@ -119,12 +144,9 @@ namespace UnityMCP.Editor
                 return;
             }
 
-            // Security: Origin Validation (CSWSH protection)
             string origin = context.Request.Headers["Origin"];
             if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out Uri originUri))
             {
-                // Reject if scheme is http/https AND host is not loopback
-                // This allows non-browser tools (no Origin or null) and local browser apps
                 if ((originUri.Scheme == Uri.UriSchemeHttp || originUri.Scheme == Uri.UriSchemeHttps) && !originUri.IsLoopback)
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
@@ -140,8 +162,6 @@ namespace UnityMCP.Editor
 
         private void HandleHttpRequest(HttpListenerContext context)
         {
-            // Security: Host Header Validation (DNS Rebinding protection)
-            // Ensure the request is intended for localhost
             if (!context.Request.Url.IsLoopback)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
@@ -149,7 +169,6 @@ namespace UnityMCP.Editor
                 return;
             }
 
-            // Security: Method Validation
             if (context.Request.HttpMethod != "POST")
             {
                 context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
@@ -157,8 +176,6 @@ namespace UnityMCP.Editor
                 return;
             }
 
-            // Security: Content-Type Validation (CSRF protection)
-            // Enforce application/json to prevent simple form POSTs from browsers
             if (context.Request.ContentType == null || !context.Request.ContentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
             {
                 context.Response.StatusCode = (int)HttpStatusCode.UnsupportedMediaType;

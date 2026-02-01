@@ -2,6 +2,18 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.9.4] - 2026-01-29
+
+### Fixed
+- **Stale Process Prevention**: Added an "Orphan Monitor" to the Python bridge script. The bridge will now automatically detect if the Gemini CLI (its parent process) has terminated and will shut itself down immediately, preventing background stale processes.
+- **Instance Conflict Protection**: Implemented a pre-startup check in Unity to detect if another Nexus Unity server is already running on the same port. This prevents port conflicts and ensures only one server instance is active at a time.
+
+## [1.9.3] - 2026-01-29
+
+### Improved
+- **Reliable CLI Integration**: Implemented a "Stable Path" strategy for the Gemini CLI link. The installer now automatically deploys a copy of the bridge script to the project root. This ensures that Unity Package Manager updates or cache clears no longer break the terminal connection.
+- **Clean Slate Linking**: The installer now automatically removes old `nexus-unity` registrations before adding the new one, preventing stale process conflicts.
+
 ## [1.9.2] - 2026-01-29
 
 ### Fixed
