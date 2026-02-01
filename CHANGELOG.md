@@ -2,6 +2,11 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.9.2] - 2026-01-29
+
+### Fixed
+- **WebSocket Stability**: Implemented robust fragmentation handling for WebSocket communication. The server now correctly accumulates multi-packet messages using a `MemoryStream`, allowing support for large JSON-RPC payloads (> 4KB) without data loss.
+
 ## [1.9.1] - 2026-01-29
 
 ### Added

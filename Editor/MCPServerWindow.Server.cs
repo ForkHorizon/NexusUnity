@@ -178,12 +178,30 @@ namespace UnityMCP.Editor
         private async Task ReceiveWebsocketLoop(CancellationToken token)
         {
             var buffer = new byte[4096];
+            using var ms = new System.IO.MemoryStream();
+
             while (_webSocket.State == WebSocketState.Open && !token.IsCancellationRequested)
             {
-                var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
-                if (result.MessageType == WebSocketMessageType.Text)
+                ms.SetLength(0);
+                WebSocketReceiveResult result;
+
+                do
                 {
-                    string msg = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        return;
+                    }
+
+                    ms.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage && !token.IsCancellationRequested);
+
+                if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
+                {
+                    string msg = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
                     string response = MCPServerMethods.ProcessJsonRpc(msg);
                     await SendResponse(response);
                 }
