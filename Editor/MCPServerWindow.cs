@@ -113,16 +113,7 @@ namespace UnityMCP.Editor
         private void DrawServerTab()
         {
             GUILayout.Label("Server Control", EditorStyles.boldLabel);
-            
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-            {
-                string status = _isRunning ? "RUNNING" : "STOPPED";
-                GUI.color = _isRunning ? Color.green : Color.red;
-                GUILayout.Label($"● {status}", EditorStyles.boldLabel);
-                GUI.color = Color.white;
-                GUILayout.FlexibleSpace();
-                GUILayout.Label($"Port: {_port}");
-            }
+            DrawServerStatusBar();
 
             EditorGUILayout.Space();
 
@@ -136,8 +127,31 @@ namespace UnityMCP.Editor
             }
 
             EditorGUILayout.Space();
+            DrawCliIntegration();
+        }
+
+        private void DrawServerStatusBar()
+        {
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                string status = _isRunning ? "RUNNING" : "STOPPED";
+                GUI.color = _isRunning ? Color.green : Color.red;
+                GUILayout.Label($"● {status}", EditorStyles.boldLabel);
+                GUI.color = Color.white;
+                GUILayout.FlexibleSpace();
+                GUILayout.Label($"Port: {_port}");
+                GUILayout.Space(10);
+                if (GUILayout.Button(new GUIContent("Copy URL", "Copy the server URL to clipboard"), EditorStyles.miniButton))
+                {
+                    EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
+                    Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
+                }
+            }
+        }
+
+        private void DrawCliIntegration()
+        {
             GUILayout.Label("Gemini CLI Integration", EditorStyles.boldLabel);
-            
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");

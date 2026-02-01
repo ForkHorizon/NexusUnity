@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.9.1] - 2026-01-29
+
+### Added
+- **Copy URL Convenience**: Added a "Copy URL" button to the main dashboard, allowing users to quickly copy the server address (`http://localhost:[PORT]`) to their clipboard for use in external tools.
+- **Palette's Journal**: Integrated the `.jules/palette.md` UX design journal to track critical architectural and user experience learnings.
+
 ## [1.9.0] - 2026-01-29
 
 ### Added
