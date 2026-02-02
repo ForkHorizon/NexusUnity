@@ -16,3 +16,7 @@
 Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
+
+## 2024-11-26 - [Editor Window Feedback Loop]
+**Learning:** Unity Editor Windows require explicit `Repaint()` calls to animate feedback (like "Copied!") since they are immediate mode and only repaint on events.
+**Action:** Use `EditorApplication.timeSinceStartup` for timing and conditional `Repaint()` in `OnGUI` for temporary feedback states.
