@@ -51,9 +51,16 @@ namespace UnityMCP.Editor
         private static JToken ClearLogs(JToken p) { MCPServerWindow.ClearLogs(); return "Logs cleared"; }
         private static JToken TestCoroutine(JToken p) { EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); return "Started"; }
 
+        // Cache the tool definitions since they are static and do not change during the session.
+        // This avoids creating thousands of JObjects every time 'list_tools' is called.
+        private static JToken _cachedTools;
+
         /// <summary>Lists all available tools for the MCP server.</summary>
         private static JToken ListTools(JToken p)
         {
+            // Return cached version. Note: The returned JToken is shared and must NOT be modified by the caller.
+            if (_cachedTools != null) return _cachedTools;
+
             var tools = new JArray();
             AddSceneTools(tools);
             AddHierarchyTools(tools);
@@ -62,6 +69,8 @@ namespace UnityMCP.Editor
             AddEditorControlTools(tools);
             AddDiscoveryTools(tools);
             AddUITools(tools);
+
+            _cachedTools = tools;
             return tools;
         }
 
