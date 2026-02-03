@@ -74,7 +74,48 @@ def main():
                 tools = unity_res.get("result", [])
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": tools}}
             elif method in ["resources/list", "listResources"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": []}}
+                resources = [
+                    {
+                        "uri": "unity://docs/api-reference",
+                        "name": "Nexus Unity API Reference",
+                        "mimeType": "text/markdown",
+                        "description": "Full reference for all 60+ tools."
+                    },
+                    {
+                        "uri": "unity://docs/setup",
+                        "name": "Nexus Unity Setup Guide",
+                        "mimeType": "text/markdown",
+                        "description": "General architecture and configuration."
+                    }
+                ]
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": resources}}
+            elif method in ["resources/read", "readResource"]:
+                uri = request.get("params", {}).get("uri")
+                # Attempt to find the library folder relative to this bridge script
+                # We'll look for where the documentation might be
+                doc_path = ""
+                if uri == "unity://docs/api-reference": filename = "API_REFERENCE.MD"
+                elif uri == "unity://docs/setup": filename = "DOCUMENTATION.MD"
+                else: filename = None
+
+                content = "Documentation file not found. Please check Assets/NexusUnity/ or Packages/."
+                if filename:
+                    # Strategy: Bridge is usually in project root. Docs are in Assets/NexusUnity or Packages/com.custom...
+                    search_paths = [
+                        f"Assets/NexusUnity/{filename}",
+                        f"Packages/com.custom.unity.mcp/{filename}",
+                        filename # If it's in the same folder as bridge
+                    ]
+                    for p in search_paths:
+                        if os.path.exists(p):
+                            with open(p, 'r') as f:
+                                content = f.read()
+                                break
+                
+                response = {
+                    "jsonrpc": "2.0", 
+                    "id": req_id, 
+                    "result": {"contents": [{"uri": uri, "mimeType": "text/markdown", "text": content}]}}
             elif method in ["prompts/list", "listPrompts"]:
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {"prompts": []}}
             elif method in ["tools/call", "callTool"]:

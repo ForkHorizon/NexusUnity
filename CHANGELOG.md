@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.9.5] - 2026-02-03
+
+### Added
+- **AI-Native API Reference**: Created `API_REFERENCE.MD` providing exhaustive, AI-friendly documentation for all 60+ JSON-RPC tools. Each command now includes clear descriptions, parameter requirements, and return types optimized for LLM context windows.
+- **Documentation Overhaul**: Updated `DOCUMENTATION.MD` with a categorized tool overview and quick-reference index.
+
 ## [1.9.4] - 2026-01-29
 
 ### Fixed

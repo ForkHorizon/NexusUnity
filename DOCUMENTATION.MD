@@ -21,16 +21,37 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.8.7" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.9.5" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
 
-#### `read_logs`
-Retrieves captured console logs.
-- **Params**:
-  - `count` (int, optional): Max logs to return.
-- **Result**: Array of `LogEntry` objects.
+---
+
+## 🛠 Complete Tool Reference
+
+For a detailed breakdown of every tool, its parameters, and return types, see:
+**[👉 API_REFERENCE.MD](./API_REFERENCE.MD)**
+
+### Categorized Tool List (60+ Tools)
+
+#### 🏞 Scene & Hierarchy
+`unity_create_scene`, `unity_open_scene`, `unity_save_scene`, `unity_list_scenes`, `unity_create_game_object`, `unity_create_primitive`, `unity_destroy_game_object`, `unity_duplicate_object`, `unity_set_active`, `unity_set_parent`, `unity_set_sibling_index`.
+
+#### 🧩 Components & Properties
+`unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_update_component`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
+
+#### 📦 Asset Management
+`unity_list_assets`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
+
+#### 🎮 Editor Control
+`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_clear_logs`, `unity_attach_script`.
+
+#### 🔍 Discovery & Inspection
+`unity_get_game_object`, `unity_get_active_game_object`, `unity_get_root_game_objects`, `unity_get_object_path`, `unity_find_objects`, `unity_get_tags_and_layers`, `unity_ping_object`, `unity_get_children`, `unity_get_editor_state`, `unity_get_project_info`, `unity_set_selection`.
+
+#### 🖥 UI Toolkit Automation
+`unity_ui_list_windows`, `unity_ui_get_hierarchy`, `unity_ui_click`, `unity_ui_input_text`.
 
 ---
 

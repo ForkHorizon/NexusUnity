@@ -33,15 +33,38 @@ namespace UnityMCP.Editor
             {
                 File.Copy(sourcePath, destinationPath, true);
                 UnityEngine.Debug.Log("[MCP] Bridge script deployed to stable location: " + destinationPath);
+                DeployDocumentationPointer(projectRoot, sourcePath);
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[MCP] Failed to deploy bridge script: " + e.Message);
-                EditorUtility.DisplayDialog("MCP Error", "Failed to deploy bridge script to project root.\n\n" + e.Message, "OK");
+                UnityEngine.Debug.LogError("[MCP] Failed to deploy bridge or docs: " + e.Message);
+                EditorUtility.DisplayDialog("MCP Error", "Failed to deploy integration files to project root.\n\n" + e.Message, "OK");
                 return;
             }
 
             ExecuteLinkSequence(destinationPath);
+        }
+
+        private static void DeployDocumentationPointer(string projectRoot, string sourcePath)
+        {
+            string docPointerPath = Path.Combine(projectRoot, "NEXUS_UNITY_DOCS.md");
+            string docContent = "# Nexus Unity - AI Context\n\n" +
+                               "This project uses **Nexus Unity** for AI Editor automation.\n\n" +
+                               "## 📚 Documentation Access\n" +
+                               "- **Full Tool Reference**: [API_REFERENCE.MD]({0})\n" +
+                               "- **Technical Guide**: [DOCUMENTATION.MD]({1})\n\n" +
+                               "## 🤖 AI Instructions\n" +
+                               "Before performing any Unity tasks, ALWAYS read `API_REFERENCE.MD` to understand the available tools, their parameters, and the surgical editing patterns required for this project.";
+
+            string libraryPath = Path.GetDirectoryName(sourcePath).Replace("\\", "/");
+            string relativeLibPath = libraryPath.Replace(projectRoot.Replace("\\", "/"), "").TrimStart('/');
+
+            string formattedContent = string.Format(docContent,
+                Path.Combine(relativeLibPath, "API_REFERENCE.MD").Replace("\\", "/"),
+                Path.Combine(relativeLibPath, "DOCUMENTATION.MD").Replace("\\", "/"));
+
+            File.WriteAllText(docPointerPath, formattedContent);
+            UnityEngine.Debug.Log("[MCP] Documentation pointer deployed: " + docPointerPath);
         }
 
         private static void ExecuteLinkSequence(string scriptPath)

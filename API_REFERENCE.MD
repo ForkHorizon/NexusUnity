@@ -1,0 +1,290 @@
+# Nexus Unity AI Toolset Reference
+
+This document provides a comprehensive, AI-optimized reference for all 60+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
+
+> **Note for AI Agents**: All tools are prefixed with `unity_` when called via the Gemini CLI/MCP bridge.
+
+---
+
+## 🏗 Scene Management
+
+### `unity_create_scene`
+Creates a new scene with default GameObjects (Main Camera and Directional Light).
+- **Parameters**:
+  - `name` (string): The name of the new scene.
+- **Returns**: Confirmation string.
+- **Behavior**: Automatically saves the current scene if dirty.
+
+### `unity_open_scene`
+Opens an existing scene file.
+- **Parameters**:
+  - `path` (string, required): Asset path (e.g., `Assets/Scenes/Main.unity`).
+- **Returns**: Confirmation string.
+
+### `unity_save_scene`
+Saves the currently active scene.
+- **Parameters**:
+  - `path` (string, optional): Specific save location. If empty, saves to current path.
+- **Returns**: Confirmation string.
+
+### `unity_list_scenes`
+Lists all scene assets in the project.
+- **Returns**: Array of scene asset paths.
+
+---
+
+## 🌳 Hierarchy & GameObject Lifecycle
+
+### `unity_create_game_object`
+Creates an empty GameObject.
+- **Parameters**:
+  - `name` (string, required): Name of the object.
+  - `parent_id` (integer, optional): Instance ID of the parent object.
+- **Returns**: Serialized GameObject (`name`, `instance_id`).
+
+### `unity_create_primitive`
+Creates a standard Unity primitive.
+- **Parameters**:
+  - `primitive_type` (string, required): One of `Cube`, `Sphere`, `Capsule`, `Cylinder`, `Plane`, `Quad`.
+- **Returns**: Serialized GameObject.
+
+### `unity_destroy_game_object`
+Permanently deletes a GameObject from the scene.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+- **Returns**: "Destroyed". Supports Undo.
+
+### `unity_duplicate_object`
+Creates a copy of a GameObject.
+- **Parameters**:
+  - `instance_id` (integer, required): Source object ID.
+- **Returns**: Serialized copy GameObject.
+
+### `unity_set_active`
+Enables or disables a GameObject.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `active` (boolean, required): `true` to enable, `false` to disable.
+- **Returns**: "OK".
+
+### `unity_set_parent`
+Changes the parent of a GameObject.
+- **Parameters**:
+  - `instance_id` (integer, required): Object to move.
+  - `parent_id` (integer, required): New parent ID (use 0 for root).
+- **Returns**: "Parent set".
+
+### `unity_set_sibling_index`
+Reorders an object among its siblings.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `index` (string|integer, required): Integer index or `"first"` / `"last"`.
+- **Returns**: "OK".
+
+---
+
+## 🧩 Component & Property Manipulation
+
+### `unity_add_component`
+Attaches a new component to a GameObject.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Name of the class (e.g., `Rigidbody`, `MeshRenderer`).
+- **Returns**: Confirmation string.
+
+### `unity_remove_component`
+Removes a component from a GameObject.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Component type name.
+- **Returns**: "OK".
+
+### `unity_inspect_component`
+Retrieves all visible properties of a component.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Component type name.
+- **Returns**: JSON object containing all serialized fields and their current values.
+
+### `unity_update_component`
+Batch updates component properties using JSON.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Component type name.
+  - `json_data` (string, required): JSON string matching the component's structure.
+- **Returns**: "Updated".
+
+### `unity_set_transform`
+Surgical update of object position, rotation, or scale.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `position` (object, optional): `{x, y, z}` coordinates.
+- **Returns**: Serialized GameObject.
+
+### `unity_set_property`
+Surgical update of a single field on a component or object.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `property_name` (string, required): The internal field name (e.g., `m_Enabled`, `m_Name`).
+  - `value` (any, required): The new value. Supports bool, int, float, string, Vector3.
+- **Returns**: "Property updated".
+
+### `unity_set_enabled`
+Enables or disables a specific Component (Behaviour).
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Component type name.
+  - `enabled` (boolean, required): `true` or `false`.
+- **Returns**: "OK".
+
+---
+
+## 📦 Asset Management
+
+### `unity_list_assets`
+Searches for assets in the project.
+- **Parameters**:
+  - `filter` (string, optional): Search string (e.g., `t:Material`, `my_texture`).
+- **Returns**: Array of asset paths.
+
+### `unity_create_material`
+Creates a new material asset.
+- **Parameters**:
+  - `name` (string, required): File name.
+  - `shader` (string, optional): Shader name (Default: `Standard`).
+- **Returns**: Path to created material.
+
+### `unity_refresh_asset_database`
+Forces Unity to scan for changed files on disk.
+- **Returns**: "Refreshed".
+
+### `unity_import_asset`
+Imports a file at the specified path into the project.
+- **Parameters**:
+  - `path` (string, required): Path to import.
+- **Returns**: "Imported".
+
+### `unity_instantiate_prefab`
+Creates a prefab instance in the scene.
+- **Parameters**:
+  - `path` (string, required): Path to the prefab asset.
+- **Returns**: Serialized GameObject.
+
+### `unity_create_prefab`
+Saves a GameObject as a prefab asset.
+- **Parameters**:
+  - `instance_id` (integer, required): Object to save.
+  - `path` (string, required): Target asset path.
+- **Returns**: Confirmation string.
+
+### `unity_apply_prefab_overrides`
+Applies scene modifications back to the prefab asset.
+- **Parameters**:
+  - `instance_id` (integer, required): Instance ID of the prefab in the scene.
+- **Returns**: "Overrides applied".
+
+### `unity_move_asset` / `unity_copy_asset` / `unity_delete_asset`
+Standard file operations within the project.
+- **Parameters**: `old_path`, `new_path`, `source_path`, `dest_path`, or `path`.
+- **Returns**: "OK" or error.
+
+### `unity_create_folder`
+Creates a directory in the project.
+- **Parameters**:
+  - `path` (string, required): Path like `Assets/NewFolder/SubFolder`.
+- **Returns**: "OK".
+
+### `unity_read_file` / `unity_write_file`
+Direct text file manipulation (limited to project root).
+- **Parameters**: `path`, `content`.
+- **Returns**: File content or "OK".
+
+---
+
+## 🎮 Editor Control & State
+
+### `unity_undo` / `unity_redo`
+Standard Editor undo/redo operations.
+
+### `unity_toggle_play_mode`
+Starts or stops the Unity Play Mode.
+- **Parameters**:
+  - `value` (boolean, optional): Set specific state. If omitted, toggles.
+
+### `unity_pause_play_mode` / `unity_step_frame`
+Controls playback while in Play Mode.
+
+### `unity_execute_menu_item`
+Triggers any Unity menu command.
+- **Parameters**:
+  - `item_path` (string, required): Full path (e.g., `Edit/Select All`, `GameObject/Align With View`).
+
+### `unity_focus_scene_view`
+Frames the current selection in the Scene View.
+
+### `unity_read_logs`
+Retrieves Unity Console logs.
+- **Parameters**:
+  - `count` (integer, optional): Max logs (Default: 50).
+- **Returns**: Array of logs with type, message, and stack trace.
+
+### `unity_attach_script`
+Creates a new C# script and triggers compilation.
+- **Parameters**:
+  - `script_name` (string, required): Class name.
+  - `script_content` (string, optional): Full C# code.
+- **Returns**: "Script created and compilation triggered".
+
+---
+
+## 🔍 Discovery & Inspection
+
+### `unity_get_game_object`
+Retrieves basic metadata for a specific ID.
+- **Parameters**: `instance_id`.
+- **Returns**: `{name, instance_id}`.
+
+### `unity_get_active_game_object`
+Returns the currently selected object in the Editor.
+
+### `unity_get_root_game_objects`
+Returns all top-level objects in the active scene.
+
+### `unity_get_object_path`
+Returns the hierarchy path (breadcrumb) to an object.
+- **Example**: `Environment/Static/Tree_01`.
+
+### `unity_find_objects`
+Deep regex-based search for objects in the scene.
+- **Parameters**:
+  - `name` (string, optional): Regex for name.
+  - `tag` (string, optional): Exact tag match.
+  - `type` (string, optional): Component type filter.
+- **Returns**: Array of matching objects (Max 50).
+
+### `unity_get_tags_and_layers`
+Lists all defined Tags and Layers in the project.
+
+---
+
+## 🖥 UI Toolkit Automation
+
+### `unity_ui_list_windows`
+Lists all currently open Editor Windows.
+
+### `unity_ui_get_hierarchy`
+Inspects the VisualElement tree of an Editor Window.
+- **Parameters**:
+  - `window_title` (string, required): Title of the target window.
+- **Returns**: JSON tree of UI elements.
+
+### `unity_ui_click`
+Simulates a click on a UI element.
+- **Parameters**: `window_title`, `element_name`.
+
+### `unity_ui_input_text`
+Types text into a TextField or Label.
+- **Parameters**: `window_title`, `element_name`, `text`.
+
+---
+*Generated for Nexus Unity v1.9.4*
