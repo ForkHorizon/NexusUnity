@@ -119,11 +119,11 @@ namespace UnityMCP.Editor
 
             if (!_isRunning)
             {
-                if (GUILayout.Button("START SERVER", GUILayout.Height(40))) StartServer();
+                if (GUILayout.Button(new GUIContent("START SERVER", "Starts the MCP server to allow AI connections via port " + _port), GUILayout.Height(40))) StartServer();
             }
             else
             {
-                if (GUILayout.Button("STOP SERVER", GUILayout.Height(40))) StopServer();
+                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stops the currently running MCP server"), GUILayout.Height(40))) StopServer();
             }
 
             EditorGUILayout.Space();
@@ -136,10 +136,10 @@ namespace UnityMCP.Editor
             {
                 string status = _isRunning ? "RUNNING" : "STOPPED";
                 GUI.color = _isRunning ? Color.green : Color.red;
-                GUILayout.Label($"● {status}", EditorStyles.boldLabel);
+                GUILayout.Label(new GUIContent($"● {status}", _isRunning ? "Server is running and listening for connections." : "Server is currently stopped."), EditorStyles.boldLabel);
                 GUI.color = Color.white;
                 GUILayout.FlexibleSpace();
-                GUILayout.Label($"Port: {_port}");
+                GUILayout.Label(new GUIContent($"Port: {_port}", "The port the server is listening on. Can be changed in Project Settings."));
                 GUILayout.Space(10);
                 if (GUILayout.Button(new GUIContent("Copy URL", "Copy the server URL to clipboard"), EditorStyles.miniButton))
                 {
@@ -155,10 +155,10 @@ namespace UnityMCP.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
-                if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
+                if (GUILayout.Button(new GUIContent("Refresh", "Check the current link status with Gemini CLI."), GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
-            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30))) 
+            if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Registers this Unity project with your local Gemini CLI installation."), GUILayout.Height(30)))
             {
                 MCPCliInstaller.LinkToGemini();
                 CheckCliLinkStatus();
