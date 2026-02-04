@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [1.9.6] - 2026-02-03
+
+### Fixed
+- **Synchronous Asset Refresh**: Upgraded `unity_refresh_asset_database` to use `ForceSynchronousImport`. It now returns a detailed status object including `is_compiling` and `is_updating` flags. This prevents AI agents from proceeding before assets are fully processed by the engine.
+- **Hierarchy Code Cleanup**: Resolved a formatting regression in `MCPServerMethods.Hierarchy.cs` and added `is_updating` to the editor state discovery.
+
 ## [1.9.5] - 2026-02-03
 
 ### Added

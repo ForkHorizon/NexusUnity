@@ -50,8 +50,14 @@ namespace UnityMCP.Editor
 
         private static JToken RefreshAssetDatabase(JToken p)
         {
-            AssetDatabase.Refresh();
-            return "Refreshed";
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.SaveAssets();
+            return new JObject 
+            { 
+                ["status"] = "Refreshed", 
+                ["is_compiling"] = EditorApplication.isCompiling,
+                ["is_updating"] = EditorApplication.isUpdating
+            };
         }
 
         private static JToken ImportAsset(JToken p)
