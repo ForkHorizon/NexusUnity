@@ -184,8 +184,8 @@ namespace UnityMCP.Editor
             }
 
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
-            string requestBody = reader.ReadToEnd();
-            string response = MCPServerMethods.ProcessJsonRpc(requestBody);
+            // Optimization: Pass reader directly to avoid allocating request body string
+            string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);
             context.Response.ContentLength64 = buffer.Length;
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -218,9 +218,14 @@ namespace UnityMCP.Editor
 
                 if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
                 {
-                    string msg = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
-                    string response = MCPServerMethods.ProcessJsonRpc(msg);
-                    await SendResponse(response);
+                    ms.Position = 0;
+                    // Optimization: Use StreamReader on MemoryStream to avoid intermediate string allocation
+                    // leaveOpen: true is critical as we reuse the MemoryStream
+                    using (var reader = new System.IO.StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true))
+                    {
+                        string response = MCPServerMethods.ProcessJsonRpc(reader);
+                        await SendResponse(response);
+                    }
                 }
             }
         }
