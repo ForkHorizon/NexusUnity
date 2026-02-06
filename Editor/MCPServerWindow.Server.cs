@@ -184,8 +184,8 @@ namespace UnityMCP.Editor
             }
 
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
-            string requestBody = reader.ReadToEnd();
-            string response = MCPServerMethods.ProcessJsonRpc(requestBody);
+            // Use streaming overload to avoid allocating the full request string
+            string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);
             context.Response.ContentLength64 = buffer.Length;
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
