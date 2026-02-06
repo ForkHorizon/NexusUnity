@@ -119,11 +119,11 @@ namespace UnityMCP.Editor
 
             if (!_isRunning)
             {
-                if (GUILayout.Button("START SERVER", GUILayout.Height(40))) StartServer();
+                if (GUILayout.Button(new GUIContent("START SERVER", "Starts the MCP server on the configured port."), GUILayout.Height(40))) StartServer();
             }
             else
             {
-                if (GUILayout.Button("STOP SERVER", GUILayout.Height(40))) StopServer();
+                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stops the running MCP server."), GUILayout.Height(40))) StopServer();
             }
 
             EditorGUILayout.Space();
@@ -145,6 +145,7 @@ namespace UnityMCP.Editor
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
                     Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
+                    ShowNotification(new GUIContent("URL Copied!"));
                 }
             }
         }
@@ -158,7 +159,7 @@ namespace UnityMCP.Editor
                 if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
-            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30))) 
+            if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Registers this server instance with the Gemini CLI tool."), GUILayout.Height(30)))
             {
                 MCPCliInstaller.LinkToGemini();
                 CheckCliLinkStatus();
@@ -168,20 +169,20 @@ namespace UnityMCP.Editor
         private void DrawToolsTab()
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
-            if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button("Clear All Logs")) ClearLogs();
+            if (GUILayout.Button(new GUIContent("Open Test Window", "Opens a separate window to manually test MCP API commands."))) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clears the internal buffer of captured console logs exposed to the MCP client."))) ClearLogs();
         }
 
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
-            if (GUILayout.Button("Run Full API Verification")) 
+            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Opens the verification window to run a suite of tests against the API.")))
             {
                 // We'll call the method from MCPVerificationWindow directly if possible, or just open it
                 GetWindow<MCPVerificationWindow>().Show();
             }
-            if (GUILayout.Button("Verify UI Instruments")) UIVerification.Verify();
-            if (GUILayout.Button("Verify MCP Logs")) LogVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Runs a quick verification of the UI Automation tools."))) UIVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Runs a quick verification of the Log Capture system."))) LogVerification.Verify();
         }
 
         private void HandleMainThreadQueue()
