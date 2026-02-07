@@ -119,11 +119,11 @@ namespace UnityMCP.Editor
 
             if (!_isRunning)
             {
-                if (GUILayout.Button("START SERVER", GUILayout.Height(40))) StartServer();
+                if (GUILayout.Button(new GUIContent("START SERVER", $"Start the local MCP server on port {_port}"), GUILayout.Height(40))) StartServer();
             }
             else
             {
-                if (GUILayout.Button("STOP SERVER", GUILayout.Height(40))) StopServer();
+                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stop the running MCP server"), GUILayout.Height(40))) StopServer();
             }
 
             EditorGUILayout.Space();
@@ -144,7 +144,7 @@ namespace UnityMCP.Editor
                 if (GUILayout.Button(new GUIContent("Copy URL", "Copy the server URL to clipboard"), EditorStyles.miniButton))
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
-                    Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
+                    ShowNotification(new GUIContent("Server URL copied to clipboard"));
                 }
             }
         }
@@ -158,7 +158,7 @@ namespace UnityMCP.Editor
                 if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
-            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30))) 
+            if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Connects your terminal to Unity via the Gemini CLI"), GUILayout.Height(30)))
             {
                 MCPCliInstaller.LinkToGemini();
                 CheckCliLinkStatus();
