@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -33,9 +34,26 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string ProcessJsonRpc(string json)
         {
+            using (var reader = new StringReader(json))
+            {
+                return ProcessJsonRpc(reader);
+            }
+        }
+
+        /// <summary>
+        /// Processes a JSON-RPC request from a TextReader and returns the response string.
+        /// Optimized to reduce memory allocations for large payloads.
+        /// </summary>
+        public static string ProcessJsonRpc(TextReader reader)
+        {
             try
             {
-                JObject request = JObject.Parse(json);
+                JObject request;
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    request = JObject.Load(jsonReader);
+                }
+
                 JToken id = request["id"];
                 if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
                 return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
