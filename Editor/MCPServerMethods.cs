@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -33,12 +34,29 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string ProcessJsonRpc(string json)
         {
+            using (var reader = new StringReader(json))
+            {
+                return ProcessJsonRpc(reader);
+            }
+        }
+
+        /// <summary>
+        /// Processes a JSON-RPC request from a TextReader and returns the response string.
+        /// Optimization: Streams the JSON parsing to avoid allocating large strings for the entire payload.
+        /// </summary>
+        public static string ProcessJsonRpc(TextReader reader)
+        {
             try
             {
-                JObject request = JObject.Parse(json);
-                JToken id = request["id"];
-                if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
-                return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    // CloseInput=false ensures we don't close the underlying stream (e.g. MemoryStream in WebSocket loop)
+                    jsonReader.CloseInput = false;
+                    JObject request = JObject.Load(jsonReader);
+                    JToken id = request["id"];
+                    if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
+                    return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                }
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
         }
