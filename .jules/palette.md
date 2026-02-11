@@ -16,3 +16,7 @@
 Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
+
+## 2024-05-23 - Transient Feedback in Editor Windows
+**Learning:** Unity Editor Windows should use `ShowNotification(GUIContent)` for transient feedback (like "copied to clipboard") instead of console logs, which are easily missed.
+**Action:** Replace `Debug.Log` with `ShowNotification` for user-initiated actions that require simple confirmation.
