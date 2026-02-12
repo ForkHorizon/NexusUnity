@@ -144,6 +144,7 @@ namespace UnityMCP.Editor
                 if (GUILayout.Button(new GUIContent("Copy URL", "Copy the server URL to clipboard"), EditorStyles.miniButton))
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
+                    ShowNotification(new GUIContent("Server URL Copied!"));
                     Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
                 }
             }
@@ -169,7 +170,11 @@ namespace UnityMCP.Editor
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
             if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button("Clear All Logs")) ClearLogs();
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Removes all captured logs from the internal buffer")))
+            {
+                ClearLogs();
+                ShowNotification(new GUIContent("Logs Cleared"));
+            }
         }
 
         private void DrawVerificationTab()
