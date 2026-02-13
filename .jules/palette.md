@@ -17,6 +17,6 @@ Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
 
-## 2024-05-23 - Immediate Feedback for Clipboard Actions
-**Learning:** Users lack confidence when copying values (like URLs) without visual confirmation. Relying on `Debug.Log` is insufficient as it requires looking away from the UI.
-**Action:** Use `ShowNotification(new GUIContent("Text"))` for transient actions to provide immediate, in-context feedback.
+## 2024-10-24 - [Transient Editor Feedback]
+**Learning:** Unity Editor Windows lack built-in transient feedback for actions like clipboard operations. The `ShowNotification(GUIContent)` method is the standard but often overlooked pattern for this in IMGUI.
+**Action:** Always pair invisible actions (clipboard copy, background tasks) with `ShowNotification` to provide immediate visual confirmation without console log noise.

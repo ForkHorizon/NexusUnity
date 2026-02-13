@@ -64,7 +64,6 @@ namespace UnityMCP.Editor
 
         /// <summary>
         /// Processes a JSON-RPC request from a TextReader and returns the response string.
-        /// avoids large string allocations for the request body.
         /// </summary>
         public static string ProcessJsonRpc(TextReader reader)
         {
@@ -72,14 +71,15 @@ namespace UnityMCP.Editor
             {
                 using (var jsonReader = new JsonTextReader(reader))
                 {
+                    jsonReader.CloseInput = false;
                     JObject request = JObject.Load(jsonReader);
-                    return ProcessJObject(request);
+                    return ProcessJsonRequest(request);
                 }
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
         }
 
-        private static string ProcessJObject(JObject request)
+        private static string ProcessJsonRequest(JObject request)
         {
             JToken id = request["id"];
             if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
@@ -107,10 +107,6 @@ namespace UnityMCP.Editor
             JObject response = new JObject { ["jsonrpc"] = "2.0", ["id"] = id };
             if (error != null) response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
             else response["result"] = result;
-<<<<<<< HEAD
-            // Use Formatting.None to reduce payload size
-=======
->>>>>>> origin/main
             return response.ToString(Formatting.None);
         }
 
