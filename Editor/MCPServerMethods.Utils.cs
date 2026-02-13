@@ -36,6 +36,10 @@ namespace UnityMCP.Editor
 
             // Check if path is within project root
 <<<<<<< HEAD
+            string rootCheck = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
+            if (!fullPath.StartsWith(rootCheck, System.StringComparison.OrdinalIgnoreCase) && !fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase))
+=======
+<<<<<<< HEAD
             // Ensure projectRoot ends with a separator to prevent partial matches (e.g., /Project vs /ProjectSecret)
             string rootCheck = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
 
@@ -65,6 +69,7 @@ namespace UnityMCP.Editor
 
             // Ensure we aren't matching a sibling directory with a similar prefix (e.g. /Project_Secret)
             if (fullPath.Length > projectRoot.Length && fullPath[projectRoot.Length] != '/')
+>>>>>>> origin/main
 >>>>>>> origin/main
 >>>>>>> origin/main
 >>>>>>> origin/main
