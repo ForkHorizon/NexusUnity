@@ -17,6 +17,6 @@ Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
 
-## 2024-10-24 - [Transient Editor Feedback]
-**Learning:** Unity Editor Windows lack built-in transient feedback for actions like clipboard operations. The `ShowNotification(GUIContent)` method is the standard but often overlooked pattern for this in IMGUI.
-**Action:** Always pair invisible actions (clipboard copy, background tasks) with `ShowNotification` to provide immediate visual confirmation without console log noise.
+## 2024-05-23 - Editor Window Feedback
+**Learning:** Users in Unity Editor Windows often miss console logs for transient actions. `ShowNotification` provides immediate, contextual feedback overlaying the window.
+**Action:** Use `ShowNotification(new GUIContent("Message"))` for confirmation of actions like copying to clipboard or clearing data, instead of `Debug.Log`.
