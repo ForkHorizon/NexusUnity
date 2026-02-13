@@ -155,8 +155,9 @@ Creates a new material asset.
 - **Returns**: Path to created material.
 
 ### `unity_refresh_asset_database`
-Forces Unity to scan for changed files on disk.
-- **Returns**: "Refreshed".
+Forces Unity to scan for changed files on disk and import them.
+- **Returns**: Object with `status` ("Refreshed"), `is_compiling` (bool), and `is_updating` (bool).
+- **AI Warning**: If `is_compiling` is true after this call, you MUST wait for it to become false (via `unity_get_editor_state`) before adding new components or scripts.
 
 ### `unity_import_asset`
 Imports a file at the specified path into the project.
@@ -265,6 +266,19 @@ Deep regex-based search for objects in the scene.
 ### `unity_get_tags_and_layers`
 Lists all defined Tags and Layers in the project.
 
+### `unity_get_children`
+Returns all direct children of a GameObject.
+- **Parameters**: `instance_id`.
+- **Returns**: Array of objects `{name, instance_id, active}`.
+
+### `unity_get_editor_state`
+Returns current editor state flags.
+- **Returns**: `{is_playing, is_paused, is_compiling, is_updating, active_scene, platform}`.
+
+### `unity_get_project_info`
+Returns basic project metadata.
+- **Returns**: `{project_path, unity_version, platform, product_name, company_name}`.
+
 ---
 
 ## 🖥 UI Toolkit Automation
@@ -287,4 +301,4 @@ Types text into a TextField or Label.
 - **Parameters**: `window_title`, `element_name`, `text`.
 
 ---
-*Generated for Nexus Unity v1.9.4*
+*Generated for Nexus Unity v1.9.6*
