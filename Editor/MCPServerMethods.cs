@@ -42,41 +42,28 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-<<<<<<< HEAD
         /// Processes a JSON-RPC request from a TextReader and returns the response string.
-        /// Avoids intermediate string allocations for the request body.
-=======
-        /// Processes a JSON-RPC request stream and returns the response string.
->>>>>>> origin/main
+        /// Optimized to reduce memory allocations for large payloads.
         /// </summary>
         public static string ProcessJsonRpc(TextReader reader)
         {
             try
             {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-                JObject request = JObject.Parse(json);
-                return ProcessJObject(request);
-=======
->>>>>>> origin/main
+                JObject request;
                 using (var jsonReader = new JsonTextReader(reader))
                 {
-                    JObject request = JObject.Load(jsonReader);
-                    JToken id = request["id"];
-                    if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
-                    return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                    request = JObject.Load(jsonReader);
                 }
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
->>>>>>> origin/main
+
+                JToken id = request["id"];
+                if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
+                return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
         }
 
         /// <summary>
-        /// Processes a JSON-RPC request stream and returns the response string.
+        /// Processes a JSON-RPC request from a TextReader and returns the response string.
         /// </summary>
         public static string ProcessJsonRpc(TextReader reader)
         {
@@ -86,12 +73,17 @@ namespace UnityMCP.Editor
                 {
                     jsonReader.CloseInput = false;
                     JObject request = JObject.Load(jsonReader);
-                    JToken id = request["id"];
-                    if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
-                    return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                    return ProcessJsonRequest(request);
                 }
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
+        }
+
+        private static string ProcessJsonRequest(JObject request)
+        {
+            JToken id = request["id"];
+            if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
+            return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
         }
 
         private static string ExecuteOnMainThread(string method, JToken requestParams, JToken id)

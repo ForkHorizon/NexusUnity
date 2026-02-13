@@ -123,11 +123,11 @@ namespace UnityMCP.Editor
 
             if (!_isRunning)
             {
-                if (GUILayout.Button(new GUIContent("START SERVER", "Start the local MCP server"), GUILayout.Height(40))) StartServer();
+                if (GUILayout.Button(new GUIContent("START SERVER", "Start the MCP server on the configured port"), GUILayout.Height(40))) StartServer();
             }
             else
             {
-                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stop the local MCP server"), GUILayout.Height(40))) StopServer();
+                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stop the currently running MCP server"), GUILayout.Height(40))) StopServer();
             }
 
             EditorGUILayout.Space();
@@ -159,7 +159,7 @@ namespace UnityMCP.Editor
 >>>>>>> origin/main
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
-                    ShowNotification(new GUIContent("Server URL copied to clipboard!"));
+                    ShowNotification(new GUIContent("Server URL Copied!"));
                     Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
                 }
 
@@ -173,10 +173,10 @@ namespace UnityMCP.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
-                if (GUILayout.Button(new GUIContent("Refresh", "Refresh CLI link status"), GUILayout.Width(60))) CheckCliLinkStatus();
+                if (GUILayout.Button(new GUIContent("Refresh", "Check the current link status with Gemini CLI"), GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
-            if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Install/Link the Gemini CLI tool"), GUILayout.Height(30)))
+            if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Configure the Gemini CLI to use this MCP server"), GUILayout.Height(30)))
             {
                 MCPCliInstaller.LinkToGemini();
                 CheckCliLinkStatus();
@@ -186,20 +186,24 @@ namespace UnityMCP.Editor
         private void DrawToolsTab()
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Open Test Window", "Open the MCP Test dashboard"))) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear all console logs"))) ClearLogs();
+            if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Removes all captured logs from the internal buffer")))
+            {
+                ClearLogs();
+                ShowNotification(new GUIContent("Logs Cleared"));
+            }
         }
 
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Run the full API test suite")))
+            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Run comprehensive tests for all API methods"), GUILayout.Height(30)))
             {
                 // We'll call the method from MCPVerificationWindow directly if possible, or just open it
                 GetWindow<MCPVerificationWindow>().Show();
             }
-            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Verify UI interaction tools"))) UIVerification.Verify();
-            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Verify console log capture"))) LogVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Test UI automation capabilities"), GUILayout.Height(30))) UIVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Test log capturing and filtering"), GUILayout.Height(30))) LogVerification.Verify();
         }
 
         private void HandleMainThreadQueue()
