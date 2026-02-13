@@ -186,9 +186,13 @@ namespace UnityMCP.Editor
 
 <<<<<<< HEAD
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
+<<<<<<< HEAD
+            // Use streaming overload to avoid allocating the full request string
+=======
             // Optimization: Pass reader directly to avoid allocating request body string
 =======
             using var reader = new StreamReader(context.Request.InputStream);
+>>>>>>> origin/main
 >>>>>>> origin/main
             string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);

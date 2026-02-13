@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace UnityMCP.Editor
 {
@@ -41,16 +42,24 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
+<<<<<<< HEAD
+        /// Processes a JSON-RPC request from a TextReader and returns the response string.
+        /// Avoids intermediate string allocations for the request body.
+=======
         /// Processes a JSON-RPC request stream and returns the response string.
+>>>>>>> origin/main
         /// </summary>
         public static string ProcessJsonRpc(TextReader reader)
         {
             try
             {
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
                 JObject request = JObject.Parse(json);
                 return ProcessJObject(request);
 =======
+>>>>>>> origin/main
                 using (var jsonReader = new JsonTextReader(reader))
                 {
                     JObject request = JObject.Load(jsonReader);
@@ -58,6 +67,9 @@ namespace UnityMCP.Editor
                     if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
                     return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
                 }
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
@@ -108,6 +120,10 @@ namespace UnityMCP.Editor
             JObject response = new JObject { ["jsonrpc"] = "2.0", ["id"] = id };
             if (error != null) response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
             else response["result"] = result;
+<<<<<<< HEAD
+            // Use Formatting.None to reduce payload size
+=======
+>>>>>>> origin/main
             return response.ToString(Formatting.None);
         }
 
