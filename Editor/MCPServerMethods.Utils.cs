@@ -35,11 +35,31 @@ namespace UnityMCP.Editor
             string fullPath = System.IO.Path.GetFullPath(cleanPath).Replace('\\', '/');
 
             // Check if path is within project root
+<<<<<<< HEAD
             // Ensure projectRoot ends with a separator to prevent partial path traversal (e.g. /ProjectSecrets matching /Project)
             string allowedPrefix = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
 
             if (!fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase) &&
                 !fullPath.StartsWith(allowedPrefix, System.StringComparison.OrdinalIgnoreCase))
+=======
+<<<<<<< HEAD
+            if (!fullPath.StartsWith(projectRoot + "/", System.StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
+=======
+            // Ensure projectRoot ends with slash for correct prefix checking (e.g. prevent /project_secret matching /project)
+            string secureRoot = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
+
+            // Allow access if it's the root itself or a file inside
+            if (!fullPath.StartsWith(secureRoot, System.StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
+            {
+                throw new System.Exception("Access denied: Path is outside project directory.");
+            }
+
+            // Ensure we aren't matching a sibling directory with a similar prefix (e.g. /Project_Secret)
+            if (fullPath.Length > projectRoot.Length && fullPath[projectRoot.Length] != '/')
+>>>>>>> origin/main
+>>>>>>> origin/main
             {
                 throw new System.Exception("Access denied: Path is outside project directory.");
             }
