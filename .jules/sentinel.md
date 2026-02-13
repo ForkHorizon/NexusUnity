@@ -18,7 +18,7 @@
 **Learning:** `HttpListener.AcceptWebSocketAsync` does not automatically perform `Origin` validation. Explicit checks are needed for both Host (DNS Rebinding) and Origin (CSWSH) for WebSockets, just like HTTP requests.
 **Prevention:** In `ProcessWebSocket`, verify `context.Request.Url.IsLoopback` (Host) and check `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
 
-## 2024-11-28 - Path Prefix Validation Bypass
-**Vulnerability:** The path validation logic `path.StartsWith(root)` allows access to sibling directories with the same prefix (e.g., `/project` matching `/project_backup`).
-**Learning:** String prefix matching is insufficient for directory paths without ensuring a trailing directory separator.
-**Prevention:** Always append `Path.DirectorySeparatorChar` to the root path before using `StartsWith` for directory containment checks.
+## 2024-11-27 - Path Traversal Partial Match Bypass
+**Vulnerability:** `ValidatePath` checked `StartsWith(projectRoot)` but did not ensure a directory separator followed, allowing access to sibling directories sharing the same prefix (e.g., `/Project_Secret`).
+**Learning:** `String.StartsWith` is insufficient for path validation. It treats paths as simple strings.
+**Prevention:** When validating paths, ensure the potential subpath matches the root exactly or starts with the root followed by a directory separator.
