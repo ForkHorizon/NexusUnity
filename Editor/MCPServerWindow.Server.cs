@@ -220,7 +220,7 @@ namespace UnityMCP.Editor
                 if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
                 {
                     ms.Position = 0;
-                    using (var reader = new System.IO.StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true))
+                    using (var reader = new System.IO.StreamReader(ms, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: true))
                     {
                         string response = MCPServerMethods.ProcessJsonRpc(reader);
                         await SendResponse(response);

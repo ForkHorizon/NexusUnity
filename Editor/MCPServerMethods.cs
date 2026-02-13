@@ -42,41 +42,8 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-<<<<<<< HEAD
         /// Processes a JSON-RPC request from a TextReader and returns the response string.
-        /// Avoids intermediate string allocations for the request body.
-=======
-        /// Processes a JSON-RPC request stream and returns the response string.
->>>>>>> origin/main
-        /// </summary>
-        public static string ProcessJsonRpc(TextReader reader)
-        {
-            try
-            {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-                JObject request = JObject.Parse(json);
-                return ProcessJObject(request);
-=======
->>>>>>> origin/main
-                using (var jsonReader = new JsonTextReader(reader))
-                {
-                    JObject request = JObject.Load(jsonReader);
-                    JToken id = request["id"];
-                    if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
-                    return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
-                }
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
->>>>>>> origin/main
-            }
-            catch { return CreateErrorResponse(null, -32700, "Parse error"); }
-        }
-
-        /// <summary>
-        /// Processes a JSON-RPC request stream and returns the response string.
+        /// Optimization: Streams the JSON parsing to avoid allocating large strings for the entire payload.
         /// </summary>
         public static string ProcessJsonRpc(TextReader reader)
         {
@@ -84,6 +51,7 @@ namespace UnityMCP.Editor
             {
                 using (var jsonReader = new JsonTextReader(reader))
                 {
+                    // CloseInput=false ensures we don't close the underlying stream (e.g. MemoryStream in WebSocket loop)
                     jsonReader.CloseInput = false;
                     JObject request = JObject.Load(jsonReader);
                     JToken id = request["id"];
