@@ -1,9 +1,11 @@
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Newtonsoft.Json.Linq;
 
+[assembly: InternalsVisibleTo("UnityMCP.Editor.Tests")]
 namespace UnityMCP.Editor
 {
     /// <summary>
@@ -15,7 +17,7 @@ namespace UnityMCP.Editor
         /// Validates that the path is within the project directory to prevent path traversal.
         /// Returns the absolute path if valid.
         /// </summary>
-        private static string ValidatePath(string path)
+        internal static string ValidatePath(string path)
         {
             if (string.IsNullOrEmpty(path)) throw new System.Exception("Path cannot be empty");
 
@@ -35,44 +37,10 @@ namespace UnityMCP.Editor
             string fullPath = System.IO.Path.GetFullPath(cleanPath).Replace('\\', '/');
 
             // Check if path is within project root
-<<<<<<< HEAD
-            string rootCheck = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
-            if (!fullPath.StartsWith(rootCheck, System.StringComparison.OrdinalIgnoreCase) && !fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase))
-=======
-<<<<<<< HEAD
-            // Ensure projectRoot ends with a separator to prevent partial matches (e.g., /Project vs /ProjectSecret)
-            string rootCheck = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
-
-            if (!fullPath.StartsWith(rootCheck, System.StringComparison.OrdinalIgnoreCase) &&
+            // Ensure projectRoot ends with a separator for prefix checking to prevent partial path matching (e.g. /ProjectSecrets matching /Project)
+            string projectRootWithSlash = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
+            if (!fullPath.StartsWith(projectRootWithSlash, System.StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
-=======
-<<<<<<< HEAD
-            // Ensure projectRoot ends with a separator to prevent partial path traversal (e.g. /ProjectSecrets matching /Project)
-            string allowedPrefix = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
-
-            if (!fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase) &&
-                !fullPath.StartsWith(allowedPrefix, System.StringComparison.OrdinalIgnoreCase))
-=======
-<<<<<<< HEAD
-            if (!fullPath.StartsWith(projectRoot + "/", System.StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
-=======
-            // Ensure projectRoot ends with slash for correct prefix checking (e.g. prevent /project_secret matching /project)
-            string secureRoot = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
-
-            // Allow access if it's the root itself or a file inside
-            if (!fullPath.StartsWith(secureRoot, System.StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
-            {
-                throw new System.Exception("Access denied: Path is outside project directory.");
-            }
-
-            // Ensure we aren't matching a sibling directory with a similar prefix (e.g. /Project_Secret)
-            if (fullPath.Length > projectRoot.Length && fullPath[projectRoot.Length] != '/')
->>>>>>> origin/main
->>>>>>> origin/main
->>>>>>> origin/main
->>>>>>> origin/main
             {
                 throw new System.Exception("Access denied: Path is outside project directory.");
             }
