@@ -17,6 +17,6 @@ Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
 
-## 2024-05-23 - Immediate Feedback for Clipboard Actions
-**Learning:** Users lack confidence when copying values (like URLs) without visual confirmation. Relying on `Debug.Log` is insufficient as it requires looking away from the UI.
-**Action:** Use `ShowNotification(new GUIContent("Text"))` for transient actions to provide immediate, in-context feedback.
+## 2024-10-25 - [Editor Feedback Patterns]
+**Learning:** In Unity Editor Windows, replacing `Debug.Log` with `ShowNotification` for transient actions (like copying to clipboard) provides immediate, contextual feedback that is far superior to console logging.
+**Action:** Use `this.ShowNotification(new GUIContent("Message"))` for all successful user actions in EditorWindows instead of logging.
