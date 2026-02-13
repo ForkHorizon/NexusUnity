@@ -17,6 +17,6 @@ Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
 
-## 2026-02-03 - Tooltips for Complex Actions
-**Learning:** Button text alone is often insufficient for explaining complex Editor actions (like "Link to Gemini CLI"). Tooltips provide necessary context without cluttering the UI.
-**Action:** Always include a tooltip in `GUIContent` for Editor buttons that perform non-trivial operations.
+## 2024-05-22 - Immediate Mode GUI Feedback Loops
+**Learning:** Unity's IMGUI is stateless, making temporary feedback (like "Copied!") tricky. It requires manual state tracking (`timeSinceStartup`) and explicit `Repaint()` calls loop during the active feedback window to animate/revert the state.
+**Action:** Use a dedicated `Update` loop to handle the "revert" logic and trigger `Repaint()` only while the feedback effect is active to preserve performance.
