@@ -159,7 +159,8 @@ namespace UnityMCP.Editor
 >>>>>>> origin/main
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
-                    ShowNotification(new GUIContent("Server URL copied to clipboard"));
+                    ShowNotification(new GUIContent("Server URL Copied!"));
+                    Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
                 }
 
                 if (recentlyCopied) Repaint();
@@ -185,8 +186,12 @@ namespace UnityMCP.Editor
         private void DrawToolsTab()
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Open Test Window", "Open the manual testing window"), GUILayout.Height(30))) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear all captured console logs"), GUILayout.Height(30))) ClearLogs();
+            if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Removes all captured logs from the internal buffer")))
+            {
+                ClearLogs();
+                ShowNotification(new GUIContent("Logs Cleared"));
+            }
         }
 
         private void DrawVerificationTab()
