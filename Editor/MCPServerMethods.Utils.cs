@@ -1,9 +1,11 @@
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Newtonsoft.Json.Linq;
 
+[assembly: InternalsVisibleTo("UnityMCP.Editor.Tests")]
 namespace UnityMCP.Editor
 {
     /// <summary>
@@ -15,7 +17,7 @@ namespace UnityMCP.Editor
         /// Validates that the path is within the project directory to prevent path traversal.
         /// Returns the absolute path if valid.
         /// </summary>
-        private static string ValidatePath(string path)
+        internal static string ValidatePath(string path)
         {
             if (string.IsNullOrEmpty(path)) throw new System.Exception("Path cannot be empty");
 
@@ -35,7 +37,10 @@ namespace UnityMCP.Editor
             string fullPath = System.IO.Path.GetFullPath(cleanPath).Replace('\\', '/');
 
             // Check if path is within project root
-            if (!fullPath.StartsWith(projectRoot, System.StringComparison.OrdinalIgnoreCase))
+            // Ensure projectRoot ends with a separator for prefix checking to prevent partial path matching (e.g. /ProjectSecrets matching /Project)
+            string projectRootWithSlash = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
+            if (!fullPath.StartsWith(projectRootWithSlash, System.StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
             {
                 throw new System.Exception("Access denied: Path is outside project directory.");
             }
