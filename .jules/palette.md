@@ -17,6 +17,6 @@ Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
 
-## 2024-05-22 - Immediate Mode GUI Feedback Loops
-**Learning:** Unity's IMGUI is stateless, making temporary feedback (like "Copied!") tricky. It requires manual state tracking (`timeSinceStartup`) and explicit `Repaint()` calls loop during the active feedback window to animate/revert the state.
-**Action:** Use a dedicated `Update` loop to handle the "revert" logic and trigger `Repaint()` only while the feedback effect is active to preserve performance.
+## 2024-05-23 - Immediate Feedback for Clipboard Actions
+**Learning:** Users lack confidence when copying values (like URLs) without visual confirmation. Relying on `Debug.Log` is insufficient as it requires looking away from the UI.
+**Action:** Use `ShowNotification(new GUIContent("Text"))` for transient actions to provide immediate, in-context feedback.
