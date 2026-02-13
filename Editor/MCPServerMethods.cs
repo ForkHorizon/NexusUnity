@@ -34,12 +34,26 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string ProcessJsonRpc(string json)
         {
+            using (var reader = new StringReader(json))
+            {
+                return ProcessJsonRpc(reader);
+            }
+        }
+
+        /// <summary>
+        /// Processes a JSON-RPC request stream and returns the response string.
+        /// </summary>
+        public static string ProcessJsonRpc(TextReader reader)
+        {
             try
             {
-                JObject request = JObject.Parse(json);
-                JToken id = request["id"];
-                if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
-                return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    JObject request = JObject.Load(jsonReader);
+                    JToken id = request["id"];
+                    if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
+                    return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                }
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
         }
