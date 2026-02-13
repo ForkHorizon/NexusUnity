@@ -196,13 +196,13 @@ namespace UnityMCP.Editor
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Run the full API test suite")))
+            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Run comprehensive tests for all API methods"), GUILayout.Height(30)))
             {
                 // We'll call the method from MCPVerificationWindow directly if possible, or just open it
                 GetWindow<MCPVerificationWindow>().Show();
             }
-            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Verify UI interaction tools"))) UIVerification.Verify();
-            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Verify console log capture"))) LogVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Test UI automation capabilities"), GUILayout.Height(30))) UIVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Test log capturing and filtering"), GUILayout.Height(30))) LogVerification.Verify();
         }
 
         private void HandleMainThreadQueue()
