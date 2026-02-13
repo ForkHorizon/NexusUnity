@@ -54,14 +54,16 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
 
-            string path = go.name;
+            // Optimization: Use Stack<string> to avoid O(N^2) string allocations in deep hierarchies.
+            var pathParts = new Stack<string>();
+            pathParts.Push(go.name);
             Transform t = go.transform.parent;
             while (t != null)
             {
-                path = t.name + "/" + path;
+                pathParts.Push(t.name);
                 t = t.parent;
             }
-            return path;
+            return string.Join("/", pathParts);
         }
 
         private static JToken ListScenes(JToken p)
