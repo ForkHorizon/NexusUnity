@@ -17,3 +17,8 @@
 **Vulnerability:** The MCP server accepted WebSocket connections without validating the `Origin` header or Host (via `IsLoopback` check) in `ProcessWebSocket`, allowing arbitrary websites to connect to localhost (CSWSH) and execute commands.
 **Learning:** `HttpListener.AcceptWebSocketAsync` does not automatically perform `Origin` validation. Explicit checks are needed for both Host (DNS Rebinding) and Origin (CSWSH) for WebSockets, just like HTTP requests.
 **Prevention:** In `ProcessWebSocket`, verify `context.Request.Url.IsLoopback` (Host) and check `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
+
+## 2024-11-27 - Partial Path Traversal (Sibling Directory Access)
+**Vulnerability:** Path validation relying solely on `path.StartsWith(root)` allows access to sibling directories that share the same prefix (e.g., `/project` matches `/project_secret`).
+**Learning:** Standard string prefix checks are insufficient for path validation because they ignore directory boundaries.
+**Prevention:** Ensure the path is either exactly the root or starts with the root followed by a directory separator (e.g., `/project/`).
