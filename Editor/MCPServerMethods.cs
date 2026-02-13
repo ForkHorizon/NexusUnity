@@ -62,6 +62,25 @@ namespace UnityMCP.Editor
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
         }
 
+        /// <summary>
+        /// Processes a JSON-RPC request from a TextReader to minimize allocations.
+        /// </summary>
+        public static string ProcessJsonRpc(TextReader reader)
+        {
+            try
+            {
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    jsonReader.CloseInput = false;
+                    JObject request = JObject.Load(jsonReader);
+                    JToken id = request["id"];
+                    if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
+                    return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+                }
+            }
+            catch { return CreateErrorResponse(null, -32700, "Parse error"); }
+        }
+
         private static string ExecuteOnMainThread(string method, JToken requestParams, JToken id)
         {
             JToken result = null;
