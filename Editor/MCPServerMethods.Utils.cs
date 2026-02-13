@@ -37,10 +37,8 @@ namespace UnityMCP.Editor
             string fullPath = System.IO.Path.GetFullPath(cleanPath).Replace('\\', '/');
 
             // Check if path is within project root
-            // Ensure projectRoot ends with a separator for prefix checking to prevent partial path matching (e.g. /ProjectSecrets matching /Project)
-            string projectRootWithSlash = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
-            if (!fullPath.StartsWith(projectRootWithSlash, System.StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(fullPath, projectRoot, System.StringComparison.OrdinalIgnoreCase))
+            if (!fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase) &&
+                !fullPath.StartsWith(projectRoot + "/", System.StringComparison.OrdinalIgnoreCase))
             {
                 throw new System.Exception("Access denied: Path is outside project directory.");
             }
