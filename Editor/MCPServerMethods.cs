@@ -43,14 +43,21 @@ namespace UnityMCP.Editor
 
         /// <summary>
         /// Processes a JSON-RPC request from a TextReader and returns the response string.
-        /// Optimization: Streams the JSON parsing to avoid allocating large strings for the entire payload.
+        /// Optimized to reduce memory allocations for large payloads.
         /// </summary>
         public static string ProcessJsonRpc(TextReader reader)
         {
             try
             {
-                JObject request = JObject.Parse(json);
-                return ProcessJsonRequest(request);
+                JObject request;
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    request = JObject.Load(jsonReader);
+                }
+
+                JToken id = request["id"];
+                if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
+                return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
             }
             catch { return CreateErrorResponse(null, -32700, "Parse error"); }
         }
