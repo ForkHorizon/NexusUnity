@@ -124,96 +124,50 @@ namespace UnityMCP.Editor
             string root = System.IO.Path.GetFullPath(".");
             string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
 
-                    AssetDatabase.ImportAsset(relativePath);
+            AssetDatabase.ImportAsset(relativePath);
+            return "OK";
+        }
 
-                        return "OK";
+        /// <summary>Returns current editor state flags.</summary>
+        private static JToken GetEditorState(JToken p)
+        {
+            return new JObject
+            {
+                ["is_playing"] = EditorApplication.isPlaying,
+                ["is_paused"] = EditorApplication.isPaused,
+                ["is_compiling"] = EditorApplication.isCompiling,
+                ["is_updating"] = EditorApplication.isUpdating,
+                ["active_scene"] = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path,
+                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString()
+            };
+        }
 
-                    }
+        /// <summary>Pauses or unpauses Play Mode.</summary>
+        private static JToken PausePlayMode(JToken p)
+        {
+            if (p?["value"] != null) EditorApplication.isPaused = p["value"].Value<bool>();
+            else EditorApplication.isPaused = !EditorApplication.isPaused;
+            return new JObject { ["is_paused"] = EditorApplication.isPaused };
+        }
 
-            
+        /// <summary>Advances one frame while paused.</summary>
+        private static JToken StepFrame(JToken p)
+        {
+            EditorApplication.Step();
+            return "OK";
+        }
 
-                    /// <summary>Returns current editor state flags.</summary>
-
-                    private static JToken GetEditorState(JToken p)
-
-                    {
-
-                        return new JObject
-
-                        {
-
-                            ["is_playing"] = EditorApplication.isPlaying,
-
-                            ["is_paused"] = EditorApplication.isPaused,
-
-                            ["is_compiling"] = EditorApplication.isCompiling,
-
-                            ["active_scene"] = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path,
-
-                            ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString()
-
-                        };
-
-                    }
-
-            
-
-                    /// <summary>Pauses or unpauses Play Mode.</summary>
-
-                    private static JToken PausePlayMode(JToken p)
-
-                    {
-
-                        if (p?["value"] != null) EditorApplication.isPaused = p["value"].Value<bool>();
-
-                        else EditorApplication.isPaused = !EditorApplication.isPaused;
-
-                        return new JObject { ["is_paused"] = EditorApplication.isPaused };
-
-                    }
-
-            
-
-                    /// <summary>Advances one frame while paused.</summary>
-
-                    private static JToken StepFrame(JToken p)
-
-                    {
-
-                        EditorApplication.Step();
-
-                        return "OK";
-
-                    }
-
-            
-
-                    /// <summary>Returns basic project metadata.</summary>
-
-                    private static JToken GetProjectInfo(JToken p)
-
-                    {
-
-                        return new JObject
-
-                        {
-
-                            ["project_path"] = Application.dataPath.Replace("/Assets", ""),
-
-                            ["unity_version"] = Application.unityVersion,
-
-                            ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString(),
-
-                            ["product_name"] = Application.productName,
-
-                            ["company_name"] = Application.companyName
-
-                        };
-
-                    }
-
-                }
-
-            }
-
-            
+        /// <summary>Returns basic project metadata.</summary>
+        private static JToken GetProjectInfo(JToken p)
+        {
+            return new JObject
+            {
+                ["project_path"] = Application.dataPath.Replace("/Assets", ""),
+                ["unity_version"] = Application.unityVersion,
+                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString(),
+                ["product_name"] = Application.productName,
+                ["company_name"] = Application.companyName
+            };
+        }
+    }
+}
