@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -64,7 +65,7 @@ namespace UnityMCP.Editor
             JObject response = new JObject { ["jsonrpc"] = "2.0", ["id"] = id };
             if (error != null) response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
             else response["result"] = result;
-            return response.ToString();
+            return response.ToString(Formatting.None);
         }
 
         /// <summary>
@@ -72,7 +73,7 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string CreateErrorResponse(JToken id, int code, string message)
         {
-            return new JObject { ["jsonrpc"] = "2.0", ["error"] = new JObject { ["code"] = code, ["message"] = message }, ["id"] = id }.ToString();
+            return new JObject { ["jsonrpc"] = "2.0", ["error"] = new JObject { ["code"] = code, ["message"] = message }, ["id"] = id }.ToString(Formatting.None);
         }
 
         private static JToken ExecuteMethod(string method, JToken p)
