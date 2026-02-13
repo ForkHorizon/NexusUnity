@@ -16,3 +16,7 @@
 Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
+
+## 2024-05-23 - Immediate Feedback for Clipboard Actions
+**Learning:** Users lack confidence when copying values (like URLs) without visual confirmation. Relying on `Debug.Log` is insufficient as it requires looking away from the UI.
+**Action:** Use `ShowNotification(new GUIContent("Text"))` for transient actions to provide immediate, in-context feedback.
