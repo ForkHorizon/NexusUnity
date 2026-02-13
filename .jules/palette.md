@@ -16,3 +16,7 @@
 Format: `## YYYY-MM-DD - [Title]
 **Learning:** [UX/a11y insight]
 **Action:** [How to apply next time]`
+
+## 2026-02-03 - Tooltips for Complex Actions
+**Learning:** Button text alone is often insufficient for explaining complex Editor actions (like "Link to Gemini CLI"). Tooltips provide necessary context without cluttering the UI.
+**Action:** Always include a tooltip in `GUIContent` for Editor buttons that perform non-trivial operations.

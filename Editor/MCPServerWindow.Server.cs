@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using UnityEditor;
 using System.Net.WebSockets;
@@ -183,8 +184,12 @@ namespace UnityMCP.Editor
                 return;
             }
 
+<<<<<<< HEAD
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
             // Optimization: Pass reader directly to avoid allocating request body string
+=======
+            using var reader = new StreamReader(context.Request.InputStream);
+>>>>>>> origin/main
             string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);
             context.Response.ContentLength64 = buffer.Length;
@@ -195,7 +200,7 @@ namespace UnityMCP.Editor
         private async Task ReceiveWebsocketLoop(CancellationToken token)
         {
             var buffer = new byte[4096];
-            using var ms = new System.IO.MemoryStream();
+            using var ms = new MemoryStream();
 
             while (_webSocket.State == WebSocketState.Open && !token.IsCancellationRequested)
             {
@@ -219,9 +224,13 @@ namespace UnityMCP.Editor
                 if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
                 {
                     ms.Position = 0;
+<<<<<<< HEAD
                     // Optimization: Use StreamReader on MemoryStream to avoid intermediate string allocation
                     // leaveOpen: true is critical as we reuse the MemoryStream
                     using (var reader = new System.IO.StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true))
+=======
+                    using (var reader = new StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true))
+>>>>>>> origin/main
                     {
                         string response = MCPServerMethods.ProcessJsonRpc(reader);
                         await SendResponse(response);
