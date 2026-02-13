@@ -48,6 +48,7 @@ namespace UnityMCP.Editor
 
         private int _selectedTab = 0;
         private readonly string[] _tabs = { "Server", "Tools", "Verification" };
+        private double _lastCopyTime = -1;
 
         /// <summary>
         /// Shows the main Nexus Unity window and initializes it.
@@ -119,11 +120,19 @@ namespace UnityMCP.Editor
 
             if (!_isRunning)
             {
+<<<<<<< HEAD
                 if (GUILayout.Button(new GUIContent("START SERVER", "Start the MCP server to allow external tools to connect"), GUILayout.Height(40))) StartServer();
             }
             else
             {
                 if (GUILayout.Button(new GUIContent("STOP SERVER", "Stop the MCP server and close the port"), GUILayout.Height(40))) StopServer();
+=======
+                if (GUILayout.Button(new GUIContent("START SERVER", "Starts the MCP server on port " + _port), GUILayout.Height(40))) StartServer();
+            }
+            else
+            {
+                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stops the currently running MCP server"), GUILayout.Height(40))) StopServer();
+>>>>>>> origin/main
             }
 
             EditorGUILayout.Space();
@@ -141,11 +150,19 @@ namespace UnityMCP.Editor
                 GUILayout.FlexibleSpace();
                 GUILayout.Label($"Port: {_port}");
                 GUILayout.Space(10);
-                if (GUILayout.Button(new GUIContent("Copy URL", "Copy the server URL to clipboard"), EditorStyles.miniButton))
+
+                bool recentlyCopied = EditorApplication.timeSinceStartup - _lastCopyTime < 2.0;
+                string copyText = recentlyCopied ? "Copied!" : "Copy URL";
+                string tooltip = recentlyCopied ? "URL is in your clipboard" : "Copy the server URL to clipboard";
+
+                if (GUILayout.Button(new GUIContent(copyText, tooltip), EditorStyles.miniButton))
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
                     Debug.Log($"[MCP] Server URL copied to clipboard: http://localhost:{_port}");
+                    _lastCopyTime = EditorApplication.timeSinceStartup;
                 }
+
+                if (recentlyCopied) Repaint();
             }
         }
 
