@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -72,13 +73,25 @@ namespace UnityMCP.Editor
             return SerializeGameObject(go);
         }
 
+        private static Dictionary<string, Type> _typeCache = new Dictionary<string, Type>();
+
         private static Type FindType(string name)
         {
+            // Bolt Optimization: Check cache first to avoid O(A * T) iteration
+            if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;
+
             foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
             {
                 var t = a.GetType(name) ?? a.GetTypes().FirstOrDefault(x => x.Name == name);
-                if (t != null) return t;
+                if (t != null)
+                {
+                    _typeCache[name] = t;
+                    return t;
+                }
             }
+
+            // Negative cache: store null to prevent repeated expensive searches for missing types
+            _typeCache[name] = null;
             return null;
         }
 
