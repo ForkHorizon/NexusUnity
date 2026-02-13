@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using UnityEditor;
 using System.Net.WebSockets;
@@ -184,6 +185,7 @@ namespace UnityMCP.Editor
                 return;
             }
 
+<<<<<<< HEAD
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
             string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);
@@ -195,7 +197,7 @@ namespace UnityMCP.Editor
         private async Task ReceiveWebsocketLoop(CancellationToken token)
         {
             var buffer = new byte[4096];
-            using var ms = new System.IO.MemoryStream();
+            using var ms = new MemoryStream();
 
             while (_webSocket.State == WebSocketState.Open && !token.IsCancellationRequested)
             {

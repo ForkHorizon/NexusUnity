@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace UnityMCP.Editor
 {
@@ -33,6 +34,18 @@ namespace UnityMCP.Editor
         /// Processes a JSON-RPC request string and returns the response string.
         /// </summary>
         public static string ProcessJsonRpc(string json)
+        {
+            using (var reader = new StringReader(json))
+            {
+                return ProcessJsonRpc(reader);
+            }
+        }
+
+        /// <summary>
+        /// Processes a JSON-RPC request from a TextReader and returns the response string.
+        /// Optimization: Streams the JSON parsing to avoid allocating large strings for the entire payload.
+        /// </summary>
+        public static string ProcessJsonRpc(TextReader reader)
         {
             try
             {
@@ -87,7 +100,7 @@ namespace UnityMCP.Editor
             JObject response = new JObject { ["jsonrpc"] = "2.0", ["id"] = id };
             if (error != null) response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
             else response["result"] = result;
-            return response.ToString();
+            return response.ToString(Formatting.None);
         }
 
         /// <summary>
@@ -95,7 +108,7 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string CreateErrorResponse(JToken id, int code, string message)
         {
-            return new JObject { ["jsonrpc"] = "2.0", ["error"] = new JObject { ["code"] = code, ["message"] = message }, ["id"] = id }.ToString();
+            return new JObject { ["jsonrpc"] = "2.0", ["error"] = new JObject { ["code"] = code, ["message"] = message }, ["id"] = id }.ToString(Formatting.None);
         }
 
         private static JToken ExecuteMethod(string method, JToken p)
