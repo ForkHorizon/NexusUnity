@@ -18,7 +18,7 @@
 **Learning:** `HttpListener.AcceptWebSocketAsync` does not automatically perform `Origin` validation. Explicit checks are needed for both Host (DNS Rebinding) and Origin (CSWSH) for WebSockets, just like HTTP requests.
 **Prevention:** In `ProcessWebSocket`, verify `context.Request.Url.IsLoopback` (Host) and check `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
 
-## 2026-02-12 - Unity MCP Path Traversal (Sibling Directory Bypass)
-**Vulnerability:** The previous path validation check `path.StartsWith(root)` was insufficient because it allowed accessing sibling directories that share the same prefix as the project root (e.g., `/ProjectSecret` matches `/Project`).
-**Learning:** `String.StartsWith` is dangerous for path validation unless a directory separator is explicitly appended to the prefix.
-**Prevention:** Use strict checks: `path.Equals(root)` OR `path.StartsWith(root + "/")`.
+## 2025-02-20 - Partial Path Traversal via Prefix Matching
+**Vulnerability:** Path validation using `StartsWith` allowed access to sibling directories with matching prefixes (e.g., `/ProjectSecret` matched `/Project`).
+**Learning:** Checking `path.StartsWith(root)` is insufficient because it doesn't respect directory boundaries.
+**Prevention:** Ensure path validation checks for an exact match OR that the path starts with `root + DirectorySeparatorChar` (e.g., `/Project/`).
