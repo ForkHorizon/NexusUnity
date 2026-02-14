@@ -35,7 +35,22 @@ namespace UnityMCP.Editor
 
         private void VerifyGameObjectsAndComponents()
         {
-            var goRes = JObject.Parse(ExtractResult(Call("create_game_object", new JObject { ["name"] = "VerifyGO" })));
+            string resp = Call("create_game_object", new JObject { ["name"] = "VerifyGO" });
+            string resultJson = ExtractResult(resp);
+            
+            if (string.IsNullOrEmpty(resultJson) || resultJson == "{}")
+            {
+                Debug.LogError("Failed to create GameObject for verification.");
+                return;
+            }
+
+            var goRes = JObject.Parse(resultJson);
+            if (goRes["instance_id"] == null)
+            {
+                Debug.LogError("GameObject creation failed: missing instance_id");
+                return;
+            }
+
             int id = (int)goRes["instance_id"];
             Call("add_component", new JObject { ["instance_id"] = id, ["component_name"] = "BoxCollider" });
             Call("update_component", new JObject { ["instance_id"] = id, ["component_name"] = "BoxCollider", ["json_data"] = "{\"isTrigger\":true}" });
@@ -52,9 +67,21 @@ namespace UnityMCP.Editor
 
         private string ExtractResult(string resp)
         {
-            var obj = JObject.Parse(resp);
-            if (obj["error"] != null) Debug.LogError($"RPC Error: {obj["error"]["message"]}");
-            return obj["result"]?.ToString() ?? "{}";
+            try
+            {
+                var obj = JObject.Parse(resp);
+                if (obj["error"] != null)
+                {
+                    Debug.LogError($"RPC Error: {obj["error"]["message"]}");
+                    return "{}";
+                }
+                return obj["result"]?.ToString() ?? "{}";
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"JSON Parse Error in ExtractResult: {e.Message}");
+                return "{}";
+            }
         }
     }
 }
