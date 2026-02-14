@@ -146,20 +146,15 @@ namespace UnityMCP.Editor
                 GUILayout.Label(new GUIContent($"Port: {_port}", "The port the server is listening on. Can be changed in Project Settings."));
                 GUILayout.Space(10);
 
-<<<<<<< HEAD
-                bool justCopied = EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0;
-                string btnText = justCopied ? "Copied! ✔" : "Copy URL";
-                if (GUILayout.Button(new GUIContent(btnText, "Copy the server URL to clipboard"), EditorStyles.miniButton))
-=======
-                bool recentlyCopied = EditorApplication.timeSinceStartup - _lastCopyTime < 2.0;
+                bool recentlyCopied = EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0;
                 string copyText = recentlyCopied ? "Copied!" : "Copy URL";
                 string tooltip = recentlyCopied ? "URL is in your clipboard" : "Copy the server URL to clipboard";
 
                 if (GUILayout.Button(new GUIContent(copyText, tooltip), EditorStyles.miniButton))
->>>>>>> origin/main
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{_port}";
                     ShowNotification(new GUIContent("Server URL copied to clipboard"));
+                    _lastUrlCopyTime = EditorApplication.timeSinceStartup;
                 }
 
                 if (recentlyCopied) Repaint();

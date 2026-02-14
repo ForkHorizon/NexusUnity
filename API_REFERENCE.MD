@@ -301,4 +301,4 @@ Types text into a TextField or Label.
 - **Parameters**: `window_title`, `element_name`, `text`.
 
 ---
-*Generated for Nexus Unity v1.9.6*
+*Generated for Nexus Unity v2.0.0*

@@ -21,7 +21,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "1.9.5" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.0.0" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
@@ -103,4 +103,4 @@ Go to **Edit > Project Settings > Nexus Unity** to configure the port.
 ### Integration
 1. Open **Window > Nexus Unity**.
 2. Click **Link to Gemini CLI**.
-3. Your local Gemini CLI is now connected to this Unity instance with all 59+ tools.
+3. Your local Gemini CLI is now connected to this Unity instance with all 60+ tools.

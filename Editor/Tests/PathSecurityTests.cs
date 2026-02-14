@@ -6,8 +6,14 @@ using System;
 
 namespace UnityMCP.Editor.Tests
 {
+    /// <summary>
+    /// Tests for path security and validation to prevent path traversal.
+    /// </summary>
     public class PathSecurityTests
     {
+        /// <summary>
+        /// Verifies that ValidatePath prevents access to sibling directories with similar prefixes.
+        /// </summary>
         [Test]
         public void ValidatePath_PreventsSiblingDirectoryAccess()
         {
@@ -26,6 +32,9 @@ namespace UnityMCP.Editor.Tests
             Assert.That(ex.Message, Does.Contain("Access denied"));
         }
 
+        /// <summary>
+        /// Verifies that ValidatePath allows access to valid subpaths within the project.
+        /// </summary>
         [Test]
         public void ValidatePath_AllowsValidAssetPath()
         {
@@ -33,6 +42,9 @@ namespace UnityMCP.Editor.Tests
             Assert.DoesNotThrow(() => MCPServerMethods.ValidatePath(validPath));
         }
 
+        /// <summary>
+        /// Verifies that ValidatePath allows the project root path itself.
+        /// </summary>
         [Test]
         public void ValidatePath_AllowsProjectRoot()
         {
@@ -40,6 +52,9 @@ namespace UnityMCP.Editor.Tests
             Assert.DoesNotThrow(() => MCPServerMethods.ValidatePath(projectRoot));
         }
 
+        /// <summary>
+        /// Verifies that ValidatePath prevents access to the project's parent directory.
+        /// </summary>
         [Test]
         public void ValidatePath_PreventsParentDirectoryAccess()
         {
