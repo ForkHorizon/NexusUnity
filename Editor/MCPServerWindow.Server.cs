@@ -185,7 +185,7 @@ namespace UnityMCP.Editor
                 return;
             }
 
-<<<<<<< HEAD
+
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
             string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);
