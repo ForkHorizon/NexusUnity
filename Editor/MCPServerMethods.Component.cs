@@ -60,9 +60,48 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
+
+            string jsonData = p["json_data"]?.ToString();
+            if (string.IsNullOrEmpty(jsonData)) return "No data provided";
+
+            JObject data = JObject.Parse(jsonData);
+            SerializedObject so = new SerializedObject(comp);
             Undo.RecordObject(comp, "Update Component");
-            EditorJsonUtility.FromJsonOverwrite(p["json_data"].ToString(), comp);
+
+            foreach (var propPair in data)
+            {
+                SerializedProperty prop = so.FindProperty(propPair.Key);
+                if (prop != null)
+                {
+                    ApplyValueToProperty(prop, propPair.Value);
+                }
+            }
+
+            so.ApplyModifiedProperties();
             return "Updated";
+        }
+
+        private static void ApplyValueToProperty(SerializedProperty prop, JToken value)
+        {
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Integer: prop.intValue = (int)value; break;
+                case SerializedPropertyType.Boolean: prop.boolValue = (bool)value; break;
+                case SerializedPropertyType.Float: prop.floatValue = (float)value; break;
+                case SerializedPropertyType.String: prop.stringValue = value.ToString(); break;
+                case SerializedPropertyType.Vector3: prop.vector3Value = ParseVector3(value, prop.vector3Value); break;
+                case SerializedPropertyType.Color: 
+                    if (ColorUtility.TryParseHtmlString(value.ToString(), out Color color)) prop.colorValue = color;
+                    break;
+                case SerializedPropertyType.Enum: 
+                    if (value.Type == JTokenType.Integer) prop.enumValueIndex = (int)value;
+                    else
+                    {
+                        int index = Array.IndexOf(prop.enumDisplayNames, value.ToString());
+                        if (index >= 0) prop.enumValueIndex = index;
+                    }
+                    break;
+            }
         }
 
         private static JToken InstantiatePrefab(JToken p)

@@ -49,10 +49,13 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["window_title"] == null || p["element_name"] == null || p["text"] == null) throw new Exception("Missing params");
             var w = FindWindow(p["window_title"].ToString());
-            var el = FindElementByName(w?.rootVisualElement, p["element_name"].ToString());
+            if (w == null) throw new Exception($"Window not found: {p["window_title"]}");
+            var el = FindElementByName(w.rootVisualElement, p["element_name"].ToString());
+            if (el == null) throw new Exception($"Element not found: {p["element_name"]}");
+            
             if (el is TextField tf) tf.value = p["text"].ToString();
             else if (el is Label lbl) lbl.text = p["text"].ToString();
-            else throw new Exception("Element not a TextField or Label");
+            else throw new Exception($"Element '{p["element_name"]}' is not a TextField or Label (it is a {el.GetType().Name})");
             return "Updated";
         }
     }

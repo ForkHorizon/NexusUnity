@@ -15,7 +15,10 @@ namespace UnityMCP.Editor
         public static void Verify()
         {
             Debug.Log("Starting UI Verification...");
-            MCPTestWindow.ShowWindow();
+            
+            var wnd = MCPTestWindow.ShowWindow();
+            wnd.ResetState();
+            
             TestListAndHierarchy();
             TestInputAndClick();
             Debug.Log("VERIFICATION SUCCESS");
@@ -33,11 +36,20 @@ namespace UnityMCP.Editor
         {
             string txt = "Test";
             Call("ui_input_text", new JObject { ["window_title"] = "MCPTestWindow", ["element_name"] = "TestInput", ["text"] = txt });
-            if (MCPTestWindow.LastInputValue != txt) throw new System.Exception("Input failed");
+            if (MCPTestWindow.LastInputValue != txt) throw new System.Exception($"Input failed: expected '{txt}' but got '{MCPTestWindow.LastInputValue}'");
             Call("ui_click", new JObject { ["window_title"] = "MCPTestWindow", ["element_name"] = "TestButton" });
             if (!MCPTestWindow.ButtonClicked) throw new System.Exception("Click failed");
         }
 
-        private static string Call(string m, JObject p) => MCPServerMethods.ProcessJsonRpc(new JObject { ["jsonrpc"] = "2.0", ["method"] = m, ["params"] = p, ["id"] = 1 }.ToString());
+        private static string Call(string m, JObject p)
+        {
+            string resp = MCPServerMethods.ProcessJsonRpc(new JObject { ["jsonrpc"] = "2.0", ["method"] = m, ["params"] = p, ["id"] = 1 }.ToString());
+            JObject json = JObject.Parse(resp);
+            if (json["error"] != null)
+            {
+                throw new System.Exception($"MCP Error in {m}: {json["error"]["message"]}");
+            }
+            return json["result"]?.ToString() ?? "";
+        }
     }
 }

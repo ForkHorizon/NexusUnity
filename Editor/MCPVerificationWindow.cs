@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace UnityMCP.Editor
 {
@@ -14,7 +15,10 @@ namespace UnityMCP.Editor
 
         private void OnGUI()
         {
-            if (GUILayout.Button("Run API Verification")) RunVerification();
+            if (GUILayout.Button("Run API Verification")) 
+            {
+                EditorApplication.delayCall += RunVerification;
+            }
         }
 
         private void RunVerification()

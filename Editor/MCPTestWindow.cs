@@ -20,12 +20,26 @@ namespace UnityMCP.Editor
         public static bool ButtonClicked = false;
 
         /// <summary>
+        /// Resets the window state for testing.
+        /// </summary>
+        public void ResetState()
+        {
+            LastInputValue = "";
+            ButtonClicked = false;
+            var textField = rootVisualElement.Q<TextField>("TestInput");
+            if (textField != null) textField.value = "";
+            var label = rootVisualElement.Q<Label>("TestLabel");
+            if (label != null) label.text = "Initial State";
+        }
+
+        /// <summary>
         /// Shows the MCP Test window.
         /// </summary>
-        public static void ShowWindow()
+        public static MCPTestWindow ShowWindow()
         {
             MCPTestWindow wnd = GetWindow<MCPTestWindow>();
             wnd.titleContent = new GUIContent("MCPTestWindow");
+            return wnd;
         }
 
         /// <summary>
@@ -45,6 +59,8 @@ namespace UnityMCP.Editor
 
             var textField = new TextField("Input:");
             textField.name = "TestInput";
+            textField.value = ""; // Force it to empty for tests
+            LastInputValue = textField.value;
             textField.RegisterValueChangedCallback(evt => LastInputValue = evt.newValue);
             root.Add(textField);
 

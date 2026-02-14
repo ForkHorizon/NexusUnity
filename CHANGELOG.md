@@ -7,6 +7,11 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 ### Major Integration Release
 This major release marks the successful consolidation of 35+ feature and architectural enhancements (Pull Requests #20 through #55), finalizing the library's position as a robust, AI-native control protocol for Unity.
 
+### Fixed
+- **Main Thread Synchronization**: Added `[InitializeOnLoad]` to `MCPServerMethods` to reliably capture the Unity Main Thread ID, preventing deadlocks when the server is first accessed via background network threads.
+- **UI Verification Robustness**: Enhanced `UIVerification` and `MCPTestWindow` with explicit state reset logic and granular JSON-RPC error reporting.
+- **Component Property Serialization**: Improved `unity_update_component` to use `SerializedProperty` for surgical field edits, adding support for `Enum`, `Color`, and `Vector3` types.
+
 ### Key Milestones Integrated in v2.0.0:
 - **Streaming JSON-RPC Utility**: High-performance, zero-allocation request processing using `TextReader`.
 - **Security Hardening**: Strict path validation for `unity_read_file`/`unity_write_file` and protection against sibling-directory traversal.

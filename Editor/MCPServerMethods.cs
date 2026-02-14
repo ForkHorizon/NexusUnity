@@ -14,12 +14,18 @@ namespace UnityMCP.Editor
     /// Contains methods for processing and executing MCP JSON-RPC requests.
     /// Uses a high-performance Dictionary for method dispatching.
     /// </summary>
+    [InitializeOnLoad]
     public static partial class MCPServerMethods
     {
+        private static int _mainThreadId;
+
+        private static bool _isMainThread => Thread.CurrentThread.ManagedThreadId == _mainThreadId;
+
         private static readonly Dictionary<string, Func<JToken, JToken>> _methods = new Dictionary<string, Func<JToken, JToken>>();
 
         static MCPServerMethods()
         {
+            _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             RegisterCoreMethods();
             RegisterSceneMethods();
             RegisterDiscoveryMethods();
@@ -71,7 +77,7 @@ namespace UnityMCP.Editor
         {
             // Deadlock prevention: If we're already on the main thread, execute immediately.
             // This happens when calling ProcessJsonRpc from an Editor window or menu item.
-            if (UnityEditorInternal.InternalEditorUtility.isMainThread)
+            if (_isMainThread)
             {
                 try
                 {
