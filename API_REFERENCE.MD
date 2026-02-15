@@ -1,6 +1,6 @@
 # Nexus Unity AI Toolset Reference
 
-This document provides a comprehensive, AI-optimized reference for all 60+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
+This document provides a comprehensive, AI-optimized reference for all 61+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
 
 > **Note for AI Agents**: All tools are prefixed with `unity_` when called via the Gemini CLI/MCP bridge.
 
@@ -300,5 +300,12 @@ Simulates a click on a UI element.
 Types text into a TextField or Label.
 - **Parameters**: `window_title`, `element_name`, `text`.
 
+## 🛡️ Linter & Compliance
+
+### `unity_lint_project`
+Runs a deterministic C# audit using Roslyn to enforce high code quality standards.
+- **Returns**: JSON object with `report` (full text) and `violation_count`.
+- **Note**: Generates `LINT_REPORT.txt` in the project root.
+
 ---
-*Generated for Nexus Unity v2.0.0*
+*Generated for Nexus Unity v2.0.1*

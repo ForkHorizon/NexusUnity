@@ -8,16 +8,16 @@ namespace UnityMCP.Editor
     /// </summary>
     public static class MCPSettings
     {
-        private const string PORT_KEY = "UnityMCP_Server_Port";
-        private const int DEFAULT_PORT = 8081;
+        private const string _PORT_KEY = "UnityMCP_Server_Port";
+        private const int _DEFAULT_PORT = 8081;
 
         /// <summary>
         /// The local server port for the MCP Server.
         /// </summary>
         public static int Port
         {
-            get => EditorPrefs.GetInt(PORT_KEY, DEFAULT_PORT);
-            set => EditorPrefs.SetInt(PORT_KEY, value);
+            get => EditorPrefs.GetInt(_PORT_KEY, _DEFAULT_PORT);
+            set => EditorPrefs.SetInt(_PORT_KEY, value);
         }
 
         /// <summary>

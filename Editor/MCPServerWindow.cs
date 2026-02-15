@@ -216,6 +216,13 @@ namespace UnityMCP.Editor
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
+            if (GUILayout.Button(new GUIContent("Run Linter (whole proj)", "Run a deterministic C# audit using Roslyn to enforce high code quality standards")))
+            {
+                ShowNotification(new GUIContent("Running Linter..."));
+                ProjectAuditor.RunAuditMenu();
+            }
+            
+            EditorGUILayout.Space();
             if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the API Verification window to run tests manually")))
             {
                 // We'll call the method from MCPVerificationWindow directly if possible, or just open it

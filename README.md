@@ -4,7 +4,8 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 ## 🚀 Features
 
-- **Full Unity Editor Control**: 60+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
+- **Full Unity Editor Control**: 61+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
+- **Deterministic C# Linter**: Integrated Roslyn-based auditor to enforce code standards (Method length, Complexity, Nesting).
 - **Self-Healing Server**: Automatically restarts after Unity domain reloads (compilation) or network errors.
 - **Gemini CLI Native**: One-click integration with the Gemini CLI via the unified dashboard.
 - **Non-Blocking Logic**: Automated scene saving and non-interactive workflows to prevent Editor stalls.

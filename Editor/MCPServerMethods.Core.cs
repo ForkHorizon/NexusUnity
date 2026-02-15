@@ -22,7 +22,7 @@ namespace UnityMCP.Editor
             _methods["list_tools"] = ListTools;
         }
 
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "2.0.0" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "2.0.1" } };
 
         private static JToken CreatePrimitive(JToken p)
         {
@@ -69,9 +69,15 @@ namespace UnityMCP.Editor
             AddEditorControlTools(tools);
             AddDiscoveryTools(tools);
             AddUITools(tools);
+            AddLinterTools(tools);
 
             _cachedTools = tools;
             return tools;
+        }
+
+        private static void AddLinterTools(JArray tools)
+        {
+            tools.Add(CreateTool("unity_lint_project", "Run deterministic C# audit", new JObject { }));
         }
 
         private static void AddSceneTools(JArray tools)

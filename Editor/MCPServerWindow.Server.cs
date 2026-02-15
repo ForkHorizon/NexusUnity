@@ -104,36 +104,46 @@ namespace UnityMCP.Editor
             {
                 while (!token.IsCancellationRequested && _listener != null && _listener.IsListening)
                 {
-                    try
-                    {
-                        var context = await _listener.GetContextAsync();
-                        if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
-                        else HandleHttpRequest(context);
-                    }
-                    catch (HttpListenerException e) when (e.ErrorCode == 995) 
-                    {
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        if (!token.IsCancellationRequested)
-                            Debug.LogWarning($"[MCP] Error processing request: {{e.Message}}");
-                    }
+                    await ProcessNextRequest(token);
                 }
             }
             catch (Exception e)
             {
                 if (!token.IsCancellationRequested)
-                    Debug.LogError($"[MCP] Fatal server loop error: {{e.Message}}");
+                    Debug.LogError($"[MCP] Fatal server loop error: {e.Message}");
             }
             finally
             {
                 _isRunning = false;
-                if (!token.IsCancellationRequested && SessionState.GetBool("MCP_Server_Running", false))
-                {
-                    Debug.Log("[MCP] Server loop ended unexpectedly. Attempting restart...");
-                    EditorApplication.delayCall += () => StartServer();
-                }
+                HandleUnexpectedShutdown(token);
+            }
+        }
+
+        private async Task ProcessNextRequest(CancellationToken token)
+        {
+            try
+            {
+                var context = await _listener.GetContextAsync();
+                if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
+                else HandleHttpRequest(context);
+            }
+            catch (HttpListenerException e) when (e.ErrorCode == 995)
+            {
+                // Expected when listener is stopped
+            }
+            catch (Exception e)
+            {
+                if (!token.IsCancellationRequested)
+                    Debug.LogWarning($"[MCP] Error processing request: {e.Message}");
+            }
+        }
+
+        private void HandleUnexpectedShutdown(CancellationToken token)
+        {
+            if (!token.IsCancellationRequested && SessionState.GetBool("MCP_Server_Running", false))
+            {
+                Debug.Log("[MCP] Server loop ended unexpectedly. Attempting restart...");
+                EditorApplication.delayCall += () => StartServer();
             }
         }
 

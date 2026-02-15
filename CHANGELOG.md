@@ -2,6 +2,16 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.0.1] - 2026-02-15
+
+### Added
+- **Deterministic C# Linter (The Daily Auditor)**: Introduced `ProjectAuditor.cs`, a robust, code-aware linter that replaces brittle regex-based bash scripts. It performs deep structural analysis of C# code, including:
+    - **Nesting Depth**: Detects complex "arrow code" (> 5 levels).
+    - **Code Complexity**: Calculates cyclomatic complexity for method bodies.
+    - **Accurate Length Checks**: Validates file and method lengths by ignoring comments and whitespace.
+    - **Naming Compliance**: Enforces strict `_camelCase` for private fields.
+- **MCP Linting Tool**: Added `unity_lint_project` to the MCP toolset, allowing external AI agents to trigger a full project audit and receive a structured `LINT_REPORT.txt`.
+
 ## [2.0.0] - 2026-02-14
 
 ### Major Integration Release

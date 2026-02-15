@@ -26,6 +26,18 @@ namespace UnityMCP.Editor
             _methods["step_frame"] = StepFrame;
             _methods["attach_script"] = AttachScript;
             _methods["create_primitive"] = CreatePrimitive;
+            _methods["unity_lint_project"] = UnityLintProject;
+        }
+
+        private static JToken UnityLintProject(JToken p)
+        {
+            // The auditor runs synchronously on the main thread
+            string report = ProjectAuditor.RunAudit(silent: true);
+            return new JObject
+            {
+                ["report"] = report,
+                ["violation_count"] = report.Split('\n').Length
+            };
         }
 
         private static JToken UndoMethod(JToken p)
@@ -78,18 +90,23 @@ namespace UnityMCP.Editor
             if (prop == null) throw new System.Exception($"Property '{p["property_name"]}' not found on {obj.name}");
 
             Undo.RecordObject(obj, $"Set {p["property_name"]}");
-            
-            // Basic type support
-            var val = p["value"];
+            ApplyValueToSerializedProperty(prop, p["value"]);
+
+            so.ApplyModifiedProperties();
+            return "Property updated";
+        }
+
+        private static void ApplyValueToSerializedProperty(SerializedProperty prop, JToken val)
+        {
             if (val.Type == JTokenType.Boolean) prop.boolValue = val.Value<bool>();
             else if (val.Type == JTokenType.Float) prop.floatValue = val.Value<float>();
             else if (val.Type == JTokenType.Integer) prop.intValue = val.Value<int>();
             else if (val.Type == JTokenType.String) prop.stringValue = val.Value<string>();
-            else if (val.Type == JTokenType.Object && val["x"] != null) prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
+            else if (val.Type == JTokenType.Object && val["x"] != null)
+            {
+                prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
+            }
             else throw new System.Exception("Value type not supported for surgical edit yet");
-
-            so.ApplyModifiedProperties();
-            return "Property updated";
         }
     }
 }

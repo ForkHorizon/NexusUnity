@@ -12,13 +12,13 @@ namespace UnityMCP.Editor
     public partial class MCPServerWindow
     {
         private static ConcurrentQueue<LogEntry> _logs = new ConcurrentQueue<LogEntry>();
-        private const int MAX_LOGS = 1000;
+        private const int _MAX_LOGS = 1000;
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
             var log = new LogEntry(condition, stackTrace, type);
             _logs.Enqueue(log);
-            while (_logs.Count > MAX_LOGS) _logs.TryDequeue(out _);
+            while (_logs.Count > _MAX_LOGS) _logs.TryDequeue(out _);
         }
 
         /// <summary>
