@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
@@ -49,7 +50,6 @@ namespace UnityMCP.Editor
 
         private int _selectedTab = 0;
         private readonly string[] _tabs = { "Server", "Tools", "Verification" };
-        private double _lastCopyTime = -1;
 
         /// <summary>
         /// Shows the main Nexus Unity window and initializes it.
@@ -132,6 +132,35 @@ namespace UnityMCP.Editor
 
             EditorGUILayout.Space();
             DrawCliIntegration();
+
+            DrawResources();
+        }
+
+        private void DrawResources()
+        {
+            EditorGUILayout.Space();
+            GUILayout.Label("Resources", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                if (GUILayout.Button(new GUIContent("Documentation", "Open the comprehensive documentation (DOCUMENTATION.MD)"), EditorStyles.miniButton))
+                    OpenDocumentation("DOCUMENTATION.MD");
+                if (GUILayout.Button(new GUIContent("API Reference", "Open the API reference guide (API_REFERENCE.MD)"), EditorStyles.miniButton))
+                    OpenDocumentation("API_REFERENCE.MD");
+            }
+        }
+
+        private void OpenDocumentation(string filename)
+        {
+            var script = MonoScript.FromScriptableObject(this);
+            var path = AssetDatabase.GetAssetPath(script);
+            if (string.IsNullOrEmpty(path)) return;
+
+            var root = Path.GetDirectoryName(Path.GetDirectoryName(path));
+            var docPath = Path.Combine(root, filename).Replace("\\", "/");
+            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(docPath);
+
+            if (obj != null) AssetDatabase.OpenAsset(obj);
+            else Debug.LogError($"[MCP] Could not find documentation at {docPath}");
         }
 
         private void DrawServerStatusBar()
