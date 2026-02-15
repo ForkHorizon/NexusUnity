@@ -41,7 +41,7 @@ namespace UnityMCP.Editor
                     _isRunning = true;
                     _cts = new CancellationTokenSource();
                     _listener = new HttpListener();
-                    _listener.Prefixes.Add($"http://*:{_port}/");
+                    _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
                     _listener.Start();
                     SessionState.SetBool("MCP_Server_Running", true);
                     Task.Run(() => ServerLoop(_cts.Token));
@@ -69,7 +69,7 @@ namespace UnityMCP.Editor
             try
             {
                 var content = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
-                var response = await client.PostAsync($"http://localhost:{_port}/", content);
+                var response = await client.PostAsync($"http://127.0.0.1:{_port}/", content);
                 if (response.IsSuccessStatusCode)
                 {
                     string body = await response.Content.ReadAsStringAsync();
