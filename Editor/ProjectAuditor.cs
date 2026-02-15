@@ -41,28 +41,41 @@ namespace UnityMCP.Editor
         public static string RunAudit(bool silent = true)
         {
             _violations.Clear();
-            string assetsPath = Application.dataPath;
-
-            // Search only Assets, excluding common library/plugin folders
-            var files = Directory.GetFiles(assetsPath, "*.cs", SearchOption.AllDirectories)
-                .Where(f => !f.Contains("/Plugins/") && !f.Contains("/External/") && !f.Contains("/References/"))
-                .ToArray();
+            var files = GetProjectFiles();
 
             foreach (var file in files)
             {
                 AnalyzeFile(file);
             }
 
-            string projectRoot = Directory.GetParent(assetsPath).FullName;
-            string reportPath = Path.Combine(projectRoot, "LINT_REPORT.txt");
+            string reportContent = GenerateReport();
+            ShowCompletionFeedback(silent);
+
+            return reportContent;
+        }
+
+        private static string[] GetProjectFiles()
+        {
+            string assetsPath = Application.dataPath;
+            return Directory.GetFiles(assetsPath, "*.cs", SearchOption.AllDirectories)
+                .Where(f => !f.Contains("/Plugins/") && !f.Contains("/External/") && !f.Contains("/References/"))
+                .ToArray();
+        }
+
+        private static string GenerateReport()
+        {
             string reportContent = _violations.Count > 0 
                 ? string.Join("\n", _violations) 
                 : "No violations found. 100% Compliance.";
 
+            string reportPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "LINT_REPORT.txt");
             File.WriteAllText(reportPath, reportContent);
-            
-            bool success = _violations.Count == 0;
+            return reportContent;
+        }
 
+        private static void ShowCompletionFeedback(bool silent)
+        {
+            bool success = _violations.Count == 0;
             if (!silent)
             {
                 string title = success ? "Linter Passed" : "Linter Violations Found";
@@ -76,8 +89,6 @@ namespace UnityMCP.Editor
                 Debug.LogWarning($"[Auditor] Audit complete. Found {_violations.Count} violations. See LINT_REPORT.txt");
             else
                 Debug.Log("[Auditor] Audit complete. 100% Compliance.");
-
-            return reportContent;
         }
 
         private static void AnalyzeFile(string filePath)
