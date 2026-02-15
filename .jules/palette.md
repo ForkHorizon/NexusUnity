@@ -20,3 +20,7 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2024-10-24 - [Editor Window Feedback]
 **Learning:** In Unity Editor Windows (`EditorWindow`), `ShowNotification` is vastly superior to `Debug.Log` for transient user feedback (like "Copied to clipboard"). `Debug.Log` disconnects the user from the UI context and clutters the console.
 **Action:** Always prefer `ShowNotification(new GUIContent("message"))` for immediate confirmation of user actions in Editor tools.
+
+## 2024-05-22 - [Resource Accessibility in Unity Packages]
+**Learning:** Users of Unity packages often struggle to find documentation because it lives in the `Packages/` folder, which is separate from `Assets/`. Providing direct "Open Documentation" buttons in the main editor window using `AssetDatabase.OpenAsset` significantly reduces friction.
+**Action:** When building Editor Tools for packages, always include a "Resources" or "Help" section with direct links to key documentation files.
