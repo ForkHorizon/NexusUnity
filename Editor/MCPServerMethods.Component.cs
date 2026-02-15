@@ -144,7 +144,23 @@ namespace UnityMCP.Editor
             return new Vector3((float)(t["x"] ?? _defaultValue.x), (float)(t["y"] ?? _defaultValue.y), (float)(t["z"] ?? _defaultValue.z));
         }
 
-        private static JToken GetRootGameObjects(JToken p) => new JArray(UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().Select(SerializeGameObject));
+        private static List<GameObject> _rootGameObjectsCache = new List<GameObject>();
+
+        private static JToken GetRootGameObjects(JToken p)
+        {
+            // Bolt Optimization: Reusing a static list to avoid array allocations from GetRootGameObjects()
+            // and avoiding LINQ allocations.
+            _rootGameObjectsCache.Clear();
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects(_rootGameObjectsCache);
+
+            JArray result = new JArray();
+            foreach (var go in _rootGameObjectsCache)
+            {
+                result.Add(SerializeGameObject(go));
+            }
+            return result;
+        }
+
         private static JToken GetActiveGameObject(JToken p) => Selection.activeGameObject != null ? SerializeGameObject(Selection.activeGameObject) : JValue.CreateNull();
 
         private static JToken SetTransform(JToken p)
