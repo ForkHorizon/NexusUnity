@@ -12,7 +12,7 @@ if len(sys.argv) > 1:
     try: PORT = int(sys.argv[1])
     except: pass
 
-UNITY_URL = f"http://localhost:{PORT}/"
+UNITY_URL = f"http://127.0.0.1:{PORT}/"
 PARENT_PID = os.getppid()
 
 def log(msg):

@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.0.3] - 2026-02-17
+
+### Fixed
+- **IPv4 Connectivity**: Changed bridge script's `UNITY_URL` from `localhost` to `127.0.0.1` to prevent "Bad Request" errors caused by IPv6 address resolution (`::1`) on systems where the Unity server is bound to IPv4 loopback.
+- **Dynamic Version UI**: Implemented live versioning in the Unity Editor dashboard and window title (v2.0.2/v2.0.3).
+
 ## [2.0.2] - 2026-02-17
 
 ### Fixed
