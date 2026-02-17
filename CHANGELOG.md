@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.0.2] - 2026-02-17
+
+### Fixed
+- **CLI Documentation Linking**: Fixed a critical bug in `MCPCliInstaller` where documentation links in `NEXUS_UNITY_DOCS.md` were broken when the library was installed via Package Manager. 
+- **Automatic Doc Deployment**: The installer now automatically copies `API_REFERENCE.MD` and `DOCUMENTATION.MD` to the project root, ensuring they are always accessible to AI agents.
+- **Library Root Discovery**: Implemented a robust traversal logic to correctly locate the library root across both standard `Assets` and `Library/PackageCache` installations.
+
 ## [2.0.1] - 2026-02-15
 
 ### Added

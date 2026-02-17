@@ -45,25 +45,53 @@ namespace UnityMCP.Editor
             ExecuteLinkSequence(destinationPath);
         }
 
+        private static string FindLibraryRoot(string sourcePath)
+        {
+            string dir = Path.GetDirectoryName(sourcePath);
+            while (!string.IsNullOrEmpty(dir))
+            {
+                if (File.Exists(Path.Combine(dir, "package.json")))
+                {
+                    return dir;
+                }
+                dir = Path.GetDirectoryName(dir);
+            }
+            return Path.GetDirectoryName(sourcePath);
+        }
+
         private static void DeployDocumentationPointer(string projectRoot, string sourcePath)
         {
+            string libraryRoot = FindLibraryRoot(sourcePath);
+            string[] docFiles = { "API_REFERENCE.MD", "DOCUMENTATION.MD" };
+
+            foreach (string file in docFiles)
+            {
+                string src = Path.Combine(libraryRoot, file);
+                if (File.Exists(src))
+                {
+                    try
+                    {
+                        string dst = Path.Combine(projectRoot, file);
+                        File.Copy(src, dst, true);
+                        UnityEngine.Debug.Log("[MCP] Copied documentation to root: " + dst);
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogWarning("[MCP] Failed to copy " + file + " to root: " + e.Message);
+                    }
+                }
+            }
+
             string docPointerPath = Path.Combine(projectRoot, "NEXUS_UNITY_DOCS.md");
             string docContent = "# Nexus Unity - AI Context\n\n" +
                                "This project uses **Nexus Unity** for AI Editor automation.\n\n" +
                                "## 📚 Documentation Access\n" +
-                               "- **Full Tool Reference**: [API_REFERENCE.MD]({0})\n" +
-                               "- **Technical Guide**: [DOCUMENTATION.MD]({1})\n\n" +
+                               "- **Full Tool Reference**: [API_REFERENCE.MD](API_REFERENCE.MD)\n" +
+                               "- **Technical Guide**: [DOCUMENTATION.MD](DOCUMENTATION.MD)\n\n" +
                                "## 🤖 AI Instructions\n" +
                                "Before performing any Unity tasks, ALWAYS read `API_REFERENCE.MD` to understand the available tools, their parameters, and the surgical editing patterns required for this project.";
 
-            string libraryPath = Path.GetDirectoryName(sourcePath).Replace("\\", "/");
-            string relativeLibPath = libraryPath.Replace(projectRoot.Replace("\\", "/"), "").TrimStart('/');
-
-            string formattedContent = string.Format(docContent,
-                Path.Combine(relativeLibPath, "API_REFERENCE.MD").Replace("\\", "/"),
-                Path.Combine(relativeLibPath, "DOCUMENTATION.MD").Replace("\\", "/"));
-
-            File.WriteAllText(docPointerPath, formattedContent);
+            File.WriteAllText(docPointerPath, docContent);
             UnityEngine.Debug.Log("[MCP] Documentation pointer deployed: " + docPointerPath);
         }
 
