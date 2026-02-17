@@ -47,6 +47,7 @@ namespace UnityMCP.Editor
         private bool _isCompiling;
         private bool _isLinkedToCli;
         private string _cliStatusMessage = "Checking link...";
+        private string _version = "0.0.0";
 
         private int _selectedTab = 0;
         private readonly string[] _tabs = { "Server", "Tools", "Verification" };
@@ -68,6 +69,33 @@ namespace UnityMCP.Editor
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
             if (SessionState.GetBool("MCP_Server_Running", false)) StartServer();
             CheckCliLinkStatus();
+            LoadVersion();
+        }
+
+        private void LoadVersion()
+        {
+            try
+            {
+                var script = MonoScript.FromScriptableObject(this);
+                string path = AssetDatabase.GetAssetPath(script);
+                if (string.IsNullOrEmpty(path)) return;
+
+                string dir = Path.GetDirectoryName(path);
+                while (!string.IsNullOrEmpty(dir))
+                {
+                    string pkgPath = Path.Combine(dir, "package.json");
+                    if (File.Exists(pkgPath))
+                    {
+                        string json = File.ReadAllText(pkgPath);
+                        var data = Newtonsoft.Json.Linq.JObject.Parse(json);
+                        _version = data["version"]?.ToString() ?? "0.0.0";
+                        titleContent = new GUIContent($"Nexus Unity v{_version}");
+                        return;
+                    }
+                    dir = Path.GetDirectoryName(dir);
+                }
+            }
+            catch (Exception) { _version = "unknown"; }
         }
 
         private void OnDisable()
@@ -111,6 +139,15 @@ namespace UnityMCP.Editor
                 case 0: DrawServerTab(); break;
                 case 1: DrawToolsTab(); break;
                 case 2: DrawVerificationTab(); break;
+            }
+
+            GUILayout.FlexibleSpace();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                GUI.enabled = false;
+                GUILayout.Label($"v{_version}", EditorStyles.miniLabel);
+                GUI.enabled = true;
             }
         }
 
