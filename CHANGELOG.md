@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.0.4] - 2026-02-17
+
+### Added
+- **Hybrid Bridge Discovery**: Implemented static tool definitions in `nexus_unity_bridge.py`. This ensures that all 61+ tools are always visible to the Gemini CLI, even if the Unity Editor is temporarily offline or busy.
+- **Improved Error UX**: The bridge now provides a clear, actionable error message if a tool is called while the Unity MCP server is not running.
+
 ## [2.0.3] - 2026-02-17
 
 ### Fixed
