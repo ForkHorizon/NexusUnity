@@ -21,10 +21,32 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.0.4" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.0.5" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
+
+---
+
+## 🐍 Python Bridge (`nexus_unity_bridge.py`)
+
+The Python bridge is a dual-mode script located in the project root. It handles communication between external CLI tools (like Gemini) and the Unity Editor.
+
+### 1. MCP Mode (Default)
+When run without arguments, the bridge acts as a persistent JSON-RPC 2.0 translator via `stdin`/`stdout`.
+```bash
+python3 nexus_unity_bridge.py
+```
+
+### 2. CLI Mode (New in v2.0.5)
+You can now execute any Unity tool directly from the command line. This is ideal for quick automation tasks.
+```bash
+python3 nexus_unity_bridge.py unity_refresh_asset_database
+```
+Parameters can be passed as `key=value` pairs:
+```bash
+python3 nexus_unity_bridge.py unity_read_logs count=10
+```
 
 ---
 

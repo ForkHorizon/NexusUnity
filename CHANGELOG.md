@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.0.5] - 2026-02-24
+
+### Added
+- **CLI Dual Mode**: Upgraded `nexus_unity_bridge.py` to support direct command-line execution of Unity tools. This allows AI agents and developers to run commands like `python3 nexus_unity_bridge.py unity_refresh_asset_database` without needing a persistent MCP session.
+- **Version Synchronization**: Synchronized version `2.0.5` across `package.json`, `MCPServerMethods.Core.cs`, and `nexus_unity_bridge.py` to ensure consistent reporting.
+
 ## [2.0.4] - 2026-02-17
 
 ### Added

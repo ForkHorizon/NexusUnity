@@ -123,6 +123,38 @@ def orphan_monitor():
         time.sleep(5)
 
 def main():
+    # --- DUAL MODE: CLI vs MCP ---
+    # If arguments are provided and the first one isn't just a number (port),
+    # we treat it as a direct CLI call to a Unity tool.
+    if len(sys.argv) > 1:
+        arg1 = sys.argv[1]
+        try:
+            # If it's an integer, it's a port override for MCP mode
+            int(arg1)
+        except ValueError:
+            # It's a string, treat as a tool name
+            method_name = arg1.replace("unity_", "")
+            
+            # Simple parameter parsing: treat subsequent args as key=value pairs or just positional?
+            # For now, let's support simple positional args as params if needed, 
+            # but most tools like refresh_asset_database take no params.
+            params = {}
+            for arg in sys.argv[2:]:
+                if "=" in arg:
+                    k, v = arg.split("=", 1)
+                    # Try to parse v as JSON/number/bool
+                    try: params[k] = json.loads(v)
+                    except: params[k] = v
+
+            log(f"CLI Mode: Calling {method_name} with {params}")
+            res = call_unity(method_name, params)
+            if "error" in res:
+                print(json.dumps(res["error"], indent=2))
+                sys.exit(1)
+            else:
+                print(json.dumps(res["result"], indent=2))
+                sys.exit(0)
+
     log(f"NexusUnity Bridge started (Parent PID: {PARENT_PID})")
     
     # Start the orphan monitor in a background thread
@@ -144,7 +176,7 @@ def main():
                 res = {
                     "protocolVersion": "2024-11-05", 
                     "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.0.4"}
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.0.5"}
                 }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method == "notifications/initialized":
