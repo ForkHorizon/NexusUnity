@@ -51,6 +51,10 @@ namespace UnityMCP.Editor
                 case SerializedPropertyType.Vector3: return new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z };
                 case SerializedPropertyType.Color: return prop.colorValue.ToString();
                 case SerializedPropertyType.Enum: return prop.enumDisplayNames[prop.enumValueIndex];
+                case SerializedPropertyType.ObjectReference:
+                    var obj = prop.objectReferenceValue;
+                    if (obj == null) return JValue.CreateNull();
+                    return new JObject { ["instance_id"] = obj.GetInstanceID(), ["name"] = obj.name, ["type"] = obj.GetType().Name };
                 default: return prop.propertyType.ToString();
             }
         }
@@ -104,6 +108,31 @@ namespace UnityMCP.Editor
                 case SerializedPropertyType.Enum:
                     ApplyEnumValue(prop, value);
                     break;
+                case SerializedPropertyType.ObjectReference:
+                    ApplyObjectReferenceValue(prop, value);
+                    break;
+            }
+        }
+
+        private static void ApplyObjectReferenceValue(SerializedProperty prop, JToken value)
+        {
+            if (value.Type == JTokenType.Null)
+            {
+                prop.objectReferenceValue = null;
+                return;
+            }
+
+            if (value.Type == JTokenType.Integer)
+            {
+                prop.objectReferenceValue = EditorUtility.InstanceIDToObject((int)value);
+            }
+            else if (value.Type == JTokenType.String)
+            {
+                prop.objectReferenceValue = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(value.ToString());
+            }
+            else if (value.Type == JTokenType.Object && value["instance_id"] != null)
+            {
+                prop.objectReferenceValue = EditorUtility.InstanceIDToObject((int)value["instance_id"]);
             }
         }
 

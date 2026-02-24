@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.0.6] - 2026-02-24
+
+### Fixed
+- **Inspector Object Linking**: Added support for `ObjectReference` in `unity_update_component`. AI agents can now link materials, textures, and other game objects in the Inspector by providing an InstanceID or asset path.
+- **Enhanced Property Inspection**: Improved `unity_inspect_component` to correctly return metadata (ID, name, type) for linked objects instead of just a generic string.
+
 ## [2.0.5] - 2026-02-24
 
 ### Added

@@ -176,7 +176,7 @@ def main():
                 res = {
                     "protocolVersion": "2024-11-05", 
                     "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.0.5"}
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.0.6"}
                 }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method == "notifications/initialized":
