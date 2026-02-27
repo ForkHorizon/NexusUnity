@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -13,13 +14,79 @@ namespace UnityMCP.Editor
         private static void RegisterHierarchyMethods()
         {
             _methods["duplicate_object"] = DuplicateObject;
+            _methods["get_children"] = GetChildren;
+            _methods["set_active"] = SetActive;
+            _methods["set_sibling_index"] = SetSiblingIndex;
+            _methods["create_hierarchy"] = CreateHierarchy;
             _methods["remove_component"] = RemoveComponent;
             _methods["read_file"] = ReadFile;
             _methods["write_file"] = WriteFile;
-            _methods["get_children"] = GetChildren;
-            _methods["set_active"] = SetActive;
-            _methods["set_enabled"] = SetEnabled;
-            _methods["set_sibling_index"] = SetSiblingIndex;
+        }
+
+        /// <summary>Creates a full hierarchy of objects and components in one call.</summary>
+        private static JToken CreateHierarchy(JToken p)
+        {
+            var parent = p["parent_id"] != null ? EditorUtility.InstanceIDToObject((int)p["parent_id"]) as GameObject : null;
+            var tree = p["tree"];
+            if (tree == null) throw new System.Exception("tree required");
+
+            GameObject root = CreateHierarchyRecursive(tree, parent?.transform);
+            return SerializeGameObject(root);
+        }
+
+        private static GameObject CreateHierarchyRecursive(JToken node, Transform parent)
+        {
+            string name = node["name"]?.ToString() ?? "New GameObject";
+            GameObject go = new GameObject(name);
+            Undo.RegisterCreatedObjectUndo(go, "Create Hierarchy");
+            if (parent != null) go.transform.SetParent(parent, false);
+
+            AddComponentsToHierarchyObject(go, node["components"] as JArray);
+            ApplyPropertiesToHierarchyObject(go, node["properties"] as JObject);
+            AddChildrenToHierarchyObject(go, node["children"] as JArray);
+
+            return go;
+        }
+
+        private static void AddComponentsToHierarchyObject(GameObject go, JArray components)
+        {
+            if (components == null) return;
+            foreach (var c in components)
+            {
+                Type type = FindType(c.ToString());
+                if (type != null) Undo.AddComponent(go, type);
+            }
+        }
+
+        private static void ApplyPropertiesToHierarchyObject(GameObject go, JObject properties)
+        {
+            if (properties == null) return;
+            foreach (var compPair in properties)
+            {
+                var comp = go.GetComponent(compPair.Key);
+                if (comp == null) continue;
+
+                SerializedObject so = new SerializedObject(comp);
+                var data = compPair.Value as JObject;
+                if (data != null)
+                {
+                    foreach (var propPair in data)
+                    {
+                        SerializedProperty prop = so.FindProperty(propPair.Key);
+                        if (prop != null) ApplyValueToProperty(prop, propPair.Value);
+                    }
+                }
+                so.ApplyModifiedProperties();
+            }
+        }
+
+        private static void AddChildrenToHierarchyObject(GameObject go, JArray children)
+        {
+            if (children == null) return;
+            foreach (var child in children)
+            {
+                CreateHierarchyRecursive(child, go.transform);
+            }
         }
 
         /// <summary>Returns all direct children of a GameObject.</summary>
@@ -43,7 +110,7 @@ namespace UnityMCP.Editor
             if (p?["instance_id"] == null) throw new System.Exception("instance_id required");
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
-            var copy = Object.Instantiate(go, go.transform.parent);
+            var copy = UnityEngine.Object.Instantiate(go, go.transform.parent);
             copy.name = go.name; // Remove "(Clone)" suffix
             Undo.RegisterCreatedObjectUndo(copy, "Duplicate Object");
             Selection.activeGameObject = copy;
@@ -126,48 +193,6 @@ namespace UnityMCP.Editor
 
             AssetDatabase.ImportAsset(relativePath);
             return "OK";
-        }
-
-        /// <summary>Returns current editor state flags.</summary>
-        private static JToken GetEditorState(JToken p)
-        {
-            return new JObject
-            {
-                ["is_playing"] = EditorApplication.isPlaying,
-                ["is_paused"] = EditorApplication.isPaused,
-                ["is_compiling"] = EditorApplication.isCompiling,
-                ["is_updating"] = EditorApplication.isUpdating,
-                ["active_scene"] = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path,
-                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString()
-            };
-        }
-
-        /// <summary>Pauses or unpauses Play Mode.</summary>
-        private static JToken PausePlayMode(JToken p)
-        {
-            if (p?["value"] != null) EditorApplication.isPaused = p["value"].Value<bool>();
-            else EditorApplication.isPaused = !EditorApplication.isPaused;
-            return new JObject { ["is_paused"] = EditorApplication.isPaused };
-        }
-
-        /// <summary>Advances one frame while paused.</summary>
-        private static JToken StepFrame(JToken p)
-        {
-            EditorApplication.Step();
-            return "OK";
-        }
-
-        /// <summary>Returns basic project metadata.</summary>
-        private static JToken GetProjectInfo(JToken p)
-        {
-            return new JObject
-            {
-                ["project_path"] = Application.dataPath.Replace("/Assets", ""),
-                ["unity_version"] = Application.unityVersion,
-                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString(),
-                ["product_name"] = Application.productName,
-                ["company_name"] = Application.companyName
-            };
         }
     }
 }

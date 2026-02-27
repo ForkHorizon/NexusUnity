@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace UnityMCP.Editor
 {
@@ -14,19 +15,33 @@ namespace UnityMCP.Editor
             _methods["undo"] = UndoMethod;
             _methods["redo"] = RedoMethod;
             _methods["toggle_play_mode"] = TogglePlayMode;
-            _methods["execute_menu_item"] = ExecuteMenuItem;
-            _methods["get_tags_and_layers"] = GetTagsAndLayers;
-            _methods["set_property"] = SetProperty;
-            _methods["set_transform"] = SetTransform;
-            _methods["set_parent"] = SetParent;
-            _methods["add_component"] = AddComponent;
-            _methods["inspect_component"] = InspectComponent;
-            _methods["update_component"] = UpdateComponent;
             _methods["pause_play_mode"] = PausePlayMode;
             _methods["step_frame"] = StepFrame;
-            _methods["attach_script"] = AttachScript;
-            _methods["create_primitive"] = CreatePrimitive;
-            _methods["unity_lint_project"] = UnityLintProject;
+            _methods["execute_menu_item"] = ExecuteMenuItem;
+            _methods["lint_project"] = UnityLintProject;
+            _methods["set_selection"] = SetSelection;
+            _methods["focus_scene_view"] = FocusSceneView;
+            _methods["list_scenes"] = ListScenes;
+            _methods["get_tags_and_layers"] = GetTagsAndLayers;
+            _methods["get_editor_state"] = GetEditorState;
+            _methods["get_project_info"] = GetProjectInfo;
+            _methods["set_property"] = SetProperty;
+        }
+
+        private static JToken ListScenes(JToken p)
+        {
+            var guids = AssetDatabase.FindAssets("t:Scene");
+            return new JArray(guids.Select(AssetDatabase.GUIDToAssetPath));
+        }
+
+        private static JToken FocusSceneView(JToken p)
+        {
+            if (SceneView.lastActiveSceneView != null)
+            {
+                SceneView.lastActiveSceneView.FrameSelected();
+                return "Focused";
+            }
+            return "No active Scene View found";
         }
 
         private static JToken UnityLintProject(JToken p)
@@ -38,6 +53,15 @@ namespace UnityMCP.Editor
                 ["report"] = report,
                 ["violation_count"] = report.Split('\n').Length
             };
+        }
+
+        private static JToken SetSelection(JToken p)
+        {
+            if (p == null || p["instance_ids"] == null) throw new System.Exception("instance_ids (array) is required");
+            var ids = p["instance_ids"].ToObject<int[]>();
+            var objects = ids.Select(id => EditorUtility.InstanceIDToObject(id)).Where(o => o != null).ToArray();
+            Selection.objects = objects;
+            return $"Selected {objects.Length} objects";
         }
 
         private static JToken UndoMethod(JToken p)
@@ -107,6 +131,48 @@ namespace UnityMCP.Editor
                 prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
             }
             else throw new System.Exception("Value type not supported for surgical edit yet");
+        }
+
+        /// <summary>Returns current editor state flags.</summary>
+        private static JToken GetEditorState(JToken p)
+        {
+            return new JObject
+            {
+                ["is_playing"] = EditorApplication.isPlaying,
+                ["is_paused"] = EditorApplication.isPaused,
+                ["is_compiling"] = EditorApplication.isCompiling,
+                ["is_updating"] = EditorApplication.isUpdating,
+                ["active_scene"] = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene().path,
+                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString()
+            };
+        }
+
+        /// <summary>Pauses or unpauses Play Mode.</summary>
+        private static JToken PausePlayMode(JToken p)
+        {
+            if (p?["value"] != null) EditorApplication.isPaused = p["value"].Value<bool>();
+            else EditorApplication.isPaused = !EditorApplication.isPaused;
+            return new JObject { ["is_paused"] = EditorApplication.isPaused };
+        }
+
+        /// <summary>Advances one frame while paused.</summary>
+        private static JToken StepFrame(JToken p)
+        {
+            EditorApplication.Step();
+            return "OK";
+        }
+
+        /// <summary>Returns basic project metadata.</summary>
+        private static JToken GetProjectInfo(JToken p)
+        {
+            return new JObject
+            {
+                ["project_path"] = Application.dataPath.Replace("/Assets", ""),
+                ["unity_version"] = Application.unityVersion,
+                ["platform"] = EditorUserBuildSettings.activeBuildTarget.ToString(),
+                ["product_name"] = Application.productName,
+                ["company_name"] = Application.companyName
+            };
         }
     }
 }

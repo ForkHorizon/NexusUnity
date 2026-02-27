@@ -13,6 +13,16 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static void RegisterComponentMethods()
+        {
+            _methods["add_component"] = AddComponent;
+            _methods["inspect_component"] = InspectComponent;
+            _methods["update_component"] = UpdateComponent;
+            _methods["get_component_schema"] = GetComponentSchema;
+            _methods["set_transform"] = SetTransform;
+            _methods["set_parent"] = SetParent;
+        }
+
         private static JToken AddComponent(JToken p)
         {
             if (p == null || p["instance_id"] == null || p["component_name"] == null) throw new Exception("instance_id and component_name required");
@@ -40,6 +50,24 @@ namespace UnityMCP.Editor
             return result;
         }
 
+        private static JToken GetComponentSchema(JToken p)
+        {
+            var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
+            var comp = go?.GetComponent(p["component_name"].ToString());
+            if (comp == null) throw new Exception("Component not found");
+
+            SerializedObject so = new SerializedObject(comp);
+            JArray result = new JArray();
+            SerializedProperty prop = so.GetIterator();
+            bool enterChildren = true;
+            while (prop.NextVisible(enterChildren))
+            {
+                enterChildren = false;
+                result.Add(new JObject { ["name"] = prop.name, ["type"] = prop.propertyType.ToString(), ["displayName"] = prop.displayName });
+            }
+            return result;
+        }
+
         private static JToken SerializeProperty(SerializedProperty prop)
         {
             switch (prop.propertyType)
@@ -48,14 +76,24 @@ namespace UnityMCP.Editor
                 case SerializedPropertyType.Boolean: return prop.boolValue;
                 case SerializedPropertyType.Float: return prop.floatValue;
                 case SerializedPropertyType.String: return prop.stringValue;
-                case SerializedPropertyType.Vector3: return new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z };
                 case SerializedPropertyType.Color: return prop.colorValue.ToString();
                 case SerializedPropertyType.Enum: return prop.enumDisplayNames[prop.enumValueIndex];
+                default: return SerializeComplexProperty(prop);
+            }
+        }
+
+        private static JToken SerializeComplexProperty(SerializedProperty prop)
+        {
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Vector3:
+                    return new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z };
                 case SerializedPropertyType.ObjectReference:
                     var obj = prop.objectReferenceValue;
                     if (obj == null) return JValue.CreateNull();
                     return new JObject { ["instance_id"] = obj.GetInstanceID(), ["name"] = obj.name, ["type"] = obj.GetType().Name };
-                default: return prop.propertyType.ToString();
+                default:
+                    return prop.propertyType.ToString();
             }
         }
 
@@ -72,17 +110,43 @@ namespace UnityMCP.Editor
             SerializedObject so = new SerializedObject(comp);
             Undo.RecordObject(comp, "Update Component");
 
+            JArray errors = new JArray();
+            int updatedCount = UpdateComponentProperties(so, data, errors);
+
+            so.ApplyModifiedProperties();
+            
+            return new JObject 
+            { 
+                ["status"] = errors.Count == 0 ? "Success" : (updatedCount > 0 ? "Partial" : "Failed"),
+                ["updated_count"] = updatedCount,
+                ["errors"] = errors
+            };
+        }
+
+        private static int UpdateComponentProperties(SerializedObject so, JObject data, JArray errors)
+        {
+            int updatedCount = 0;
             foreach (var propPair in data)
             {
                 SerializedProperty prop = so.FindProperty(propPair.Key);
                 if (prop != null)
                 {
-                    ApplyValueToProperty(prop, propPair.Value);
+                    try
+                    {
+                        ApplyValueToProperty(prop, propPair.Value);
+                        updatedCount++;
+                    }
+                    catch (Exception e)
+                    {
+                        errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = e.Message });
+                    }
+                }
+                else
+                {
+                    errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = "Property not found" });
                 }
             }
-
-            so.ApplyModifiedProperties();
-            return "Updated";
+            return updatedCount;
         }
 
         private static void ApplyValueToProperty(SerializedProperty prop, JToken value)

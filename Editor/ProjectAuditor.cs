@@ -181,12 +181,7 @@ namespace UnityMCP.Editor
             /// <param name="node">The field declaration syntax node.</param>
             public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
             {
-                // Skip if not private OR if it is a constant/readonly (constants use UPPER_CASE)
-                bool isPrivate = node.Modifiers.Any(SyntaxKind.PrivateKeyword);
-                bool isConst = node.Modifiers.Any(SyntaxKind.ConstKeyword);
-                bool isReadOnly = node.Modifiers.Any(SyntaxKind.ReadOnlyKeyword);
-
-                if (!isPrivate || isConst || isReadOnly) 
+                if (!IsPrivateInstanceField(node) || IsSerializedField(node))
                 {
                     base.VisitFieldDeclaration(node);
                     return;
@@ -202,6 +197,28 @@ namespace UnityMCP.Editor
                     }
                 }
                 base.VisitFieldDeclaration(node);
+            }
+
+            private bool IsPrivateInstanceField(FieldDeclarationSyntax node)
+            {
+                bool isPrivate = node.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword));
+                bool isConst = node.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword));
+                bool isReadOnly = node.Modifiers.Any(m => m.IsKind(SyntaxKind.ReadOnlyKeyword));
+                bool isStatic = node.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword));
+                return isPrivate && !isConst && !isReadOnly && !isStatic;
+            }
+
+            private bool IsSerializedField(FieldDeclarationSyntax node)
+            {
+                // Aggressive check: if ANY attribute contains "SerializeField"
+                if (node.AttributeLists.Any(al => al.Attributes.Any(a => a.Name.ToString().Contains("SerializeField"))))
+                    return true;
+
+                // Fallback for some specific Roslyn parsing cases
+                if (node.ToString().Contains("[SerializeField]"))
+                    return true;
+
+                return false;
             }
 
             private int CalculateComplexity(MethodDeclarationSyntax node)

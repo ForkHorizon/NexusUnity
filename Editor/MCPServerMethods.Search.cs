@@ -13,18 +13,21 @@ namespace UnityMCP.Editor
     {
         private static void RegisterDiscoveryMethods()
         {
-            _methods["get_game_object"] = GetGameObject;
             _methods["get_active_game_object"] = GetActiveGameObject;
             _methods["get_root_game_objects"] = GetRootGameObjects;
             _methods["get_object_path"] = GetObjectPath;
             _methods["find_objects"] = FindObjects;
-            _methods["list_scenes"] = ListScenes;
-            _methods["get_tags_and_layers"] = GetTagsAndLayers;
+            _methods["find_by_path"] = FindByPath;
             _methods["ping_object"] = PingObject;
-            _methods["get_editor_state"] = GetEditorState;
-            _methods["get_project_info"] = GetProjectInfo;
-            _methods["set_selection"] = SetSelection;
-            _methods["focus_scene_view"] = FocusSceneView;
+        }
+
+        private static JToken FindByPath(JToken p)
+        {
+            if (p == null || p["path"] == null) throw new System.Exception("path required");
+            string path = p["path"].ToString();
+            var go = GameObject.Find(path);
+            if (go == null) throw new System.Exception($"Object at path '{path}' not found");
+            return SerializeGameObject(go);
         }
 
         private static JToken FindObjects(JToken p)
@@ -66,21 +69,6 @@ namespace UnityMCP.Editor
             return string.Join("/", pathParts);
         }
 
-        private static JToken ListScenes(JToken p)
-        {
-            var guids = AssetDatabase.FindAssets("t:Scene");
-            return new JArray(guids.Select(AssetDatabase.GUIDToAssetPath));
-        }
-
-        private static JToken SetSelection(JToken p)
-        {
-            if (p == null || p["instance_ids"] == null) throw new System.Exception("instance_ids (array) is required");
-            var ids = p["instance_ids"].ToObject<int[]>();
-            var objects = ids.Select(id => EditorUtility.InstanceIDToObject(id)).Where(o => o != null).ToArray();
-            Selection.objects = objects;
-            return $"Selected {objects.Length} objects";
-        }
-
         private static JToken PingObject(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
@@ -88,16 +76,6 @@ namespace UnityMCP.Editor
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
             return "Pinged";
-        }
-
-        private static JToken FocusSceneView(JToken p)
-        {
-            if (SceneView.lastActiveSceneView != null)
-            {
-                SceneView.lastActiveSceneView.FrameSelected();
-                return "Focused";
-            }
-            return "No active Scene View found";
         }
     }
 }

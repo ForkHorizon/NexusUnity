@@ -81,6 +81,14 @@ Reorders an object among its siblings.
   - `index` (string|integer, required): Integer index or `"first"` / `"last"`.
 - **Returns**: "OK".
 
+### `unity_create_hierarchy`
+Batch creates a full hierarchy of objects and components in one call.
+- **Parameters**:
+  - `tree` (object, required): JSON tree representing the hierarchy.
+  - `parent_id` (integer, optional): Parent ID for the root of the tree.
+- **Returns**: Serialized root GameObject.
+- **Example Tree**: `{ "name": "Root", "components": ["Canvas"], "children": [{ "name": "Child", "components": ["Image"] }] }`
+
 ---
 
 ## 🧩 Component & Property Manipulation
@@ -100,19 +108,27 @@ Removes a component from a GameObject.
 - **Returns**: "OK".
 
 ### `unity_inspect_component`
-Retrieves all visible properties of a component.
+Retrieves all visible properties and their current values.
 - **Parameters**:
   - `instance_id` (integer, required): Target object ID.
   - `component_name` (string, required): Component type name.
 - **Returns**: JSON object containing all serialized fields and their current values.
 
+### `unity_get_component_schema`
+Retrieves property names and types for a component (without current values).
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Component type name.
+- **Returns**: Array of property objects `{name, type, displayName}`.
+
 ### `unity_update_component`
-Batch updates component properties using JSON.
+Batch updates component properties using JSON with detailed result reporting.
 - **Parameters**:
   - `instance_id` (integer, required): Target object ID.
   - `component_name` (string, required): Component type name.
   - `json_data` (string, required): JSON string matching the component's structure.
-- **Returns**: "Updated".
+- **Returns**: Result object `{status, updated_count, errors}`.
+- **Status**: `"Success"`, `"Partial"`, or `"Failed"`.
 
 ### `unity_set_transform`
 Surgical update of object position, rotation, or scale.
@@ -236,6 +252,10 @@ Creates a new C# script and triggers compilation.
   - `script_content` (string, optional): Full C# code.
 - **Returns**: "Script created and compilation triggered".
 
+### `unity_wait_for_ready`
+Simple ping tool that returns `true` once the Unity server is responsive.
+- **Returns**: `true`.
+
 ---
 
 ## 🔍 Discovery & Inspection
@@ -262,6 +282,13 @@ Deep regex-based search for objects in the scene.
   - `tag` (string, optional): Exact tag match.
   - `type` (string, optional): Component type filter.
 - **Returns**: Array of matching objects (Max 50).
+
+### `unity_find_by_path`
+Search for a GameObject using its hierarchy path.
+- **Parameters**:
+  - `path` (string, required): Absolute or relative path.
+- **Returns**: Serialized GameObject.
+- **Example**: `Canvas/Main/Title`.
 
 ### `unity_get_tags_and_layers`
 Lists all defined Tags and Layers in the project.
@@ -302,10 +329,16 @@ Types text into a TextField or Label.
 
 ## 🛡️ Linter & Compliance
 
+### `unity_enforce_forced_defaults`
+Enforces `[ForceDefault]` attribute values on all components of a GameObject.
+- **Parameters**:
+  - `instance_id` (integer, required): Target GameObject ID.
+- **Returns**: Confirmation string with the count of enforced values.
+
 ### `unity_lint_project`
 Runs a deterministic C# audit using Roslyn to enforce high code quality standards.
 - **Returns**: JSON object with `report` (full text) and `violation_count`.
 - **Note**: Generates `LINT_REPORT.txt` in the project root.
 
 ---
-*Generated for Nexus Unity v2.0.1*
+*Generated for Nexus Unity v2.1.0*

@@ -2,6 +2,17 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.1.0] - 2026-02-27
+
+### Added
+- `unity_get_component_schema`: Returns names and types of serializable fields for a component.
+- `unity_create_hierarchy`: Batch create a full GameObject hierarchy from a JSON tree.
+- `unity_find_by_path`: Search for GameObjects using their hierarchy path (e.g., "Canvas/Main/Title").
+- `unity_wait_for_ready`: Simple tool to poll for server responsiveness.
+
+### Changed
+- `unity_update_component`: Now returns a detailed result object with `status` ("Success", "Partial", "Failed"), `updated_count`, and a list of `errors` for individual fields.
+
 ## [2.0.6] - 2026-02-24
 
 ### Fixed
