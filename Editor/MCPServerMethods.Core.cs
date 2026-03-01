@@ -25,7 +25,7 @@ namespace UnityMCP.Editor
             _methods["attach_script"] = AttachScript;
         }
 
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "2.1.0" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "2.1.1" } };
 
         private static JToken WaitForReady(JToken p) => true;
 

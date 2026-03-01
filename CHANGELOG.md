@@ -2,6 +2,18 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.1.1] - 2026-03-01
+
+### Fixed
+- **HTTP Origin Security**: Implemented strict `Origin` header validation for standard HTTP requests to prevent Cross-Site Request Forgery (CSRF) and DNS Rebinding attacks.
+- **Linter Compliance**: Refactored request handling logic in `MCPServerWindow.Server.cs` to maintain method length limits (< 40 lines).
+
+### Performance
+- **Search Optimization (Bolt)**: Optimized `unity_find_objects` by eliminating N+1 component allocations. It now uses `Resources.FindObjectsOfTypeAll(type)` for targeted discovery and pre-instantiated local `Regex` objects, significantly improving performance in large projects.
+
+### Added
+- **Transient UI Notifications (Palette)**: Integrated `ShowNotification` for key developer actions (Server Start/Stop, Clear Logs, CLI Linking). This provides immediate visual feedback in the Unity Editor without cluttering the console.
+
 ## [2.1.0] - 2026-02-27
 
 ### Added

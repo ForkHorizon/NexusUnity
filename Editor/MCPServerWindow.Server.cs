@@ -149,23 +149,7 @@ namespace UnityMCP.Editor
 
         private async Task ProcessWebSocket(HttpListenerContext context)
         {
-            if (!context.Request.Url.IsLoopback)
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                context.Response.Close();
-                return;
-            }
-
-            string origin = context.Request.Headers["Origin"];
-            if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out Uri originUri))
-            {
-                if ((originUri.Scheme == Uri.UriSchemeHttp || originUri.Scheme == Uri.UriSchemeHttps) && !originUri.IsLoopback)
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                    context.Response.Close();
-                    return;
-                }
-            }
+            if (!ValidateRequest(context)) return;
 
             var wsContext = await context.AcceptWebSocketAsync(null);
             _webSocket = wsContext.WebSocket;
@@ -174,12 +158,7 @@ namespace UnityMCP.Editor
 
         private void HandleHttpRequest(HttpListenerContext context)
         {
-            if (!context.Request.Url.IsLoopback)
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                context.Response.Close();
-                return;
-            }
+            if (!ValidateRequest(context)) return;
 
             if (context.Request.HttpMethod != "POST")
             {
@@ -195,13 +174,34 @@ namespace UnityMCP.Editor
                 return;
             }
 
-
             using var reader = new System.IO.StreamReader(context.Request.InputStream);
             string response = MCPServerMethods.ProcessJsonRpc(reader);
             byte[] buffer = Encoding.UTF8.GetBytes(response);
             context.Response.ContentLength64 = buffer.Length;
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             context.Response.Close();
+        }
+
+        private bool ValidateRequest(HttpListenerContext context)
+        {
+            if (!context.Request.Url.IsLoopback)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.Close();
+                return false;
+            }
+
+            string origin = context.Request.Headers["Origin"];
+            if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out Uri originUri))
+            {
+                if ((originUri.Scheme == Uri.UriSchemeHttp || originUri.Scheme == Uri.UriSchemeHttps) && !originUri.IsLoopback)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    context.Response.Close();
+                    return false;
+                }
+            }
+            return true;
         }
 
         private async Task ReceiveWebsocketLoop(CancellationToken token)

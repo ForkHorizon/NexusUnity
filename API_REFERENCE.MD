@@ -341,4 +341,4 @@ Runs a deterministic C# audit using Roslyn to enforce high code quality standard
 - **Note**: Generates `LINT_REPORT.txt` in the project root.
 
 ---
-*Generated for Nexus Unity v2.1.0*
+*Generated for Nexus Unity v2.1.1*
