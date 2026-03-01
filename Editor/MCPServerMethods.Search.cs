@@ -36,17 +36,37 @@ namespace UnityMCP.Editor
             string tag = p?["tag"]?.ToString();
             string typeName = p?["type"]?.ToString();
             
-            var results = Resources.FindObjectsOfTypeAll<GameObject>()
-                .Where(go => go.hideFlags == HideFlags.None); // Filter out internal objects
+            IEnumerable<GameObject> results;
 
+            // Bolt Optimization: Instead of getting all GameObjects and performing N+1 GetComponents,
+            // we start with GameObjects that definitely have the component (if typeName is provided).
+            if (!string.IsNullOrEmpty(typeName))
+            {
+                var type = FindType(typeName);
+                if (type == null) return new JArray(); // Short-circuit if type doesn't exist
+
+                results = Resources.FindObjectsOfTypeAll(type)
+                    .OfType<Component>()
+                    .Select(c => c.gameObject)
+                    .Distinct()
+                    .Where(go => go.hideFlags == HideFlags.None);
+            }
+            else
+            {
+                results = Resources.FindObjectsOfTypeAll<GameObject>()
+                    .Where(go => go.hideFlags == HideFlags.None);
+            }
+
+            // Bolt Optimization: Pre-instantiate Regex once outside the loop to avoid cache lookups and options parsing during iteration.
+            // Avoid RegexOptions.Compiled for short-lived regex objects as it incurs high IL generation overhead.
             if (!string.IsNullOrEmpty(name))
-                results = results.Where(go => System.Text.RegularExpressions.Regex.IsMatch(go.name, name, System.Text.RegularExpressions.RegexOptions.IgnoreCase));
+            {
+                var regex = new System.Text.RegularExpressions.Regex(name, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                results = results.Where(go => regex.IsMatch(go.name));
+            }
 
             if (!string.IsNullOrEmpty(tag))
                 results = results.Where(go => go.CompareTag(tag));
-
-            if (!string.IsNullOrEmpty(typeName))
-                results = results.Where(go => go.GetComponent(typeName) != null);
 
             return new JArray(results.Take(50).Select(SerializeGameObject));
         }
