@@ -233,21 +233,34 @@ namespace UnityMCP.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
-                if (GUILayout.Button(new GUIContent("Refresh", "Refresh the CLI link status"), GUILayout.Width(60))) CheckCliLinkStatus();
+                if (GUILayout.Button(new GUIContent("Refresh", "Refresh the CLI link status"), GUILayout.Width(60)))
+                {
+                    CheckCliLinkStatus();
+                    ShowNotification(new GUIContent("Refreshing CLI status..."));
+                }
             }
 
             if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Connects your terminal to Unity via the Gemini CLI"), GUILayout.Height(30)))
             {
                 MCPCliInstaller.LinkToGemini();
                 CheckCliLinkStatus();
+                ShowNotification(new GUIContent("Linking to Gemini CLI..."));
             }
         }
 
         private void DrawToolsTab()
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Open Test Window", "Open the manual verification and testing window"))) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the internal log history captured by the server"))) ClearLogs();
+            if (GUILayout.Button(new GUIContent("Open Test Window", "Open the manual verification and testing window")))
+            {
+                MCPTestWindow.ShowWindow();
+                ShowNotification(new GUIContent("Opening Test Window..."));
+            }
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the internal log history captured by the server")))
+            {
+                ClearLogs();
+                ShowNotification(new GUIContent("Logs cleared"));
+            }
         }
 
         private void DrawVerificationTab()
@@ -264,9 +277,18 @@ namespace UnityMCP.Editor
             {
                 // We'll call the method from MCPVerificationWindow directly if possible, or just open it
                 GetWindow<MCPVerificationWindow>().Show();
+                ShowNotification(new GUIContent("Opening Verification Window..."));
             }
-            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Run UI verification tests"))) UIVerification.Verify();
-            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Run log verification tests"))) LogVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify UI Instruments", "Run UI verification tests")))
+            {
+                UIVerification.Verify();
+                ShowNotification(new GUIContent("Running UI Verification..."));
+            }
+            if (GUILayout.Button(new GUIContent("Verify MCP Logs", "Run log verification tests")))
+            {
+                LogVerification.Verify();
+                ShowNotification(new GUIContent("Running Log Verification..."));
+            }
         }
 
         private void HandleMainThreadQueue()
