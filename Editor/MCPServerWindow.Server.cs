@@ -181,6 +181,17 @@ namespace UnityMCP.Editor
                 return;
             }
 
+            string origin = context.Request.Headers["Origin"];
+            if (!string.IsNullOrEmpty(origin) && Uri.TryCreate(origin, UriKind.Absolute, out Uri originUri))
+            {
+                if ((originUri.Scheme == Uri.UriSchemeHttp || originUri.Scheme == Uri.UriSchemeHttps) && !originUri.IsLoopback)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    context.Response.Close();
+                    return;
+                }
+            }
+
             if (context.Request.HttpMethod != "POST")
             {
                 context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
