@@ -44,13 +44,14 @@ namespace UnityMCP.Editor
                     _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
                     _listener.Start();
                     SessionState.SetBool("MCP_Server_Running", true);
-                    Task.Run(() => ServerLoop(_cts.Token));
-                    Debug.Log($"[MCP] Server started on port {{_port}}");
+                    _ = Task.Run(() => ServerLoop(_cts.Token));
+                    Debug.Log($"[MCP] Server started on port {_port}");
                     return;
-                }
-                catch (Exception e)
-                {
+                    }
+                    catch (Exception)
+                    {
                     CleanupServer();
+
                     retries--;
                     if (retries > 0)
                     {

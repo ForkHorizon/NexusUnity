@@ -1,3 +1,4 @@
+#pragma warning disable 0618 // Suppress obsolete InstanceIDToObject/GetInstanceID warnings for stability in 2021.3+
 using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -16,6 +17,7 @@ namespace UnityMCP.Editor
             _methods["open_scene"] = OpenScene;
             _methods["create_scene"] = CreateScene;
             _methods["save_scene"] = SaveScene;
+            _methods["get_game_object"] = GetGameObject;
             _methods["create_game_object"] = CreateGameObject;
             _methods["destroy_game_object"] = DestroyGameObject;
             _methods["instantiate_prefab"] = InstantiatePrefab;

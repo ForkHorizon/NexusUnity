@@ -44,8 +44,6 @@ namespace UnityMCP.Editor
         private WebSocket _webSocket;
         private CancellationTokenSource _cts;
         private int? _cliPortOverride;
-        private bool _isCompiling;
-        private bool _isLinkedToCli;
         private string _cliStatusMessage = "Checking link...";
         private string _version = "0.0.0";
 
@@ -64,8 +62,6 @@ namespace UnityMCP.Editor
             _port = _cliPortOverride ?? MCPSettings.Port;
             EditorApplication.update += HandleMainThreadQueue;
             EditorApplication.update += UpdateCopyFeedback;
-            CompilationPipeline.compilationStarted += (o) => _isCompiling = true;
-            CompilationPipeline.compilationFinished += (o) => _isCompiling = false;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
             if (SessionState.GetBool("MCP_Server_Running", false)) StartServer();
             CheckCliLinkStatus();

@@ -2,6 +2,16 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.1.2] - 2026-03-02
+
+### Fixed
+- **Submodule Integrity**: Restored missing `MCPServerWindow.UI.cs.meta` file in the submodule, ensuring the asset is correctly imported when the library is added to other projects as a package.
+- **Server UI Bug**: Fixed string interpolation bug in `MCPServerWindow.Server.cs` where the port number was not being correctly displayed in the console logs.
+
+### Changed
+- **Code Hygiene**: Added `#pragma warning disable 0618` across all core files to suppress obsolete `InstanceIDToObject` warnings, ensuring a cleaner console in Unity 2021.3+.
+- **Architectural Cleanup**: Removed unused fields and refactored compilation tracking in `MCPServerWindow.cs` to reduce redundant state updates.
+
 ## [2.1.1] - 2026-03-01
 
 ### Fixed
