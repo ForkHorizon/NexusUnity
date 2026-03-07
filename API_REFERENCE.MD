@@ -163,6 +163,12 @@ Searches for assets in the project.
   - `filter` (string, optional): Search string (e.g., `t:Material`, `my_texture`).
 - **Returns**: Array of asset paths.
 
+### `unity_get_asset_metadata`
+Gets GUID and internal fileIDs for an asset and its sub-assets (e.g. sliced sprites).
+- **Parameters**:
+  - `path` (string, required): The project path to the asset.
+- **Returns**: JSON object containing `guid`, `main_asset` info, and an array of `sub_assets` with their respective `file_id`s.
+
 ### `unity_create_material`
 Creates a new material asset.
 - **Parameters**:

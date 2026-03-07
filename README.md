@@ -4,12 +4,13 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 ## 🚀 Features
 
+- **Autonomous core Service**: Standalone background service that persists through window closures and Unity restarts.
+- **Intelligent Asset Merging**: High-level `move_asset` tool that automatically merges directories.
+- **Anti-Throttling Heartbeat**: Guaranteed real-time response even when Unity is in the background.
 - **Full Unity Editor Control**: 61+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
 - **Deterministic C# Linter**: Integrated Roslyn-based auditor to enforce code standards (Method length, Complexity, Nesting).
-- **Self-Healing Server**: Automatically restarts after Unity domain reloads (compilation) or network errors.
 - **Gemini CLI Native**: One-click integration with the Gemini CLI via the unified dashboard.
-- **Non-Blocking Logic**: Automated scene saving and non-interactive workflows to prevent Editor stalls.
-- **Surgical Property Editing**: Precise manipulation of fields using SerializedObjects traversal.
+- **Surgical Property Editing**: Deep recursive serialization of Arrays, Lists, and Generic structs.
 - **UI Toolkit Automation**: Inspect and interact with Unity Editor windows and visual elements.
 
 ## 📂 Internal Structure

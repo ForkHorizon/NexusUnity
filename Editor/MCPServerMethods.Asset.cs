@@ -21,12 +21,57 @@ namespace UnityMCP.Editor
             _methods["get_dependencies"] = GetDependencies;
             _methods["create_folder"] = CreateFolder;
             _methods["list_assets"] = ListAssets;
+            _methods["get_asset_metadata"] = GetAssetMetadata;
             _methods["create_material"] = CreateMaterial;
             _methods["refresh_asset_database"] = RefreshAssetDatabase;
             _methods["import_asset"] = ImportAsset;
             _methods["create_prefab"] = CreatePrefab;
             _methods["apply_prefab_overrides"] = ApplyPrefabOverrides;
             _methods["revert_prefab_overrides"] = RevertPrefabOverrides;
+        }
+
+        private static JToken GetAssetMetadata(JToken p)
+        {
+            if (p?["path"] == null) throw new Exception("path required");
+            string path = p["path"].ToString();
+            
+            string mainGuid = AssetDatabase.AssetPathToGUID(path);
+            if (string.IsNullOrEmpty(mainGuid)) throw new Exception($"Asset not found at path: {path}");
+
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+            if (allAssets == null || allAssets.Length == 0) throw new Exception($"No assets loaded at path: {path}");
+
+            var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
+            
+            JObject result = new JObject { ["guid"] = mainGuid };
+            JArray subAssetsArr = new JArray();
+
+            foreach (var asset in allAssets)
+            {
+                if (asset == null) continue;
+                
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long fileId))
+                {
+                    var assetData = new JObject
+                    {
+                        ["name"] = asset.name,
+                        ["type"] = asset.GetType().Name,
+                        ["file_id"] = fileId
+                    };
+                    
+                    if (asset == mainAsset)
+                    {
+                        result["main_asset"] = assetData;
+                    }
+                    else
+                    {
+                        subAssetsArr.Add(assetData);
+                    }
+                }
+            }
+            
+            result["sub_assets"] = subAssetsArr;
+            return result;
         }
 
         private static JToken ListAssets(JToken p)
