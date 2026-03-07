@@ -96,14 +96,27 @@ Creates a standard Unity primitive.
 ### Transforms & Components
 
 #### `inspect_component`
-Returns serialized state of any component using `SerializedObject`.
-- **Note**: Safe for internal engine handles (won't crash on Transforms/Cameras).
+Returns full serialized state of any component.
+- **Recursive Unpacking**: Automatically unpacks Arrays, Lists, and Generic Structs into nested JSON.
+- **Full Visibility**: Exposes all serialized fields, including those with `[HideInInspector]`.
+- **Note**: Optimized for complex types like `BoxCollider` (unpacks `m_Center` and `m_Size`).
 
 #### `update_component`
 Updates component values using `SerializedObject`. Returns a detailed result with `status` and `errors`.
 
 #### `set_property`
 Surgical update of a single property (bool, int, float, string, Vector3).
+
+---
+
+### Asset Management
+
+#### `move_asset`
+Moves or renames an asset.
+- **Intelligent Merging**: If moving a directory to a path that already exists, it will recursively merge the contents rather than failing.
+
+#### `refresh_asset_database`
+Forces Unity to scan for changed files. Returns compilation and updating status.
 
 ---
 

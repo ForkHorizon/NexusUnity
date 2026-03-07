@@ -94,13 +94,54 @@ namespace UnityMCP.Editor
             return "Overrides reverted";
         }
 
-        /// <summary>Moves or renames an asset.</summary>
+        /// <summary>Moves or renames an asset, merging directories if necessary.</summary>
         private static JToken MoveAsset(JToken p)
         {
             if (p?["old_path"] == null || p["new_path"] == null) throw new Exception("old_path and new_path required");
-            string result = AssetDatabase.MoveAsset(p["old_path"].ToString(), p["new_path"].ToString());
+            
+            string oldPath = p["old_path"].ToString();
+            string newPath = p["new_path"].ToString();
+
+            if (AssetDatabase.IsValidFolder(oldPath) && AssetDatabase.IsValidFolder(newPath))
+            {
+                MergeDirectories(oldPath, newPath);
+                return "OK (Merged)";
+            }
+
+            string result = AssetDatabase.MoveAsset(oldPath, newPath);
             if (!string.IsNullOrEmpty(result)) throw new Exception(result);
             return "OK";
+        }
+
+        private static void MergeDirectories(string sourceDir, string targetDir)
+        {
+            var files = Directory.GetFiles(sourceDir);
+            foreach (var file in files)
+            {
+                if (file.EndsWith(".meta")) continue;
+                
+                string fileName = Path.GetFileName(file);
+                string destFile = Path.Combine(targetDir, fileName).Replace("\\", "/");
+                
+                string result = AssetDatabase.MoveAsset(file.Replace("\\", "/"), destFile);
+                if (!string.IsNullOrEmpty(result)) throw new Exception($"Failed to move {fileName}: {result}");
+            }
+
+            var dirs = Directory.GetDirectories(sourceDir);
+            foreach (var dir in dirs)
+            {
+                string dirName = Path.GetFileName(dir);
+                string destDir = Path.Combine(targetDir, dirName).Replace("\\", "/");
+                
+                if (!AssetDatabase.IsValidFolder(destDir))
+                {
+                    AssetDatabase.CreateFolder(targetDir, dirName);
+                }
+                
+                MergeDirectories(dir.Replace("\\", "/"), destDir);
+            }
+
+            AssetDatabase.DeleteAsset(sourceDir);
         }
 
         /// <summary>Deletes an asset file.</summary>

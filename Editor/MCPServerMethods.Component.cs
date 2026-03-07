@@ -43,7 +43,7 @@ namespace UnityMCP.Editor
             JObject result = new JObject();
             SerializedProperty prop = so.GetIterator();
             bool enterChildren = true;
-            while (prop.NextVisible(enterChildren))
+            while (prop.Next(enterChildren))
             {
                 enterChildren = false; // Only enter children for the root
                 try { result[prop.name] = SerializeProperty(prop); } catch { }
@@ -61,7 +61,7 @@ namespace UnityMCP.Editor
             JArray result = new JArray();
             SerializedProperty prop = so.GetIterator();
             bool enterChildren = true;
-            while (prop.NextVisible(enterChildren))
+            while (prop.Next(enterChildren))
             {
                 enterChildren = false;
                 result.Add(new JObject { ["name"] = prop.name, ["type"] = prop.propertyType.ToString(), ["displayName"] = prop.displayName });
@@ -78,24 +78,47 @@ namespace UnityMCP.Editor
                 case SerializedPropertyType.Float: return prop.floatValue;
                 case SerializedPropertyType.String: return prop.stringValue;
                 case SerializedPropertyType.Color: return prop.colorValue.ToString();
-                case SerializedPropertyType.Enum: return prop.enumDisplayNames[prop.enumValueIndex];
+                case SerializedPropertyType.Enum: return prop.enumNames.Length > 0 && prop.enumValueIndex >= 0 && prop.enumValueIndex < prop.enumNames.Length ? prop.enumNames[prop.enumValueIndex] : prop.enumValueIndex.ToString();
+                case SerializedPropertyType.Vector2: return new JObject { ["x"] = prop.vector2Value.x, ["y"] = prop.vector2Value.y };
+                case SerializedPropertyType.Vector3: return new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z };
+                case SerializedPropertyType.Vector4: return new JObject { ["x"] = prop.vector4Value.x, ["y"] = prop.vector4Value.y, ["z"] = prop.vector4Value.z, ["w"] = prop.vector4Value.w };
+                case SerializedPropertyType.Rect: return new JObject { ["x"] = prop.rectValue.x, ["y"] = prop.rectValue.y, ["width"] = prop.rectValue.width, ["height"] = prop.rectValue.height };
+                case SerializedPropertyType.Bounds: return new JObject { ["x"] = prop.boundsValue.center.x, ["y"] = prop.boundsValue.center.y, ["z"] = prop.boundsValue.center.z };
+                case SerializedPropertyType.ObjectReference:
+                    var obj = prop.objectReferenceValue;
+                    if (obj == null) return JValue.CreateNull();
+                    return new JObject { ["instance_id"] = obj.GetInstanceID(), ["name"] = obj.name, ["type"] = obj.GetType().Name };
                 default: return SerializeComplexProperty(prop);
             }
         }
 
         private static JToken SerializeComplexProperty(SerializedProperty prop)
         {
-            switch (prop.propertyType)
+            if (prop.isArray && prop.propertyType != SerializedPropertyType.String)
             {
-                case SerializedPropertyType.Vector3:
-                    return new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z };
-                case SerializedPropertyType.ObjectReference:
-                    var obj = prop.objectReferenceValue;
-                    if (obj == null) return JValue.CreateNull();
-                    return new JObject { ["instance_id"] = obj.GetInstanceID(), ["name"] = obj.name, ["type"] = obj.GetType().Name };
-                default:
-                    return prop.propertyType.ToString();
+                JArray arr = new JArray();
+                for (int i = 0; i < prop.arraySize; i++)
+                {
+                    arr.Add(SerializeProperty(prop.GetArrayElementAtIndex(i)));
+                }
+                return arr;
             }
+
+            if (prop.propertyType == SerializedPropertyType.Generic)
+            {
+                JObject dict = new JObject();
+                SerializedProperty childProp = prop.Copy();
+                SerializedProperty endProp = childProp.GetEndProperty();
+                bool enter = true;
+                while (childProp.Next(enter) && !SerializedProperty.EqualContents(childProp, endProp))
+                {
+                    enter = false;
+                    dict[childProp.name] = SerializeProperty(childProp);
+                }
+                return dict;
+            }
+
+            return prop.propertyType.ToString();
         }
 
         private static JToken UpdateComponent(JToken p)
@@ -164,9 +187,44 @@ namespace UnityMCP.Editor
 
         private static void ApplyComplexValueToProperty(SerializedProperty prop, JToken value)
         {
+            if (prop.isArray && prop.propertyType != SerializedPropertyType.String)
+            {
+                if (value.Type == JTokenType.Array)
+                {
+                    JArray arr = (JArray)value;
+                    prop.arraySize = arr.Count;
+                    for (int i = 0; i < arr.Count; i++)
+                    {
+                        ApplyValueToProperty(prop.GetArrayElementAtIndex(i), arr[i]);
+                    }
+                }
+                return;
+            }
+
+            if (prop.propertyType == SerializedPropertyType.Generic && value.Type == JTokenType.Object)
+            {
+                JObject dict = (JObject)value;
+                SerializedProperty childProp = prop.Copy();
+                SerializedProperty endProp = childProp.GetEndProperty();
+                bool enter = true;
+                while (childProp.Next(enter) && !SerializedProperty.EqualContents(childProp, endProp))
+                {
+                    enter = false;
+                    if (dict.TryGetValue(childProp.name, out JToken childValue))
+                    {
+                        ApplyValueToProperty(childProp, childValue);
+                    }
+                }
+                return;
+            }
+
             switch (prop.propertyType)
             {
+                case SerializedPropertyType.Vector2: prop.vector2Value = new Vector2((float)(value["x"] ?? prop.vector2Value.x), (float)(value["y"] ?? prop.vector2Value.y)); break;
                 case SerializedPropertyType.Vector3: prop.vector3Value = ParseVector3(value, prop.vector3Value); break;
+                case SerializedPropertyType.Vector4: prop.vector4Value = new Vector4((float)(value["x"] ?? prop.vector4Value.x), (float)(value["y"] ?? prop.vector4Value.y), (float)(value["z"] ?? prop.vector4Value.z), (float)(value["w"] ?? prop.vector4Value.w)); break;
+                case SerializedPropertyType.Rect: prop.rectValue = new Rect((float)(value["x"] ?? prop.rectValue.x), (float)(value["y"] ?? prop.rectValue.y), (float)(value["width"] ?? prop.rectValue.width), (float)(value["height"] ?? prop.rectValue.height)); break;
+                case SerializedPropertyType.Bounds: prop.boundsValue = new Bounds(new Vector3((float)(value["x"] ?? prop.boundsValue.center.x), (float)(value["y"] ?? prop.boundsValue.center.y), (float)(value["z"] ?? prop.boundsValue.center.z)), prop.boundsValue.size); break;
                 case SerializedPropertyType.Color:
                     if (ColorUtility.TryParseHtmlString(value.ToString(), out Color color)) prop.colorValue = color;
                     break;

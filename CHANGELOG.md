@@ -8,8 +8,12 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 - **Autonomous Core Service**: Decoupled the MCP Server from the Editor Window lifecycle. The server now runs as a standalone static service (`MCPServer.cs`) that initializes on domain load and persists through window closures.
 - **Project-Specific Persistence**: Implemented unique `EditorPrefs` keys based on project paths. The server now remembers its "Enabled/Disabled" state independently for every project.
 - **Anti-Throttling Heartbeat**: Integrated `EditorApplication.QueuePlayerLoopUpdate()` into the dispatch queue. This ensures instantaneous responses even when the Unity Editor is in the background or macOS App Nap is active.
+- **Recursive Serialization Engine**: Upgraded `unity_inspect_component` to recursively unpack Arrays, Lists, and Generic structs. It now correctly serializes deep data structures like `BoxCollider` center/size and custom serializable classes.
+- **Extended Math Support**: Added full JSON serialization for `Vector2`, `Vector4`, `Rect`, and `Bounds` types.
+- **Intelligent Asset Merging**: Enhanced `unity_move_asset` to automatically merge directories when the destination already exists. It now recursively moves all contents instead of failing with a "Destination already exists" error.
 
 ### Fixed
+- **Serialized Field Blindness**: Resolved an issue where `unity_inspect_component` was blind to fields marked with `[HideInInspector]` or internal Unity fields. Replaced `NextVisible` with `Next` to ensure 100% data visibility.
 - **OS Port Conflict Resilience**: Added an intelligent startup delay and OS-level socket verification to handle "Port already in use" errors during rapid Unity restarts.
 - **Initialization Stability**: Fixed `TypeInitializationException` by moving forbidden Unity API calls out of static constructors and into safe `delayCall` phases.
 - **Menu Item Conflict**: Resolved a GUI bug where the "Run Audit" menu item was swallowing the "Nexus Unity" dashboard link.
@@ -17,6 +21,7 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 ### Changed
 - **Architectural Consolidation**: Merged redundant partial window files into a unified `MCPServerWindow.cs` for improved maintainability and compilation speed.
 - **Zero-Interaction Reliability**: The server is now truly "Autonomous," requiring zero manual intervention to remain active across development sessions.
+- **Bi-Directional Updates**: Enhanced `unity_update_component` to support writing values back to nested structs and arrays, enabling the AI to manipulate complex data models.
 
 ## [2.1.2] - 2026-03-02
 
