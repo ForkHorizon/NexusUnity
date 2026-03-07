@@ -26,7 +26,7 @@ namespace UnityMCP.Editor
             _methods["attach_script"] = AttachScript;
         }
 
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = "2.1.2" } };
+        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
 
         private static JToken WaitForReady(JToken p) => true;
 
@@ -53,8 +53,8 @@ namespace UnityMCP.Editor
             return "Script created and compilation triggered";
         }
 
-        private static JToken ReadLogs(JToken p) => JArray.FromObject(MCPServerWindow.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString()));
-        private static JToken ClearLogs(JToken p) { MCPServerWindow.ClearLogs(); return "Logs cleared"; }
+        private static JToken ReadLogs(JToken p) => JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString()));
+        private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return "Logs cleared"; }
         private static JToken TestCoroutine(JToken p) { EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); return "Started"; }
 
         // Cache the tool definitions since they are static and do not change during the session.

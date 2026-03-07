@@ -2,6 +2,22 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.2.0] - 2026-03-07
+
+### Added
+- **Autonomous Core Service**: Decoupled the MCP Server from the Editor Window lifecycle. The server now runs as a standalone static service (`MCPServer.cs`) that initializes on domain load and persists through window closures.
+- **Project-Specific Persistence**: Implemented unique `EditorPrefs` keys based on project paths. The server now remembers its "Enabled/Disabled" state independently for every project.
+- **Anti-Throttling Heartbeat**: Integrated `EditorApplication.QueuePlayerLoopUpdate()` into the dispatch queue. This ensures instantaneous responses even when the Unity Editor is in the background or macOS App Nap is active.
+
+### Fixed
+- **OS Port Conflict Resilience**: Added an intelligent startup delay and OS-level socket verification to handle "Port already in use" errors during rapid Unity restarts.
+- **Initialization Stability**: Fixed `TypeInitializationException` by moving forbidden Unity API calls out of static constructors and into safe `delayCall` phases.
+- **Menu Item Conflict**: Resolved a GUI bug where the "Run Audit" menu item was swallowing the "Nexus Unity" dashboard link.
+
+### Changed
+- **Architectural Consolidation**: Merged redundant partial window files into a unified `MCPServerWindow.cs` for improved maintainability and compilation speed.
+- **Zero-Interaction Reliability**: The server is now truly "Autonomous," requiring zero manual intervention to remain active across development sessions.
+
 ## [2.1.2] - 2026-03-02
 
 ### Fixed

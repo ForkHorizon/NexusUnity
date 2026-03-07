@@ -14,7 +14,6 @@ namespace UnityMCP.Editor
     /// Contains methods for processing and executing MCP JSON-RPC requests.
     /// Uses a high-performance Dictionary for method dispatching.
     /// </summary>
-    [InitializeOnLoad]
     public static partial class MCPServerMethods
     {
         private static int _mainThreadId;
@@ -23,8 +22,9 @@ namespace UnityMCP.Editor
 
         private static readonly Dictionary<string, Func<JToken, JToken>> _methods = new Dictionary<string, Func<JToken, JToken>>();
 
-        static MCPServerMethods()
+        internal static void Init()
         {
+            if (_methods.Count > 0) return;
             _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             RegisterCoreMethods();
             RegisterSceneMethods();
@@ -96,7 +96,7 @@ namespace UnityMCP.Editor
             string error = null;
             using (var signal = new ManualResetEventSlim(false))
             {
-                MCPServerWindow.Enqueue(() => {
+                MCPServer.Enqueue(() => {
                     try { result = ExecuteMethod(method, requestParams); }
                     catch (Exception e) { error = e.Message; }
                     finally { signal.Set(); }

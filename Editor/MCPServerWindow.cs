@@ -1,87 +1,151 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.WebSockets;
-using System.Threading;
 using UnityEditor;
-using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace UnityMCP.Editor
 {
-    /// <summary>
-    /// Editor window that runs a local MCP server to interact with Unity.
-    /// </summary>
-    [InitializeOnLoad]
     public partial class MCPServerWindow : EditorWindow
     {
-        static MCPServerWindow()
-        {
-            // Just ensure OnEnable runs on an instance
-            EditorApplication.delayCall += () => {
-                if (SessionState.GetBool("MCP_Server_Running", false))
-                {
-                    var windows = Resources.FindObjectsOfTypeAll<MCPServerWindow>();
-                    if (windows.Length == 0) StartServerStandalone();
-                }
-            };
-        }
-
-        private static void StartServerStandalone()
-        {
-            var window = CreateInstance<MCPServerWindow>();
-            window.ParseCommandLineArgs();
-            window._port = window._cliPortOverride ?? MCPSettings.Port;
-            window.StartServer();
-        }
-        private static ConcurrentQueue<Action> _mainThreadQueue = new ConcurrentQueue<Action>();
         private double _lastUrlCopyTime = -10.0;
-        private int _port;
-        private bool _isRunning;
-        private HttpListener _listener;
-        private WebSocket _webSocket;
-        private CancellationTokenSource _cts;
-        private int? _cliPortOverride;
         private string _cliStatusMessage = "Checking link...";
-        private string _version = "0.0.0";
-
+        private string _version = "2.2.0";
         private int _selectedTab = 0;
-        private readonly string[] _tabs = { "Server", "Tools", "Verification" };
+        private string[] _tabs;
 
-        /// <summary>
-        /// Shows the main Nexus Unity window and initializes it.
-        /// </summary>
-        [MenuItem("Window/Nexus Unity")]
+        [MenuItem("Window/Nexus Unity/Server Control Panel")]
         public static void ShowWindow() => GetWindow<MCPServerWindow>("Nexus Unity");
 
         private void OnEnable()
         {
-            ParseCommandLineArgs();
-            _port = _cliPortOverride ?? MCPSettings.Port;
-            EditorApplication.update += HandleMainThreadQueue;
+            _tabs = new[] { "Server", "Tools", "Verification" };
             EditorApplication.update += UpdateCopyFeedback;
-            Application.logMessageReceivedThreaded += OnLogMessageReceived;
-            if (SessionState.GetBool("MCP_Server_Running", false)) StartServer();
+            titleContent = new GUIContent($"Nexus Unity v{MCPServer.Version}");
             CheckCliLinkStatus();
-            LoadVersion();
+        }
+
+        private void OnDisable() => EditorApplication.update -= UpdateCopyFeedback;
+
+        private void OnGUI()
+        {
+            _selectedTab = GUILayout.Toolbar(_selectedTab, _tabs);
+            EditorGUILayout.Space();
+            switch (_selectedTab)
+            {
+                case 0: DrawServerTab(); break;
+                case 1: DrawToolsTab(); break;
+                case 2: DrawVerificationTab(); break;
+            }
+            GUILayout.FlexibleSpace();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                GUI.enabled = false;
+                GUILayout.Label($"v{MCPServer.Version}", EditorStyles.miniLabel);
+                GUI.enabled = true;
+            }
+        }
+
+        private void DrawServerTab()
+        {
+            GUILayout.Label("Server Control", EditorStyles.boldLabel);
+            DrawServerStatusBar();
+            EditorGUILayout.Space();
+            if (!MCPServer.IsRunning)
+            {
+                if (GUILayout.Button(new GUIContent("START SERVER", $"Start the local MCP server on port {MCPServer.Port}"), GUILayout.Height(40))) MCPServer.Start();
+            }
+            else
+            {
+                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stop the running MCP server"), GUILayout.Height(40))) MCPServer.Stop();
+            }
+            EditorGUILayout.Space();
+            DrawCliIntegration();
+            DrawResources();
+        }
+
+        private void DrawServerStatusBar()
+        {
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                string status = MCPServer.IsRunning ? "RUNNING" : "STOPPED";
+                GUI.color = MCPServer.IsRunning ? Color.green : Color.red;
+                GUILayout.Label(new GUIContent($"● {status}"), EditorStyles.boldLabel);
+                GUI.color = Color.white;
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(new GUIContent($"Port: {MCPServer.Port}"));
+                GUILayout.Space(10);
+                bool recentlyCopied = EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0;
+                if (GUILayout.Button(new GUIContent(recentlyCopied ? "Copied!" : "Copy URL"), EditorStyles.miniButton))
+                {
+                    EditorGUIUtility.systemCopyBuffer = $"http://localhost:{MCPServer.Port}";
+                    _lastUrlCopyTime = EditorApplication.timeSinceStartup;
+                }
+            }
+        }
+
+        private void DrawCliIntegration()
+        {
+            GUILayout.Label("Gemini CLI Integration", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                GUILayout.Label($"Status: {_cliStatusMessage}");
+                if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
+            }
+            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30)))
+            {
+                MCPCliInstaller.LinkToGemini();
+                CheckCliLinkStatus();
+            }
+        }
+
+        private void DrawResources()
+        {
+            EditorGUILayout.Space();
+            GUILayout.Label("Resources", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                if (GUILayout.Button("Documentation", EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
+                if (GUILayout.Button("API Reference", EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
+            }
+        }
+
+        private void OpenDocumentation(string filename)
+        {
+            var script = MonoScript.FromScriptableObject(this);
+            var path = AssetDatabase.GetAssetPath(script);
+            if (string.IsNullOrEmpty(path)) return;
+            var root = Path.GetDirectoryName(Path.GetDirectoryName(path));
+            var docPath = Path.Combine(root, filename);
+            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(docPath);
+            if (obj != null) AssetDatabase.OpenAsset(obj);
+        }
+
+        private void DrawToolsTab()
+        {
+            GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
+            if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button("Clear All Logs")) MCPServer.ClearLogs();
+        }
+
+        private void DrawVerificationTab()
+        {
+            GUILayout.Label("API Verification", EditorStyles.boldLabel);
+            if (GUILayout.Button("Run Linter")) ProjectAuditor.RunAuditMenu();
+            if (GUILayout.Button("Run Full API Verification")) GetWindow<MCPVerificationWindow>().Show();
+            if (GUILayout.Button("Verify UI")) UIVerification.Verify();
+            if (GUILayout.Button("Verify Logs")) LogVerification.Verify();
         }
 
         private void LoadVersion()
         {
-            try
-            {
+            try {
                 var script = MonoScript.FromScriptableObject(this);
                 string path = AssetDatabase.GetAssetPath(script);
-                if (string.IsNullOrEmpty(path)) return;
-
                 string dir = Path.GetDirectoryName(path);
-                while (!string.IsNullOrEmpty(dir))
-                {
+                while (!string.IsNullOrEmpty(dir)) {
                     string pkgPath = Path.Combine(dir, "package.json");
-                    if (File.Exists(pkgPath))
-                    {
+                    if (File.Exists(pkgPath)) {
                         string json = File.ReadAllText(pkgPath);
                         var data = Newtonsoft.Json.Linq.JObject.Parse(json);
                         _version = data["version"]?.ToString() ?? "0.0.0";
@@ -90,52 +154,10 @@ namespace UnityMCP.Editor
                     }
                     dir = Path.GetDirectoryName(dir);
                 }
-            }
-            catch (Exception) { _version = "unknown"; }
+            } catch { _version = "unknown"; }
         }
 
-        private void OnDisable()
-        {
-            EditorApplication.update -= HandleMainThreadQueue;
-            EditorApplication.update -= UpdateCopyFeedback;
-            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-            
-            // Only cancel background tasks, don't clear the persistent "running" intent
-            CleanupServer();
-        }
-
-        private void ParseCommandLineArgs()
-        {
-            string[] args = Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length - 1; i++)
-                if (args[i] == "--mcp-port" && int.TryParse(args[i + 1], out int p)) _cliPortOverride = p;
-        }
-
-        private void CheckCliLinkStatus()
-        {
-            // Simple check: run gemini mcp list and see if we are in it
-            System.Threading.Tasks.Task.Run(() => {
-                try 
-                {
-                    // We can't easily parse the whole list, but we can check if the link command might be needed
-                    // For now, we'll just assume it's checking and provide a way to refresh
-                    _cliStatusMessage = "Ready to Link"; 
-                }
-                catch { _cliStatusMessage = "CLI Not Found"; }
-            });
-        }
-
-        private void HandleMainThreadQueue()
-        {
-            while (_mainThreadQueue.TryDequeue(out var action)) action?.Invoke();
-        }
-
-        private void UpdateCopyFeedback()
-        {
-            if (EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0) Repaint();
-        }
-
-        /// <summary>Enqueues an action to be executed on the main thread.</summary>
-        public static void Enqueue(Action action) => _mainThreadQueue.Enqueue(action);
+        private void CheckCliLinkStatus() { _cliStatusMessage = "Ready to Link"; }
+        private void UpdateCopyFeedback() { if (EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0) Repaint(); }
     }
 }
