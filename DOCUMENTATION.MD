@@ -21,7 +21,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.2.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.3.0" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.

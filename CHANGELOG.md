@@ -2,6 +2,15 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.3.0] - 2026-03-08
+
+### Added
+- **Sub-Asset Identification**: The `unity_explore_asset` tool now returns the `instance_id` for every sub-asset found, allowing for immediate session-based referencing.
+- **Persistent Object Referencing**: Upgraded `unity_update_component` to support persistent object assignment using a `{ "guid": "...", "file_id": ... }` object format. This enables the AI to safely link sub-assets like sliced sprites across different machines and sessions.
+
+### Changed
+- **Tool Semantic Renaming**: Renamed `get_asset_metadata` to `explore_asset` and updated its description to improve AI discoverability for exploring internal file contents like sliced sprite sheets.
+
 ## [2.2.0] - 2026-03-07
 
 ### Added
