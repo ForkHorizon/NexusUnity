@@ -126,7 +126,9 @@ Batch updates component properties using JSON with detailed result reporting.
 - **Parameters**:
   - `instance_id` (integer, required): Target object ID.
   - `component_name` (string, required): Component type name.
-  - `json_data` (string, required): JSON string matching the component's structure.
+  - `properties` (object, required): JSON object of properties to update. Supports raw arrays for Unity Lists.
+  - `json_data` (string, optional): *Deprecated.* Use `properties` instead.
+- **Fuzzy Naming**: Automatically maps AI-friendly names (e.g. `sprite`) to internal Unity names (e.g. `m_Sprite`).
 - **Object Referencing**: Supports multiple ways to set object references (e.g., Sprite, Material):
   - `integer`: Use the session-specific `instance_id`.
   - `string`: Use the asset project path.
@@ -372,9 +374,10 @@ Enforces `[ForceDefault]` attribute values on all components of a GameObject.
 - **Returns**: Confirmation string with the count of enforced values.
 
 ### `unity_lint_project`
-Runs a deterministic C# audit using Roslyn to enforce high code quality standards.
-- **Returns**: JSON object with `report` (full text) and `violation_count`.
-- **Note**: Generates `LINT_REPORT.txt` in the project root.
+Runs a comprehensive project and scene health audit.
+- **Deep Code Analysis**: Uses the official Unity Project Auditor to find performance bottlenecks, memory leaks, and API misuse in your C# code.
+- **Scene Health Scan**: Recursively scans the active scene for missing scripts, broken prefab instances, and "pink" (Internal Error) materials.
+- **Returns**: Object containing `code_issues` and `scene_issues` arrays.
 
 ---
 *Generated for Nexus Unity v2.1.1*

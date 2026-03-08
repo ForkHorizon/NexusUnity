@@ -2,6 +2,14 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.4.0] - 2026-03-08
+
+### Added
+- **Aggressive Background Wake-Up**: Implemented a recursive "poke" mechanism using `InternalEditorUtility.RepaintAllViews()` and `EditorApplication.QueuePlayerLoopUpdate()`. This prevents macOS from throttling Unity or putting it to sleep while enqueued AI commands (like `refresh_asset_database`) are processing, ensuring near-instant response times even when Unity is unfocused.
+- **Hybrid Deep Auditor**: Upgraded `unity_lint_project` into a comprehensive project health tool. It now integrates the official **Unity Project Auditor** for deep static code analysis (identifying memory leaks and performance bottlenecks) and a custom **Nexus Scene Scanner** that detects missing scripts, broken prefabs, and "pink" (error) materials.
+- **Intuitive JSON Payloads**: Upgraded `unity_update_component` to accept a native JSON `properties` object instead of a stringified payload. It now seamlessly accepts raw JSON arrays for assigning Unity `List<>` or arrays.
+- **Fuzzy Property Matching**: The `unity_update_component` tool now automatically maps AI-friendly property names (e.g., `sprite`, `myList`) to Unity's internal serialization backing fields (e.g., `m_Sprite`, `_myList`, `m_MyList`), eliminating the need to guess internal naming conventions.
+
 ## [2.3.0] - 2026-03-08
 
 ### Added

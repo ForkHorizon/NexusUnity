@@ -48,12 +48,8 @@ namespace UnityMCP.Editor
         private static JToken UnityLintProject(JToken p)
         {
             // The auditor runs synchronously on the main thread
-            string report = ProjectAuditor.RunAudit(silent: true);
-            return new JObject
-            {
-                ["report"] = report,
-                ["violation_count"] = report.Split('\n').Length
-            };
+            string report = ProjectAuditorWrapper.RunAudit(silent: true);
+            return JToken.Parse(report);
         }
 
         private static JToken SetSelection(JToken p)

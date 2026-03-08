@@ -21,7 +21,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.3.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.4.0" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
@@ -103,7 +103,9 @@ Returns full serialized state of any component.
 
 #### `update_component`
 Updates component values using `SerializedObject`. Returns a detailed result with `status` and `errors`.
-- **Advanced Referencing**: Supports setting object references via `instance_id` or persistent `{ "guid": "...", "file_id": 123 }` objects. Useful for sub-assets like sliced sprites.
+- **Intuitive Properties**: Accepts a `properties` JSON object natively. You can pass raw arrays (e.g., `[id1, id2]`) for Lists/Arrays.
+- **Fuzzy Naming**: Automatically resolves AI-friendly names (e.g., `sprite`) to Unity's internal backing fields (e.g., `m_Sprite` or `_sprite`).
+- **Advanced Referencing**: Supports setting object references via `instance_id` (integer), string (asset path), or persistent `{ "guid": "...", "file_id": 123 }` objects. Useful for sub-assets like sliced sprites.
 
 #### `invoke_method`
 Scriptless Method Invoker. Executes a specific method (public or private) on a component or GameObject via C# reflection. Excellent for triggering behavior in Play Mode without writing test scripts.

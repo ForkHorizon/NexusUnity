@@ -131,7 +131,7 @@ namespace UnityMCP.Editor
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
-            if (GUILayout.Button("Run Linter")) ProjectAuditor.RunAuditMenu();
+            if (GUILayout.Button("Run Full Project Audit")) ProjectAuditorWrapper.RunAuditMenu();
             if (GUILayout.Button("Run Full API Verification")) GetWindow<MCPVerificationWindow>().Show();
             if (GUILayout.Button("Verify UI")) UIVerification.Verify();
             if (GUILayout.Button("Verify Logs")) LogVerification.Verify();

@@ -128,10 +128,20 @@ namespace UnityMCP.Editor
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
 
-            string jsonData = p["json_data"]?.ToString();
-            if (string.IsNullOrEmpty(jsonData)) return "No data provided";
+            JObject data = null;
+            if (p["properties"] != null)
+            {
+                data = p["properties"] as JObject;
+            }
+            else if (p["json_data"] != null)
+            {
+                string jsonData = p["json_data"].ToString();
+                if (!string.IsNullOrEmpty(jsonData))
+                    data = JObject.Parse(jsonData);
+            }
 
-            JObject data = JObject.Parse(jsonData);
+            if (data == null) return "No data provided";
+
             SerializedObject so = new SerializedObject(comp);
             Undo.RecordObject(comp, "Update Component");
 
@@ -148,12 +158,50 @@ namespace UnityMCP.Editor
             };
         }
 
+        private static SerializedProperty FindPropertyFuzzy(SerializedObject so, string name)
+        {
+            // 1. Exact match
+            var prop = so.FindProperty(name);
+            if (prop != null) return prop;
+
+            // 2. Try with 'm_' prefix and capitalized first letter
+            if (name.Length > 0)
+            {
+                string mName = "m_" + char.ToUpper(name[0]) + name.Substring(1);
+                prop = so.FindProperty(mName);
+                if (prop != null) return prop;
+                
+                // 3. Try with '_' prefix and lower case
+                string underscoreName = "_" + char.ToLower(name[0]) + name.Substring(1);
+                prop = so.FindProperty(underscoreName);
+                if (prop != null) return prop;
+            }
+
+            // 4. Iterate all properties and do a case-insensitive match ignoring 'm_' prefix
+            var iterator = so.GetIterator();
+            bool enterChildren = true;
+            while (iterator.Next(enterChildren))
+            {
+                enterChildren = false;
+                string propName = iterator.name;
+                string cleanPropName = propName.StartsWith("m_") ? propName.Substring(2) : propName;
+                cleanPropName = cleanPropName.StartsWith("_") ? cleanPropName.Substring(1) : cleanPropName;
+
+                if (string.Equals(cleanPropName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return so.FindProperty(propName); // Get fresh copy
+                }
+            }
+
+            return null;
+        }
+
         private static int UpdateComponentProperties(SerializedObject so, JObject data, JArray errors)
         {
             int updatedCount = 0;
             foreach (var propPair in data)
             {
-                SerializedProperty prop = so.FindProperty(propPair.Key);
+                SerializedProperty prop = FindPropertyFuzzy(so, propPair.Key);
                 if (prop != null)
                 {
                     try

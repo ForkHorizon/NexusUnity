@@ -42,9 +42,14 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string ProcessJsonRpc(string json)
         {
-            using (var reader = new StringReader(json))
+            try
             {
-                return ProcessJsonRpc(reader);
+                JObject request = JObject.Parse(json);
+                return ProcessJsonRequest(request);
+            }
+            catch (Exception e)
+            {
+                return CreateErrorResponse(null, -32700, $"Parse error: {e.Message}");
             }
         }
 
@@ -65,7 +70,7 @@ namespace UnityMCP.Editor
                     return ProcessJsonRequest(request);
                 }
             }
-            catch { return CreateErrorResponse(null, -32700, "Parse error"); }
+            catch (Exception e) { return CreateErrorResponse(null, -32700, $"Parse error (Reader): {e.Message}"); }
         }
 
         private static string ProcessJsonRequest(JObject request)
@@ -77,9 +82,10 @@ namespace UnityMCP.Editor
 
         private static string ExecuteOnMainThread(string method, JToken requestParams, JToken id)
         {
+            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             // Deadlock prevention: If we're already on the main thread, execute immediately.
             // This happens when calling ProcessJsonRpc from an Editor window or menu item.
-            if (_isMainThread)
+            if (currentThreadId == _mainThreadId)
             {
                 try
                 {
@@ -97,7 +103,9 @@ namespace UnityMCP.Editor
             using (var signal = new ManualResetEventSlim(false))
             {
                 MCPServer.Enqueue(() => {
-                    try { result = ExecuteMethod(method, requestParams); }
+                    try { 
+                        result = ExecuteMethod(method, requestParams); 
+                    }
                     catch (Exception e) { error = e.Message; }
                     finally { signal.Set(); }
                 });
