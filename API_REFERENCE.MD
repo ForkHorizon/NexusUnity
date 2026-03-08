@@ -380,4 +380,4 @@ Runs a comprehensive project and scene health audit.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays.
 
 ---
-*Generated for Nexus Unity v2.4.3*
+*Generated for Nexus Unity v2.4.0*
