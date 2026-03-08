@@ -212,15 +212,11 @@ namespace UnityMCP.Editor
 
                 EditorApplication.CallbackFunction waitForFocus = null;
                 waitForFocus = () => {
-                    // Wait until the OS natively grants Unity the foreground focus
-                    if (UnityEditorInternal.InternalEditorUtility.isApplicationActive)
-                    {
-                        EditorApplication.update -= waitForFocus;
-                        
-                        // Now that Unity officially owns the foreground, the background safety lock 
-                        // is open. Refresh synchronously to explicitly reconstruct the C# Assemblies.
-                        AssetDatabase.Refresh();
-                    }
+                    EditorApplication.update -= waitForFocus;
+                    
+                    // Trigger refresh immediately. With App Nap bypassed, this is reliable 
+                    // even if the focus-switch (open -a) is still in flight.
+                    AssetDatabase.Refresh();
                 };
                 
                 EditorApplication.update += waitForFocus;
