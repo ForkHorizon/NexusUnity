@@ -56,7 +56,8 @@ namespace UnityMCP.Editor
                     {
                         ["name"] = asset.name,
                         ["type"] = asset.GetType().Name,
-                        ["file_id"] = fileId
+                        ["file_id"] = fileId,
+                        ["instance_id"] = asset.GetInstanceID()
                     };
                     
                     if (asset == mainAsset)

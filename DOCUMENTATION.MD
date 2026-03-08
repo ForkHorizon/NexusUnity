@@ -103,6 +103,7 @@ Returns full serialized state of any component.
 
 #### `update_component`
 Updates component values using `SerializedObject`. Returns a detailed result with `status` and `errors`.
+- **Advanced Referencing**: Supports setting object references via `instance_id` or persistent `{ "guid": "...", "file_id": 123 }` objects. Useful for sub-assets like sliced sprites.
 
 #### `set_property`
 Surgical update of a single property (bool, int, float, string, Vector3).

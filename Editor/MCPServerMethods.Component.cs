@@ -253,9 +253,32 @@ namespace UnityMCP.Editor
             {
                 prop.objectReferenceValue = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(value.ToString());
             }
-            else if (value.Type == JTokenType.Object && value["instance_id"] != null)
+            else if (value.Type == JTokenType.Object)
             {
-                prop.objectReferenceValue = EditorUtility.InstanceIDToObject((int)value["instance_id"]);
+                if (value["instance_id"] != null)
+                {
+                    prop.objectReferenceValue = EditorUtility.InstanceIDToObject((int)value["instance_id"]);
+                }
+                else if (value["guid"] != null && value["file_id"] != null)
+                {
+                    string guid = value["guid"].ToString();
+                    long fileId = (long)value["file_id"];
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        var all = AssetDatabase.LoadAllAssetsAtPath(path);
+                        foreach (var asset in all)
+                        {
+                            if (asset == null) continue;
+                            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out _, out long id);
+                            if (id == fileId)
+                            {
+                                prop.objectReferenceValue = asset;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
 

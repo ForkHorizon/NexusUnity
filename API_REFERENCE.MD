@@ -127,6 +127,10 @@ Batch updates component properties using JSON with detailed result reporting.
   - `instance_id` (integer, required): Target object ID.
   - `component_name` (string, required): Component type name.
   - `json_data` (string, required): JSON string matching the component's structure.
+- **Object Referencing**: Supports multiple ways to set object references (e.g., Sprite, Material):
+  - `integer`: Use the session-specific `instance_id`.
+  - `string`: Use the asset project path.
+  - `object`: Use `{ "guid": "...", "file_id": 123 }` for persistent sub-asset referencing (e.g., sliced sprites found via `explore_asset`).
 - **Returns**: Result object `{status, updated_count, errors}`.
 - **Status**: `"Success"`, `"Partial"`, or `"Failed"`.
 
