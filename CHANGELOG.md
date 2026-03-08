@@ -47,11 +47,55 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 - **Serialized Field Blindness**: Resolved an issue where `unity_inspect_component` was blind to fields marked with `[HideInInspector]` or internal Unity fields. Replaced `NextVisible` with `Next` to ensure 100% data visibility.
 - **OS Port Conflict Resilience**: Added an intelligent startup delay and OS-level socket verification to handle "Port already in use" errors during rapid Unity restarts.
 - **Initialization Stability**: Fixed `TypeInitializationException` by moving forbidden Unity API calls out of static constructors and into safe `delayCall` phases.
-- **Notification Integration**: Integrated `ShowNotification` for key developer actions (Server Start/Stop, Clear Logs, CLI Linking).
+- **Menu Item Conflict**: Resolved a GUI bug where the "Run Audit" menu item was swallowing the "Nexus Unity" dashboard link.
+
+### Changed
+- **Architectural Consolidation**: Merged redundant partial window files into a unified `MCPServerWindow.cs` for improved maintainability and compilation speed.
+- **Zero-Interaction Reliability**: The server is now truly "Autonomous," requiring zero manual intervention to remain active across development sessions.
+- **Bi-Directional Updates**: Enhanced `unity_update_component` to support writing values back to nested structs and arrays, enabling the AI to manipulate complex data models.
+
+## [2.1.2] - 2026-03-02
+
+### Fixed
+- **Submodule Integrity**: Restored missing `MCPServerWindow.UI.cs.meta` file in the submodule, ensuring the asset is correctly imported when the library is added to other projects as a package.
+- **Server UI Bug**: Fixed string interpolation bug in `MCPServerWindow.Server.cs` where the port number was not being correctly displayed in the console logs.
+
+### Changed
+- **Code Hygiene**: Added `#pragma warning disable 0618` across all core files to suppress obsolete `InstanceIDToObject` warnings, ensuring a cleaner console in Unity 2021.3+.
+- **Architectural Cleanup**: Removed unused fields and refactored compilation tracking in `MCPServerWindow.cs` to reduce redundant state updates.
+
+## [2.1.1] - 2026-03-01
+
+### Fixed
+- **HTTP Origin Security**: Implemented strict `Origin` header validation for standard HTTP requests to prevent Cross-Site Request Forgery (CSRF) and DNS Rebinding attacks.
+- **Linter Compliance**: Refactored request handling logic in `MCPServerWindow.Server.cs` to maintain method length limits (< 40 lines).
+
+### Performance
+- **Search Optimization (Bolt)**: Optimized `unity_find_objects` by eliminating N+1 component allocations. It now uses `Resources.FindObjectsOfTypeAll(type)` for targeted discovery and pre-instantiated local `Regex` objects, significantly improving performance in large projects.
+
+### Added
+- **Transient UI Notifications (Palette)**: Integrated `ShowNotification` for key developer actions (Server Start/Stop, Clear Logs, CLI Linking). This provides immediate visual feedback in the Unity Editor without cluttering the console.
 
 ## [2.1.0] - 2026-02-27
 
 ### Added
-- **UI Toolkit Support**: Initial integration for inspecting and interacting with Unity's modern UI system.
-- **Async RPC Handling**: Moved JSON-RPC processing to a background thread with main-thread dispatching.
-- **Undo Integration**: Added support for standard Unity Undo/Redo operations for all scene modifications.
+- `unity_get_component_schema`: Returns names and types of serializable fields for a component.
+- `unity_create_hierarchy`: Batch create a full GameObject hierarchy from a JSON tree.
+- `unity_find_by_path`: Search for GameObjects using their hierarchy path (e.g., "Canvas/Main/Title").
+- `unity_wait_for_ready`: Simple tool to poll for server responsiveness.
+
+### Changed
+- `unity_update_component`: Now returns a detailed result object with `status` ("Success", "Partial", "Failed"), `updated_count`, and a list of `errors` for individual fields.
+
+## [2.0.6] - 2026-02-24
+
+### Fixed
+- **Inspector Object Linking**: Added support for `ObjectReference` in `unity_update_component`. AI agents can now link materials, textures, and other game objects in the Inspector by providing an InstanceID or asset path.
+- **Enhanced Property Inspection**: Improved `unity_inspect_component` to correctly return metadata (ID, name, type) for linked objects instead of just a generic string.
+
+## [2.0.5] - 2026-02-24
+
+### Added
+- **Global Context Capture**: Initial release of the `read_logs` and `get_editor_state` tools.
+- **Object Manipulation**: Basic support for `create_primitive`, `set_transform`, and `destroy_game_object`.
+- **Core JSON-RPC Engine**: Native C# implementation of the Model Context Protocol.
