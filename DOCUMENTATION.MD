@@ -61,7 +61,7 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 `unity_create_scene`, `unity_open_scene`, `unity_save_scene`, `unity_list_scenes`, `unity_create_game_object`, `unity_create_primitive`, `unity_destroy_game_object`, `unity_duplicate_object`, `unity_set_active`, `unity_set_parent`, `unity_set_sibling_index`, `unity_create_hierarchy`.
 
 #### 🧩 Components & Properties
-`unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_get_component_schema`, `unity_update_component`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
+`unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_get_component_schema`, `unity_update_component`, `unity_invoke_method`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
 
 #### 📦 Asset Management
 `unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
@@ -104,6 +104,9 @@ Returns full serialized state of any component.
 #### `update_component`
 Updates component values using `SerializedObject`. Returns a detailed result with `status` and `errors`.
 - **Advanced Referencing**: Supports setting object references via `instance_id` or persistent `{ "guid": "...", "file_id": 123 }` objects. Useful for sub-assets like sliced sprites.
+
+#### `invoke_method`
+Scriptless Method Invoker. Executes a specific method (public or private) on a component or GameObject via C# reflection. Excellent for triggering behavior in Play Mode without writing test scripts.
 
 #### `set_property`
 Surgical update of a single property (bool, int, float, string, Vector3).

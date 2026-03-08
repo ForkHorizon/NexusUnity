@@ -134,6 +134,15 @@ Batch updates component properties using JSON with detailed result reporting.
 - **Returns**: Result object `{status, updated_count, errors}`.
 - **Status**: `"Success"`, `"Partial"`, or `"Failed"`.
 
+### `unity_invoke_method`
+Invokes a C# method on a Component or GameObject using reflection. Allows triggering internal behaviors without compilation.
+- **Parameters**:
+  - `instance_id` (integer, required): Target GameObject ID.
+  - `component_name` (string, optional): Component name to invoke on. If omitted, invokes on the GameObject itself.
+  - `method_name` (string, required): The exact method name (public or private).
+  - `arguments` (array, optional): JSON array of arguments matching the method signature.
+- **Returns**: The method's return value serialized as JSON, or `"Success"` if void.
+
 ### `unity_set_transform`
 Surgical update of object position, rotation, or scale.
 - **Parameters**:

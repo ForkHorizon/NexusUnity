@@ -22,6 +22,7 @@ namespace UnityMCP.Editor
             _methods["get_component_schema"] = GetComponentSchema;
             _methods["set_transform"] = SetTransform;
             _methods["set_parent"] = SetParent;
+            _methods["invoke_method"] = InvokeMethod;
         }
 
         private static JToken AddComponent(JToken p)
@@ -365,6 +366,100 @@ namespace UnityMCP.Editor
             var parent = EditorUtility.InstanceIDToObject((int)p["parent_id"]) as GameObject;
             Undo.SetTransformParent(go.transform, parent?.transform, "Set Parent");
             return "Parent set";
+        }
+
+        private static JToken InvokeMethod(JToken p)
+        {
+            if (p == null || p["instance_id"] == null || p["method_name"] == null) 
+                throw new Exception("instance_id and method_name required");
+            
+            var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
+            if (go == null) throw new Exception("GameObject not found");
+
+            object target = go;
+            string compName = p["component_name"]?.ToString();
+            if (!string.IsNullOrEmpty(compName))
+            {
+                var comp = go.GetComponent(compName);
+                if (comp == null) throw new Exception($"Component '{compName}' not found on object");
+                target = comp;
+            }
+
+            string methodName = p["method_name"].ToString();
+            var argsArray = p["arguments"] as JArray;
+            int argCount = argsArray != null ? argsArray.Count : 0;
+
+            var methods = target.GetType().GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .Where(m => m.Name == methodName && m.GetParameters().Length == argCount)
+                .ToList();
+
+            if (methods.Count == 0)
+                throw new Exception($"Method '{methodName}' with {argCount} parameters not found on '{target.GetType().Name}'");
+            
+            if (methods.Count > 1)
+                throw new Exception($"Ambiguous method call. Found multiple '{methodName}' with {argCount} parameters.");
+
+            var method = methods[0];
+            var parameters = method.GetParameters();
+            object[] invokeArgs = new object[argCount];
+
+            for (int i = 0; i < argCount; i++)
+            {
+                var expectedType = parameters[i].ParameterType;
+                var jsonValue = argsArray[i];
+
+                try
+                {
+                    if (jsonValue.Type == JTokenType.Null)
+                    {
+                        invokeArgs[i] = null;
+                    }
+                    else if (expectedType == typeof(int)) invokeArgs[i] = (int)jsonValue;
+                    else if (expectedType == typeof(float)) invokeArgs[i] = (float)jsonValue;
+                    else if (expectedType == typeof(double)) invokeArgs[i] = (double)jsonValue;
+                    else if (expectedType == typeof(bool)) invokeArgs[i] = (bool)jsonValue;
+                    else if (expectedType == typeof(string)) invokeArgs[i] = (string)jsonValue;
+                    else
+                    {
+                        // Fallback using JSON deserialization
+                        invokeArgs[i] = jsonValue.ToObject(expectedType);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failed to convert argument {i} to type '{expectedType.Name}': {ex.Message}");
+                }
+            }
+
+            object result = null;
+            try
+            {
+                result = method.Invoke(target, invokeArgs);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Method invocation failed: {ex.InnerException?.Message ?? ex.Message}");
+            }
+
+            if (method.ReturnType == typeof(void))
+                return "Success";
+
+            if (result == null) return JValue.CreateNull();
+
+            // Try basic serialization for the result
+            if (result is int || result is float || result is bool || result is string || result is double)
+                return JToken.FromObject(result);
+            if (result is Vector3 v3) return new JObject { ["x"] = v3.x, ["y"] = v3.y, ["z"] = v3.z };
+            if (result is Vector2 v2) return new JObject { ["x"] = v2.x, ["y"] = v2.y };
+            
+            try
+            {
+                return JToken.FromObject(result);
+            }
+            catch
+            {
+                return result.ToString();
+            }
         }
     }
 }

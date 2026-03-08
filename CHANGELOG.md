@@ -5,6 +5,7 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 ## [2.3.0] - 2026-03-08
 
 ### Added
+- **Scriptless Method Invoker**: Introduced `unity_invoke_method` which uses C# reflection to let the AI dynamically trigger any method (public or private) on GameObjects and Components during Play Mode without writing temporary test scripts.
 - **Scene Reference Finder**: Added `unity_find_references` tool to safely query which GameObjects and Assets depend on a specific Asset GUID or Instance ID, enabling safe refactoring and deletion analysis.
 - **Sub-Asset Identification**: The `unity_explore_asset` tool now returns the `instance_id` for every sub-asset found, allowing for immediate session-based referencing.
 - **Persistent Object Referencing**: Upgraded `unity_update_component` to support persistent object assignment using a `{ "guid": "...", "file_id": ... }` object format. This enables the AI to safely link sub-assets like sliced sprites across different machines and sessions.
