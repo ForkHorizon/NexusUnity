@@ -15,6 +15,7 @@ namespace UnityMCP.Editor
 {
     /// <summary>
     /// Static service that runs the local MCP server autonomously.
+    /// Handles the background heartbeat and OS-level App Nap bypass.
     /// </summary>
     [InitializeOnLoad]
     public static class MCPServer
@@ -33,17 +34,17 @@ namespace UnityMCP.Editor
         private const int _MAX_LOGS = 1000;
         private static string PrefsKey => $"NexusUnity_ServerRunning_{Application.dataPath.GetHashCode()}";
         
-        private static int _backgroundTaskId = -1;
 
         static MCPServer()
         {
             _mainThreadQueue = new ConcurrentQueue<Action>();
             _logs = new ConcurrentQueue<LogEntry>();
-            EditorApplication.delayCall += Init;
         }
 
+        [InitializeOnLoadMethod]
         internal static async void Init()
         {
+            AppNapBypass.CacheApplicationPath();
             UpdateVersion();
             MCPServerMethods.Init();
             
@@ -68,17 +69,34 @@ namespace UnityMCP.Editor
                     retries--;
                 }
                 Start();
+                
+                #if UNITY_EDITOR_OSX
+                // After domain reload, wait for the editor to fully settle before 
+                // returning focus to the previous app.
+                _postCompileFramesToWait = 15;
+                EditorApplication.update += HandlePostCompileFocusReturn;
+                #endif
             }
         }
+
+        #if UNITY_EDITOR_OSX
+        private static int _postCompileFramesToWait = 15;
+        private static void HandlePostCompileFocusReturn()
+        {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+
+            _postCompileFramesToWait--;
+            if (_postCompileFramesToWait <= 0)
+            {
+                EditorApplication.update -= HandlePostCompileFocusReturn;
+                AppNapBypass.ReturnToPreviousApp();
+            }
+        }
+        #endif
 
         private static void StartHeartbeat()
         {
             StopHeartbeat();
-            
-            // Create a Progress task to signal to Unity/macOS that work is happening.
-            // We use Progress.Options.None for compatibility.
-            _backgroundTaskId = Progress.Start("Nexus MCP Server", "Active", Progress.Options.None);
-            
             ScheduleNextHeartbeat();
         }
 
@@ -86,21 +104,20 @@ namespace UnityMCP.Editor
         {
             if (!_isRunning) return;
 
-            // delayCall ALWAYS runs on the Main Thread.
             EditorApplication.delayCall += () => 
             {
                 if (!_isRunning) return;
                 
-                // On the Main Thread, these calls are safe.
                 try {
+                    // Safe Main Thread Kicks - No RepaintAllViews here to avoid thread violations.
                     EditorApplication.QueuePlayerLoopUpdate();
-                    if (_backgroundTaskId != -1) 
-                        Progress.Report(_backgroundTaskId, (float)(DateTime.Now.Millisecond / 1000.0), "Nexus Background Link Active");
+                    
+                    #if UNITY_EDITOR_OSX
+                    AppNapBypass.WakeMainLoop();
+                    #endif
+
                 } catch { }
 
-                // Schedule next pulse in 100ms. 
-                // We use a simple Task.Delay then add back to delayCall to keep the loop going
-                // without pegging the CPU at 100% in a tight loop.
                 Task.Delay(100).ContinueWith(_ => {
                     EditorApplication.delayCall += ScheduleNextHeartbeat;
                 });
@@ -109,11 +126,7 @@ namespace UnityMCP.Editor
 
         private static void StopHeartbeat()
         {
-            if (_backgroundTaskId != -1)
-            {
-                Progress.Remove(_backgroundTaskId);
-                _backgroundTaskId = -1;
-            }
+            // Heartbeat stopped via _isRunning = false; in Stop()
         }
 
         private static void UpdateVersion()
@@ -125,7 +138,6 @@ namespace UnityMCP.Editor
                     return;
                 }
 
-                // Fallback: manual search
                 string scriptPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(ScriptableObject.CreateInstance<MCPServerWindow>()));
                 string dir = Path.GetDirectoryName(scriptPath);
                 while (!string.IsNullOrEmpty(dir)) {
@@ -150,18 +162,15 @@ namespace UnityMCP.Editor
 
             if (IsPortBusy(_port))
             {
-                if (await IsAnotherMcpInstanceRunning())
-                {
-                    Debug.LogWarning($"[MCP] Port {_port} is already in use by another Unity MCP instance.");
-                }
-                else
-                {
-                    Debug.LogError($"[MCP] Port {_port} is being used by another application. Please change the port in Project Settings.");
-                }
+                if (await IsAnotherMcpInstanceRunning()) return;
+                Debug.LogError($"[MCP] Port {_port} is being used by another application.");
                 return;
             }
             
             _isRunning = true;
+            #if UNITY_EDITOR_OSX
+            AppNapBypass.Enable();
+            #endif
             StartHeartbeat();
             BindAndStartListener();
         }
@@ -169,6 +178,9 @@ namespace UnityMCP.Editor
         internal static void Stop()
         {
             EditorPrefs.SetBool(PrefsKey, false);
+            #if UNITY_EDITOR_OSX
+            AppNapBypass.Disable();
+            #endif
             Cleanup();
             Debug.Log("[MCP] Server stopped manually");
         }
@@ -215,7 +227,6 @@ namespace UnityMCP.Editor
             {
                 _cts = new CancellationTokenSource();
                 _listener = new HttpListener();
-                // Add prefixes for both 127.0.0.1 and localhost for maximum compatibility
                 _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
                 _listener.Prefixes.Add($"http://localhost:{_port}/");
                 _listener.Start();
@@ -275,7 +286,11 @@ namespace UnityMCP.Editor
                     context.Response.OutputStream.Write(buffer, 0, buffer.Length);
                     context.Response.Close();
                 }
-            } catch (Exception e) {
+            }
+            catch (ObjectDisposedException) { }
+            catch (System.Net.HttpListenerException) { }
+            catch (Exception e)
+            {
                 Debug.LogError($"[MCP] Error handling HTTP request: {e.Message}");
             }
         }
@@ -341,11 +356,6 @@ namespace UnityMCP.Editor
                 try { action?.Invoke(); }
                 catch (Exception e) { Debug.LogError($"[MCP] Error executing enqueued action: {e.Message}"); }
             }
-
-            // Force a repaint in a safe phase
-            EditorApplication.delayCall += () => {
-                try { UnityEditorInternal.InternalEditorUtility.RepaintAllViews(); } catch { }
-            };
         }
 
         private static void OnLogMessageReceived(string condition, string stackTrace, LogType type)
@@ -356,8 +366,6 @@ namespace UnityMCP.Editor
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);
-            // DO NOT call QueuePlayerLoopUpdate here, it is not thread-safe.
-            // The heartbeat loop running on the main thread will pick it up.
         }
 
         private static void ParseCommandLineArgs()

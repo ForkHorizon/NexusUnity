@@ -192,7 +192,40 @@ namespace UnityMCP.Editor
             string root = System.IO.Path.GetFullPath(".");
             string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
 
-            AssetDatabase.ImportAsset(relativePath);
+            bool isScript = fullPath.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase);
+
+            if (!isScript)
+            {
+                // Non-scripts don't trigger domain reload, safe to run synchronously
+                AssetDatabase.ImportAsset(relativePath);
+            }
+            else
+            {
+                // Scripts trigger domain reload which blocks the HTTP response.
+                // Unity strictly aborts Domain Reloads if the Editor window is in the background 
+                // to protect external IDE development. We use LaunchServices (open -a) to explicitly
+                // foreground the Editor, and wait for true OS focus before triggering the Refresh.
+                
+                #if UNITY_EDITOR_OSX
+                AppNapBypass.ScheduleActivation();
+                #endif
+
+                EditorApplication.CallbackFunction waitForFocus = null;
+                waitForFocus = () => {
+                    // Wait until the OS natively grants Unity the foreground focus
+                    if (UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+                    {
+                        EditorApplication.update -= waitForFocus;
+                        
+                        // Now that Unity officially owns the foreground, the background safety lock 
+                        // is open. Refresh synchronously to explicitly reconstruct the C# Assemblies.
+                        AssetDatabase.Refresh();
+                    }
+                };
+                
+                EditorApplication.update += waitForFocus;
+            }
+
             return "OK";
         }
     }

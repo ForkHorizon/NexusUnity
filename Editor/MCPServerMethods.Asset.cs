@@ -10,6 +10,7 @@ namespace UnityMCP.Editor
 {
     /// <summary>
     /// Partial implementation of MCPServerMethods handling Asset manipulation.
+    /// Handles the autonomous background compilation by waiting for OS focus.
     /// </summary>
     public static partial class MCPServerMethods
     {
@@ -97,11 +98,28 @@ namespace UnityMCP.Editor
 
         private static JToken RefreshAssetDatabase(JToken p)
         {
+            #if UNITY_EDITOR_OSX
+            // Signal AppNapBypass to bring Unity to the foreground so compilation can happen.
+            AppNapBypass.ScheduleActivation();
+
+            EditorApplication.CallbackFunction waitForFocus = null;
+            waitForFocus = () => {
+                if (UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+                {
+                    EditorApplication.update -= waitForFocus;
+                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+                    AssetDatabase.SaveAssets();
+                }
+            };
+            EditorApplication.update += waitForFocus;
+            #else
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             AssetDatabase.SaveAssets();
+            #endif
+
             return new JObject 
             { 
-                ["status"] = "Refreshed", 
+                ["status"] = "RefreshScheduled", 
                 ["is_compiling"] = EditorApplication.isCompiling,
                 ["is_updating"] = EditorApplication.isUpdating
             };
@@ -140,7 +158,6 @@ namespace UnityMCP.Editor
             return "Overrides reverted";
         }
 
-        /// <summary>Moves or renames an asset, merging directories if necessary.</summary>
         private static JToken MoveAsset(JToken p)
         {
             if (p?["old_path"] == null || p["new_path"] == null) throw new Exception("old_path and new_path required");
@@ -190,7 +207,6 @@ namespace UnityMCP.Editor
             AssetDatabase.DeleteAsset(sourceDir);
         }
 
-        /// <summary>Deletes an asset file.</summary>
         private static JToken DeleteAsset(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
@@ -198,7 +214,6 @@ namespace UnityMCP.Editor
             return "OK";
         }
 
-        /// <summary>Duplicates an asset file.</summary>
         private static JToken CopyAsset(JToken p)
         {
             if (p?["source_path"] == null || p["dest_path"] == null) throw new Exception("source_path and dest_path required");
@@ -206,7 +221,6 @@ namespace UnityMCP.Editor
             return "OK";
         }
 
-        /// <summary>Returns all assets required by a target asset.</summary>
         private static JToken GetDependencies(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
@@ -215,7 +229,6 @@ namespace UnityMCP.Editor
             return new JArray(deps);
         }
 
-        /// <summary>Creates a new folder in the project.</summary>
         private static JToken CreateFolder(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required (e.g., 'Assets/NewFolder')");
