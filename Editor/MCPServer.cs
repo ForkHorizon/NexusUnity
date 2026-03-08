@@ -90,7 +90,7 @@ namespace UnityMCP.Editor
                     }
                     dir = Path.GetDirectoryName(dir);
                 }
-            } catch { _version = "2.2.0"; }
+            } catch { _version = "2.3.0"; }
         }
 
         public static int Port => _port;

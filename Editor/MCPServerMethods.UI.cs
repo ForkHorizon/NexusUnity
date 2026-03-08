@@ -19,6 +19,7 @@ namespace UnityMCP.Editor
             _methods["ui_get_hierarchy"] = UIGetHierarchy;
             _methods["ui_click"] = UIClick;
             _methods["ui_input_text"] = UIInputText;
+            _methods["ui_query_elements"] = UIQueryElements;
         }
 
         private static JToken UIListWindows(JToken p)
@@ -32,7 +33,66 @@ namespace UnityMCP.Editor
             if (p == null || p["window_title"] == null) throw new Exception("window_title is required");
             var w = FindWindow(p["window_title"].ToString());
             if (w == null) throw new Exception("Window not found");
-            return SerializeVisualElement(w.rootVisualElement);
+            bool deep = p["deep"] != null && (bool)p["deep"];
+            return SerializeVisualElement(w.rootVisualElement, deep);
+        }
+
+        private static JToken UIQueryElements(JToken p)
+        {
+            if (p == null || p["window_title"] == null) throw new Exception("window_title is required");
+            var w = FindWindow(p["window_title"].ToString());
+            if (w == null) throw new Exception("Window not found");
+
+            string textMatch = p["text"]?.ToString();
+            string nameMatch = p["name"]?.ToString();
+            string classMatch = p["class_name"]?.ToString();
+
+            var results = new JArray();
+            QueryVisualElementRecursive(w.rootVisualElement, textMatch, nameMatch, classMatch, results);
+            return results;
+        }
+
+        private static void QueryVisualElementRecursive(VisualElement el, string textMatch, string nameMatch, string classMatch, JArray results)
+        {
+            if (el == null) return;
+
+            bool matches = true;
+
+            if (!string.IsNullOrEmpty(nameMatch) && el.name != nameMatch)
+                matches = false;
+
+            if (matches && !string.IsNullOrEmpty(classMatch) && !el.ClassListContains(classMatch))
+                matches = false;
+
+            if (matches && !string.IsNullOrEmpty(textMatch))
+            {
+                if (el is TextElement te)
+                {
+                    if (string.IsNullOrEmpty(te.text) || !te.text.Contains(textMatch, StringComparison.OrdinalIgnoreCase))
+                        matches = false;
+                }
+                else
+                {
+                    matches = false; // Not a text element
+                }
+            }
+
+            // We only add to results if at least one query parameter was provided AND it matched
+            if (matches && (!string.IsNullOrEmpty(textMatch) || !string.IsNullOrEmpty(nameMatch) || !string.IsNullOrEmpty(classMatch)))
+            {
+                // We serialize this element deeply but without its full children tree to avoid massive payloads
+                var obj = SerializeVisualElement(el, true);
+                if (obj is JObject jobj && jobj.ContainsKey("children"))
+                {
+                    jobj.Remove("children"); // Remove deep children for the query result, we just want the matched node
+                }
+                results.Add(obj);
+            }
+
+            foreach (var child in el.Children())
+            {
+                QueryVisualElementRecursive(child, textMatch, nameMatch, classMatch, results);
+            }
         }
 
         private static JToken UIClick(JToken p)

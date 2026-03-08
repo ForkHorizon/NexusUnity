@@ -73,7 +73,7 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 `unity_get_game_object`, `unity_get_active_game_object`, `unity_get_root_game_objects`, `unity_get_object_path`, `unity_find_objects`, `unity_find_references`, `unity_find_by_path`, `unity_get_tags_and_layers`, `unity_ping_object`, `unity_get_children`, `unity_get_editor_state`, `unity_get_project_info`, `unity_set_selection`.
 
 #### 🖥 UI Toolkit Automation
-`unity_ui_list_windows`, `unity_ui_get_hierarchy`, `unity_ui_click`, `unity_ui_input_text`.
+`unity_ui_list_windows`, `unity_ui_get_hierarchy`, `unity_ui_query_elements`, `unity_ui_click`, `unity_ui_input_text`.
 
 ---
 

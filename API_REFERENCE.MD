@@ -343,7 +343,17 @@ Lists all currently open Editor Windows.
 Inspects the VisualElement tree of an Editor Window.
 - **Parameters**:
   - `window_title` (string, required): Title of the target window.
-- **Returns**: JSON tree of UI elements.
+  - `deep` (boolean, optional): If true, includes computed styles and layout for every node.
+- **Returns**: JSON tree of UI elements (now includes `text` and `classes` by default).
+
+### `unity_ui_query_elements`
+Deep query of UI elements by text content, name, or CSS class. Essential for finding specific buttons or labels.
+- **Parameters**:
+  - `window_title` (string, required): Title of the target window.
+  - `text` (string, optional): Text content to search for (e.g. "Buy").
+  - `name` (string, optional): Element name.
+  - `class_name` (string, optional): UXML CSS class name.
+- **Returns**: Array of matching VisualElements with their deep computed styles (`layout`, `computed_style`, `text`, `classes`).
 
 ### `unity_ui_click`
 Simulates a click on a UI element.

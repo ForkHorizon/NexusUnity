@@ -9,7 +9,7 @@ namespace UnityMCP.Editor
     {
         private double _lastUrlCopyTime = -10.0;
         private string _cliStatusMessage = "Checking link...";
-        private string _version = "2.2.0";
+        private string _version = "2.3.0";
         private int _selectedTab = 0;
         private string[] _tabs;
 
