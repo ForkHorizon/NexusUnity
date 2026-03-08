@@ -20,6 +20,7 @@ namespace UnityMCP.Editor
             _methods["find_objects"] = FindObjects;
             _methods["find_by_path"] = FindByPath;
             _methods["ping_object"] = PingObject;
+            _methods["find_references"] = FindReferences;
         }
 
         private static JToken FindByPath(JToken p)
@@ -97,6 +98,120 @@ namespace UnityMCP.Editor
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
             return "Pinged";
+        }
+
+        private static JToken FindReferences(JToken p)
+        {
+            string targetGuid = p?["target_guid"]?.ToString();
+            int? targetId = p?["target_id"]?.ToObject<int?>();
+
+            if (string.IsNullOrEmpty(targetGuid) && !targetId.HasValue)
+                throw new System.Exception("Either target_guid or target_id is required.");
+
+            Object targetObject = null;
+            if (!string.IsNullOrEmpty(targetGuid))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(targetGuid);
+                if (!string.IsNullOrEmpty(path))
+                    targetObject = AssetDatabase.LoadAssetAtPath<Object>(path);
+            }
+            else if (targetId.HasValue)
+            {
+                targetObject = EditorUtility.InstanceIDToObject(targetId.Value);
+            }
+
+            if (targetObject == null)
+                throw new System.Exception("Could not find the target object.");
+
+            var assetRefs = new JArray();
+            string searchGuid = targetGuid;
+
+            if (string.IsNullOrEmpty(searchGuid))
+            {
+                string path = AssetDatabase.GetAssetPath(targetObject);
+                if (!string.IsNullOrEmpty(path))
+                    searchGuid = AssetDatabase.AssetPathToGUID(path);
+            }
+
+            if (!string.IsNullOrEmpty(searchGuid))
+            {
+                string[] dependencies = AssetDatabase.FindAssets("ref:" + searchGuid);
+                foreach (var guid in dependencies)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!string.IsNullOrEmpty(path))
+                        assetRefs.Add(path);
+                }
+            }
+
+            var sceneRefs = new JArray();
+            var allGameObjects = Resources.FindObjectsOfTypeAll<GameObject>()
+                .Where(go => go.hideFlags == HideFlags.None || go.hideFlags == HideFlags.NotEditable);
+
+            var targetInstanceIds = new HashSet<int>();
+            if (targetObject != null)
+                targetInstanceIds.Add(targetObject.GetInstanceID());
+
+            if (!string.IsNullOrEmpty(searchGuid))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(searchGuid);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    var allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+                    foreach (var a in allAssets)
+                    {
+                        if (a != null)
+                            targetInstanceIds.Add(a.GetInstanceID());
+                    }
+                }
+            }
+
+            foreach (var go in allGameObjects)
+            {
+                if (go.scene == null || !go.scene.isLoaded) continue;
+
+                var components = go.GetComponents<Component>();
+                bool matches = false;
+                List<string> matchingComponents = new List<string>();
+
+                foreach (var comp in components)
+                {
+                    if (comp == null) continue;
+
+                    using (var so = new SerializedObject(comp))
+                    {
+                        var prop = so.GetIterator();
+                        bool enterChildren = true;
+                        while (prop.Next(enterChildren))
+                        {
+                            enterChildren = true;
+                            if (prop.propertyType == SerializedPropertyType.ObjectReference)
+                            {
+                                if (targetInstanceIds.Contains(prop.objectReferenceInstanceIDValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetInstanceID())))
+                                {
+                                    matches = true;
+                                    matchingComponents.Add(comp.GetType().Name);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (matches)
+                {
+                    var goData = new JObject();
+                    goData["name"] = go.name;
+                    goData["instance_id"] = go.GetInstanceID();
+                    goData["components"] = new JArray(matchingComponents.Distinct());
+                    sceneRefs.Add(goData);
+                }
+            }
+
+            var result = new JObject();
+            result["asset_references"] = assetRefs;
+            result["scene_references"] = sceneRefs;
+            return result;
         }
     }
 }

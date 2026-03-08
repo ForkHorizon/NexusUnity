@@ -291,7 +291,14 @@ Deep regex-based search for objects in the scene.
   - `name` (string, optional): Regex for name.
   - `tag` (string, optional): Exact tag match.
   - `type` (string, optional): Component type filter.
-- **Returns**: Array of matching objects (Max 50).
+- **Returns**: Array of GameObjects (max 50).
+
+### `unity_find_references`
+Finds which Assets and scene GameObjects reference a specific object. Essential for safe deletions and reorganizations.
+- **Parameters** (Provide exactly one):
+  - `target_guid` (string, optional): The GUID of the asset to search for.
+  - `target_id` (integer, optional): The Instance ID of the object to search for.
+- **Returns**: Object with `asset_references` (array of file paths) and `scene_references` (array of GameObjects with their components that hold the reference).
 
 ### `unity_find_by_path`
 Search for a GameObject using its hierarchy path.
