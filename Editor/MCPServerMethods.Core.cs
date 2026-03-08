@@ -127,7 +127,7 @@ namespace UnityMCP.Editor
         private static void AddAssetTools(JArray tools)
         {
             tools.Add(CreateTool("list_assets", "List assets", new JObject { ["filter"] = new JObject { ["type"] = "string" } }));
-            tools.Add(CreateTool("get_asset_metadata", "Get GUID and fileIDs for an asset and its sub-assets (e.g. sliced sprites).", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
+            tools.Add(CreateTool("explore_asset", "List all internal sub-assets (e.g., sliced sprites) and their fileIDs within a single file.", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("create_material", "Create material", new JObject { ["name"] = new JObject { ["type"] = "string" }, ["shader"] = new JObject { ["type"] = "string" } }, "name"));
             tools.Add(CreateTool("refresh_asset_database", "Refresh Assets", new JObject { }));
             tools.Add(CreateTool("import_asset", "Import file", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));

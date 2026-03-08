@@ -21,7 +21,7 @@ namespace UnityMCP.Editor
             _methods["get_dependencies"] = GetDependencies;
             _methods["create_folder"] = CreateFolder;
             _methods["list_assets"] = ListAssets;
-            _methods["get_asset_metadata"] = GetAssetMetadata;
+            _methods["explore_asset"] = ExploreAsset;
             _methods["create_material"] = CreateMaterial;
             _methods["refresh_asset_database"] = RefreshAssetDatabase;
             _methods["import_asset"] = ImportAsset;
@@ -30,7 +30,7 @@ namespace UnityMCP.Editor
             _methods["revert_prefab_overrides"] = RevertPrefabOverrides;
         }
 
-        private static JToken GetAssetMetadata(JToken p)
+        private static JToken ExploreAsset(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
             string path = p["path"].ToString();

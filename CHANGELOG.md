@@ -11,7 +11,7 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 - **Recursive Serialization Engine**: Upgraded `unity_inspect_component` to recursively unpack Arrays, Lists, and Generic structs. It now correctly serializes deep data structures like `BoxCollider` center/size and custom serializable classes.
 - **Extended Math Support**: Added full JSON serialization for `Vector2`, `Vector4`, `Rect`, and `Bounds` types.
 - **Intelligent Asset Merging**: Enhanced `unity_move_asset` to automatically merge directories when the destination already exists. It now recursively moves all contents instead of failing with a "Destination already exists" error.
-- **Safe Metadata Extraction**: Added `unity_get_asset_metadata` tool to safely retrieve asset GUIDs and internal `fileID`s for sub-assets (e.g., sliced sprites), eliminating the need for brittle `.meta` file parsing.
+- **Sub-Asset Explorer**: Added `unity_explore_asset` tool to safely retrieve asset GUIDs and list all internal sub-assets and their `fileID`s (e.g., sliced sprites), eliminating the need for brittle `.meta` file parsing.
 
 ### Fixed
 - **Serialized Field Blindness**: Resolved an issue where `unity_inspect_component` was blind to fields marked with `[HideInInspector]` or internal Unity fields. Replaced `NextVisible` with `Next` to ensure 100% data visibility.

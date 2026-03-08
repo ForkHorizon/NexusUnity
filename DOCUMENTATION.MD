@@ -64,7 +64,7 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 `unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_get_component_schema`, `unity_update_component`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
 
 #### 📦 Asset Management
-`unity_list_assets`, `unity_get_asset_metadata`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
+`unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
 
 #### 🎮 Editor Control
 `unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_wait_for_ready`, `unity_enforce_forced_defaults`.
