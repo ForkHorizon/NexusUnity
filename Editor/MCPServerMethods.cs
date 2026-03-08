@@ -109,7 +109,7 @@ namespace UnityMCP.Editor
                     catch (Exception e) { error = e.Message; }
                     finally { signal.Set(); }
                 });
-                if (!signal.Wait(10000)) error = "Timeout waiting for Main Thread";
+                if (!signal.Wait(60000)) error = "Timeout waiting for Main Thread";
             }
             return CreateJsonResponse(id, result, error);
         }
