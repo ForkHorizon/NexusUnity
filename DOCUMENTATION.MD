@@ -67,7 +67,7 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 `unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
 
 #### 🎮 Editor Control
-`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_wait_for_ready`, `unity_enforce_forced_defaults`.
+`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_wait_for_ready`, `unity_wait_for_compilation`, `unity_wait_for_play_mode`, `unity_enforce_forced_defaults`.
 
 #### 🔍 Discovery & Inspection
 `unity_get_game_object`, `unity_get_active_game_object`, `unity_get_root_game_objects`, `unity_get_object_path`, `unity_find_objects`, `unity_find_references`, `unity_find_by_path`, `unity_get_tags_and_layers`, `unity_ping_object`, `unity_get_children`, `unity_get_editor_state`, `unity_get_project_info`, `unity_set_selection`.

@@ -4,12 +4,12 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 ## 🚀 Features
 
-- **Autonomous core Service**: Standalone background service that persists through window closures and Unity restarts.
+- **Autonomous Background Workflow**: Native macOS App Nap bypass and focus-stealing synchronization for 100% zero-touch script compilation.
+- **Hybrid Deep Auditor**: Combined static code analysis (via Project Auditor) and Nexus-native scene health scanning.
+- **Intuitive Component Updates**: Supports native JSON objects and fuzzy property naming (e.g., auto-maps `sprite` to `m_Sprite`).
+- **Standardized Return Payloads**: Consistent `JObject` returns across all 61+ tools for predictable AI error handling.
+- **Native Wait Tools**: Built-in Python bridge tools to wait for compilation or play mode transitions.
 - **Intelligent Asset Merging**: High-level `move_asset` tool that automatically merges directories.
-- **Anti-Throttling Heartbeat**: Guaranteed real-time response even when Unity is in the background.
-- **Full Unity Editor Control**: 61+ JSON-RPC methods for manipulating Scenes, Assets, GameObjects, and Components.
-- **Deterministic C# Linter**: Integrated Roslyn-based auditor to enforce code standards (Method length, Complexity, Nesting).
-- **Gemini CLI Native**: One-click integration with the Gemini CLI via the unified dashboard.
 - **Surgical Property Editing**: Deep recursive serialization of Arrays, Lists, and Generic structs.
 - **UI Toolkit Automation**: Inspect and interact with Unity Editor windows and visual elements.
 

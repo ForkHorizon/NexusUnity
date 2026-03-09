@@ -293,6 +293,20 @@ Creates a new C# script and triggers compilation.
 Simple ping tool that returns `true` once the Unity server is responsive.
 - **Returns**: Boolean `true`.
 
+### `unity_wait_for_compilation`
+Blocks the bridge until Unity finishes compiling scripts and reloads the domain. 
+- **Use Case**: Call this immediately after `unity_write_file` or `unity_refresh_asset_database` to ensure your next command doesn't hit a "Connection Refused" error during reload.
+- **Parameters**:
+  - `timeout_seconds` (integer, optional): Max seconds to wait (Default: 90).
+- **Returns**: Status object `{status, time_waited_seconds}`.
+
+### `unity_wait_for_play_mode`
+Blocks the bridge until Unity enters or exits Play Mode.
+- **Parameters**:
+  - `state` (boolean, required): `true` to wait for Play Mode, `false` for Edit Mode.
+  - `timeout_seconds` (integer, optional): Max seconds to wait (Default: 60).
+- **Returns**: Status object `{status, time_waited_seconds}`.
+
 ---
 
 ## 🔍 Discovery & Inspection
