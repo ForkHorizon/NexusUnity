@@ -79,6 +79,7 @@ namespace UnityMCP.Editor
             var sceneIssues = new JArray();
             ScanSceneHealth(sceneIssues);
             result["scene_issues"] = sceneIssues;
+            result["status"] = "Success";
 
             return result.ToString();
         }
