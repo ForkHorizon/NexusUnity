@@ -6,6 +6,8 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 
 ### Added
 - **Consistent Return Types**: Standardized the JSON-RPC response format across all 61+ tools. Every tool now returns a structured `JObject` with consistent keys (e.g., `status`, `message`, `data`, `items`). This eliminates parsing inconsistencies where some tools previously returned raw strings or arrays, enabling robust error handling for AI agents.
+- **Workflow Macro Tool**: Introduced `unity_apply_code_change` to the Python bridge. This single tool performs a complete write -> compile -> verify loop, dramatically reducing AI turn usage and eliminating manual terminal waits.
+- **Native Wait Tools**: Built-in Python bridge tools (`unity_wait_for_compilation`, `unity_wait_for_play_mode`) to wait out asynchronous engine states like domain reloads and mode transitions without dropping connections.
 - **Native macOS App Nap Bypass**: Implemented a dual-layer anti-throttle system: (1) a native `NSProcessInfo` integration via P/Invoke (`AppNapBypass.cs`) that disables macOS App Nap, and (2) a `delayCall` heartbeat that calls `QueuePlayerLoopUpdate` to keep Unity's editor loop responsive.
 - **Hybrid Deep Auditor**: Upgraded `unity_lint_project` into a comprehensive project health tool. It now integrates the official **Unity Project Auditor** for deep static code analysis (identifying memory leaks and performance bottlenecks) and a custom **Nexus Scene Scanner** that detects missing scripts, broken prefabs, and "pink" (error) materials.
 - **Intuitive JSON Payloads**: Upgraded `unity_update_component` to accept a native JSON `properties` object instead of a stringified payload. It now seamlessly accepts raw JSON arrays for assigning Unity `List<>` or arrays.

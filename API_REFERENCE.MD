@@ -293,6 +293,16 @@ Creates a new C# script and triggers compilation.
 Simple ping tool that returns `true` once the Unity server is responsive.
 - **Returns**: Boolean `true`.
 
+### `unity_apply_code_change` (Macro)
+The ultimate workflow optimization tool for the AI. This macro performs the full "Write -> Wait -> Check" loop in a single turn.
+1. Clears Unity logs.
+2. Writes multiple files to disk.
+3. Triggers compilation and waits out the domain reload autonomously.
+4. Gathers all post-compilation compiler errors.
+- **Parameters**:
+  - `files` (array of objects, required): The files to write. Each object must contain `path` and `content`.
+- **Returns**: Status object `{status, time_waited_seconds, compiler_errors}`. If `compiler_errors` is non-empty, `status` will be `"Failed"`.
+
 ### `unity_wait_for_compilation`
 Blocks the bridge until Unity finishes compiling scripts and reloads the domain. 
 - **Use Case**: Call this immediately after `unity_write_file` or `unity_refresh_asset_database` to ensure your next command doesn't hit a "Connection Refused" error during reload.
