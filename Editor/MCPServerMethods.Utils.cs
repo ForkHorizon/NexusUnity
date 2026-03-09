@@ -103,10 +103,10 @@ namespace UnityMCP.Editor
         }
 
         // --- Version-Agnostic ID Wrappers ---
-        // We use GetId() and MCPServerMethods.IdToObject() throughout the codebase to stay future-proof.
+        // We use GetId() and IdToObject() throughout the codebase to stay future-proof.
         // Internal obsolete calls are suppressed ONLY here.
 
-        internal static UnityEngine.Object MCPServerMethods.IdToObject(int id)
+        internal static UnityEngine.Object IdToObject(int id)
         {
             if (id == 0) return null;
             return EditorUtility.InstanceIDToObject(id);
