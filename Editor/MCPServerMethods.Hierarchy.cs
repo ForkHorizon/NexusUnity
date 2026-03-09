@@ -32,7 +32,7 @@ namespace UnityMCP.Editor
             if (tree == null) throw new System.Exception("tree required");
 
             GameObject root = CreateHierarchyRecursive(tree, parent?.transform);
-            return SerializeGameObject(root);
+            return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(root) };
         }
 
         private static GameObject CreateHierarchyRecursive(JToken node, Transform parent)
@@ -102,7 +102,7 @@ namespace UnityMCP.Editor
                 var child = go.transform.GetChild(i).gameObject;
                 children.Add(new JObject { ["name"] = child.name, ["instance_id"] = child.GetInstanceID(), ["active"] = child.activeSelf });
             }
-            return children;
+            return new JObject { ["children"] = children };
         }
 
         /// <summary>Duplicates a GameObject (Undo-supported).</summary>
@@ -126,7 +126,7 @@ namespace UnityMCP.Editor
             if (go == null) throw new System.Exception("Object not found");
             Undo.RecordObject(go, "Set Active");
             go.SetActive(p["active"].Value<bool>());
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         /// <summary>Enables or disables a specific Component.</summary>
@@ -138,7 +138,7 @@ namespace UnityMCP.Editor
             if (comp == null) throw new System.Exception("Component not found or not a Behaviour");
             Undo.RecordObject(comp, "Set Enabled");
             comp.enabled = p["enabled"].Value<bool>();
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         /// <summary>Removes a component from an object (Undo-supported).</summary>
@@ -149,7 +149,7 @@ namespace UnityMCP.Editor
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new System.Exception("Component not found");
             Undo.DestroyObjectImmediate(comp);
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         /// <summary>Changes object order in hierarchy.</summary>
@@ -168,7 +168,7 @@ namespace UnityMCP.Editor
                 else throw new System.Exception("index must be int, 'first', or 'last'");
             }
             else go.transform.SetSiblingIndex(indexVal.Value<int>());
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         /// <summary>Reads text content from a project file.</summary>
@@ -222,7 +222,7 @@ namespace UnityMCP.Editor
                 EditorApplication.update += waitForFocus;
             }
 
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
     }
 }

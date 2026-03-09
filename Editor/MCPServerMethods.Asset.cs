@@ -81,7 +81,7 @@ namespace UnityMCP.Editor
             string filter = p?["filter"]?.ToString() ?? "";
             string[] folders = p?["folders"]?.ToObject<string[]>();
             var guids = AssetDatabase.FindAssets(filter, folders);
-            return new JArray(guids.Select(AssetDatabase.GUIDToAssetPath));
+            return new JObject { ["assets"] = new JArray(guids.Select(AssetDatabase.GUIDToAssetPath)) };
         }
 
         private static JToken CreateMaterial(JToken p)
@@ -93,7 +93,7 @@ namespace UnityMCP.Editor
             string path = Path.Combine("Assets", $"{name}.mat");
             AssetDatabase.CreateAsset(mat, path);
             AssetDatabase.SaveAssets();
-            return $"Created material at {path}";
+            return new JObject { ["status"] = "Success", ["path"] = path };
         }
 
         private static JToken RefreshAssetDatabase(JToken p)
@@ -129,7 +129,7 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["path"] == null) throw new Exception("path is required");
             AssetDatabase.ImportAsset(p["path"].ToString());
-            return "Imported";
+            return new JObject { ["status"] = "Success", ["message"] = "Imported" };
         }
 
         private static JToken CreatePrefab(JToken p)
@@ -138,7 +138,7 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.SaveAsPrefabAsset(go, p["path"].ToString());
             AssetDatabase.SaveAssets();
-            return $"Prefab created at {p["path"]}";
+            return new JObject { ["status"] = "Success", ["path"] = p["path"].ToString() };
         }
 
         private static JToken ApplyPrefabOverrides(JToken p)
@@ -147,7 +147,7 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.ApplyPrefabInstance(go, InteractionMode.UserAction);
             AssetDatabase.SaveAssets();
-            return "Overrides applied";
+            return new JObject { ["status"] = "Success", ["message"] = "Overrides applied" };
         }
 
         private static JToken RevertPrefabOverrides(JToken p)
@@ -155,7 +155,7 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.RevertPrefabInstance(go, InteractionMode.UserAction);
-            return "Overrides reverted";
+            return new JObject { ["status"] = "Success", ["message"] = "Overrides reverted" };
         }
 
         private static JToken MoveAsset(JToken p)
@@ -168,12 +168,12 @@ namespace UnityMCP.Editor
             if (AssetDatabase.IsValidFolder(oldPath) && AssetDatabase.IsValidFolder(newPath))
             {
                 MergeDirectories(oldPath, newPath);
-                return "OK (Merged)";
+                return new JObject { ["status"] = "Success", ["message"] = "OK (Merged)" };
             }
 
             string result = AssetDatabase.MoveAsset(oldPath, newPath);
             if (!string.IsNullOrEmpty(result)) throw new Exception(result);
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         private static void MergeDirectories(string sourceDir, string targetDir)
@@ -211,14 +211,14 @@ namespace UnityMCP.Editor
         {
             if (p?["path"] == null) throw new Exception("path required");
             if (!AssetDatabase.DeleteAsset(p["path"].ToString())) throw new Exception("Delete failed");
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         private static JToken CopyAsset(JToken p)
         {
             if (p?["source_path"] == null || p["dest_path"] == null) throw new Exception("source_path and dest_path required");
             if (!AssetDatabase.CopyAsset(p["source_path"].ToString(), p["dest_path"].ToString())) throw new Exception("Copy failed");
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         private static JToken GetDependencies(JToken p)
@@ -226,7 +226,7 @@ namespace UnityMCP.Editor
             if (p?["path"] == null) throw new Exception("path required");
             bool recursive = p["recursive"]?.Value<bool>() ?? true;
             var deps = AssetDatabase.GetDependencies(p["path"].ToString(), recursive);
-            return new JArray(deps);
+            return new JObject { ["dependencies"] = new JArray(deps) };
         }
 
         private static JToken CreateFolder(JToken p)
@@ -237,7 +237,7 @@ namespace UnityMCP.Editor
             string name = Path.GetFileName(path);
             string guid = AssetDatabase.CreateFolder(parent, name);
             if (string.IsNullOrEmpty(guid)) throw new Exception("Failed to create folder");
-            return "OK";
+            return new JObject { ["status"] = "Success" };
         }
     }
 }

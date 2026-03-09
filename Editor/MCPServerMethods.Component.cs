@@ -31,7 +31,7 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             Type type = FindType(p["component_name"].ToString());
             if (type == null) throw new Exception($"Type '{p["component_name"]}' not found");
-            return $"Added {p["component_name"]} to {Undo.AddComponent(go, type).name}";
+            return new JObject { ["status"] = "Success", ["message"] = $"Added {p["component_name"]} to {Undo.AddComponent(go, type).name}" };
         }
 
         private static JToken InspectComponent(JToken p)
@@ -49,6 +49,7 @@ namespace UnityMCP.Editor
                 enterChildren = false; // Only enter children for the root
                 try { result[prop.name] = SerializeProperty(prop); } catch { }
             }
+            result["status"] = "Success";
             return result;
         }
 
@@ -67,7 +68,7 @@ namespace UnityMCP.Editor
                 enterChildren = false;
                 result.Add(new JObject { ["name"] = prop.name, ["type"] = prop.propertyType.ToString(), ["displayName"] = prop.displayName });
             }
-            return result;
+            return new JObject { ["properties"] = result };
         }
 
         private static JToken SerializeProperty(SerializedProperty prop)
@@ -346,7 +347,7 @@ namespace UnityMCP.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(p["path"].ToString());
             var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
             Undo.RegisterCreatedObjectUndo(go, "Instantiate Prefab");
-            return SerializeGameObject(go);
+            return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
         }
 
         private static Dictionary<string, Type> _typeCache = new Dictionary<string, Type>();
@@ -395,17 +396,21 @@ namespace UnityMCP.Editor
             {
                 result.Add(SerializeGameObject(go));
             }
-            return result;
+            return new JObject { ["objects"] = result };
         }
 
-        private static JToken GetActiveGameObject(JToken p) => Selection.activeGameObject != null ? SerializeGameObject(Selection.activeGameObject) : JValue.CreateNull();
+        private static JToken GetActiveGameObject(JToken p)
+        {
+            var go = Selection.activeGameObject;
+            return new JObject { ["status"] = "Success", ["data"] = go != null ? SerializeGameObject(go) : JValue.CreateNull() };
+        }
 
         private static JToken SetTransform(JToken p)
         {
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             Undo.RecordObject(go.transform, "Set Transform");
             if (p["position"] != null) go.transform.position = ParseVector3(p["position"], go.transform.position);
-            return SerializeGameObject(go);
+            return new JObject { ["status"] = "Success", ["message"] = "Transform updated" };
         }
 
         private static JToken SetParent(JToken p)
@@ -413,14 +418,14 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             var parent = EditorUtility.InstanceIDToObject((int)p["parent_id"]) as GameObject;
             Undo.SetTransformParent(go.transform, parent?.transform, "Set Parent");
-            return "Parent set";
+            return new JObject { ["status"] = "Success", ["message"] = "Parent set" };
         }
 
         private static JToken InvokeMethod(JToken p)
         {
             if (p == null || p["instance_id"] == null || p["method_name"] == null) 
                 throw new Exception("instance_id and method_name required");
-            
+
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new Exception("GameObject not found");
 
@@ -443,7 +448,7 @@ namespace UnityMCP.Editor
 
             if (methods.Count == 0)
                 throw new Exception($"Method '{methodName}' with {argCount} parameters not found on '{target.GetType().Name}'");
-            
+
             if (methods.Count > 1)
                 throw new Exception($"Ambiguous method call. Found multiple '{methodName}' with {argCount} parameters.");
 
@@ -490,24 +495,34 @@ namespace UnityMCP.Editor
             }
 
             if (method.ReturnType == typeof(void))
-                return "Success";
+                return new JObject { ["status"] = "Success" };
 
-            if (result == null) return JValue.CreateNull();
+            if (result == null) return new JObject { ["status"] = "Success", ["result"] = JValue.CreateNull() };
 
+            JToken resultToken;
             // Try basic serialization for the result
             if (result is int || result is float || result is bool || result is string || result is double)
-                return JToken.FromObject(result);
-            if (result is Vector3 v3) return new JObject { ["x"] = v3.x, ["y"] = v3.y, ["z"] = v3.z };
-            if (result is Vector2 v2) return new JObject { ["x"] = v2.x, ["y"] = v2.y };
-            
-            try
+                resultToken = JToken.FromObject(result);
+            else if (result is Vector3 v3) resultToken = new JObject { ["x"] = v3.x, ["y"] = v3.y, ["z"] = v3.z };
+            else if (result is Vector2 v2) resultToken = new JObject { ["x"] = v2.x, ["y"] = v2.y };
+            else
             {
-                return JToken.FromObject(result);
+                try
+                {
+                    resultToken = JToken.FromObject(result);
+                }
+                catch
+                {
+                    resultToken = result.ToString();
+                }
             }
-            catch
+
+            if (resultToken is JObject jo)
             {
-                return result.ToString();
+                jo["status"] = "Success";
+                return jo;
             }
-        }
-    }
+
+            return new JObject { ["status"] = "Success", ["result"] = resultToken };
+        }    }
 }

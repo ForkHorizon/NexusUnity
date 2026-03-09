@@ -29,7 +29,7 @@ namespace UnityMCP.Editor
             string path = p["path"].ToString();
             var go = GameObject.Find(path);
             if (go == null) throw new System.Exception($"Object at path '{path}' not found");
-            return SerializeGameObject(go);
+            return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
         }
 
         private static JToken FindObjects(JToken p)
@@ -45,7 +45,7 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(typeName))
             {
                 var type = FindType(typeName);
-                if (type == null) return new JArray(); // Short-circuit if type doesn't exist
+                if (type == null) return new JObject { ["objects"] = new JArray() }; // Short-circuit if type doesn't exist
 
                 results = Resources.FindObjectsOfTypeAll(type)
                     .OfType<Component>()
@@ -70,7 +70,7 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(tag))
                 results = results.Where(go => go.CompareTag(tag));
 
-            return new JArray(results.Take(50).Select(SerializeGameObject));
+            return new JObject { ["objects"] = new JArray(results.Take(50).Select(SerializeGameObject)) };
         }
 
         private static JToken GetObjectPath(JToken p)
@@ -88,7 +88,7 @@ namespace UnityMCP.Editor
                 pathParts.Push(t.name);
                 t = t.parent;
             }
-            return string.Join("/", pathParts);
+            return new JObject { ["status"] = "Success", ["path"] = string.Join("/", pathParts) };
         }
 
         private static JToken PingObject(JToken p)
@@ -97,7 +97,7 @@ namespace UnityMCP.Editor
             var obj = EditorUtility.InstanceIDToObject((int)p["instance_id"]);
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
-            return "Pinged";
+            return new JObject { ["status"] = "Success", ["message"] = "Pinged" };
         }
 
         private static JToken FindReferences(JToken p)
@@ -209,6 +209,7 @@ namespace UnityMCP.Editor
             }
 
             var result = new JObject();
+            result["status"] = "Success";
             result["asset_references"] = assetRefs;
             result["scene_references"] = sceneRefs;
             return result;

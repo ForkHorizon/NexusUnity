@@ -2,24 +2,6 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
-## [2.4.0] - 2026-03-09
-
-### Added
-- **Consistent Return Types**: Standardized the JSON-RPC response format across all 61+ tools. Every tool now returns a structured `JObject` with consistent keys (e.g., `status`, `message`, `data`, `items`). This eliminates parsing inconsistencies where some tools previously returned raw strings or arrays, enabling robust error handling for AI agents.
-- **Native macOS App Nap Bypass**: Implemented a dual-layer anti-throttle system: (1) a native `NSProcessInfo` integration via P/Invoke (`AppNapBypass.cs`) that disables macOS App Nap, and (2) a `delayCall` heartbeat that calls `QueuePlayerLoopUpdate` to keep Unity's editor loop responsive.
-- **Hybrid Deep Auditor**: Upgraded `unity_lint_project` into a comprehensive project health tool. It now integrates the official **Unity Project Auditor** for deep static code analysis (identifying memory leaks and performance bottlenecks) and a custom **Nexus Scene Scanner** that detects missing scripts, broken prefabs, and "pink" (error) materials.
-- **Intuitive JSON Payloads**: Upgraded `unity_update_component` to accept a native JSON `properties` object instead of a stringified payload. It now seamlessly accepts raw JSON arrays for assigning Unity `List<>` or arrays.
-- **Fuzzy Property Matching**: The `unity_update_component` tool now automatically maps AI-friendly property names (e.g., `sprite`, `myList`) to Unity's internal serialization backing fields (e.g., `m_Sprite`, `_myList`, `m_MyList`), eliminating the need to guess internal naming conventions.
-- **Native OS Focus Synchronization Loop**: Autonomous scripts now wait for `isApplicationActive` to become true before executing `AssetDatabase.Refresh()`, perfectly respecting Unity's background Domain Reload safety locks.
-- **Persistent App Path Tracking**: The Unity Editor location is now cached in `SessionState`, ensuring that focus-steal commands (`open -a`) remain functional even after multiple Domain Reloads.
-
-### Fixed
-- **macOS AppleEvent Focus Blocking**: Replaced the restricted `osascript` application activation with the native LaunchServices `open -a` command. This forcefully bypasses macOS Monterey+ security that was silently suppressing background focus steals, ensuring 100% reliable 0-touch script compilation.
-- **Double-Compile FSEvent Desync**: By utilizing the canonical `AssetDatabase.Refresh()` synchronously with OS focus, the FSEvents queue is cleanly consumed natively, permanently solving the bug where Unity would redundantly re-compile scripts when the user manually clicked the window later.
-
-### Changed
-- **UI Decoupling**: Removed the persistent "Nexus" progress bar in the Unity Editor. App Nap is now entirely handled at the OS-level via `NSProcessInfo`, eliminating redundant UI-level background activity indicators.
-
 ## [2.3.0] - 2026-03-08
 
 ### Added

@@ -25,7 +25,8 @@ namespace UnityMCP.Editor
         private static JToken UIListWindows(JToken p)
         {
             var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
-            return new JArray(windows.Where(w => !string.IsNullOrEmpty(w.titleContent.text)).Select(w => w.titleContent.text).Distinct());
+            var arr = new JArray(windows.Where(w => !string.IsNullOrEmpty(w.titleContent.text)).Select(w => w.titleContent.text).Distinct());
+            return new JObject { ["windows"] = arr };
         }
 
         private static JToken UIGetHierarchy(JToken p)
@@ -102,7 +103,7 @@ namespace UnityMCP.Editor
             var el = FindElementByName(w?.rootVisualElement, p["element_name"].ToString());
             if (el == null) throw new Exception("Element not found");
             using (var evt = ClickEvent.GetPooled()) { evt.target = el; el.SendEvent(evt); }
-            return "Clicked";
+            return new JObject { ["status"] = "Success", ["message"] = "Clicked" };
         }
 
         private static JToken UIInputText(JToken p)
@@ -116,7 +117,7 @@ namespace UnityMCP.Editor
             if (el is TextField tf) tf.value = p["text"].ToString();
             else if (el is Label lbl) lbl.text = p["text"].ToString();
             else throw new Exception($"Element '{p["element_name"]}' is not a TextField or Label (it is a {el.GetType().Name})");
-            return "Updated";
+            return new JObject { ["status"] = "Success", ["message"] = "Updated" };
         }
     }
 }

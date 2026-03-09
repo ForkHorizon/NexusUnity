@@ -32,7 +32,7 @@ namespace UnityMCP.Editor
         private static JToken ListScenes(JToken p)
         {
             var guids = AssetDatabase.FindAssets("t:Scene");
-            return new JArray(guids.Select(AssetDatabase.GUIDToAssetPath));
+            return new JObject { ["scenes"] = new JArray(guids.Select(AssetDatabase.GUIDToAssetPath)) };
         }
 
         private static JToken FocusSceneView(JToken p)
@@ -40,9 +40,9 @@ namespace UnityMCP.Editor
             if (SceneView.lastActiveSceneView != null)
             {
                 SceneView.lastActiveSceneView.FrameSelected();
-                return "Focused";
+                return new JObject { ["status"] = "Success", ["message"] = "Focused" };
             }
-            return "No active Scene View found";
+            return new JObject { ["status"] = "Failed", ["message"] = "No active Scene View found" };
         }
 
         private static JToken UnityLintProject(JToken p)
@@ -58,19 +58,19 @@ namespace UnityMCP.Editor
             var ids = p["instance_ids"].ToObject<int[]>();
             var objects = ids.Select(id => EditorUtility.InstanceIDToObject(id)).Where(o => o != null).ToArray();
             Selection.objects = objects;
-            return $"Selected {objects.Length} objects";
+            return new JObject { ["status"] = "Success", ["message"] = $"Selected {objects.Length} objects" };
         }
 
         private static JToken UndoMethod(JToken p)
         {
             Undo.PerformUndo();
-            return "Undo performed";
+            return new JObject { ["status"] = "Success", ["message"] = "Undo performed" };
         }
 
         private static JToken RedoMethod(JToken p)
         {
             Undo.PerformRedo();
-            return "Redo performed";
+            return new JObject { ["status"] = "Success", ["message"] = "Redo performed" };
         }
 
         private static JToken TogglePlayMode(JToken p)
@@ -78,14 +78,14 @@ namespace UnityMCP.Editor
             bool? value = p?["value"]?.ToObject<bool>();
             if (value.HasValue) EditorApplication.isPlaying = value.Value;
             else EditorApplication.isPlaying = !EditorApplication.isPlaying;
-            return $"Play mode: {EditorApplication.isPlaying}";
+            return new JObject { ["status"] = "Success", ["is_playing"] = EditorApplication.isPlaying };
         }
 
         private static JToken ExecuteMenuItem(JToken p)
         {
             if (p == null || p["item_path"] == null) throw new System.Exception("item_path is required (e.g., 'Edit/Select All')");
             EditorApplication.ExecuteMenuItem(p["item_path"].ToString());
-            return "Executed";
+            return new JObject { ["status"] = "Success", ["message"] = "Executed" };
         }
 
         private static JToken GetTagsAndLayers(JToken p)
@@ -114,7 +114,7 @@ namespace UnityMCP.Editor
             ApplyValueToSerializedProperty(prop, p["value"]);
 
             so.ApplyModifiedProperties();
-            return "Property updated";
+            return new JObject { ["status"] = "Success", ["message"] = "Property updated" };
         }
 
         private static void ApplyValueToSerializedProperty(SerializedProperty prop, JToken val)
@@ -156,7 +156,7 @@ namespace UnityMCP.Editor
         private static JToken StepFrame(JToken p)
         {
             EditorApplication.Step();
-            return "OK";
+            return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         /// <summary>Returns basic project metadata.</summary>

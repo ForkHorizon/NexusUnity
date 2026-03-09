@@ -31,7 +31,7 @@ namespace UnityMCP.Editor
             EnsureCurrentSceneSaved();
             
             var scene = EditorSceneManager.OpenScene(path);
-            return $"Opened scene {scene.name}";
+            return new JObject { ["status"] = "Success", ["message"] = $"Opened scene {scene.name}" };
         }
 
         private static JToken CreateScene(JToken p)
@@ -42,7 +42,7 @@ namespace UnityMCP.Editor
             
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
             scene.name = name;
-            return $"Created scene {name}";
+            return new JObject { ["status"] = "Success", ["message"] = $"Created scene {name}" };
         }
 
         private static void EnsureCurrentSceneSaved()
@@ -76,7 +76,7 @@ namespace UnityMCP.Editor
 
             bool result = EditorSceneManager.SaveScene(scene, path);
             AssetDatabase.SaveAssets();
-            return result ? $"Saved scene to {path}" : "Failed to save scene";
+            return new JObject { ["status"] = result ? "Success" : "Failed", ["message"] = result ? $"Saved scene to {path}" : "Failed to save scene" };
         }
 
         private static JToken GetGameObject(JToken p)
@@ -85,7 +85,7 @@ namespace UnityMCP.Editor
             int id = (int)p["instance_id"];
             var go = EditorUtility.InstanceIDToObject(id) as GameObject;
             if (go == null) throw new Exception($"GameObject {id} not found");
-            return SerializeGameObject(go);
+            return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
         }
 
         private static JToken CreateGameObject(JToken p)
@@ -100,7 +100,7 @@ namespace UnityMCP.Editor
             }
             Undo.RegisterCreatedObjectUndo(go, "Create Object");
             Selection.activeGameObject = go;
-            return SerializeGameObject(go);
+            return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
         }
 
         private static JToken DestroyGameObject(JToken p)
@@ -109,7 +109,7 @@ namespace UnityMCP.Editor
             var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new Exception("GameObject not found");
             Undo.DestroyObjectImmediate(go);
-            return "Destroyed";
+            return new JObject { ["status"] = "Success", ["message"] = "Destroyed" };
         }
     }
 }

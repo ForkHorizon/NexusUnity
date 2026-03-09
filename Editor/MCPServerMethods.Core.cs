@@ -36,7 +36,7 @@ namespace UnityMCP.Editor
             var go = GameObject.CreatePrimitive((PrimitiveType)type);
             Undo.RegisterCreatedObjectUndo(go, "Create Primitive");
             Selection.activeGameObject = go;
-            return SerializeGameObject(go);
+            return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
         }
 
         private static JToken AttachScript(JToken p)
@@ -50,12 +50,12 @@ namespace UnityMCP.Editor
                 SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetInstanceID());
             }
             AssetDatabase.Refresh();
-            return "Script created and compilation triggered";
+            return new JObject { ["status"] = "Success", ["message"] = "Script created and compilation triggered" };
         }
 
-        private static JToken ReadLogs(JToken p) => JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString()));
-        private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return "Logs cleared"; }
-        private static JToken TestCoroutine(JToken p) { EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); return "Started"; }
+        private static JToken ReadLogs(JToken p) => new JObject { ["logs"] = JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString())) };
+        private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return new JObject { ["status"] = "Success", ["message"] = "Logs cleared" }; }
+        private static JToken TestCoroutine(JToken p) { EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); return new JObject { ["status"] = "Success", ["message"] = "Started" }; }
 
         // Cache the tool definitions since they are static and do not change during the session.
         // This avoids creating thousands of JObjects every time 'list_tools' is called.
