@@ -76,7 +76,7 @@ namespace UnityMCP.Editor
         private static JToken GetObjectPath(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
-            var go = EditorUtility.InstanceIDToObject((int)p["instance_id"]) as GameObject;
+            var go = IdToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
 
             // Optimization: Use Stack<string> to avoid O(N^2) string allocations in deep hierarchies.
@@ -94,7 +94,7 @@ namespace UnityMCP.Editor
         private static JToken PingObject(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
-            var obj = EditorUtility.InstanceIDToObject((int)p["instance_id"]);
+            var obj = IdToObject((int)p["instance_id"]);
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
             return new JObject { ["status"] = "Success", ["message"] = "Pinged" };
@@ -117,7 +117,7 @@ namespace UnityMCP.Editor
             }
             else if (targetId.HasValue)
             {
-                targetObject = EditorUtility.InstanceIDToObject(targetId.Value);
+                targetObject = IdToObject(targetId.Value);
             }
 
             if (targetObject == null)
@@ -150,7 +150,7 @@ namespace UnityMCP.Editor
 
             var targetInstanceIds = new HashSet<int>();
             if (targetObject != null)
-                targetInstanceIds.Add(targetObject.GetInstanceID());
+                targetInstanceIds.Add(targetObject.GetId());
 
             if (!string.IsNullOrEmpty(searchGuid))
             {
@@ -161,7 +161,7 @@ namespace UnityMCP.Editor
                     foreach (var a in allAssets)
                     {
                         if (a != null)
-                            targetInstanceIds.Add(a.GetInstanceID());
+                            targetInstanceIds.Add(a.GetId());
                     }
                 }
             }
@@ -187,7 +187,7 @@ namespace UnityMCP.Editor
                             enterChildren = true;
                             if (prop.propertyType == SerializedPropertyType.ObjectReference)
                             {
-                                if (targetInstanceIds.Contains(prop.objectReferenceInstanceIDValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetInstanceID())))
+                                if (targetInstanceIds.Contains(prop.objectReferenceInstanceIDValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
                                 {
                                     matches = true;
                                     matchingComponents.Add(comp.GetType().Name);
@@ -202,7 +202,7 @@ namespace UnityMCP.Editor
                 {
                     var goData = new JObject();
                     goData["name"] = go.name;
-                    goData["instance_id"] = go.GetInstanceID();
+                    goData["instance_id"] = go.GetId();
                     goData["components"] = new JArray(matchingComponents.Distinct());
                     sceneRefs.Add(goData);
                 }

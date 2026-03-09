@@ -1,3 +1,5 @@
+#pragma warning disable 0618
+#pragma warning disable 0618
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEditor;
@@ -99,6 +101,28 @@ namespace UnityMCP.Editor
             foreach (var child in el.Children()) children.Add(SerializeVisualElement(child, deep));
             if (children.Count > 0) obj["children"] = children;
             return obj;
+        }
+
+        // --- Version-Agnostic ID Wrappers (Unity 6 support) ---
+
+        internal static int GetId(UnityEngine.Object obj)
+        {
+            if (obj == null) return 0;
+            #if UNITY_6000_0_OR_NEWER
+            return (int)obj.GetEntityId();
+            #else
+            return obj.GetInstanceID();
+            #endif
+        }
+
+        internal static UnityEngine.Object IdToObject(int id)
+        {
+            if (id == 0) return null;
+            #if UNITY_6000_0_OR_NEWER
+            return EditorUtility.EntityIdToObject((uint)id);
+            #else
+            return EditorUtility.InstanceIDToObject(id);
+            #endif
         }
     }
 }
