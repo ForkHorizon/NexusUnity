@@ -1,4 +1,3 @@
-#pragma warning disable 0618 // Suppress obsolete InstanceIDToObject/GetInstanceID warnings for stability in 2021.3+
 using System;
 using System.Reflection;
 using UnityEditor;
@@ -21,7 +20,7 @@ namespace UnityMCP.Editor
         private static JToken EnforceForcedDefaults(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new Exception("Object not found");
 
             int count = 0;

@@ -1,4 +1,3 @@
-#pragma warning disable 0618 // Suppress obsolete InstanceIDToObject/GetInstanceID warnings for stability in 2021.3+
 using System;
 using System.IO;
 using System.Linq;
@@ -135,7 +134,7 @@ namespace UnityMCP.Editor
         private static JToken CreatePrefab(JToken p)
         {
             if (p == null || p["instance_id"] == null || p["path"] == null) throw new Exception("instance_id and path required");
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.SaveAsPrefabAsset(go, p["path"].ToString());
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["path"] = p["path"].ToString() };
@@ -144,7 +143,7 @@ namespace UnityMCP.Editor
         private static JToken ApplyPrefabOverrides(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.ApplyPrefabInstance(go, InteractionMode.UserAction);
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["message"] = "Overrides applied" };
@@ -153,7 +152,7 @@ namespace UnityMCP.Editor
         private static JToken RevertPrefabOverrides(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             PrefabUtility.RevertPrefabInstance(go, InteractionMode.UserAction);
             return new JObject { ["status"] = "Success", ["message"] = "Overrides reverted" };
         }

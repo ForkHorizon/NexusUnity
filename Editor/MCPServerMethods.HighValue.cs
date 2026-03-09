@@ -1,4 +1,3 @@
-#pragma warning disable 0618
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -53,7 +52,7 @@ namespace UnityMCP.Editor
             #else
             if (p?["instance_id"] != null)
             {
-                var target = IdToObject((int)p["instance_id"]);
+                var target = MCPServerMethods.IdToObject((int)p["instance_id"]);
                 if (target != null) Selection.activeObject = target;
             }
 
@@ -134,7 +133,7 @@ namespace UnityMCP.Editor
 
         private static void BuildMermaidRecursive(GameObject go, StringBuilder sb, HashSet<int> processed)
         {
-            int id = GetId(go);
+            int id = go.GetId();
             if (processed.Contains(id)) return;
             processed.Add(id);
 
@@ -148,13 +147,13 @@ namespace UnityMCP.Editor
                 if (comp == null) continue;
                 string compName = comp.GetType().Name;
                 if (compName == "Transform" || compName == "RectTransform") continue;
-                string compId = "comp_" + GetId(comp).ToString().Replace("-", "n");
+                string compId = "comp_" + comp.GetId().ToString().Replace("-", "n");
                 sb.AppendLine($"  {nodeId} --- {compId}([\"{compName}\"])");
             }
 
             foreach (Transform child in go.transform)
             {
-                string childId = "node_" + GetId(child.gameObject).ToString().Replace("-", "n");
+                string childId = "node_" + child.gameObject.GetId().ToString().Replace("-", "n");
                 sb.AppendLine($"  {nodeId} --> {childId}");
                 BuildMermaidRecursive(child.gameObject, sb, processed);
             }
@@ -225,7 +224,7 @@ namespace UnityMCP.Editor
                     matches.Add(new JObject 
                     { 
                         ["name"] = go.name, 
-                        ["instance_id"] = GetId(go), 
+                        ["instance_id"] = go.GetId(), 
                         ["score"] = score,
                         ["reasons"] = new JArray(reasons.Distinct())
                     });

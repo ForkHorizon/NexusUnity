@@ -1,5 +1,3 @@
-#pragma warning disable 0618
-#pragma warning disable 0618
 using System;
 using System.Linq;
 using System.Collections.Generic;

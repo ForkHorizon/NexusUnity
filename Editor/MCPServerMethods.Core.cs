@@ -1,4 +1,3 @@
-#pragma warning disable 0618 // Suppress obsolete InstanceIDToObject/GetInstanceID warnings for stability in 2021.3+
 using System;
 using System.IO;
 using System.Linq;

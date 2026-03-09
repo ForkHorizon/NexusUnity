@@ -1,5 +1,4 @@
 #pragma warning disable 0618
-#pragma warning disable 0618
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEditor;
@@ -103,26 +102,26 @@ namespace UnityMCP.Editor
             return obj;
         }
 
-        // --- Version-Agnostic ID Wrappers (Unity 6 support) ---
+        // --- Version-Agnostic ID Wrappers ---
+        // We use GetId() and MCPServerMethods.IdToObject() throughout the codebase to stay future-proof.
+        // Internal obsolete calls are suppressed ONLY here.
 
-        internal static int GetId(UnityEngine.Object obj)
-        {
-            if (obj == null) return 0;
-            #if UNITY_6000_0_OR_NEWER
-            return (int)obj.GetEntityId();
-            #else
-            return obj.GetInstanceID();
-            #endif
-        }
-
-        internal static UnityEngine.Object IdToObject(int id)
+        internal static UnityEngine.Object MCPServerMethods.IdToObject(int id)
         {
             if (id == 0) return null;
-            #if UNITY_6000_0_OR_NEWER
-            return EditorUtility.EntityIdToObject((uint)id);
-            #else
             return EditorUtility.InstanceIDToObject(id);
-            #endif
+        }
+    }
+
+    /// <summary>
+    /// Extension methods to handle version-specific Unity Object ID changes.
+    /// </summary>
+    public static class UnityObjectIdExtensions
+    {
+        public static int GetId(this UnityEngine.Object obj)
+        {
+            if (obj == null) return 0;
+            return obj.GetInstanceID();
         }
     }
 }

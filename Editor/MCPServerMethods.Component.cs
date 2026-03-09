@@ -1,4 +1,3 @@
-#pragma warning disable 0618 // Suppress obsolete InstanceIDToObject/GetInstanceID warnings for stability in 2021.3+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +28,7 @@ namespace UnityMCP.Editor
         private static JToken AddComponent(JToken p)
         {
             if (p == null || p["instance_id"] == null || p["component_name"] == null) throw new Exception("instance_id and component_name required");
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             Type type = FindType(p["component_name"].ToString());
             if (type == null) throw new Exception($"Type '{p["component_name"]}' not found");
             return new JObject { ["status"] = "Success", ["message"] = $"Added {p["component_name"]} to {Undo.AddComponent(go, type).name}" };
@@ -37,7 +36,7 @@ namespace UnityMCP.Editor
 
         private static JToken InspectComponent(JToken p)
         {
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
 
@@ -56,7 +55,7 @@ namespace UnityMCP.Editor
 
         private static JToken GetComponentSchema(JToken p)
         {
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
 
@@ -126,7 +125,7 @@ namespace UnityMCP.Editor
 
         private static JToken UpdateComponent(JToken p)
         {
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
 
@@ -298,7 +297,7 @@ namespace UnityMCP.Editor
 
             if (value.Type == JTokenType.Integer)
             {
-                prop.objectReferenceValue = IdToObject((int)value);
+                prop.objectReferenceValue = MCPServerMethods.IdToObject((int)value);
             }
             else if (value.Type == JTokenType.String)
             {
@@ -308,7 +307,7 @@ namespace UnityMCP.Editor
             {
                 if (value["instance_id"] != null)
                 {
-                    prop.objectReferenceValue = IdToObject((int)value["instance_id"]);
+                    prop.objectReferenceValue = MCPServerMethods.IdToObject((int)value["instance_id"]);
                 }
                 else if (value["guid"] != null && value["file_id"] != null)
                 {
@@ -417,7 +416,7 @@ namespace UnityMCP.Editor
 
         private static JToken SetTransform(JToken p)
         {
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             Undo.RecordObject(go.transform, "Set Transform");
             if (p["position"] != null) go.transform.position = ParseVector3(p["position"], go.transform.position);
             return new JObject { ["status"] = "Success", ["message"] = "Transform updated" };
@@ -425,8 +424,8 @@ namespace UnityMCP.Editor
 
         private static JToken SetParent(JToken p)
         {
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
-            var parent = IdToObject((int)p["parent_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var parent = MCPServerMethods.IdToObject((int)p["parent_id"]) as GameObject;
             Undo.SetTransformParent(go.transform, parent?.transform, "Set Parent");
             return new JObject { ["status"] = "Success", ["message"] = "Parent set" };
         }
@@ -436,7 +435,7 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null || p["method_name"] == null) 
                 throw new Exception("instance_id and method_name required");
 
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new Exception("GameObject not found");
 
             object target = go;

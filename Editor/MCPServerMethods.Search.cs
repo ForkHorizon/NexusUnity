@@ -1,4 +1,3 @@
-#pragma warning disable 0618 // Suppress obsolete InstanceIDToObject/GetInstanceID warnings for stability in 2021.3+
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -76,7 +75,7 @@ namespace UnityMCP.Editor
         private static JToken GetObjectPath(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
-            var go = IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
 
             // Optimization: Use Stack<string> to avoid O(N^2) string allocations in deep hierarchies.
@@ -94,7 +93,7 @@ namespace UnityMCP.Editor
         private static JToken PingObject(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
-            var obj = IdToObject((int)p["instance_id"]);
+            var obj = MCPServerMethods.IdToObject((int)p["instance_id"]);
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
             return new JObject { ["status"] = "Success", ["message"] = "Pinged" };
@@ -117,7 +116,7 @@ namespace UnityMCP.Editor
             }
             else if (targetId.HasValue)
             {
-                targetObject = IdToObject(targetId.Value);
+                targetObject = MCPServerMethods.IdToObject(targetId.Value);
             }
 
             if (targetObject == null)
