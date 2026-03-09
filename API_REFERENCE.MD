@@ -420,14 +420,33 @@ Types text into a TextField or Label.
 - **Returns**: Status object `{status, message}`.
 
 ## 🛡️ Linter & Compliance
-
 ### `unity_enforce_forced_defaults`
 Enforces `[ForceDefault]` attribute values on all components of a GameObject.
 - **Parameters**:
   - `instance_id` (integer, required): Target GameObject ID.
 - **Returns**: Status object `{status, message}`.
 
+### `unity_capture_inspector_screenshot`
+Captures a PNG screenshot of the Inspector window and its full UI layout tree.
+- **Returns**: Object with `image_base64` (PNG) and `ui_layout` (JSON tree).
+- **macOS Note**: Requires screen recording permissions for Unity. If permissions are missing, it fallbacks to only returning the `ui_layout`.
+
+### `unity_capture_game_view_screenshot`
+Captures a PNG screenshot of the Game View.
+- **Returns**: Object with `image_base64` (PNG).
+
+### `unity_generate_mermaid_diagram`
+Generates a Mermaid.js compatible graph string of the current scene hierarchy and component dependencies.
+- **Returns**: Object with `mermaid` string.
+
+### `unity_semantic_find`
+Finds GameObjects by scanning class names, field names, and object names for semantic meaning.
+- **Parameters**:
+  - `query` (string, required): Semantic search term (e.g., "Player Controller", "Inventory").
+- **Returns**: Object with `matches` array, ranked by relevance score.
+
 ### `unity_lint_project`
+...
 Runs a comprehensive project and scene health audit.
 - **Deep Code Analysis**: Uses the official Unity Project Auditor to find performance bottlenecks, memory leaks, and API misuse in your C# code.
 - **Scene Health Scan**: Recursively scans the active scene for missing scripts, broken prefab instances, and "pink" (Internal Error) materials.

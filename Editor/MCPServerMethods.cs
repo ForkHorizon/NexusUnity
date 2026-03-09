@@ -35,6 +35,7 @@ namespace UnityMCP.Editor
             RegisterComponentMethods();
             RegisterSerializationMethods();
             RegisterUIMethods();
+            RegisterHighValueMethods();
         }
 
         /// <summary>
