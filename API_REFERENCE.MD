@@ -428,6 +428,8 @@ Enforces `[ForceDefault]` attribute values on all components of a GameObject.
 
 ### `unity_capture_inspector_screenshot`
 Captures a PNG screenshot of the Inspector window and its full UI layout tree.
+- **Parameters**:
+  - `instance_id` (integer, optional): If provided, automatically selects this object before taking the screenshot.
 - **Returns**: Object with `image_base64` (PNG) and `ui_layout` (JSON tree).
 - **macOS Note**: Requires screen recording permissions for Unity. If permissions are missing, it fallbacks to only returning the `ui_layout`.
 
@@ -440,10 +442,10 @@ Generates a Mermaid.js compatible graph string of the current scene hierarchy an
 - **Returns**: Object with `mermaid` string.
 
 ### `unity_semantic_find`
-Finds GameObjects by scanning class names, field names, and object names for semantic meaning.
+Finds GameObjects by scanning class names, field names, method names, and object names for semantic meaning (intent-based discovery).
 - **Parameters**:
-  - `query` (string, required): Semantic search term (e.g., "Player Controller", "Inventory").
-- **Returns**: Object with `matches` array, ranked by relevance score.
+  - `query` (string, required): Semantic search term (e.g., "Player Controller", "Inventory", "Update").
+- **Returns**: Object with `matches` array, ranked by relevance score and reasons for the match.
 
 ### `unity_lint_project`
 ...

@@ -50,6 +50,12 @@ namespace UnityMCP.Editor
             #if !UNITY_EDITOR_OSX
             throw new Exception("Inspector screenshot is currently only supported on macOS.");
             #else
+            if (p?["instance_id"] != null)
+            {
+                var target = EditorUtility.InstanceIDToObject((int)p["instance_id"]);
+                if (target != null) Selection.activeObject = target;
+            }
+
             var inspector = Resources.FindObjectsOfTypeAll<EditorWindow>()
                 .FirstOrDefault(w => w.titleContent.text == "Inspector");
             
@@ -132,21 +138,23 @@ namespace UnityMCP.Editor
             processed.Add(id);
 
             string safeName = go.name.Replace("[", "(").Replace("]", ")").Replace("\"", "'");
-            sb.AppendLine($"  node_{id.ToString().Replace("-", "n")}[\"{safeName}\"]");
+            string nodeId = "node_" + id.ToString().Replace("-", "n");
+            sb.AppendLine($"  {nodeId}[\"{safeName}\"]");
 
-            // Add components as sub-nodes or labels? Labels are cleaner.
             var comps = go.GetComponents<Component>();
             foreach (var comp in comps)
             {
                 if (comp == null) continue;
                 string compName = comp.GetType().Name;
                 if (compName == "Transform" || compName == "RectTransform") continue;
-                sb.AppendLine($"  node_{id.ToString().Replace("-", "n")} --- comp_{comp.GetInstanceID().ToString().Replace("-", "n")}([\"{compName}\"])");
+                string compId = "comp_" + comp.GetInstanceID().ToString().Replace("-", "n");
+                sb.AppendLine($"  {nodeId} --- {compId}([\"{compName}\"])");
             }
 
             foreach (Transform child in go.transform)
             {
-                sb.AppendLine($"  node_{id.ToString().Replace("-", "n")} --> node_{child.gameObject.GetInstanceID().ToString().Replace("-", "n")}");
+                string childId = "node_" + child.gameObject.GetInstanceID().ToString().Replace("-", "n");
+                sb.AppendLine($"  {nodeId} --> {childId}");
                 BuildMermaidRecursive(child.gameObject, sb, processed);
             }
         }
@@ -179,15 +187,16 @@ namespace UnityMCP.Editor
                 foreach (var comp in comps)
                 {
                     if (comp == null) continue;
-                    string typeName = comp.GetType().Name;
+                    var type = comp.GetType();
+                    string typeName = type.Name;
+                    
                     if (typeName.ToLower().Contains(lowerQuery))
                     {
                         score += 30;
                         reasons.Add($"Component type match: {typeName}");
                     }
 
-                    // Scan public fields and properties for semantic clues
-                    var type = comp.GetType();
+                    // Scan fields
                     var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                     foreach (var f in fields)
                     {
@@ -195,6 +204,17 @@ namespace UnityMCP.Editor
                         {
                             score += 10;
                             reasons.Add($"Field match: {typeName}.{f.Name}");
+                        }
+                    }
+
+                    // Scan methods (Behavioral scanning)
+                    var methods = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
+                    foreach (var m in methods)
+                    {
+                        if (m.Name.ToLower().Contains(lowerQuery))
+                        {
+                            score += 15;
+                            reasons.Add($"Method match: {typeName}.{m.Name}()");
                         }
                     }
                 }
