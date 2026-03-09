@@ -16,6 +16,7 @@ namespace UnityMCP.Editor
     {
         private static void RegisterComponentMethods()
         {
+            _typeCache.Clear();
             _methods["add_component"] = AddComponent;
             _methods["inspect_component"] = InspectComponent;
             _methods["update_component"] = UpdateComponent;
@@ -354,20 +355,29 @@ namespace UnityMCP.Editor
 
         private static Type FindType(string name)
         {
-            // Bolt Optimization: Check cache first to avoid O(A * T) iteration
+            if (string.IsNullOrEmpty(name)) return null;
             if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;
 
-            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            // Priority 1: Check Assembly-CSharp (where most user scripts live)
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var mainAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "Assembly-CSharp");
+            if (mainAsm != null)
             {
-                var t = a.GetType(name) ?? a.GetTypes().FirstOrDefault(x => x.Name == name);
-                if (t != null)
-                {
-                    _typeCache[name] = t;
-                    return t;
-                }
+                var t = mainAsm.GetType(name) ?? mainAsm.GetTypes().FirstOrDefault(x => x.Name == name);
+                if (t != null) return _typeCache[name] = t;
             }
 
-            // Negative cache: store null to prevent repeated expensive searches for missing types
+            // Priority 2: Check all other assemblies
+            foreach (var a in assemblies)
+            {
+                try 
+                {
+                    var t = a.GetType(name) ?? a.GetTypes().FirstOrDefault(x => x.Name == name);
+                    if (t != null) return _typeCache[name] = t;
+                }
+                catch { /* Ignore assemblies that fail to load types */ }
+            }
+
             _typeCache[name] = null;
             return null;
         }
