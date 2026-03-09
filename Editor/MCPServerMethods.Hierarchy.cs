@@ -22,6 +22,7 @@ namespace UnityMCP.Editor
             _methods["remove_component"] = RemoveComponent;
             _methods["read_file"] = ReadFile;
             _methods["write_file"] = WriteFile;
+            _methods["write_files_batch"] = WriteFilesBatch;
         }
 
         /// <summary>Creates a full hierarchy of objects and components in one call.</summary>
@@ -201,28 +202,68 @@ namespace UnityMCP.Editor
             }
             else
             {
-                // Scripts trigger domain reload which blocks the HTTP response.
-                // Unity strictly aborts Domain Reloads if the Editor window is in the background 
-                // to protect external IDE development. We use LaunchServices (open -a) to explicitly
-                // foreground the Editor, and wait for true OS focus before triggering the Refresh.
-                
-                #if UNITY_EDITOR_OSX
-                AppNapBypass.ScheduleActivation();
-                #endif
-
-                EditorApplication.CallbackFunction waitForFocus = null;
-                waitForFocus = () => {
-                    EditorApplication.update -= waitForFocus;
-                    
-                    // Trigger refresh immediately. With App Nap bypassed, this is reliable 
-                    // even if the focus-switch (open -a) is still in flight.
-                    AssetDatabase.Refresh();
-                };
-                
-                EditorApplication.update += waitForFocus;
+                TriggerSafeAssetRefresh();
             }
 
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
+        }
+
+        /// <summary>Writes multiple files in a single pass to save AI context.</summary>
+        private static JToken WriteFilesBatch(JToken p)
+        {
+            var files = p?["files"] as JArray;
+            if (files == null) throw new System.Exception("files array required");
+
+            bool hasScripts = false;
+            string root = System.IO.Path.GetFullPath(".");
+
+            foreach (var f in files)
+            {
+                if (f["path"] == null || f["content"] == null) continue;
+                string fullPath = ValidatePath(f["path"].ToString());
+                System.IO.File.WriteAllText(fullPath, f["content"].ToString());
+
+                string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
+                
+                if (fullPath.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    hasScripts = true;
+                }
+                else
+                {
+                    AssetDatabase.ImportAsset(relativePath);
+                }
+            }
+
+            if (hasScripts)
+            {
+                TriggerSafeAssetRefresh();
+            }
+
+            return new JObject { ["status"] = "Success", ["message"] = $"Wrote {files.Count} files." };
+        }
+
+        private static void TriggerSafeAssetRefresh()
+        {
+            // Scripts trigger domain reload which blocks the HTTP response.
+            // Unity strictly aborts Domain Reloads if the Editor window is in the background 
+            // to protect external IDE development. We use LaunchServices (open -a) to explicitly
+            // foreground the Editor, and wait for true OS focus before triggering the Refresh.
+            
+            #if UNITY_EDITOR_OSX
+            AppNapBypass.ScheduleActivation();
+            #endif
+
+            EditorApplication.CallbackFunction waitForFocus = null;
+            waitForFocus = () => {
+                EditorApplication.update -= waitForFocus;
+                
+                // Trigger refresh immediately. With App Nap bypassed, this is reliable 
+                // even if the focus-switch (open -a) is still in flight.
+                AssetDatabase.Refresh();
+            };
+            
+            EditorApplication.update += waitForFocus;
         }
     }
 }
