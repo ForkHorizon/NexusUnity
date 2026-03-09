@@ -248,6 +248,13 @@ Direct text file manipulation (limited to project root).
 - **Parameters**: `path`, `content`.
 - **Returns**: Status object `{status}`.
 
+### `unity_write_files_batch`
+Writes multiple files in a single pass to save AI context and speed up execution.
+- **Parameters**:
+  - `files` (array of objects, required): The files to write. Each object must contain `path` and `content`.
+- **Returns**: Status object `{status, message}`.
+- **Behavior**: If any `.cs` script is included, it triggers a single deferred domain reload. Otherwise, it uses fast immediate imports.
+
 ---
 
 ## 🎮 Editor Control & State
