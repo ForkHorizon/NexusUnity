@@ -102,14 +102,36 @@ namespace UnityMCP.Editor
             return obj;
         }
 
-        // --- Version-Agnostic ID Wrappers ---
+        // --- Version-Agnostic ID Wrappers (Updated for Unity 6) ---
         // We use GetId() and IdToObject() throughout the codebase to stay future-proof.
         // Internal obsolete calls are suppressed ONLY here.
 
-        internal static UnityEngine.Object IdToObject(int id)
+        internal static UnityEngine.Object IdToObject(EntityId id)
         {
-            if (id == 0) return null;
-            return EditorUtility.InstanceIDToObject(id);
+            if (id == default) return null;
+            return EditorUtility.EntityIdToObject(id);
+        }
+
+        internal static EntityId ExtractId(JToken p, string key = "instance_id")
+        {
+            if (p == null || p[key] == null) return default;
+            return ExtractIdFromToken(p[key]);
+        }
+
+        internal static EntityId ExtractIdFromToken(JToken token)
+        {
+            if (token == null || token.Type == JTokenType.Null) return default;
+            try
+            {
+#pragma warning disable CS0618
+                // We use the obsolete cast ONLY here to bridge JSON (int) to EntityId.
+                return (EntityId)(int)token;
+#pragma warning restore CS0618
+            }
+            catch
+            {
+                return default;
+            }
         }
     }
 
@@ -118,10 +140,21 @@ namespace UnityMCP.Editor
     /// </summary>
     public static class UnityObjectIdExtensions
     {
-        public static int GetId(this UnityEngine.Object obj)
+        public static EntityId GetId(this UnityEngine.Object obj)
+        {
+            if (obj == null) return default;
+            return obj.GetEntityId();
+        }
+
+        /// <summary>
+        /// Returns the raw integer value of the ID for JSON serialization.
+        /// </summary>
+        public static int GetRawId(this UnityEngine.Object obj)
         {
             if (obj == null) return 0;
-            return obj.GetInstanceID();
+#pragma warning disable CS0618
+            return (int)obj.GetEntityId();
+#pragma warning restore CS0618
         }
     }
 }

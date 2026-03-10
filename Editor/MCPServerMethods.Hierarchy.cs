@@ -27,7 +27,7 @@ namespace UnityMCP.Editor
         /// <summary>Creates a full hierarchy of objects and components in one call.</summary>
         private static JToken CreateHierarchy(JToken p)
         {
-            var parent = p["parent_id"] != null ? MCPServerMethods.IdToObject((int)p["parent_id"]) as GameObject : null;
+            var parent = p["parent_id"] != null ? MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p, "parent_id")) as GameObject : null;
             var tree = p["tree"];
             if (tree == null) throw new System.Exception("tree required");
 
@@ -94,13 +94,13 @@ namespace UnityMCP.Editor
         private static JToken GetChildren(JToken p)
         {
             if (p?["instance_id"] == null) throw new System.Exception("instance_id required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
             var children = new JArray();
             for (int i = 0; i < go.transform.childCount; i++)
             {
                 var child = go.transform.GetChild(i).gameObject;
-                children.Add(new JObject { ["name"] = child.name, ["instance_id"] = child.GetId(), ["active"] = child.activeSelf });
+                children.Add(new JObject { ["name"] = child.name, ["instance_id"] = child.GetRawId(), ["active"] = child.activeSelf });
             }
             return new JObject { ["children"] = children };
         }
@@ -109,20 +109,20 @@ namespace UnityMCP.Editor
         private static JToken DuplicateObject(JToken p)
         {
             if (p?["instance_id"] == null) throw new System.Exception("instance_id required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
             var copy = UnityEngine.Object.Instantiate(go, go.transform.parent);
             copy.name = go.name; // Remove "(Clone)" suffix
             Undo.RegisterCreatedObjectUndo(copy, "Duplicate Object");
             Selection.activeGameObject = copy;
-            return new JObject { ["name"] = copy.name, ["instance_id"] = copy.GetId() };
+            return new JObject { ["name"] = copy.name, ["instance_id"] = copy.GetRawId() };
         }
 
         /// <summary>Enables or disables a GameObject explicitly.</summary>
         private static JToken SetActive(JToken p)
         {
             if (p?["instance_id"] == null || p["active"] == null) throw new System.Exception("instance_id and active required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
             Undo.RecordObject(go, "Set Active");
             go.SetActive(p["active"].Value<bool>());
@@ -133,7 +133,7 @@ namespace UnityMCP.Editor
         private static JToken SetEnabled(JToken p)
         {
             if (p?["instance_id"] == null || p["component_name"] == null || p["enabled"] == null) throw new System.Exception("instance_id, component_name, and enabled required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString()) as Behaviour;
             if (comp == null) throw new System.Exception("Component not found or not a Behaviour");
             Undo.RecordObject(comp, "Set Enabled");
@@ -145,7 +145,7 @@ namespace UnityMCP.Editor
         private static JToken RemoveComponent(JToken p)
         {
             if (p?["instance_id"] == null || p["component_name"] == null) throw new System.Exception("instance_id and component_name required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new System.Exception("Component not found");
             Undo.DestroyObjectImmediate(comp);
@@ -156,7 +156,7 @@ namespace UnityMCP.Editor
         private static JToken SetSiblingIndex(JToken p)
         {
             if (p?["instance_id"] == null || p["index"] == null) throw new System.Exception("instance_id and index required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
             Undo.RecordObject(go.transform, "Set Sibling Index");
             var indexVal = p["index"];

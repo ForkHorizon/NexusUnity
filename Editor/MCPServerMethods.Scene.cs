@@ -81,7 +81,7 @@ namespace UnityMCP.Editor
         private static JToken GetGameObject(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id is required");
-            int id = (int)p["instance_id"];
+            var id = MCPServerMethods.ExtractId(p);
             var go = MCPServerMethods.IdToObject(id) as GameObject;
             if (go == null) throw new Exception($"GameObject {id} not found");
             return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
@@ -94,7 +94,7 @@ namespace UnityMCP.Editor
             GameObject go = new GameObject(name);
             if (p["parent_id"] != null)
             {
-                var parent = MCPServerMethods.IdToObject((int)p["parent_id"]) as GameObject;
+                var parent = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p, "parent_id")) as GameObject;
                 if (parent != null) go.transform.SetParent(parent.transform);
             }
             Undo.RegisterCreatedObjectUndo(go, "Create Object");
@@ -105,7 +105,7 @@ namespace UnityMCP.Editor
         private static JToken DestroyGameObject(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id is required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new Exception("GameObject not found");
             Undo.DestroyObjectImmediate(go);
             return new JObject { ["status"] = "Success", ["message"] = "Destroyed" };

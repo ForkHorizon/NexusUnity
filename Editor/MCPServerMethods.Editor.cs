@@ -54,8 +54,13 @@ namespace UnityMCP.Editor
         private static JToken SetSelection(JToken p)
         {
             if (p == null || p["instance_ids"] == null) throw new System.Exception("instance_ids (array) is required");
-            var ids = p["instance_ids"].ToObject<int[]>();
-            var objects = ids.Select(id => MCPServerMethods.IdToObject(id)).Where(o => o != null).ToArray();
+            var ids = p["instance_ids"] as JArray;
+            if (ids == null) throw new System.Exception("instance_ids must be an array");
+            
+            var objects = ids.Select(token => MCPServerMethods.IdToObject(MCPServerMethods.ExtractIdFromToken(token)))
+                             .Where(o => o != null)
+                             .ToArray();
+            
             Selection.objects = objects;
             return new JObject { ["status"] = "Success", ["message"] = $"Selected {objects.Length} objects" };
         }
@@ -101,7 +106,7 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null || p["property_name"] == null || p["value"] == null)
                 throw new System.Exception("instance_id, property_name, and value are required");
 
-            var obj = MCPServerMethods.IdToObject((int)p["instance_id"]);
+            var obj = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p));
             if (obj == null) throw new System.Exception("Object not found");
 
             SerializedObject so = new SerializedObject(obj);

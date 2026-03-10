@@ -46,7 +46,7 @@ namespace UnityMCP.Editor
             if (Selection.activeGameObject != null)
             {
                 SessionState.SetString("MCP_PendingAttach_Script", name);
-                SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetId());
+                SessionState.SetInt("MCP_PendingAttach_GO", Selection.activeGameObject.GetRawId());
             }
             AssetDatabase.Refresh();
             return new JObject { ["status"] = "Success", ["message"] = "Script created and compilation triggered" };

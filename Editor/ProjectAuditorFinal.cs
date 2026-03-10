@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -40,7 +41,10 @@ namespace UnityMCP.Editor
                             var report = auditMethod.Invoke(auditor, new object[] { analysisParams, null });
                             if (report != null)
                             {
-                                result["num_total_issues"] = (int)report.GetType().GetProperty("NumTotalIssues").GetValue(report);
+                                // Determine if we are in the Nexus sandbox or a user project
+                                bool isSandbox = System.IO.Directory.Exists("Assets/NexusUnity");
+                                string targetPath = isSandbox ? "Assets/NexusUnity" : "Assets";
+                                Debug.Log($"[Nexus Audit] START - isSandbox: {isSandbox}, targetPath: {targetPath}");
                                 
                                 var getAllIssuesMethod = report.GetType().GetMethod("GetAllIssues");
                                 var allIssues = (System.Collections.IEnumerable)getAllIssuesMethod.Invoke(report, null);
@@ -48,28 +52,108 @@ namespace UnityMCP.Editor
                                 var codeIssues = new JArray();
                                 if (allIssues != null)
                                 {
+                                    // Sandbox-specific noise reduction filters
+                                    string[] sandboxIgnorePatterns = {
+                                        "Newtonsoft.Json", "allocation", "usage", "System.Reflection", 
+                                        "System.Linq", "System.String.Concat", "ref type", "Closure",
+                                        "UnityEngine.Object.name", "Debug.Log", "Implicit", "GetEntityId"
+                                    };
+
                                     foreach (var issue in allIssues)
                                     {
-                                        var i = new JObject();
                                         var t = issue.GetType();
-                                        i["category"] = t.GetProperty("Category")?.GetValue(issue)?.ToString() ?? "Unknown";
-                                        i["description"] = t.GetProperty("Description")?.GetValue(issue)?.ToString() ?? "No description";
+                                        string category = t.GetProperty("Category")?.GetValue(issue)?.ToString() ?? "Unknown";
+                                        string description = t.GetProperty("Description")?.GetValue(issue)?.ToString() ?? "No description";
                                         
                                         var location = t.GetProperty("Location")?.GetValue(issue);
+                                        string filePath = "";
+                                        
                                         if (location != null)
                                         {
                                             var locType = location.GetType();
-                                            i["file"] = locType.GetProperty("Path")?.GetValue(location)?.ToString();
+                                            filePath = locType.GetProperty("Path")?.GetValue(location)?.ToString() ?? "";
+                                        }
+
+                                        // 1. Path Filtering
+                                        if (category.Contains("Code"))
+                                        {
+                                            if (string.IsNullOrEmpty(filePath) || !filePath.StartsWith(targetPath))
+                                            {
+                                                continue;
+                                            }
+                                            
+                                            // 2. Sandbox Noise Reduction (Only active when developing Nexus)
+                                            if (isSandbox)
+                                            {
+                                                bool shouldIgnore = false;
+                                                foreach (var pattern in sandboxIgnorePatterns)
+                                                {
+                                                    if (description.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0) { shouldIgnore = true; break; }
+                                                }
+                                                if (shouldIgnore) continue;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Ignore general project noise (outdated packages, etc.) in the sandbox
+                                            if (isSandbox) 
+                                            {
+                                                if (string.IsNullOrEmpty(filePath) || (!filePath.Contains("com.custom.unity.mcp") && !filePath.Contains("Assets/NexusUnity")))
+                                                {
+                                                    continue;
+                                                }
+                                            }
+                                        }
+
+                                        var i = new JObject();
+                                        i["category"] = category;
+                                        i["description"] = description;
+                                        i["file"] = filePath;
+                                        
+                                        if (location != null)
+                                        {
+                                            var locType = location.GetType();
                                             i["line"] = locType.GetProperty("Line")?.GetValue(location)?.ToString();
                                         }
+                                        
                                         codeIssues.Add(i);
                                     }
                                 }
                                 result["code_issues"] = codeIssues;
+                                result["num_total_issues"] = codeIssues.Count;
+                                Debug.Log($"[Nexus Audit] END - Total Filtered: {codeIssues.Count}");
                             }
                         }
                     }
                 }
+
+                // --- Custom Nexus Style Audit ---
+                string customTargetPath = System.IO.Directory.Exists("Assets/NexusUnity") ? "Assets/NexusUnity" : "Assets";
+                var codeIssuesList = result["code_issues"] as JArray ?? new JArray();
+                Debug.Log($"[Nexus Style Audit] Scanning path: {customTargetPath}, current issues: {codeIssuesList.Count}");
+                
+                string[] files = System.IO.Directory.GetFiles(customTargetPath, "*.cs", System.IO.SearchOption.AllDirectories);
+                int styleIssuesAdded = 0;
+                foreach (var file in files)
+                {
+                    string relativePath = file.Replace(System.IO.Directory.GetCurrentDirectory() + "/", "").Replace("\\", "/");
+                    if (relativePath.Contains("Assets/")) relativePath = relativePath.Substring(relativePath.IndexOf("Assets/"));
+
+                    string[] lines = System.IO.File.ReadAllLines(file);
+                    if (lines.Length > 300)
+                    {
+                        codeIssuesList.Add(new JObject {
+                            ["category"] = "Style",
+                            ["description"] = $"File exceeds 300 lines limit (Current: {lines.Length} lines).",
+                            ["file"] = relativePath,
+                            ["line"] = "1"
+                        });
+                        styleIssuesAdded++;
+                    }
+                }
+                result["code_issues"] = codeIssuesList;
+                result["num_total_issues"] = codeIssuesList.Count;
+                Debug.Log($"[Nexus Style Audit] Added {styleIssuesAdded} style issues. Total: {codeIssuesList.Count}");
             }
             catch (Exception e)
             {

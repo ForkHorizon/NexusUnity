@@ -2,6 +2,13 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.4.1] - 2026-03-10
+
+### Changed
+- **Unity 6 Exclusive Support**: Transitioned the library to exclusively support **Unity 6000.x** and newer. This allows for native utilization of modern engine APIs and improved performance.
+- **API Modernization**: Replaced all internal uses of the obsolete `EditorUtility.InstanceIDToObject` with the new `EditorUtility.EntityIdToObject`.
+- **Project Requirements**: Updated `package.json` and documentation to enforce Unity 6000.0 as the minimum required version.
+
 ## [2.4.0] - 2026-03-09
 
 ### Added

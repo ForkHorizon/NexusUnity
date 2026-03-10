@@ -57,7 +57,7 @@ namespace UnityMCP.Editor
                         ["name"] = asset.name,
                         ["type"] = asset.GetType().Name,
                         ["file_id"] = fileId,
-                        ["instance_id"] = asset.GetId()
+                        ["instance_id"] = asset.GetRawId()
                     };
                     
                     if (asset == mainAsset)
@@ -101,26 +101,26 @@ namespace UnityMCP.Editor
             // Signal AppNapBypass to bring Unity to the foreground so compilation can happen.
             AppNapBypass.ScheduleActivation();
 
-            EditorApplication.CallbackFunction waitForFocus = null;
-            waitForFocus = () => {
-                if (UnityEditorInternal.InternalEditorUtility.isApplicationActive)
-                {
-                    EditorApplication.update -= waitForFocus;
-                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-                    AssetDatabase.SaveAssets();
-                }
-            };
-            EditorApplication.update += waitForFocus;
+            if (UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+            {
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+                AssetDatabase.SaveAssets();
+            }
             #else
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             AssetDatabase.SaveAssets();
             #endif
 
+            // Check for immediate compiler errors in the log
+            var logs = MCPServer.GetLogs(20, "Error", "");
+            var compilerErrors = logs.Where(l => l.Message.Contains("error CS")).Select(l => l.Message).ToList();
+
             return new JObject 
             { 
-                ["status"] = "RefreshScheduled", 
+                ["status"] = compilerErrors.Count > 0 ? "Error" : (EditorApplication.isCompiling ? "Compiling" : "Success"), 
                 ["is_compiling"] = EditorApplication.isCompiling,
-                ["is_updating"] = EditorApplication.isUpdating
+                ["is_updating"] = EditorApplication.isUpdating,
+                ["compiler_errors"] = new JArray(compilerErrors)
             };
         }
 
@@ -134,7 +134,7 @@ namespace UnityMCP.Editor
         private static JToken CreatePrefab(JToken p)
         {
             if (p == null || p["instance_id"] == null || p["path"] == null) throw new Exception("instance_id and path required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             PrefabUtility.SaveAsPrefabAsset(go, p["path"].ToString());
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["path"] = p["path"].ToString() };
@@ -143,7 +143,7 @@ namespace UnityMCP.Editor
         private static JToken ApplyPrefabOverrides(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             PrefabUtility.ApplyPrefabInstance(go, InteractionMode.UserAction);
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["message"] = "Overrides applied" };
@@ -152,7 +152,7 @@ namespace UnityMCP.Editor
         private static JToken RevertPrefabOverrides(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new Exception("instance_id required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             PrefabUtility.RevertPrefabInstance(go, InteractionMode.UserAction);
             return new JObject { ["status"] = "Success", ["message"] = "Overrides reverted" };
         }

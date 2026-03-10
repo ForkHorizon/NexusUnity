@@ -22,6 +22,27 @@ namespace UnityMCP.Editor
             _methods["find_references"] = FindReferences;
         }
 
+        private static List<GameObject> _rootGameObjectsCache = new List<GameObject>();
+
+        private static JToken GetRootGameObjects(JToken p)
+        {
+            _rootGameObjectsCache.Clear();
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects(_rootGameObjectsCache);
+
+            JArray result = new JArray();
+            foreach (var go in _rootGameObjectsCache)
+            {
+                result.Add(SerializeGameObject(go));
+            }
+            return new JObject { ["objects"] = result };
+        }
+
+        private static JToken GetActiveGameObject(JToken p)
+        {
+            var go = Selection.activeGameObject;
+            return new JObject { ["status"] = "Success", ["data"] = go != null ? SerializeGameObject(go) : JValue.CreateNull() };
+        }
+
         private static JToken FindByPath(JToken p)
         {
             if (p == null || p["path"] == null) throw new System.Exception("path required");
@@ -39,12 +60,10 @@ namespace UnityMCP.Editor
             
             IEnumerable<GameObject> results;
 
-            // Bolt Optimization: Instead of getting all GameObjects and performing N+1 GetComponents,
-            // we start with GameObjects that definitely have the component (if typeName is provided).
             if (!string.IsNullOrEmpty(typeName))
             {
                 var type = FindType(typeName);
-                if (type == null) return new JObject { ["objects"] = new JArray() }; // Short-circuit if type doesn't exist
+                if (type == null) return new JObject { ["objects"] = new JArray() };
 
                 results = Resources.FindObjectsOfTypeAll(type)
                     .OfType<Component>()
@@ -58,8 +77,6 @@ namespace UnityMCP.Editor
                     .Where(go => go.hideFlags == HideFlags.None);
             }
 
-            // Bolt Optimization: Pre-instantiate Regex once outside the loop to avoid cache lookups and options parsing during iteration.
-            // Avoid RegexOptions.Compiled for short-lived regex objects as it incurs high IL generation overhead.
             if (!string.IsNullOrEmpty(name))
             {
                 var regex = new System.Text.RegularExpressions.Regex(name, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -75,10 +92,9 @@ namespace UnityMCP.Editor
         private static JToken GetObjectPath(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
-            var go = MCPServerMethods.IdToObject((int)p["instance_id"]) as GameObject;
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
 
-            // Optimization: Use Stack<string> to avoid O(N^2) string allocations in deep hierarchies.
             var pathParts = new Stack<string>();
             pathParts.Push(go.name);
             Transform t = go.transform.parent;
@@ -93,7 +109,7 @@ namespace UnityMCP.Editor
         private static JToken PingObject(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
-            var obj = MCPServerMethods.IdToObject((int)p["instance_id"]);
+            var obj = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p));
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
             return new JObject { ["status"] = "Success", ["message"] = "Pinged" };
@@ -102,9 +118,9 @@ namespace UnityMCP.Editor
         private static JToken FindReferences(JToken p)
         {
             string targetGuid = p?["target_guid"]?.ToString();
-            int? targetId = p?["target_id"]?.ToObject<int?>();
+            EntityId targetId = MCPServerMethods.ExtractId(p, "target_id");
 
-            if (string.IsNullOrEmpty(targetGuid) && !targetId.HasValue)
+            if (string.IsNullOrEmpty(targetGuid) && targetId == default)
                 throw new System.Exception("Either target_guid or target_id is required.");
 
             Object targetObject = null;
@@ -114,9 +130,9 @@ namespace UnityMCP.Editor
                 if (!string.IsNullOrEmpty(path))
                     targetObject = AssetDatabase.LoadAssetAtPath<Object>(path);
             }
-            else if (targetId.HasValue)
+            else if (targetId != default)
             {
-                targetObject = MCPServerMethods.IdToObject(targetId.Value);
+                targetObject = MCPServerMethods.IdToObject(targetId);
             }
 
             if (targetObject == null)
@@ -147,7 +163,7 @@ namespace UnityMCP.Editor
             var allGameObjects = Resources.FindObjectsOfTypeAll<GameObject>()
                 .Where(go => go.hideFlags == HideFlags.None || go.hideFlags == HideFlags.NotEditable);
 
-            var targetInstanceIds = new HashSet<int>();
+            var targetInstanceIds = new HashSet<EntityId>();
             if (targetObject != null)
                 targetInstanceIds.Add(targetObject.GetId());
 
@@ -186,7 +202,7 @@ namespace UnityMCP.Editor
                             enterChildren = true;
                             if (prop.propertyType == SerializedPropertyType.ObjectReference)
                             {
-                                if (targetInstanceIds.Contains(prop.objectReferenceInstanceIDValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
+                                if (targetInstanceIds.Contains(prop.objectReferenceEntityIdValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
                                 {
                                     matches = true;
                                     matchingComponents.Add(comp.GetType().Name);
@@ -201,7 +217,7 @@ namespace UnityMCP.Editor
                 {
                     var goData = new JObject();
                     goData["name"] = go.name;
-                    goData["instance_id"] = go.GetId();
+                    goData["instance_id"] = go.GetRawId();
                     goData["components"] = new JArray(matchingComponents.Distinct());
                     sceneRefs.Add(goData);
                 }
