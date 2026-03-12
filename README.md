@@ -2,6 +2,8 @@
 
 A core library for Unity providing a built-in Model Context Protocol (MCP) server for seamless interaction with external AI tools and workflows.
 
+**Requirements**: Unity 6000.0 or newer.
+
 ## 🚀 Features
 
 - **Autonomous Background Workflow**: Native macOS App Nap bypass and focus-stealing synchronization for 100% zero-touch script compilation.

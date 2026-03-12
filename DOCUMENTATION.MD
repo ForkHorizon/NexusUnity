@@ -2,6 +2,8 @@
 
 This document provides a comprehensive reference for the `Nexus Unity` library.
 
+**Requirements**: Unity 6000.0 or newer.
+
 ## 🔌 Unity MCP Server
 
 The library implements a Model Context Protocol (MCP) server that enables external tools to interact with the Unity Editor via JSON-RPC 2.0.
