@@ -2,6 +2,12 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.5.0] - 2026-03-19
+
+### Added
+- **Codex CLI Integration**: Added a one-click setup button in the "Nexus Unity" panel to instantly link the project to the Codex CLI. It automatically configures `~/.codex/config.toml` with the correct bridge script path.
+- **Unified CLI Management**: The Unity Editor panel now supports multiple external AI tools under a new "CLI Integrations" section, displaying separate links for Gemini and Codex.
+
 ## [2.4.1] - 2026-03-10
 
 ### Changed

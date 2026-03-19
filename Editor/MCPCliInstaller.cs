@@ -8,7 +8,7 @@ using System;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Handles the integration of the Unity MCP server with the Gemini CLI.
+    /// Handles the integration of the Unity MCP server with external CLIs like Gemini and Codex.
     /// </summary>
     public static class MCPCliInstaller
     {
@@ -17,32 +17,52 @@ namespace UnityMCP.Editor
         /// </summary>
         public static void LinkToGemini()
         {
+            if (DeployBridgeScript(out string destinationPath))
+            {
+                ExecuteGeminiLinkSequence(destinationPath);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to link the current Unity project to the local Codex CLI instance.
+        /// </summary>
+        public static void LinkToCodex()
+        {
+            if (DeployBridgeScript(out string destinationPath))
+            {
+                string pythonPath = ResolveExecutablePath("python3");
+                ExecuteCodexLinkSequence(destinationPath, pythonPath);
+            }
+        }
+
+        private static bool DeployBridgeScript(out string destinationPath)
+        {
+            destinationPath = null;
             string sourcePath = FindBridgeScript();
 
             if (string.IsNullOrEmpty(sourcePath))
             {
                 UnityEngine.Debug.LogError("[MCP] Could not find 'nexus_unity_bridge.py' in the project.");
                 EditorUtility.DisplayDialog("MCP Error", "Could not find 'nexus_unity_bridge.py'.\n\nEnsure the library is correctly imported.", "OK");
-                return;
+                return false;
             }
 
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
-            string destinationPath = Path.Combine(projectRoot, "nexus_unity_bridge.py");
+            destinationPath = Path.Combine(projectRoot, "nexus_unity_bridge.py");
 
             try
             {
                 File.Copy(sourcePath, destinationPath, true);
                 UnityEngine.Debug.Log("[MCP] Bridge script deployed to stable location: " + destinationPath);
                 DeployDocumentationPointer(projectRoot, sourcePath);
+                return true;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError("[MCP] Failed to deploy bridge or docs: " + e.Message);
                 EditorUtility.DisplayDialog("MCP Error", "Failed to deploy integration files to project root.\n\n" + e.Message, "OK");
-                return;
+                return false;
             }
-
-            ExecuteLinkSequence(destinationPath);
         }
 
         private static string FindLibraryRoot(string sourcePath)
@@ -95,18 +115,124 @@ namespace UnityMCP.Editor
             UnityEngine.Debug.Log("[MCP] Documentation pointer deployed: " + docPointerPath);
         }
 
-        private static void ExecuteLinkSequence(string scriptPath)
+        private static void ExecuteGeminiLinkSequence(string scriptPath)
         {
             string geminiPath = ResolveExecutablePath("gemini");
             string pythonPath = ResolveExecutablePath("python3");
 
             // 1. Ensure clean slate by removing existing registration
             string removeCommand = "\"" + geminiPath + "\" mcp remove nexus-unity";
-            RunInstallerProcess(CreateProcessStartInfo(removeCommand), geminiPath, false);
+            RunInstallerProcess(CreateProcessStartInfo(removeCommand), geminiPath, false, "Gemini");
 
             // 2. Add new registration with stable path
             string addCommand = "\"" + geminiPath + "\" mcp add nexus-unity --trust \"" + pythonPath + "\" \"" + scriptPath + "\"";
-            RunInstallerProcess(CreateProcessStartInfo(addCommand), geminiPath, true);
+            RunInstallerProcess(CreateProcessStartInfo(addCommand), geminiPath, true, "Gemini");
+        }
+
+        private static void ExecuteCodexLinkSequence(string scriptPath, string pythonPath)
+        {
+            string codexPath = ResolveExecutablePath("codex");
+
+            // If codex CLI is available, try it (cleanest/official way)
+            if (!string.IsNullOrEmpty(codexPath) && codexPath != "codex")
+            {
+                // 1. Remove existing to ensure clean slate (silent)
+                string removeCommand = "\"" + codexPath + "\" mcp remove nexus-unity";
+                RunInstallerProcess(CreateProcessStartInfo(removeCommand), codexPath, false, "Codex");
+
+                // 2. Add new with command/args (silent, because we have a fallback)
+                string addCommand = "\"" + codexPath + "\" mcp add nexus-unity -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
+                
+                // If it succeeds, we are done
+                if (RunInstallerProcess(CreateProcessStartInfo(addCommand), codexPath, false, "Codex"))
+                {
+                    UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via '" + codexPath + "'");
+                    EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
+                    return;
+                }
+                
+                // If it failed (likely version issue), we proceed to fallback
+                UnityEngine.Debug.LogWarning("[MCP] Codex CLI command failed at '" + codexPath + "'. Falling back to manual TOML configuration.");
+            }
+
+            // Fallback: Manual TOML edit
+            try
+            {
+                string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string codexDir = Path.Combine(homeDir, ".codex");
+                string configPath = Path.Combine(codexDir, "config.toml");
+
+                if (!Directory.Exists(codexDir))
+                {
+                    Directory.CreateDirectory(codexDir);
+                }
+
+                List<string> lines = new List<string>();
+                if (File.Exists(configPath))
+                {
+                    lines.AddRange(File.ReadAllLines(configPath));
+                }
+
+                string safeScriptPath = scriptPath.Replace("\\", "/");
+                string safePythonPath = pythonPath.Replace("\\", "/");
+
+                // Check if [mcp_servers.nexus-unity] already exists
+                int existingIndex = -1;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    if (lines[i].Trim() == "[mcp_servers.nexus-unity]")
+                    {
+                        existingIndex = i;
+                        break;
+                    }
+                }
+
+                if (existingIndex != -1)
+                {
+                    // Update existing
+                    bool foundCommand = false;
+                    bool foundArgs = false;
+                    for (int i = existingIndex + 1; i < lines.Count; i++)
+                    {
+                        string trimmed = lines[i].Trim();
+                        if (trimmed.StartsWith("[")) break; // Next section
+                        
+                        if (trimmed.StartsWith("command"))
+                        {
+                            lines[i] = "command = \"" + safePythonPath + "\"";
+                            foundCommand = true;
+                        }
+                        else if (trimmed.StartsWith("args"))
+                        {
+                            lines[i] = "args = [ \"" + safeScriptPath + "\" ]";
+                            foundArgs = true;
+                        }
+                    }
+
+                    if (!foundCommand) lines.Insert(existingIndex + 1, "command = \"" + safePythonPath + "\"");
+                    if (!foundArgs) lines.Insert(existingIndex + (foundCommand ? 2 : 1), "args = [ \"" + safeScriptPath + "\" ]");
+                }
+                else
+                {
+                    // Append new
+                    if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines[lines.Count - 1]))
+                    {
+                        lines.Add(""); // Add a blank line for spacing
+                    }
+                    lines.Add("[mcp_servers.nexus-unity]");
+                    lines.Add("command = \"" + safePythonPath + "\"");
+                    lines.Add("args = [ \"" + safeScriptPath + "\" ]");
+                }
+
+                File.WriteAllLines(configPath, lines);
+                UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath);
+                EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[MCP] Failed to link to Codex CLI via fallback: " + e.Message);
+                EditorUtility.DisplayDialog("MCP Error", "Failed to update Codex configuration.\n\n" + e.Message, "OK");
+            }
         }
 
         private static string FindBridgeScript()
@@ -133,23 +259,68 @@ namespace UnityMCP.Editor
         {
             if (Application.platform == RuntimePlatform.WindowsEditor) return name;
 
+            // 1. Explicit check for NVM/Node paths (High priority for Codex)
+            if (name == "codex")
+            {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string nvmBase = Path.Combine(home, ".nvm/versions/node");
+                if (Directory.Exists(nvmBase))
+                {
+                    foreach (var versionDir in Directory.GetDirectories(nvmBase))
+                    {
+                        string potential = Path.Combine(versionDir, "bin/codex");
+                        if (File.Exists(potential)) return potential;
+                    }
+                }
+            }
+
+            // 2. Try 'which' (respects shell PATH)
+            string pathFromWhich = GetPathFromWhich(name);
+            if (!string.IsNullOrEmpty(pathFromWhich) && pathFromWhich != name && File.Exists(pathFromWhich))
+            {
+                // Only return if it's not the older homebrew version of codex (if we can tell)
+                if (name == "codex" && pathFromWhich.Contains("homebrew")) {
+                    // Continue to fallback if we prefer NVM
+                } else {
+                    return pathFromWhich;
+                }
+            }
+
+            // 3. Common system paths
             string[] searchPaths = { 
-                "/opt/homebrew/bin/" + name, 
                 "/usr/local/bin/" + name, 
+                "/opt/homebrew/bin/" + name, 
                 "/usr/bin/" + name, 
                 "/bin/" + name 
             };
+
             foreach (string path in searchPaths)
             {
                 if (File.Exists(path)) return path;
             }
 
-            return GetPathFromWhich(name);
+            return name;
         }
 
         private static string GetPathFromWhich(string name)
         {
-            ProcessStartInfo psi = new ProcessStartInfo { FileName = "/usr/bin/which", Arguments = name, RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
+            ProcessStartInfo psi = new ProcessStartInfo 
+            { 
+                FileName = "/usr/bin/which", 
+                Arguments = name, 
+                RedirectStandardOutput = true, 
+                UseShellExecute = false, 
+                CreateNoWindow = true 
+            };
+
+            if (Application.platform != RuntimePlatform.WindowsEditor)
+            {
+                string pathEnv = "";
+                try { pathEnv = Environment.GetEnvironmentVariable("PATH"); } catch(Exception) {}
+                // Don't inject Homebrew here, let it find what's in the actual PATH
+                psi.EnvironmentVariables["PATH"] = pathEnv;
+            }
+
             try
             {
                 using (Process p = Process.Start(psi))
@@ -178,13 +349,15 @@ namespace UnityMCP.Editor
             if (!isWindows)
             {
                 string pathEnv = "";
-                try { pathEnv = psi.EnvironmentVariables["PATH"]; } catch(Exception) {}
-                psi.EnvironmentVariables["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:" + pathEnv;
+                try { pathEnv = Environment.GetEnvironmentVariable("PATH"); } catch(Exception) {}
+                
+                // Add common locations but keep existing PATH to support NVM, etc.
+                psi.EnvironmentVariables["PATH"] = pathEnv + ":/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin";
             }
             return psi;
         }
 
-        private static void RunInstallerProcess(ProcessStartInfo psi, string geminiPath, bool showSuccessDialog)
+        private static bool RunInstallerProcess(ProcessStartInfo psi, string cliPath, bool showSuccessDialog, string cliName)
         {
             try
             {
@@ -195,25 +368,25 @@ namespace UnityMCP.Editor
 
                     if (p.ExitCode == 0)
                     {
-                        if (showSuccessDialog)
-                            EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Gemini CLI!", "OK");
+                        return true;
                     }
-                    else if (showSuccessDialog) // Only show error if this was the 'Add' command
+                    else
                     {
-                        string msg = "Failed to link to Gemini CLI.\n\nExit Code: " + p.ExitCode + "\nError: " + error + "\n\nPath used: " + geminiPath;
-                        UnityEngine.Debug.LogError("[MCP] " + msg);
-                        EditorUtility.DisplayDialog("MCP Error", msg, "OK");
+                        string msg = "CLI command failed at " + cliPath + ".\n\nExit Code: " + p.ExitCode + "\nError: " + error;
+                        UnityEngine.Debug.LogWarning("[MCP] " + msg);
+                        
+                        if (showSuccessDialog) // If this was supposed to be the final step
+                        {
+                            EditorUtility.DisplayDialog("MCP Error", "Failed to link to " + cliName + " CLI.\n\n" + error, "OK");
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
-                if (showSuccessDialog)
-                {
-                    UnityEngine.Debug.LogError("[MCP] Process start failed: " + e.Message);
-                    EditorUtility.DisplayDialog("MCP Error", "Failed to start installer process: " + e.Message, "OK");
-                }
+                UnityEngine.Debug.LogError("[MCP] Process start failed: " + e.Message);
             }
+            return false;
         }
     }
 }

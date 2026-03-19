@@ -27,9 +27,9 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 ## 🚦 Usage
 
 ### Quick Start
-1. Go to **Window > Nexus Unity** in the Unity menu.
-2. Click **Start Server** (Server will now persist through reloads).
-3. Click **Link to Gemini CLI** to instantly connect your terminal to Unity.
+1. Go to **Window > Nexus Unity > Server Control Panel** in the Unity menu.
+2. Click **START SERVER** (Server will now persist through reloads).
+3. Under "CLI Integrations", click **Link to Gemini CLI** or **Link to Codex CLI** to instantly connect your terminal to Unity.
 
 ### Integration
 External tools can send JSON-RPC 2.0 requests to `http://localhost:8081/`. See `DOCUMENTATION.MD` for the full protocol specification.

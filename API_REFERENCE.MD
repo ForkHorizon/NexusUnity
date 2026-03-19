@@ -1,8 +1,8 @@
 # Nexus Unity AI Toolset Reference
 
-This document provides a comprehensive, AI-optimized reference for all 61+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
+This document provides a comprehensive, AI-optimized reference for all 74+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
 
-> **Note for AI Agents**: All tools are prefixed with `unity_` when called via the Gemini CLI/MCP bridge.
+> **Note for AI Agents**: All tools are prefixed with `unity_` when called via the Gemini CLI or Codex CLI/MCP bridge.
 
 ---
 
@@ -455,4 +455,4 @@ Runs a comprehensive project and scene health audit.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays (with a `status: "Success"` key).
 
 ---
-*Generated for Nexus Unity v2.4.0*
+*Generated for Nexus Unity v2.5.0*

@@ -9,7 +9,7 @@ namespace UnityMCP.Editor
     {
         private double _lastUrlCopyTime = -10.0;
         private string _cliStatusMessage = "Checking link...";
-        private string _version = "2.3.0";
+        private string _version = "2.5.0";
         private int _selectedTab = 0;
         private string[] _tabs;
 
@@ -86,16 +86,26 @@ namespace UnityMCP.Editor
 
         private void DrawCliIntegration()
         {
-            GUILayout.Label("Gemini CLI Integration", EditorStyles.boldLabel);
+            GUILayout.Label("CLI Integrations", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
                 if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
             }
-            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30)))
+
+            using (new EditorGUILayout.HorizontalScope())
             {
-                MCPCliInstaller.LinkToGemini();
-                CheckCliLinkStatus();
+                if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30)))
+                {
+                    MCPCliInstaller.LinkToGemini();
+                    CheckCliLinkStatus();
+                }
+
+                if (GUILayout.Button("Link to Codex CLI", GUILayout.Height(30)))
+                {
+                    MCPCliInstaller.LinkToCodex();
+                    CheckCliLinkStatus();
+                }
             }
         }
 

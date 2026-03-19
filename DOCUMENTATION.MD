@@ -155,6 +155,6 @@ Enforces `[ForceDefault]` attribute values on all components of a GameObject.
 Go to **Edit > Project Settings > Nexus Unity** to configure the port.
 
 ### Integration
-1. Open **Window > Nexus Unity**.
-2. Click **Link to Gemini CLI**.
-3. Your local Gemini CLI is now connected to this Unity instance with all 61+ tools.
+1. Open **Window > Nexus Unity > Server Control Panel**.
+2. Click **Link to Gemini CLI** or **Link to Codex CLI**.
+3. Your local CLI is now connected to this Unity instance with all 61+ tools.
