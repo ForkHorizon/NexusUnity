@@ -27,3 +27,8 @@
 **Vulnerability:** The MCP server accepted HTTP requests without validating the `Origin` header, allowing arbitrary websites to connect to localhost (CSRF) and execute commands.
 **Learning:** The previous fix only applied `Origin` validation to WebSocket connections, leaving HTTP requests vulnerable. Both endpoints need `Origin` checks.
 **Prevention:** In `HandleHttpRequest`, verify `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
+
+## 2025-03-05 - ValidateOrigin for Local Servers
+**Vulnerability:** Local servers using `HttpListener` are vulnerable to CSRF, CSWSH, and DNS Rebinding if they bind to `localhost` or fail to validate the `Origin` header of incoming requests.
+**Learning:** Checking `context.Request.Url.IsLoopback` is necessary but insufficient. For browsers (which send the `Origin` header), you must validate that `Uri.TryCreate` parses the origin and verifies `originUri.IsLoopback`. Non-browser clients (like CLI tools) omit the `Origin` header, so empty origins must be allowed to prevent breaking legitimate traffic.
+**Prevention:** Implement a central `ValidateOrigin` method that combines `request.Url.IsLoopback` with strict `System.Uri` parsing of the `Origin` header, applying it uniformly across all HTTP and WebSocket endpoints. Remove `http://localhost/` bindings to enforce strict IP mapping.

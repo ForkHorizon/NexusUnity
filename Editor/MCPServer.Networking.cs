@@ -33,7 +33,6 @@ namespace UnityMCP.Editor
                 _cts = new CancellationTokenSource();
                 _listener = new HttpListener();
                 _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
-                _listener.Prefixes.Add($"http://localhost:{_port}/");
                 _listener.Start();
                 EditorPrefs.SetBool(PrefsKey, true);
                 _ = Task.Run(() => ServerLoop(_cts.Token));
@@ -65,8 +64,38 @@ namespace UnityMCP.Editor
             finally { _isRunning = false; }
         }
 
+        private static bool ValidateOrigin(HttpListenerRequest request)
+        {
+            // First layer of defense: Ensure the request itself is targeting a loopback address (mitigates DNS rebinding).
+            if (!request.Url.IsLoopback) return false;
+
+            string origin = request.Headers["Origin"];
+            // Empty origin is typical for non-browser clients (e.g., CLI tools, scripts).
+            if (string.IsNullOrEmpty(origin)) return true;
+
+            // Second layer of defense: If an Origin is present (typical for browsers), it must be a loopback address.
+            // This prevents Cross-Site Request Forgery (CSRF) and Cross-Site WebSocket Hijacking (CSWSH).
+            if (Uri.TryCreate(origin, UriKind.Absolute, out Uri originUri))
+            {
+                // Only allow HTTP/HTTPS origins (e.g. avoid file:// or other schemes if somehow applicable)
+                if (originUri.Scheme != Uri.UriSchemeHttp && originUri.Scheme != Uri.UriSchemeHttps)
+                    return false;
+
+                return originUri.IsLoopback;
+            }
+
+            return false;
+        }
+
         private static async Task ProcessWebSocket(HttpListenerContext context)
         {
+            if (!ValidateOrigin(context.Request))
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.Close();
+                return;
+            }
+
             var wsContext = await context.AcceptWebSocketAsync(null);
             _webSocket = wsContext.WebSocket;
             await ReceiveWebsocketLoop(_cts.Token);
@@ -75,6 +104,13 @@ namespace UnityMCP.Editor
         private static void HandleHttpRequest(HttpListenerContext context)
         {
             try {
+                if (!ValidateOrigin(context.Request))
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    context.Response.Close();
+                    return;
+                }
+
                 if (context.Request.HttpMethod != "POST") {
                     context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
                     context.Response.Close();
