@@ -65,8 +65,30 @@ namespace UnityMCP.Editor
             finally { _isRunning = false; }
         }
 
+        private static bool IsValidOrigin(string origin)
+        {
+            if (string.IsNullOrEmpty(origin)) return true; // Allow non-browser clients
+
+            try
+            {
+                var uri = new Uri(origin);
+                return uri.IsLoopback;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private static async Task ProcessWebSocket(HttpListenerContext context)
         {
+            if (!context.Request.Url.IsLoopback || !IsValidOrigin(context.Request.Headers["Origin"]))
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.Close();
+                return;
+            }
+
             var wsContext = await context.AcceptWebSocketAsync(null);
             _webSocket = wsContext.WebSocket;
             await ReceiveWebsocketLoop(_cts.Token);
@@ -75,6 +97,13 @@ namespace UnityMCP.Editor
         private static void HandleHttpRequest(HttpListenerContext context)
         {
             try {
+                if (!context.Request.Url.IsLoopback || !IsValidOrigin(context.Request.Headers["Origin"]))
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    context.Response.Close();
+                    return;
+                }
+
                 if (context.Request.HttpMethod != "POST") {
                     context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
                     context.Response.Close();
