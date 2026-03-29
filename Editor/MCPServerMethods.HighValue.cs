@@ -141,14 +141,17 @@ namespace UnityMCP.Editor
             string nodeId = "node_" + id.ToString();
             sb.AppendLine($"  {nodeId}[\"{safeName}\"]");
 
-            var comps = go.GetComponents<Component>();
-            foreach (var comp in comps)
+            using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
             {
-                if (comp == null) continue;
-                string compName = comp.GetType().Name;
-                if (compName == "Transform" || compName == "RectTransform") continue;
-                string compId = "comp_" + comp.GetRawId().ToString();
-                sb.AppendLine($"  {nodeId} --- {compId}([\"{compName}\"])");
+                go.GetComponents(comps);
+                foreach (var comp in comps)
+                {
+                    if (comp == null) continue;
+                    string compName = comp.GetType().Name;
+                    if (compName == "Transform" || compName == "RectTransform") continue;
+                    string compId = "comp_" + comp.GetRawId().ToString();
+                    sb.AppendLine($"  {nodeId} --- {compId}([\"{compName}\"])");
+                }
             }
 
             foreach (Transform child in go.transform)
@@ -170,64 +173,67 @@ namespace UnityMCP.Editor
             var matches = new List<JObject>();
             string lowerQuery = query.ToLower();
 
-            foreach (var go in allGOs)
+            using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
             {
-                if (go.scene == null || !go.scene.isLoaded) continue;
-
-                int score = 0;
-                List<string> reasons = new List<string>();
-
-                if (go.name.ToLower().Contains(lowerQuery))
+                foreach (var go in allGOs)
                 {
-                    score += 50;
-                    reasons.Add("Name match");
-                }
+                    if (go.scene == null || !go.scene.isLoaded) continue;
 
-                var comps = go.GetComponents<Component>();
-                foreach (var comp in comps)
-                {
-                    if (comp == null) continue;
-                    var type = comp.GetType();
-                    string typeName = type.Name;
-                    
-                    if (typeName.ToLower().Contains(lowerQuery))
+                    int score = 0;
+                    List<string> reasons = new List<string>();
+
+                    if (go.name.ToLower().Contains(lowerQuery))
                     {
-                        score += 30;
-                        reasons.Add($"Component type match: {typeName}");
+                        score += 50;
+                        reasons.Add("Name match");
                     }
 
-                    // Scan fields
-                    var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    foreach (var f in fields)
+                    go.GetComponents(comps);
+                    foreach (var comp in comps)
                     {
-                        if (f.Name.ToLower().Contains(lowerQuery))
+                        if (comp == null) continue;
+                        var type = comp.GetType();
+                        string typeName = type.Name;
+
+                        if (typeName.ToLower().Contains(lowerQuery))
                         {
-                            score += 10;
-                            reasons.Add($"Field match: {typeName}.{f.Name}");
+                            score += 30;
+                            reasons.Add($"Component type match: {typeName}");
+                        }
+
+                        // Scan fields
+                        var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        foreach (var f in fields)
+                        {
+                            if (f.Name.ToLower().Contains(lowerQuery))
+                            {
+                                score += 10;
+                                reasons.Add($"Field match: {typeName}.{f.Name}");
+                            }
+                        }
+
+                        // Scan methods (Behavioral scanning)
+                        var methods = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
+                        foreach (var m in methods)
+                        {
+                            if (m.Name.ToLower().Contains(lowerQuery))
+                            {
+                                score += 15;
+                                reasons.Add($"Method match: {typeName}.{m.Name}()");
+                            }
                         }
                     }
 
-                    // Scan methods (Behavioral scanning)
-                    var methods = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
-                    foreach (var m in methods)
+                    if (score > 0)
                     {
-                        if (m.Name.ToLower().Contains(lowerQuery))
+                        matches.Add(new JObject
                         {
-                            score += 15;
-                            reasons.Add($"Method match: {typeName}.{m.Name}()");
-                        }
+                            ["name"] = go.name,
+                            ["instance_id"] = go.GetRawId(),
+                            ["score"] = score,
+                            ["reasons"] = new JArray(reasons.Distinct())
+                        });
                     }
-                }
-
-                if (score > 0)
-                {
-                    matches.Add(new JObject 
-                    { 
-                        ["name"] = go.name, 
-                        ["instance_id"] = go.GetRawId(), 
-                        ["score"] = score,
-                        ["reasons"] = new JArray(reasons.Distinct())
-                    });
                 }
             }
 

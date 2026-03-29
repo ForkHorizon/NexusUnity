@@ -181,45 +181,48 @@ namespace UnityMCP.Editor
                 }
             }
 
-            foreach (var go in allGameObjects)
+            using (UnityEngine.Pool.ListPool<Component>.Get(out var components))
             {
-                if (go.scene == null || !go.scene.isLoaded) continue;
-
-                var components = go.GetComponents<Component>();
-                bool matches = false;
-                List<string> matchingComponents = new List<string>();
-
-                foreach (var comp in components)
+                foreach (var go in allGameObjects)
                 {
-                    if (comp == null) continue;
+                    if (go.scene == null || !go.scene.isLoaded) continue;
 
-                    using (var so = new SerializedObject(comp))
+                    go.GetComponents(components);
+                    bool matches = false;
+                    List<string> matchingComponents = new List<string>();
+
+                    foreach (var comp in components)
                     {
-                        var prop = so.GetIterator();
-                        bool enterChildren = true;
-                        while (prop.Next(enterChildren))
+                        if (comp == null) continue;
+
+                        using (var so = new SerializedObject(comp))
                         {
-                            enterChildren = true;
-                            if (prop.propertyType == SerializedPropertyType.ObjectReference)
+                            var prop = so.GetIterator();
+                            bool enterChildren = true;
+                            while (prop.Next(enterChildren))
                             {
-                                if (targetInstanceIds.Contains(prop.objectReferenceEntityIdValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
+                                enterChildren = true;
+                                if (prop.propertyType == SerializedPropertyType.ObjectReference)
                                 {
-                                    matches = true;
-                                    matchingComponents.Add(comp.GetType().Name);
-                                    break;
+                                    if (targetInstanceIds.Contains(prop.objectReferenceEntityIdValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
+                                    {
+                                        matches = true;
+                                        matchingComponents.Add(comp.GetType().Name);
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if (matches)
-                {
-                    var goData = new JObject();
-                    goData["name"] = go.name;
-                    goData["instance_id"] = go.GetRawId();
-                    goData["components"] = new JArray(matchingComponents.Distinct());
-                    sceneRefs.Add(goData);
+                    if (matches)
+                    {
+                        var goData = new JObject();
+                        goData["name"] = go.name;
+                        goData["instance_id"] = go.GetRawId();
+                        goData["components"] = new JArray(matchingComponents.Distinct());
+                        sceneRefs.Add(goData);
+                    }
                 }
             }
 

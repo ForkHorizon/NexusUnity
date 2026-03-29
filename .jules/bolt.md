@@ -13,3 +13,7 @@
 ## 2025-03-01 - [FindObjects N+1 Component Allocation]
 **Learning:** Calling `go.GetComponent(typeName)` in a LINQ query that iterates over all GameObjects (e.g., `Resources.FindObjectsOfTypeAll<GameObject>()`) creates a massive N+1 bottleneck, scaling poorly with project size. For Regex, while static `Regex.IsMatch` uses an internal cache and doesn't explicitly re-compile, it still incurs lookup and parsing overhead per iteration. However, using `RegexOptions.Compiled` on short-lived objects is a massive performance trap due to IL compilation latency.
 **Action:** Start component searches with `Resources.FindObjectsOfTypeAll(type)` mapped back via `.OfType<Component>().Select(c => c.gameObject).Distinct()`. Pre-instantiate local `Regex` objects without `Compiled` before entering loops.
+
+## 2025-03-01 - [GetComponents Array Allocation in Scene Traversal]
+**Learning:** Calling `go.GetComponents<Component>()` inside loops that iterate over the entire scene hierarchy (like `SemanticFind` or `FindReferences`) allocates a new array on the heap for every single GameObject, leading to extreme GC pressure and stuttering in large projects.
+**Action:** Always acquire a `List<Component>` from `UnityEngine.Pool.ListPool<Component>.Get(out var list)` outside the loop, use the non-allocating overload `go.GetComponents(list)` inside the loop, and rely on the `using` block to safely release the buffer. In static utility functions, a persistent private static `List<Component>` can also be used if thread-safety is not a concern (e.g., Unity Main Thread execution).
