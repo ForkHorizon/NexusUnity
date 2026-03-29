@@ -7,7 +7,6 @@ namespace UnityMCP.Editor
 {
     public partial class MCPServerWindow : EditorWindow
     {
-        private double _lastUrlCopyTime = -10.0;
         private string _cliStatusMessage = "Checking link...";
         private string _version = "2.2.0";
         private int _selectedTab = 0;
@@ -19,12 +18,9 @@ namespace UnityMCP.Editor
         private void OnEnable()
         {
             _tabs = new[] { "Server", "Tools", "Verification" };
-            EditorApplication.update += UpdateCopyFeedback;
             titleContent = new GUIContent($"Nexus Unity v{MCPServer.Version}");
             CheckCliLinkStatus();
         }
-
-        private void OnDisable() => EditorApplication.update -= UpdateCopyFeedback;
 
         private void OnGUI()
         {
@@ -75,11 +71,10 @@ namespace UnityMCP.Editor
                 GUILayout.FlexibleSpace();
                 GUILayout.Label(new GUIContent($"Port: {MCPServer.Port}"));
                 GUILayout.Space(10);
-                bool recentlyCopied = EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0;
-                if (GUILayout.Button(new GUIContent(recentlyCopied ? "Copied!" : "Copy URL"), EditorStyles.miniButton))
+                if (GUILayout.Button(new GUIContent("Copy URL", "Copy the server URL to the clipboard"), EditorStyles.miniButton))
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{MCPServer.Port}";
-                    _lastUrlCopyTime = EditorApplication.timeSinceStartup;
+                    ShowNotification(new GUIContent("Copied to clipboard!"));
                 }
             }
         }
@@ -90,9 +85,9 @@ namespace UnityMCP.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
-                if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
+                if (GUILayout.Button(new GUIContent("Refresh", "Check the link status with the Gemini CLI"), GUILayout.Width(60))) CheckCliLinkStatus();
             }
-            if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30)))
+            if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Install and configure the Gemini CLI integration"), GUILayout.Height(30)))
             {
                 MCPCliInstaller.LinkToGemini();
                 CheckCliLinkStatus();
@@ -105,8 +100,8 @@ namespace UnityMCP.Editor
             GUILayout.Label("Resources", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                if (GUILayout.Button("Documentation", EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
-                if (GUILayout.Button("API Reference", EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
+                if (GUILayout.Button(new GUIContent("Documentation", "Open the Nexus Unity technical documentation"), EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
+                if (GUILayout.Button(new GUIContent("API Reference", "Open the Nexus Unity API reference guide"), EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
             }
         }
 
@@ -124,17 +119,17 @@ namespace UnityMCP.Editor
         private void DrawToolsTab()
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
-            if (GUILayout.Button("Open Test Window")) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button("Clear All Logs")) MCPServer.ClearLogs();
+            if (GUILayout.Button(new GUIContent("Open Test Window", "Open the UI testing window"))) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the server logs"))) MCPServer.ClearLogs();
         }
 
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
-            if (GUILayout.Button("Run Linter")) ProjectAuditor.RunAuditMenu();
-            if (GUILayout.Button("Run Full API Verification")) GetWindow<MCPVerificationWindow>().Show();
-            if (GUILayout.Button("Verify UI")) UIVerification.Verify();
-            if (GUILayout.Button("Verify Logs")) LogVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Run Linter", "Run the project auditor linter"))) ProjectAuditor.RunAuditMenu();
+            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the API verification window"))) GetWindow<MCPVerificationWindow>().Show();
+            if (GUILayout.Button(new GUIContent("Verify UI", "Run UI verification tests"))) UIVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify Logs", "Run log verification tests"))) LogVerification.Verify();
         }
 
         private void LoadVersion()
@@ -158,6 +153,5 @@ namespace UnityMCP.Editor
         }
 
         private void CheckCliLinkStatus() { _cliStatusMessage = "Ready to Link"; }
-        private void UpdateCopyFeedback() { if (EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0) Repaint(); }
     }
 }
