@@ -10,6 +10,8 @@ namespace UnityMCP.Editor
 {
     public static class ProjectAuditorWrapper
     {
+        private static List<Component> _componentCache = new List<Component>();
+
         [MenuItem("Window/Nexus Unity/Run Full Project Audit")]
         public static void RunAuditMenu()
         {
@@ -177,8 +179,8 @@ namespace UnityMCP.Editor
             {
                 if (go.scene == null || !go.scene.isLoaded) continue;
 
-                var components = go.GetComponents<Component>();
-                foreach (var comp in components)
+                go.GetComponents(_componentCache);
+                foreach (var comp in _componentCache)
                 {
                     if (comp == null)
                     {

@@ -23,7 +23,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.4.1" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.5.1" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
@@ -127,6 +127,11 @@ Moves or renames an asset.
 Forces Unity to scan for changed files. Returns compilation and updating status.
 
 ---
+
+#### `wait_for_ready`
+Returns `true` only when the editor is idle enough for follow-up tool calls.
+- **Behavior**: Checks Unity compile/import readiness instead of just confirming that the HTTP server socket is reachable.
+- **Use Case**: Poll this after domain reloads before attaching freshly compiled scripts or issuing other editor-mutating commands.
 
 ### UI Toolkit Automation
 

@@ -7,9 +7,8 @@ namespace UnityMCP.Editor
 {
     public partial class MCPServerWindow : EditorWindow
     {
-        private double _lastUrlCopyTime = -10.0;
         private string _cliStatusMessage = "Checking link...";
-        private string _version = "2.5.0";
+        private string _version = "2.5.1";
         private int _selectedTab = 0;
         private string[] _tabs;
 
@@ -19,12 +18,9 @@ namespace UnityMCP.Editor
         private void OnEnable()
         {
             _tabs = new[] { "Server", "Tools", "Verification" };
-            EditorApplication.update += UpdateCopyFeedback;
             titleContent = new GUIContent($"Nexus Unity v{MCPServer.Version}");
             CheckCliLinkStatus();
         }
-
-        private void OnDisable() => EditorApplication.update -= UpdateCopyFeedback;
 
         private void OnGUI()
         {
@@ -75,11 +71,10 @@ namespace UnityMCP.Editor
                 GUILayout.FlexibleSpace();
                 GUILayout.Label(new GUIContent($"Port: {MCPServer.Port}"));
                 GUILayout.Space(10);
-                bool recentlyCopied = EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0;
-                if (GUILayout.Button(new GUIContent(recentlyCopied ? "Copied!" : "Copy URL"), EditorStyles.miniButton))
+                if (GUILayout.Button(new GUIContent("Copy URL", "Copy Server URL to clipboard"), EditorStyles.miniButton))
                 {
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{MCPServer.Port}";
-                    _lastUrlCopyTime = EditorApplication.timeSinceStartup;
+                    ShowNotification(new GUIContent("URL Copied to Clipboard"));
                 }
             }
         }
@@ -168,6 +163,5 @@ namespace UnityMCP.Editor
         }
 
         private void CheckCliLinkStatus() { _cliStatusMessage = "Ready to Link"; }
-        private void UpdateCopyFeedback() { if (EditorApplication.timeSinceStartup - _lastUrlCopyTime < 2.0) Repaint(); }
     }
 }

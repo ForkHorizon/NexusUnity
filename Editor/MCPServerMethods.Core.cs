@@ -27,7 +27,10 @@ namespace UnityMCP.Editor
 
         private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
 
-        private static JToken WaitForReady(JToken p) => true;
+        private static JToken WaitForReady(JToken p)
+        {
+            return !EditorApplication.isCompiling && !EditorApplication.isUpdating;
+        }
 
         private static JToken CreatePrimitive(JToken p)
         {

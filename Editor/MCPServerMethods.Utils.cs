@@ -1,5 +1,6 @@
-#pragma warning disable 0618
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
@@ -14,6 +15,9 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
+        private static readonly System.Func<int, EntityId> LegacyIntToEntityId = CreateLegacyIntToEntityId();
+        private static readonly System.Func<EntityId, int> LegacyEntityIdToInt = CreateLegacyEntityIdToInt();
+
         /// <summary>
         /// Validates that the path is within the project directory to prevent path traversal.
         /// Returns the absolute path if valid.
@@ -104,7 +108,8 @@ namespace UnityMCP.Editor
 
         // --- Version-Agnostic ID Wrappers (Updated for Unity 6) ---
         // We use GetId() and IdToObject() throughout the codebase to stay future-proof.
-        // Internal obsolete calls are suppressed ONLY here.
+        // JSON still carries the legacy integer-shaped instance_id, so we bridge through
+        // EntityId.ToULong/FromULong instead of the removed int conversion operators.
 
         internal static UnityEngine.Object IdToObject(EntityId id)
         {
@@ -123,15 +128,63 @@ namespace UnityMCP.Editor
             if (token == null || token.Type == JTokenType.Null) return default;
             try
             {
-#pragma warning disable CS0618
-                // We use the obsolete cast ONLY here to bridge JSON (int) to EntityId.
-                return (EntityId)(int)token;
-#pragma warning restore CS0618
+                string rawText = token.ToString();
+
+                if (long.TryParse(rawText, NumberStyles.Integer, CultureInfo.InvariantCulture, out long signedId))
+                {
+                    return LegacyIntToEntityId(unchecked((int)signedId));
+                }
+
+                if (ulong.TryParse(rawText, NumberStyles.Integer, CultureInfo.InvariantCulture, out ulong rawId))
+                {
+                    return EntityId.FromULong(rawId);
+                }
+
+                return default;
             }
             catch
             {
                 return default;
             }
+        }
+
+        internal static int ConvertEntityIdToLegacyInt(EntityId id)
+        {
+            return LegacyEntityIdToInt(id);
+        }
+
+        private static System.Func<int, EntityId> CreateLegacyIntToEntityId()
+        {
+            MethodInfo operatorMethod = typeof(EntityId).GetMethod(
+                "op_Implicit",
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: new[] { typeof(int) },
+                modifiers: null);
+
+            if (operatorMethod != null)
+            {
+                return (System.Func<int, EntityId>)System.Delegate.CreateDelegate(typeof(System.Func<int, EntityId>), operatorMethod);
+            }
+
+            return value => EntityId.FromULong(unchecked((ulong)(uint)value));
+        }
+
+        private static System.Func<EntityId, int> CreateLegacyEntityIdToInt()
+        {
+            MethodInfo operatorMethod = typeof(EntityId).GetMethod(
+                "op_Implicit",
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: new[] { typeof(EntityId) },
+                modifiers: null);
+
+            if (operatorMethod != null)
+            {
+                return (System.Func<EntityId, int>)System.Delegate.CreateDelegate(typeof(System.Func<EntityId, int>), operatorMethod);
+            }
+
+            return value => unchecked((int)EntityId.ToULong(value));
         }
     }
 
@@ -147,14 +200,12 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Returns the raw integer value of the ID for JSON serialization.
+        /// Returns the legacy integer-shaped ID used by the current JSON protocol.
         /// </summary>
         public static int GetRawId(this UnityEngine.Object obj)
         {
             if (obj == null) return 0;
-#pragma warning disable CS0618
-            return (int)obj.GetEntityId();
-#pragma warning restore CS0618
+            return MCPServerMethods.ConvertEntityIdToLegacyInt(obj.GetEntityId());
         }
     }
 }

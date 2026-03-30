@@ -8,7 +8,9 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 
 - **Autonomous Background Workflow**: Native macOS App Nap bypass and focus-stealing synchronization for 100% zero-touch script compilation.
 - **Hybrid Deep Auditor**: Combined static code analysis (via Project Auditor) and Nexus-native scene health scanning.
+- **Unity 6 Legacy ID Compatibility**: JSON-RPC `instance_id` values now round-trip correctly across create/read/update calls while the wire protocol stays stable.
 - **Intuitive Component Updates**: Supports native JSON objects and fuzzy property naming (e.g., auto-maps `sprite` to `m_Sprite`).
+- **Reliable Readiness Polling**: `wait_for_ready` now reflects actual compile/import idle state instead of raw socket availability.
 - **Standardized Return Payloads**: Consistent `JObject` returns across all 61+ tools for predictable AI error handling.
 - **Native Wait Tools**: Built-in Python bridge tools to wait for compilation or play mode transitions.
 - **Intelligent Asset Merging**: High-level `move_asset` tool that automatically merges directories.

@@ -297,8 +297,9 @@ Creates a new C# script and triggers compilation.
 - **Returns**: Status object `{status, message}`.
 
 ### `unity_wait_for_ready`
-Simple ping tool that returns `true` once the Unity server is responsive.
-- **Returns**: Boolean `true`.
+Readiness probe that returns `true` only when the Unity editor is not compiling or importing assets.
+- **Returns**: Boolean `true` when the editor is ready for follow-up tool calls.
+- **AI Warning**: Use this after domain reloads before trying to attach newly written scripts.
 
 ### `unity_apply_code_change` (Macro)
 The ultimate workflow optimization tool for the AI. This macro performs the full "Write -> Wait -> Check" loop in a single turn.
@@ -455,4 +456,4 @@ Runs a comprehensive project and scene health audit.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays (with a `status: "Success"` key).
 
 ---
-*Generated for Nexus Unity v2.5.0*
+*Generated for Nexus Unity v2.5.1*

@@ -2,6 +2,15 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.5.1] - 2026-03-30
+
+### Fixed
+- **Unity 6 Legacy ID Bridging**: Restored correct round-tripping between legacy JSON-RPC `instance_id` values and Unity 6 `EntityId`s. This fixes follow-up operations like `get_game_object`, `add_component`, prefab overrides, and other workflows that reuse returned object IDs.
+- **Readiness Semantics**: `wait_for_ready` now reports actual editor readiness by checking compilation/import state instead of always returning `true`.
+
+### Changed
+- **Documentation Sync**: Updated README, DOCUMENTATION, and API reference to describe the corrected readiness behavior and the stable `instance_id` compatibility layer.
+
 ## [2.5.0] - 2026-03-19
 
 ### Added
