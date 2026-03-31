@@ -107,7 +107,9 @@ STATIC_TOOLS = [
     # Autonomous Macros (AI Efficiency)
     {"name": "unity_apply_code_change", "description": "Macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use this instead of individual write+refresh+wait steps.", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},
     {"name": "unity_wait_for_compilation", "description": "Blocks until Unity finishes compiling and reloading the domain. Crucial after creating scripts.", "inputSchema": {"type": "object", "properties": {"timeout_seconds": {"type": "integer", "description": "Max seconds to wait (default 60)"}}}},
-    {"name": "unity_wait_for_play_mode", "description": "Blocks until Unity reaches the desired play mode state.", "inputSchema": {"type": "object", "properties": {"state": {"type": "boolean", "description": "True to wait for play mode, false to wait for edit mode"}, "timeout_seconds": {"type": "integer", "description": "Max seconds to wait (default 30)"}}, "required": ["state"]}}
+    {"name": "unity_wait_for_play_mode", "description": "Blocks until Unity reaches the desired play mode state.", "inputSchema": {"type": "object", "properties": {"state": {"type": "boolean", "description": "True to wait for play mode, false to wait for edit mode"}, "timeout_seconds": {"type": "integer", "description": "Max seconds to wait (default 30)"}}, "required": ["state"]}},
+    {"name": "unity_wait_for_asset_import_idle", "description": "Wait until Unity is done importing assets", "inputSchema": {"type": "object", "properties": {"timeout_seconds": {"type": "integer"}}}},
+    {"name": "unity_wait_for_editor_idle", "description": "Wait until the editor is fully idle (not compiling, not importing, no background tasks)", "inputSchema": {"type": "object", "properties": {"timeout_seconds": {"type": "integer"}}}}
 ]
 
 def log(msg):
@@ -192,8 +194,7 @@ def main():
                         "resources": {}, 
                         "prompts": {}
                     }, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.5.0"}
-                }
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.6.0"}                }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method == "notifications/initialized":
                 continue 
@@ -345,6 +346,34 @@ def main():
                     else:
                         status = "Timeout"
                     
+                    unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
+
+                elif name == "wait_for_asset_import_idle":
+                    timeout = args.get("timeout_seconds", 60)
+                    start_time = time.time()
+                    status = "Ready"
+                    while time.time() - start_time < timeout:
+                        res = call_unity("is_asset_import_idle")
+                        if res and "result" in res:
+                            if res["result"].get("is_idle"):
+                                break
+                        time.sleep(1.0)
+                    else:
+                        status = "Timeout"
+                    unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
+
+                elif name == "wait_for_editor_idle":
+                    timeout = args.get("timeout_seconds", 120)
+                    start_time = time.time()
+                    status = "Ready"
+                    while time.time() - start_time < timeout:
+                        res = call_unity("is_editor_idle")
+                        if res and "result" in res:
+                            if res["result"].get("is_idle"):
+                                break
+                        time.sleep(1.0)
+                    else:
+                        status = "Timeout"
                     unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
 
                 else:

@@ -8,7 +8,7 @@ namespace UnityMCP.Editor
     public partial class MCPServerWindow : EditorWindow
     {
         private string _cliStatusMessage = "Checking link...";
-        private string _version = "2.5.1";
+        private string _version = "2.6.0";
         private int _selectedTab = 0;
         private string[] _tabs;
 

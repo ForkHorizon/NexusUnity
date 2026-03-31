@@ -103,11 +103,11 @@ namespace UnityMCP.Editor
 
             if (UnityEditorInternal.InternalEditorUtility.isApplicationActive)
             {
-                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
                 AssetDatabase.SaveAssets();
             }
             #else
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             AssetDatabase.SaveAssets();
             #endif
 

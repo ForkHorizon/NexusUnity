@@ -12,6 +12,11 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 - **Intuitive Component Updates**: Supports native JSON objects and fuzzy property naming (e.g., auto-maps `sprite` to `m_Sprite`).
 - **Reliable Readiness Polling**: `wait_for_ready` now reflects actual compile/import idle state instead of raw socket availability.
 - **Standardized Return Payloads**: Consistent `JObject` returns across all 61+ tools for predictable AI error handling.
+- **ScriptableObject Tools**: Native management of data-driven assets (`read`, `update`, `create`, `duplicate`).
+- **Runtime Gameplay Input Tools**: Robust, cross-frame simulation of Mouse and Touch events, including GameView spatial object targeting.
+- **Enhanced Log Consumption**: Cursor-based log retrieval with multi-severity filtering, fully bridged to capture Play Mode runtime events.
+- **PlayerPrefs Tools**: Native support for `get_player_pref`, `set_player_pref`, `delete_player_pref`, and `list_player_prefs` with cross-platform listing (macOS/Windows).
+- **Asset Pipeline Sync**: Deterministic tools to wait for asset imports and editor idle states.
 - **Native Wait Tools**: Built-in Python bridge tools to wait for compilation or play mode transitions.
 - **Intelligent Asset Merging**: High-level `move_asset` tool that automatically merges directories.
 - **Surgical Property Editing**: Deep recursive serialization of Arrays, Lists, and Generic structs.

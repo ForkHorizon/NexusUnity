@@ -456,4 +456,4 @@ Runs a comprehensive project and scene health audit.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays (with a `status: "Success"` key).
 
 ---
-*Generated for Nexus Unity v2.5.1*
+*Generated for Nexus Unity v2.6.0*

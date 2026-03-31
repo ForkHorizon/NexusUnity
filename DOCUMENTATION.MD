@@ -23,7 +23,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.5.1" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.6.0" } }`
 
 #### `list_tools`
 Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
@@ -69,10 +69,22 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 `unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
 
 #### 🎮 Editor Control
-`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_wait_for_ready`, `unity_wait_for_compilation`, `unity_wait_for_play_mode`, `unity_enforce_forced_defaults`.
+`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_read_logs_since_cursor`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_wait_for_ready`, `unity_wait_for_compilation`, `unity_wait_for_play_mode`, `unity_enforce_forced_defaults`.
 
 #### 🔍 Discovery & Inspection
 `unity_get_game_object`, `unity_get_active_game_object`, `unity_get_root_game_objects`, `unity_get_object_path`, `unity_find_objects`, `unity_find_references`, `unity_find_by_path`, `unity_get_tags_and_layers`, `unity_ping_object`, `unity_get_children`, `unity_get_editor_state`, `unity_get_project_info`, `unity_set_selection`.
+
+#### 🔄 Sync & Pipeline
+`unity_wait_for_compilation`, `unity_wait_for_play_mode`, `unity_wait_for_asset_import_idle`, `unity_wait_for_editor_idle`, `unity_refresh_asset_database`.
+
+#### 💾 PlayerPrefs
+`unity_get_player_pref`, `unity_set_player_pref`, `unity_delete_player_pref`, `unity_list_player_prefs`.
+
+#### 📄 ScriptableObjects
+`unity_read_scriptable_object`, `unity_update_scriptable_object`, `unity_create_scriptable_object_asset`, `unity_duplicate_scriptable_object_asset`, `unity_list_fields_for_type`.
+
+#### 🎮 Runtime Input (Play Mode Only)
+`unity_simulate_mouse`, `unity_simulate_touch`, `unity_click_object_in_game`.
 
 #### 🖥 UI Toolkit Automation
 `unity_ui_list_windows`, `unity_ui_get_hierarchy`, `unity_ui_query_elements`, `unity_ui_click`, `unity_ui_input_text`.

@@ -100,6 +100,7 @@ namespace UnityMCP.Editor
         private static void HandleHttpRequest(HttpListenerContext context)
         {
             try {
+                System.IO.File.AppendAllText("mcp_network_trace.txt", $"[NET] Request: {context.Request.HttpMethod} {context.Request.Url} at {DateTime.Now}\n");
                 if (!IsValidOrigin(context))
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Forbidden;

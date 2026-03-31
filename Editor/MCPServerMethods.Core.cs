@@ -17,6 +17,7 @@ namespace UnityMCP.Editor
         {
             _methods["initialize"] = Initialize;
             _methods["read_logs"] = ReadLogs;
+            _methods["read_logs_since_cursor"] = ReadLogsSinceCursor;
             _methods["clear_logs"] = ClearLogs;
             _methods["test_coroutine"] = TestCoroutine;
             _methods["list_tools"] = ListTools;
@@ -55,13 +56,40 @@ namespace UnityMCP.Editor
             return new JObject { ["status"] = "Success", ["message"] = "Script created and compilation triggered" };
         }
 
-        private static JToken ReadLogs(JToken p) => new JObject { ["logs"] = JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString())) };
+        private static JToken ReadLogs(JToken p) {
+            try { System.IO.File.AppendAllText("/Users/daliys/Daliys/UnityProjects/UnityForNexus/mcp_log_capture.txt", $"[READ_LOGS] Called at {DateTime.Now}\n"); } catch {}
+            return new JObject { ["logs"] = JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString())) };
+        }
+
+        private static JToken ReadLogsSinceCursor(JToken p)
+        {
+            long cursor = p?["cursor"]?.Value<long>() ?? 0;
+            string[] severities = p?["severities"]?.ToObject<string[]>();
+            string searchText = p?["search_text"]?.ToString();
+
+            var logs = MCPServer.GetLogsSince(cursor, severities, searchText);
+            long newCursor = logs.Count > 0 ? logs.Max(l => l.Id) : cursor;
+
+            return new JObject
+            {
+                ["logs"] = JArray.FromObject(logs),
+                ["new_cursor"] = newCursor
+            };
+        }
+
         private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return new JObject { ["status"] = "Success", ["message"] = "Logs cleared" }; }
-        private static JToken TestCoroutine(JToken p) { EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); return new JObject { ["status"] = "Success", ["message"] = "Started" }; }
+        private static JToken TestCoroutine(JToken p) { 
+            UnityEngine.Debug.Log("[MCP_EXECUTE] test_coroutine");
+            try { System.IO.File.AppendAllText("mcp_coroutine_trace.txt", $"[COROUTINE] Called at {DateTime.Now}\n"); } catch {}
+            EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); 
+            return new JObject { ["status"] = "Success", ["message"] = "Started" }; 
+        }
 
         // Cache the tool definitions since they are static and do not change during the session.
         // This avoids creating thousands of JObjects every time 'list_tools' is called.
         private static JToken _cachedTools;
+
+        internal static void ClearCache() => _cachedTools = null;
 
         /// <summary>Lists all available tools for the MCP server.</summary>
         private static JToken ListTools(JToken p)
@@ -80,9 +108,61 @@ namespace UnityMCP.Editor
             AddSerializationTools(tools);
             AddLinterTools(tools);
             AddHighValueTools(tools);
+            AddPlayerPrefsTools(tools);
+            AddScriptableObjectTools(tools);
+            AddSyncTools(tools);
+            AddInputTools(tools);
 
             _cachedTools = tools;
             return tools;
+        }
+
+        private static void AddInputTools(JArray tools)
+        {
+            tools.Add(CreateTool("simulate_mouse", "Simulate mouse input in Play Mode", new JObject 
+            { 
+                ["action"] = new JObject { ["type"] = "string", ["description"] = "move, press, release, click" },
+                ["x"] = new JObject { ["type"] = "number" },
+                ["y"] = new JObject { ["type"] = "number" },
+                ["normalized"] = new JObject { ["type"] = "boolean", ["description"] = "If true, x/y are 0-1" },
+                ["button"] = new JObject { ["type"] = "integer", ["description"] = "0: Left, 1: Right, 2: Middle" }
+            }));
+            tools.Add(CreateTool("simulate_touch", "Simulate touch input in Play Mode", new JObject 
+            { 
+                ["action"] = new JObject { ["type"] = "string", ["description"] = "press, move, release" },
+                ["x"] = new JObject { ["type"] = "number" },
+                ["y"] = new JObject { ["type"] = "number" },
+                ["normalized"] = new JObject { ["type"] = "boolean" },
+                ["id"] = new JObject { ["type"] = "integer", ["description"] = "Touch ID" }
+            }));
+            tools.Add(CreateTool("click_object_in_game", "Click a GameObject in the Game View", new JObject 
+            { 
+                ["instance_id"] = new JObject { ["type"] = "integer" },
+                ["path"] = new JObject { ["type"] = "string" }
+            }));
+        }
+
+        private static void AddSyncTools(JArray tools)
+        {
+            tools.Add(CreateTool("wait_for_asset_import_idle", "Wait until Unity is done importing assets", new JObject { ["timeout_seconds"] = new JObject { ["type"] = "integer" } }));
+            tools.Add(CreateTool("wait_for_editor_idle", "Wait until the editor is fully idle (not compiling, not importing, no background tasks)", new JObject { ["timeout_seconds"] = new JObject { ["type"] = "integer" } }));
+        }
+
+        private static void AddScriptableObjectTools(JArray tools)
+        {
+            tools.Add(CreateTool("read_scriptable_object", "Read ScriptableObject properties", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["instance_id"] = new JObject { ["type"] = "integer" } }));
+            tools.Add(CreateTool("update_scriptable_object", "Update ScriptableObject properties", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["instance_id"] = new JObject { ["type"] = "integer" }, ["properties"] = new JObject { ["type"] = "object" } }, "properties"));
+            tools.Add(CreateTool("create_scriptable_object_asset", "Create new ScriptableObject asset", new JObject { ["type"] = new JObject { ["type"] = "string" }, ["path"] = new JObject { ["type"] = "string" } }, "type", "path"));
+            tools.Add(CreateTool("duplicate_scriptable_object_asset", "Duplicate ScriptableObject asset", new JObject { ["source_path"] = new JObject { ["type"] = "string" }, ["dest_path"] = new JObject { ["type"] = "string" } }, "source_path", "dest_path"));
+            tools.Add(CreateTool("list_fields_for_type", "List serializable fields for a type", new JObject { ["type"] = new JObject { ["type"] = "string" } }, "type"));
+        }
+
+        private static void AddPlayerPrefsTools(JArray tools)
+        {
+            tools.Add(CreateTool("get_player_pref", "Get PlayerPref value", new JObject { ["key"] = new JObject { ["type"] = "string" }, ["type"] = new JObject { ["type"] = "string", ["description"] = "int, float, string" }, ["default"] = new JObject { ["type"] = "any" } }, "key"));
+            tools.Add(CreateTool("set_player_pref", "Set PlayerPref value", new JObject { ["key"] = new JObject { ["type"] = "string" }, ["value"] = new JObject { ["type"] = "any" }, ["type"] = new JObject { ["type"] = "string", ["description"] = "int, float, string" } }, "key", "value"));
+            tools.Add(CreateTool("delete_player_pref", "Delete PlayerPref key or 'all'", new JObject { ["key"] = new JObject { ["type"] = "string", ["description"] = "Specific key or 'all' to clear everything" } }));
+            tools.Add(CreateTool("list_player_prefs", "List all PlayerPref keys and values", new JObject { }));
         }
 
         private static void AddHighValueTools(JArray tools)
@@ -166,6 +246,12 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("execute_menu_item", "Execute Menu", new JObject { ["item_path"] = new JObject { ["type"] = "string" } }, "item_path"));
             tools.Add(CreateTool("focus_scene_view", "Frame selection", new JObject { }));
             tools.Add(CreateTool("read_logs", "Get Console", new JObject { ["count"] = new JObject { ["type"] = "integer" } }));
+            tools.Add(CreateTool("read_logs_since_cursor", "Read only new logs since last poll", new JObject 
+            { 
+                ["cursor"] = new JObject { ["type"] = "integer", ["description"] = "Last seen log ID" },
+                ["severities"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "string" }, ["description"] = "e.g. ['Error', 'Exception']" },
+                ["search_text"] = new JObject { ["type"] = "string", ["description"] = "Filter by content" }
+            }));
             tools.Add(CreateTool("clear_logs", "Clear Console", new JObject { }));
             tools.Add(CreateTool("attach_script", "Create & Link C#", new JObject { ["script_name"] = new JObject { ["type"] = "string" }, ["script_content"] = new JObject { ["type"] = "string" } }, "script_name"));
             tools.Add(CreateTool("wait_for_ready", "Wait until server is responsive", new JObject { }));

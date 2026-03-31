@@ -20,6 +20,7 @@ namespace UnityMCP.Editor
     public static partial class MCPServer
     {
         private static string _version = "0.0.0";
+        private static long _logCounter = 0;
         public static string Version => _version;
 
         private static ConcurrentQueue<Action> _mainThreadQueue;
@@ -40,19 +41,43 @@ namespace UnityMCP.Editor
             _logs = new ConcurrentQueue<LogEntry>();
         }
 
-        [InitializeOnLoadMethod]
-        internal static async void Init()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeInit()
         {
+            Init();
+        }
+
+        [InitializeOnLoadMethod]
+        internal static void Init()
+        {
+            try { File.AppendAllText("mcp_server_trace.txt", $"[SERVER] Init at {DateTime.Now} in {Directory.GetCurrentDirectory()}\n"); } catch {}
+            _mainThreadQueue = _mainThreadQueue ?? new ConcurrentQueue<Action>();
+            _logs = _logs ?? new ConcurrentQueue<LogEntry>();
+
             AppNapBypass.CacheApplicationPath();
             UpdateVersion();
             MCPServerMethods.Init();
             
             EditorApplication.update -= HandleMainThreadQueue;
             EditorApplication.update += HandleMainThreadQueue;
-            
+
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
             
+            // Use absolute path for sanity check
+            try {
+                string path = Path.Combine(Directory.GetCurrentDirectory(), "mcp_log_capture.txt");
+                File.AppendAllText(path, $"[{DateTime.Now}] Init Subscribed at {path}\n");
+            } catch {}
+
+            #if UNITY_2019_1_OR_NEWER
+            Application.logMessageReceived -= OnLogMessageReceived;
+            Application.logMessageReceived += OnLogMessageReceived;
+            #endif
+
+            // Bridge from Runtime assembly
+            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
+            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;            
             AssemblyReloadEvents.beforeAssemblyReload -= Cleanup;
             AssemblyReloadEvents.beforeAssemblyReload += Cleanup;
 
@@ -61,13 +86,15 @@ namespace UnityMCP.Editor
             
             if (EditorPrefs.GetBool(PrefsKey, false))
             {
-                int retries = 5;
-                while (retries > 0 && IsPortBusy(_port))
-                {
-                    await Task.Delay(500);
-                    retries--;
-                }
-                Start();
+                Task.Run(async () => {
+                    int retries = 5;
+                    while (retries > 0 && IsPortBusy(_port))
+                    {
+                        await Task.Delay(500);
+                        retries--;
+                    }
+                    Start();
+                });
                 
                 #if UNITY_EDITOR_OSX
                 // After domain reload, wait for the editor to fully settle before 
@@ -117,7 +144,10 @@ namespace UnityMCP.Editor
 
                 } catch { }
 
-                Task.Delay(100).ContinueWith(_ => {
+                // Dynamic interval: If compiling or updating, wait longer to reduce CPU/UI contention.
+                int delay = (EditorApplication.isCompiling || EditorApplication.isUpdating) ? 1000 : 100;
+
+                Task.Delay(delay).ContinueWith(_ => {
                     EditorApplication.delayCall += ScheduleNextHeartbeat;
                 });
             };
@@ -148,7 +178,7 @@ namespace UnityMCP.Editor
                     }
                     dir = Path.GetDirectoryName(dir);
                 }
-            } catch { _version = "2.5.1"; }
+            } catch { _version = "2.6.0"; }
         }
 
         public static int Port => _port;
@@ -156,7 +186,14 @@ namespace UnityMCP.Editor
 
         public static async void Start()
         {
+            System.IO.File.AppendAllText("mcp_log_capture.txt", $"[{DateTime.Now}] Server Start Called\n");
             if (_isRunning) return;
+            MCPServerMethods.Init();
+            
+            // Re-subscribe to logs to be absolutely sure
+            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
+            Application.logMessageReceivedThreaded += OnLogMessageReceived;
+            
             Debug.Log($"[MCP] Attempting to start server on port {_port}...");
 
             if (IsPortBusy(_port))
@@ -174,7 +211,7 @@ namespace UnityMCP.Editor
             BindAndStartListener();
         }
 
-        internal static void Stop()
+        public static void Stop()
         {
             EditorPrefs.SetBool(PrefsKey, false);
             #if UNITY_EDITOR_OSX

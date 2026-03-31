@@ -24,7 +24,8 @@ namespace UnityMCP.Editor
 
         internal static void Init()
         {
-            if (_methods.Count > 0) return;
+            _methods.Clear();
+            ClearCache();
             _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             RegisterCoreMethods();
             RegisterSceneMethods();
@@ -36,6 +37,10 @@ namespace UnityMCP.Editor
             RegisterSerializationMethods();
             RegisterUIMethods();
             RegisterHighValueMethods();
+            RegisterPlayerPrefsMethods();
+            RegisterScriptableObjectMethods();
+            RegisterSyncMethods();
+            RegisterInputMethods();
         }
 
         /// <summary>
@@ -43,6 +48,10 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string ProcessJsonRpc(string json)
         {
+            try { 
+                string path = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "mcp_rpc_trace.txt");
+                System.IO.File.AppendAllText(path, $"[RPC] JSON received at {DateTime.Now}: {json}\n"); 
+            } catch {}
             try
             {
                 JObject request = JObject.Parse(json);
@@ -133,6 +142,7 @@ namespace UnityMCP.Editor
 
         private static JToken ExecuteMethod(string method, JToken p)
         {
+            UnityEngine.Debug.Log($"[MCP_EXECUTE] {method}");
             if (_methods.TryGetValue(method, out var func))
             {
                 return func(p);

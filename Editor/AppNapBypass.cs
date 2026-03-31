@@ -84,6 +84,7 @@ namespace UnityMCP.Editor
 
         public static void WakeMainLoop()
         {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
             try { CFRunLoopWakeUp(CFRunLoopGetMain()); } catch { }
         }
 

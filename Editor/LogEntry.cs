@@ -9,6 +9,8 @@ namespace UnityMCP.Editor
     [Serializable]
     public class LogEntry
     {
+        /// <summary>Unique identifier for the log entry.</summary>
+        public long Id;
         /// <summary>The message content of the log.</summary>
         public string Message;
         /// <summary>The stack trace associated with the log.</summary>
@@ -23,11 +25,13 @@ namespace UnityMCP.Editor
         /// <summary>
         /// Initializes a new instance of the <see cref="LogEntry"/> class.
         /// </summary>
+        /// <param name="id">The unique ID.</param>
         /// <param name="message">The log message.</param>
         /// <param name="stackTrace">The stack trace.</param>
         /// <param name="type">The type of log.</param>
-        public LogEntry(string message, string stackTrace, LogType type)
+        public LogEntry(long id, string message, string stackTrace, LogType type)
         {
+            this.Id = id;
             this.Message = message;
             this.StackTrace = stackTrace;
             this.Type = type.ToString();

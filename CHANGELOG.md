@@ -2,6 +2,45 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.6.0] - 2026-04-01
+
+### Added
+- **Runtime Gameplay Input Tools**: Programmatic interaction with the game during Play Mode.
+  - `unity_simulate_mouse`: Full mouse simulation (move, press, release, click) with support for normalized and absolute coordinates.
+  - `unity_simulate_touch`: Multi-touch simulation for mobile-focused testing. Automatically injects a virtual `Touchscreen` device if a physical one isn't present in the Editor.
+  - `unity_click_object_in_game`: Smart helper that raycasts from the main camera to any GameObject and performs a simulated cross-frame click.
+- **Enhanced Log Consumption**: Improved tools for iterative debugging.
+  - `unity_read_logs_since_cursor`: Efficiently fetch only new logs using a persistent cursor.
+  - **Advanced Filtering**: Support for multi-severity filtering (e.g., fetching both Errors and Warnings in one call) and content-based search.
+  - **Sequential Tracking**: Every log entry now has a unique, sequential `Id` for accurate synchronization.
+  - **Play Mode Log Bridging**: Implemented `MCPRuntimeLogger` to capture and forward logs from the player execution context directly to the Editor server.
+- **Asset Pipeline Sync Tools**: New deterministic waiting tools to eliminate race conditions.
+  - `unity_wait_for_asset_import_idle`: Blocks until all background asset imports are complete.
+  - `unity_wait_for_editor_idle`: Blocks until the editor is fully idle (compilation, imports, and background tasks finished).
+- **ScriptableObject Tools**: Native tools for data-driven asset management.
+  - `unity_read_scriptable_object`: High-fidelity property extraction for ScriptableObject assets.
+  - `unity_update_scriptable_object`: Surgical property updates with JSON payloads.
+  - `unity_create_scriptable_object_asset`: Programmatic creation of ScriptableObject assets.
+  - `unity_duplicate_scriptable_object_asset`: Fast asset duplication for balancing/iteration.
+  - `unity_list_fields_for_type`: Schema discovery for serializable fields.
+- **PlayerPrefs Tools**: New set of tools to interact with Unity's `PlayerPrefs` system.
+  - `unity_get_player_pref`: Retrieve stored values (int, float, string) with optional default values.
+  - `unity_set_player_pref`: Store or update values securely.
+  - `unity_delete_player_pref`: Delete specific keys or clear all preferences.
+  - `unity_list_player_prefs`: List all available preference keys and their values using platform-specific extraction (macOS defaults and Windows Registry). This eliminates the need for manual shell-level workarounds.
+
+### Fixed
+- **Input System Stability**: Completely overhauled the runtime input simulation to use native struct state manipulation combined with 50ms task-delayed `InputSystem.QueueStateEvent` processing. This ensures simulated clicks span multiple Unity engine frames, allowing `Update()` loops to reliably detect `isPressed` states without dropping inputs.
+- **Server State Persistence**: Fixed a bug where a domain reload would occasionally strand the server. The server now leverages a robust `AutoStartServer` attribute combined with proper `RuntimeInitializeLoadType.BeforeSceneLoad` hooks to guarantee 100% reliable initialization across all Editor states.
+- **API Compatability**: Removed references to volatile internal APIs (like `InputSystem.time`) ensuring compilation stability across minor Unity version updates.
+
+### Optimized
+- **Domain Reload Performance**: Dramatically reduced Unity unresponsiveness during script compilation.
+  - **Dynamic Heartbeat**: Heartbeat frequency automatically throttles from 100ms to 1000ms when `isCompiling` is detected, reducing CPU contention.
+  - **Asynchronous Asset Refresh**: Replaced synchronous `AssetDatabase.Refresh` with asynchronous updates to prevent Main Thread lockups and "Not Responding" states.
+  - **Smart OS Wake**: Suppressed `CFRunLoopWakeUp` calls during domain reloads to allow the engine to prioritize the reload process without OS-level UI interruptions.
+  - **Efficient Polling**: Updated Python bridge to use exponential backoff/slower polling during server reboots, giving the Unity process more resources to complete the reload.
+
 ## [2.5.1] - 2026-03-30
 
 ### Fixed
