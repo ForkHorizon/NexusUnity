@@ -23,10 +23,43 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.6.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.7.0" } }`
 
-#### `list_tools`
-Dynamically returns JSON schemas for all available tools. Used by the Python bridge for LLM discovery.
+#### `get_server_status`
+Returns explicit health and state of the MCP server and Unity editor.
+- **Responsiveness**: Reports if the Unity main thread is currently responsive or blocked.
+- **Engine State**: Reports `isCompiling`, `isImporting`, `isPlaying`, and `isPaused`.
+- **Session Tracking**: Includes `sessionId` and `sessionGeneration` (increments on domain reload).
+
+#### `ping_main_thread`
+Explicit main-thread liveness check. Returns `pong` only when Unity can execute main-thread API calls.
+
+#### `attach_existing_session`
+Verifies and attaches to an already running MCP session on the configured port. This is automatically handled during server startup if the project path matches.
+
+#### `inspect_object`
+Universal inspector capable of extracting all serialized data and type information from ANY Unity object. Supports deep nesting and a `detailed` flag for full type metadata.
+
+#### `list_fields_for_type`
+Lists all serializable fields for a given type name. Useful for discovering what fields can be patched.
+
+#### `diff_scriptable_objects`
+Compares two ScriptableObject assets and returns a JSON object mapping changed fields to their values in asset A and asset B.
+
+#### `diff_scriptable_object_against_defaults`
+Compares a ScriptableObject asset against a fresh instance of its type. This is the primary tool for identifying "dirty" or modified data in balancing assets.
+
+#### `update_scriptable_object`
+Surgically patches specific fields of a ScriptableObject. Supports complex types (Vectors, Colors, Arrays).
+
+#### `edit_prefab_asset`
+Modifies a prefab asset directly on disk without instantiating it in the active scene.
+
+#### `get_prefab_overrides`
+Inspects a prefab instance in the scene and returns a structured list of modifications (changed properties, added/removed components).
+
+#### `open_prefab_stage` / `close_prefab_stage`
+Allows AI agents to open a prefab asset in isolation mode and interact with it just like a normal scene.
 
 ---
 
@@ -50,6 +83,10 @@ Parameters can be passed as `key=value` pairs:
 python3 nexus_unity_bridge.py unity_read_logs count=10
 ```
 
+### 3. Sync Mode (New in v2.7.0)
+The bridge includes deterministic waiting tools to synchronize with Unity's state.
+- `unity_wait_until_ready`: Blocks until Unity is not compiling or importing and the main thread is responsive.
+
 ---
 
 ## 🛠 Complete Tool Reference
@@ -57,7 +94,10 @@ python3 nexus_unity_bridge.py unity_read_logs count=10
 For a detailed breakdown of every tool, its parameters, and return types, see:
 **[👉 API_REFERENCE.MD](./API_REFERENCE.MD)**
 
-### Categorized Tool List (61+ Tools)
+### Categorized Tool List (64+ Tools)
+
+#### 🏥 Server Health & State
+`unity_get_server_status`, `unity_ping_main_thread`, `unity_attach_existing_session`, `unity_wait_until_ready`.
 
 #### 🏞 Scene & Hierarchy
 `unity_create_scene`, `unity_open_scene`, `unity_save_scene`, `unity_list_scenes`, `unity_create_game_object`, `unity_create_primitive`, `unity_destroy_game_object`, `unity_duplicate_object`, `unity_set_active`, `unity_set_parent`, `unity_set_sibling_index`, `unity_create_hierarchy`.

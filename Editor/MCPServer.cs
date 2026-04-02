@@ -19,9 +19,17 @@ namespace UnityMCP.Editor
     [InitializeOnLoad]
     public static partial class MCPServer
     {
-        private static string _version = "0.0.0";
+        private static string _version = "2.7.0";
         private static long _logCounter = 0;
         public static string Version => _version;
+
+        public static string SessionId { get; private set; }
+        public static int SessionGeneration { get; private set; }
+        public static DateTime LastMainThreadTickUtc { get; private set; }
+        public static bool IsCompilingCached { get; private set; }
+        public static bool IsUpdatingCached { get; private set; }
+        public static bool IsPlayingCached { get; private set; }
+        public static bool IsPausedCached { get; private set; }
 
         private static ConcurrentQueue<Action> _mainThreadQueue;
         private static ConcurrentQueue<LogEntry> _logs;
@@ -32,8 +40,20 @@ namespace UnityMCP.Editor
         private static CancellationTokenSource _cts;
         private static int? _cliPortOverride;
         private const int _MAX_LOGS = 1000;
-        private static string PrefsKey => $"NexusUnity_ServerRunning_{Application.dataPath.GetHashCode()}";
         
+        // Use a deterministic hash or just the sanitized path
+        private static string GetDeterministicProjectKey()
+        {
+            int hash = 17;
+            string path = Application.dataPath;
+            foreach (char c in path) hash = hash * 31 + c;
+            return $"NexusUnity_ServerRunning_{hash}";
+        }
+        private static string _prefsKeyCached;
+        private static string StablePrefsKey => _prefsKeyCached ?? (_prefsKeyCached = GetDeterministicProjectKey());
+        
+        private static int _mainThreadId = -1;
+        public static int MainThreadId => _mainThreadId;
 
         static MCPServer()
         {
@@ -50,11 +70,25 @@ namespace UnityMCP.Editor
         [InitializeOnLoadMethod]
         internal static void Init()
         {
-            try { File.AppendAllText("mcp_server_trace.txt", $"[SERVER] Init at {DateTime.Now} in {Directory.GetCurrentDirectory()}\n"); } catch {}
+            if (_mainThreadId == -1) _mainThreadId = Thread.CurrentThread.ManagedThreadId;
+
             _mainThreadQueue = _mainThreadQueue ?? new ConcurrentQueue<Action>();
             _logs = _logs ?? new ConcurrentQueue<LogEntry>();
 
+            if (Thread.CurrentThread.ManagedThreadId == _mainThreadId)
+            {
+                SessionId = SessionState.GetString("MCP_SessionId", Guid.NewGuid().ToString("N"));
+                SessionState.SetString("MCP_SessionId", SessionId);
+                
+                SessionGeneration = SessionState.GetInt("MCP_SessionGen", 0) + 1;
+                SessionState.SetInt("MCP_SessionGen", SessionGeneration);
+            }
+            
+            LastMainThreadTickUtc = DateTime.UtcNow;
+
+            #if UNITY_EDITOR_OSX
             AppNapBypass.CacheApplicationPath();
+            #endif
             UpdateVersion();
             MCPServerMethods.Init();
             
@@ -63,12 +97,6 @@ namespace UnityMCP.Editor
 
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
-            
-            // Use absolute path for sanity check
-            try {
-                string path = Path.Combine(Directory.GetCurrentDirectory(), "mcp_log_capture.txt");
-                File.AppendAllText(path, $"[{DateTime.Now}] Init Subscribed at {path}\n");
-            } catch {}
 
             #if UNITY_2019_1_OR_NEWER
             Application.logMessageReceived -= OnLogMessageReceived;
@@ -84,17 +112,14 @@ namespace UnityMCP.Editor
             ParseCommandLineArgs();
             _port = _cliPortOverride ?? MCPSettings.Port;
             
-            if (EditorPrefs.GetBool(PrefsKey, false))
+            if (EditorPrefs.GetBool(StablePrefsKey, false))
             {
-                Task.Run(async () => {
-                    int retries = 5;
-                    while (retries > 0 && IsPortBusy(_port))
-                    {
-                        await Task.Delay(500);
-                        retries--;
-                    }
-                    Start();
-                });
+                // Delayed auto-start to ensure Unity is ready
+                EditorApplication.delayCall += () => {
+                    Task.Delay(1500).ContinueWith(_ => {
+                        EditorApplication.delayCall += Start;
+                    });
+                };
                 
                 #if UNITY_EDITOR_OSX
                 // After domain reload, wait for the editor to fully settle before 
@@ -120,44 +145,6 @@ namespace UnityMCP.Editor
         }
         #endif
 
-        private static void StartHeartbeat()
-        {
-            StopHeartbeat();
-            ScheduleNextHeartbeat();
-        }
-
-        private static void ScheduleNextHeartbeat()
-        {
-            if (!_isRunning) return;
-
-            EditorApplication.delayCall += () => 
-            {
-                if (!_isRunning) return;
-                
-                try {
-                    // Safe Main Thread Kicks - No RepaintAllViews here to avoid thread violations.
-                    EditorApplication.QueuePlayerLoopUpdate();
-                    
-                    #if UNITY_EDITOR_OSX
-                    AppNapBypass.WakeMainLoop();
-                    #endif
-
-                } catch { }
-
-                // Dynamic interval: If compiling or updating, wait longer to reduce CPU/UI contention.
-                int delay = (EditorApplication.isCompiling || EditorApplication.isUpdating) ? 1000 : 100;
-
-                Task.Delay(delay).ContinueWith(_ => {
-                    EditorApplication.delayCall += ScheduleNextHeartbeat;
-                });
-            };
-        }
-
-        private static void StopHeartbeat()
-        {
-            // Heartbeat stopped via _isRunning = false; in Stop()
-        }
-
         private static void UpdateVersion()
         {
             try {
@@ -178,42 +165,76 @@ namespace UnityMCP.Editor
                     }
                     dir = Path.GetDirectoryName(dir);
                 }
-            } catch { _version = "2.6.0"; }
+            } catch { _version = "2.7.0"; }
         }
 
         public static int Port => _port;
         public static bool IsRunning => _isRunning;
 
-        public static async void Start()
+        public static void Start()
         {
-            System.IO.File.AppendAllText("mcp_log_capture.txt", $"[{DateTime.Now}] Server Start Called\n");
+            // Thread safety check
+            if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
+            {
+                EditorApplication.delayCall += Start;
+                return;
+            }
+
             if (_isRunning) return;
+            
             MCPServerMethods.Init();
+
+            if (_port <= 0) {
+                ParseCommandLineArgs();
+                _port = _cliPortOverride ?? MCPSettings.Port;
+            }
             
             // Re-subscribe to logs to be absolutely sure
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
+
+            // Persist auto-start immediately while we're still on the main thread.
+            // Doing this via the queue after listener startup is vulnerable to domain reloads
+            // that can discard the queued action before it runs.
+            EditorPrefs.SetBool(StablePrefsKey, true);
             
             Debug.Log($"[MCP] Attempting to start server on port {_port}...");
 
-            if (IsPortBusy(_port))
-            {
-                if (await IsAnotherMcpInstanceRunning()) return;
-                Debug.LogError($"[MCP] Port {_port} is being used by another application.");
-                return;
-            }
-            
-            _isRunning = true;
-            #if UNITY_EDITOR_OSX
-            AppNapBypass.Enable();
-            #endif
-            StartHeartbeat();
-            BindAndStartListener();
+            Task.Run(async () => {
+                try {
+                    if (IsPortBusy(_port))
+                    {
+                        if (await IsAnotherMcpInstanceRunning()) {
+                            _isRunning = true; // Mark as running so we don't try to start again
+                            return;
+                        }
+                        Debug.LogError($"[MCP] Port {_port} is being used by another application.");
+                        return;
+                    }
+
+                    _isRunning = true;
+                    // Note: AppNapBypass.Enable is now background-thread safe
+                    #if UNITY_EDITOR_OSX
+                    AppNapBypass.Enable();
+                    #endif
+
+                    BindAndStartListener();
+                } catch (Exception e) {
+                    _isRunning = false;
+                    Debug.LogError($"[MCP] Server start error: {e.Message}");
+                }
+            });
         }
 
         public static void Stop()
         {
-            EditorPrefs.SetBool(PrefsKey, false);
+            if (Thread.CurrentThread.ManagedThreadId != _mainThreadId)
+            {
+                MCPServer.Enqueue(Stop);
+                return;
+            }
+
+            EditorPrefs.SetBool(StablePrefsKey, false);
             #if UNITY_EDITOR_OSX
             AppNapBypass.Disable();
             #endif
@@ -223,7 +244,6 @@ namespace UnityMCP.Editor
 
         internal static void Cleanup()
         {
-            StopHeartbeat();
             _cts?.Cancel();
             if (_listener != null)
             {
@@ -235,12 +255,15 @@ namespace UnityMCP.Editor
 
         private static bool IsPortBusy(int port)
         {
-            try
-            {
-                var properties = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties();
-                return properties.GetActiveTcpListeners().Any(l => l.Port == port);
-            }
-            catch { return false; }
+            try {
+                using (var tcp = new System.Net.Sockets.TcpClient()) {
+                    var result = tcp.BeginConnect("127.0.0.1", port, null, null);
+                    bool success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(100));
+                    if (!success) return false;
+                    tcp.EndConnect(result);
+                    return true;
+                }
+            } catch { return false; }
         }
 
         private static void ParseCommandLineArgs()

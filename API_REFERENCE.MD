@@ -1,8 +1,40 @@
 # Nexus Unity AI Toolset Reference
 
-This document provides a comprehensive, AI-optimized reference for all 74+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
+This document provides a comprehensive, AI-optimized reference for all 77+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
 
 > **Note for AI Agents**: All tools are prefixed with `unity_` when called via the Gemini CLI or Codex CLI/MCP bridge.
+
+---
+
+## 🏥 Server Health & State
+
+### `unity_get_server_status`
+Returns explicit health and state of the MCP server and Unity editor. Use this to determine if Unity is busy compiling, importing, or if the main thread is responsive.
+- **Returns**: A structured JSON object:
+  - `serverAlive`: (bool) True if the HTTP listener is running.
+  - `editorConnected`: (bool) True if attached to a Unity Editor instance.
+  - `projectPath`: (string) Absolute path to the current project.
+  - `unityVersion`: (string) Version of the Unity engine.
+  - `mainThreadResponsive`: (bool) True if the Unity main thread has ticked within the last 5 seconds.
+  - `editorState`: (object) Current engine flags (`isPlaying`, `isCompiling`, `isImporting`, `isPaused`).
+  - `commandState`: (object) Indicates if the server currently accepts read/write commands.
+  - `sessionId`: (string) Unique ID for the current editor session.
+  - `sessionGeneration`: (int) Increments every time scripts are recompiled (domain reload).
+
+### `unity_ping_main_thread`
+Explicit main-thread liveness check. Unlike `get_server_status` which returns cached data from a background thread, this tool MUST execute on Unity's main thread.
+- **Returns**: `{status: "pong", timestamp: "..."}`.
+- **Use Case**: Verify that Unity is not just "alive" but actually capable of executing API calls.
+
+### `unity_attach_existing_session`
+Verifies and attaches to an already running MCP session on the configured port.
+- **Returns**: `{status: "attached", sessionId: "..."}`.
+
+### `unity_wait_until_ready`
+Deterministic polling tool that blocks until Unity is idle (not compiling or importing) and the main thread is responsive.
+- **Parameters**:
+  - `timeout_seconds` (integer, optional): Max seconds to wait (Default: 120).
+- **Returns**: `{status: "Ready", time_waited_seconds: ...}`.
 
 ---
 
@@ -388,6 +420,106 @@ Returns basic project metadata.
 
 ---
 
+## 💾 PlayerPrefs Management
+
+### `unity_get_player_pref`
+Retrieves a value from Unity's PlayerPrefs.
+- **Parameters**: `key` (string), `type` (optional: `int`, `float`, `string`), `default` (optional).
+- **Returns**: `{key, value, type}`.
+
+### `unity_set_player_pref`
+Sets a value in Unity's PlayerPrefs.
+- **Parameters**: `key` (string), `value` (any), `type` (optional: `int`, `float`, `string`).
+- **Returns**: `{status: "Success"}`.
+
+### `unity_delete_player_pref`
+Deletes a specific key or all keys from PlayerPrefs.
+- **Parameters**: `key` (string, use `"all"` to clear everything).
+- **Returns**: `{status: "Success"}`.
+
+### `unity_list_player_prefs`
+Lists all keys currently stored in PlayerPrefs (Note: Works by scanning known keys if possible, or returns recently accessed ones).
+- **Returns**: `{keys: [...]}`.
+
+---
+
+## 📦 Prefab Management
+
+### `unity_open_prefab_stage`
+Opens a prefab asset in isolation mode.
+- **Parameters**: `path` (string, required).
+- **Returns**: `{status: "Success", message: "...", stage_path: "...", root_instance_id: ...}`.
+
+### `unity_close_prefab_stage`
+Exits the prefab isolation mode and returns to the main scene.
+- **Returns**: `{status: "Success", message: "..."}`.
+
+### `unity_edit_prefab_asset`
+Modifies a prefab asset directly on disk without instantiating it in the active scene.
+- **Parameters**:
+  - `path` (string, required): Asset path.
+  - `component_name` (string, optional): Component name to target. If omitted, targets the GameObject.
+  - `properties` (object, required): JSON object of properties to update.
+- **Returns**: `{status: "Success", updated_count: ..., errors: [...], message: "..."}`.
+
+### `unity_get_prefab_overrides`
+Inspects a prefab instance in the scene and returns a structured list of modifications.
+- **Parameters**: `instance_id` (integer, required).
+- **Returns**: `{status: "Success", has_overrides: true/false, property_modifications: [...], added_components: [...], removed_components: [...]}`.
+
+### `unity_apply_prefab_overrides`
+Applies all overrides on a prefab instance back to the prefab asset.
+- **Parameters**: `instance_id` (integer, required).
+- **Returns**: Result object containing the list of applied modifications.
+
+### `unity_revert_prefab_overrides`
+Reverts all overrides on a prefab instance back to the prefab asset defaults.
+- **Parameters**: `instance_id` (integer, required).
+- **Returns**: Result object containing the list of reverted modifications.
+
+---
+
+## 📄 ScriptableObject Management
+
+### `unity_read_scriptable_object`
+Reads all serialized properties of a ScriptableObject asset.
+- **Parameters**: `path` (string) or `instance_id` (integer).
+- **Returns**: JSON object with all field values and metadata.
+
+### `unity_update_scriptable_object`
+Surgically updates specific fields of a ScriptableObject.
+- **Parameters**: 
+  - `path` (string) or `instance_id` (integer).
+  - `properties` (object): Key-value pairs of fields to update.
+- **Returns**: `{status, updated_count, errors}`.
+
+### `unity_create_scriptable_object_asset`
+Creates a new ScriptableObject asset of a given type.
+- **Parameters**: `type` (string), `path` (string).
+- **Returns**: `{status, path, instance_id}`.
+
+### `unity_duplicate_scriptable_object_asset`
+Clones an existing ScriptableObject asset.
+- **Parameters**: `source_path` (string), `dest_path` (string).
+- **Returns**: `{status, path, instance_id}`.
+
+### `unity_diff_scriptable_objects`
+Compares two assets of the same type and returns a structured diff.
+- **Parameters**: `path_a`, `path_b` (or `instance_id_a`, `instance_id_b`).
+- **Returns**: `{status, type, differences, identical}`.
+
+### `unity_diff_scriptable_object_against_defaults`
+Identifies modifications in an asset compared to its default state.
+- **Parameters**: `path` or `instance_id`.
+- **Returns**: `{status, differences}`.
+
+### `unity_list_fields_for_type`
+Lists serializable fields for a given type name.
+- **Parameters**: `type`.
+- **Returns**: `{type, fields}`.
+
+---
+
 ## 🖥 UI Toolkit Automation
 
 ### `unity_ui_list_windows`
@@ -456,4 +588,4 @@ Runs a comprehensive project and scene health audit.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays (with a `status: "Success"` key).
 
 ---
-*Generated for Nexus Unity v2.6.0*
+*Generated for Nexus Unity v2.7.0*

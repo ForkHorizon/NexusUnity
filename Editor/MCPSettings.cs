@@ -16,7 +16,10 @@ namespace UnityMCP.Editor
         /// </summary>
         public static int Port
         {
-            get => EditorPrefs.GetInt(_PORT_KEY, _DEFAULT_PORT);
+            get {
+                int p = EditorPrefs.GetInt(_PORT_KEY, _DEFAULT_PORT);
+                return p <= 0 ? _DEFAULT_PORT : p;
+            }
             set => EditorPrefs.SetInt(_PORT_KEY, value);
         }
 

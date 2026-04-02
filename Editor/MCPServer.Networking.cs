@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
@@ -15,13 +16,44 @@ namespace UnityMCP.Editor
         private static async Task<bool> IsAnotherMcpInstanceRunning()
         {
             using var client = new System.Net.Http.HttpClient();
-            client.Timeout = TimeSpan.FromMilliseconds(300); 
+            client.Timeout = TimeSpan.FromMilliseconds(500); 
             try
             {
-                var content = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
+                var content = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"get_server_status\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
                 var response = await client.PostAsync($"http://127.0.0.1:{_port}/", content);
                 string body = await response.Content.ReadAsStringAsync();
-                return body.Contains("Unity MCP Server");
+                
+                if (body.Contains("serverAlive"))
+                {
+                    var json = JObject.Parse(body);
+                    string remoteProjectPath = json["result"]?["projectPath"]?.ToString();
+                    string localProjectPath = Directory.GetCurrentDirectory();
+
+                    if (!string.IsNullOrEmpty(remoteProjectPath))
+                    {
+                        if (remoteProjectPath.Replace("\\", "/") == localProjectPath.Replace("\\", "/"))
+                        {
+                            Debug.Log($"[MCP] Existing MCP server found on port {_port}. Project matches current workspace. Action taken: attached to existing session.");
+                            return true;
+                        }
+                        else
+                        {
+                            Debug.LogError($"[MCP] Existing MCP server found on port {_port}. Project does NOT match current workspace. Action required: choose another port or stop the other session. Remote project: {remoteProjectPath}");
+                            return true; // We consider it "running" to prevent attempting to start our own and throwing a cryptic error
+                        }
+                    }
+                }
+                
+                // Fallback to old initialize method just in case it's an older server
+                var initContent = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
+                var initResponse = await client.PostAsync($"http://127.0.0.1:{_port}/", initContent);
+                string initBody = await initResponse.Content.ReadAsStringAsync();
+                if (initBody.Contains("Unity MCP Server")) {
+                    Debug.Log($"[MCP] Connected to an older existing session on port {_port}");
+                    return true;
+                }
+
+                return false;
             }
             catch { return false; }
         }
@@ -35,7 +67,6 @@ namespace UnityMCP.Editor
                 _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
                 _listener.Prefixes.Add($"http://localhost:{_port}/");
                 _listener.Start();
-                EditorPrefs.SetBool(PrefsKey, true);
                 _ = Task.Run(() => ServerLoop(_cts.Token));
                 Debug.Log($"[MCP] Server started on port {_port}");
             }
@@ -54,7 +85,7 @@ namespace UnityMCP.Editor
                 {
                     var context = await _listener.GetContextAsync();
                     if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
-                    else HandleHttpRequest(context);
+                    else _ = Task.Run(() => HandleHttpRequest(context));
                 }
             }
             catch (Exception e)
@@ -100,7 +131,6 @@ namespace UnityMCP.Editor
         private static void HandleHttpRequest(HttpListenerContext context)
         {
             try {
-                System.IO.File.AppendAllText("mcp_network_trace.txt", $"[NET] Request: {context.Request.HttpMethod} {context.Request.Url} at {DateTime.Now}\n");
                 if (!IsValidOrigin(context))
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
@@ -127,6 +157,7 @@ namespace UnityMCP.Editor
             }
             catch (ObjectDisposedException) { }
             catch (System.Net.HttpListenerException) { }
+            catch (ThreadAbortException) { }
             catch (Exception e)
             {
                 Debug.LogError($"[MCP] Error handling HTTP request: {e.Message}");

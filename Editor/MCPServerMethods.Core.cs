@@ -24,9 +24,57 @@ namespace UnityMCP.Editor
             _methods["wait_for_ready"] = WaitForReady;
             _methods["create_primitive"] = CreatePrimitive;
             _methods["attach_script"] = AttachScript;
+            _methods["get_server_status"] = GetServerStatus;
+            _methods["attach_existing_session"] = AttachExistingSession;
+            _methods["ping_main_thread"] = PingMainThread;
         }
 
         private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
+
+        private static JToken GetServerStatus(JToken p)
+        {
+            bool isCompiling = MCPServer.IsCompilingCached;
+            bool isUpdating = MCPServer.IsUpdatingCached;
+            bool isPlaying = MCPServer.IsPlayingCached;
+            bool isPaused = MCPServer.IsPausedCached;
+            bool isMainThreadResponsive = (DateTime.UtcNow - MCPServer.LastMainThreadTickUtc).TotalSeconds < 5;
+            string busyReason = "idle";
+            if (isCompiling) busyReason = "compiling";
+            else if (isUpdating) busyReason = "importing";
+
+            return new JObject {
+                ["serverAlive"] = MCPServer.IsRunning,
+                ["port"] = MCPServer.Port,
+                ["sessionId"] = MCPServer.SessionId,
+                ["projectPath"] = Directory.GetCurrentDirectory(),
+                ["unityVersion"] = Application.unityVersion,
+                ["editorConnected"] = true,
+                ["mainThreadResponsive"] = isMainThreadResponsive,
+                ["editorState"] = new JObject {
+                    ["isPlaying"] = isPlaying,
+                    ["isCompiling"] = isCompiling,
+                    ["isImporting"] = isUpdating,
+                    ["isPaused"] = isPaused
+                },
+                ["commandState"] = new JObject {
+                    ["acceptsReadCommands"] = true,
+                    ["acceptsWriteCommands"] = !isCompiling && !isUpdating,
+                    ["busyReason"] = busyReason
+                },
+                ["lastHeartbeatUtc"] = MCPServer.LastMainThreadTickUtc.ToString("o"),
+                ["sessionGeneration"] = MCPServer.SessionGeneration
+            };
+        }
+
+        private static JToken AttachExistingSession(JToken p)
+        {
+            return new JObject { ["status"] = "attached", ["sessionId"] = MCPServer.SessionId };
+        }
+
+        private static JToken PingMainThread(JToken p)
+        {
+            return new JObject { ["status"] = "pong", ["timestamp"] = DateTime.UtcNow.ToString("o") };
+        }
 
         private static JToken WaitForReady(JToken p)
         {
@@ -57,7 +105,6 @@ namespace UnityMCP.Editor
         }
 
         private static JToken ReadLogs(JToken p) {
-            try { System.IO.File.AppendAllText("/Users/daliys/Daliys/UnityProjects/UnityForNexus/mcp_log_capture.txt", $"[READ_LOGS] Called at {DateTime.Now}\n"); } catch {}
             return new JObject { ["logs"] = JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString())) };
         }
 
@@ -80,7 +127,6 @@ namespace UnityMCP.Editor
         private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return new JObject { ["status"] = "Success", ["message"] = "Logs cleared" }; }
         private static JToken TestCoroutine(JToken p) { 
             UnityEngine.Debug.Log("[MCP_EXECUTE] test_coroutine");
-            try { System.IO.File.AppendAllText("mcp_coroutine_trace.txt", $"[COROUTINE] Called at {DateTime.Now}\n"); } catch {}
             EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); 
             return new JObject { ["status"] = "Success", ["message"] = "Started" }; 
         }
@@ -98,6 +144,7 @@ namespace UnityMCP.Editor
             if (_cachedTools != null) return _cachedTools;
 
             var tools = new JArray();
+            AddServerHealthTools(tools);
             AddSceneTools(tools);
             AddHierarchyTools(tools);
             AddComponentTools(tools);
@@ -115,6 +162,13 @@ namespace UnityMCP.Editor
 
             _cachedTools = tools;
             return tools;
+        }
+
+        private static void AddServerHealthTools(JArray tools)
+        {
+            tools.Add(CreateTool("get_server_status", "Get explicit health and state of the MCP server and Unity editor", new JObject { }));
+            tools.Add(CreateTool("attach_existing_session", "Attach to an existing healthy session", new JObject { }));
+            tools.Add(CreateTool("ping_main_thread", "Explicit liveness check for Unity API execution on main thread", new JObject { }));
         }
 
         private static void AddInputTools(JArray tools)
@@ -152,9 +206,22 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("read_scriptable_object", "Read ScriptableObject properties", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["instance_id"] = new JObject { ["type"] = "integer" } }));
             tools.Add(CreateTool("update_scriptable_object", "Update ScriptableObject properties", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["instance_id"] = new JObject { ["type"] = "integer" }, ["properties"] = new JObject { ["type"] = "object" } }, "properties"));
+            tools.Add(CreateTool("patch_scriptable_object", "Surgically update ScriptableObject fields (alias for update_scriptable_object)", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["instance_id"] = new JObject { ["type"] = "integer" }, ["properties"] = new JObject { ["type"] = "object" } }, "properties"));
             tools.Add(CreateTool("create_scriptable_object_asset", "Create new ScriptableObject asset", new JObject { ["type"] = new JObject { ["type"] = "string" }, ["path"] = new JObject { ["type"] = "string" } }, "type", "path"));
             tools.Add(CreateTool("duplicate_scriptable_object_asset", "Duplicate ScriptableObject asset", new JObject { ["source_path"] = new JObject { ["type"] = "string" }, ["dest_path"] = new JObject { ["type"] = "string" } }, "source_path", "dest_path"));
             tools.Add(CreateTool("list_fields_for_type", "List serializable fields for a type", new JObject { ["type"] = new JObject { ["type"] = "string" } }, "type"));
+            tools.Add(CreateTool("diff_scriptable_objects", "Compare two ScriptableObject assets", new JObject 
+            { 
+                ["path_a"] = new JObject { ["type"] = "string" }, 
+                ["path_b"] = new JObject { ["type"] = "string" },
+                ["instance_id_a"] = new JObject { ["type"] = "integer" },
+                ["instance_id_b"] = new JObject { ["type"] = "integer" }
+            }));
+            tools.Add(CreateTool("diff_scriptable_object_against_defaults", "Compare an asset against its default state", new JObject 
+            { 
+                ["path"] = new JObject { ["type"] = "string" }, 
+                ["instance_id"] = new JObject { ["type"] = "integer" } 
+            }));
         }
 
         private static void AddPlayerPrefsTools(JArray tools)
@@ -176,6 +243,11 @@ namespace UnityMCP.Editor
         private static void AddSerializationTools(JArray tools)
         {
             tools.Add(CreateTool("enforce_forced_defaults", "Enforce [ForceDefault] attributes", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
+            tools.Add(CreateTool("inspect_object", "Universal inspector for ANY Unity object (Material, Texture, Mesh, ScriptableObject, etc.)", new JObject 
+            { 
+                ["instance_id"] = new JObject { ["type"] = "integer" },
+                ["detailed"] = new JObject { ["type"] = "boolean", ["description"] = "If true, returns values with type metadata" }
+            }, "instance_id"));
         }
 
         private static void AddLinterTools(JArray tools)
@@ -224,8 +296,10 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("import_asset", "Import file", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("instantiate_prefab", "Create from Prefab", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("create_prefab", "Save as Prefab", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["path"] = new JObject { ["type"] = "string" } }, "instance_id", "path"));
-            tools.Add(CreateTool("apply_prefab_overrides", "Apply changes", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
-            tools.Add(CreateTool("revert_prefab_overrides", "Revert changes", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
+            tools.Add(CreateTool("apply_prefab_overrides", "Apply changes to prefab asset", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
+            tools.Add(CreateTool("revert_prefab_overrides", "Revert scene changes to prefab defaults", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
+            tools.Add(CreateTool("get_prefab_overrides", "Get list of property and component modifications on a prefab instance", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
+            tools.Add(CreateTool("edit_prefab_asset", "Directly modify a prefab asset on disk without instantiating it", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["component_name"] = new JObject { ["type"] = "string", ["description"] = "Optional component name to target" }, ["properties"] = new JObject { ["type"] = "object" } }, "path", "properties"));
             tools.Add(CreateTool("move_asset", "Move/Rename", new JObject { ["old_path"] = new JObject { ["type"] = "string" }, ["new_path"] = new JObject { ["type"] = "string" } }, "old_path", "new_path"));
             tools.Add(CreateTool("delete_asset", "Delete file", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("copy_asset", "Duplicate file", new JObject { ["source_path"] = new JObject { ["type"] = "string" }, ["dest_path"] = new JObject { ["type"] = "string" } }, "source_path", "dest_path"));
@@ -245,6 +319,8 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("step_frame", "Advance frame", new JObject { }));
             tools.Add(CreateTool("execute_menu_item", "Execute Menu", new JObject { ["item_path"] = new JObject { ["type"] = "string" } }, "item_path"));
             tools.Add(CreateTool("focus_scene_view", "Frame selection", new JObject { }));
+            tools.Add(CreateTool("open_prefab_stage", "Open prefab asset in isolation mode", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
+            tools.Add(CreateTool("close_prefab_stage", "Exit prefab isolation mode", new JObject { }));
             tools.Add(CreateTool("read_logs", "Get Console", new JObject { ["count"] = new JObject { ["type"] = "integer" } }));
             tools.Add(CreateTool("read_logs_since_cursor", "Read only new logs since last poll", new JObject 
             { 

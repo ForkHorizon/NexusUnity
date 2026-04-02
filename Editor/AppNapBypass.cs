@@ -20,15 +20,20 @@ namespace UnityMCP.Editor
         private const string PathKey = "NexusMCP_ApplicationPath";
         private static string _cachedApplicationPath;
 
+        private static bool _isMainThread => MCPServer.MainThreadId == -1 || System.Threading.Thread.CurrentThread.ManagedThreadId == MCPServer.MainThreadId;
+
         /// <summary>Restores the activity pointer from a previous domain.</summary>
         static AppNapBypass()
         {
-            string stored = SessionState.GetString(SessionKey, "0");
-            if (long.TryParse(stored, out long ptr) && ptr != 0)
-                _activity = new IntPtr(ptr);
-            
-            _cachedApplicationPath = SessionState.GetString(PathKey, "");
-            if (string.IsNullOrEmpty(_cachedApplicationPath)) CacheApplicationPath();
+            if (_isMainThread) {
+                try {
+                    string stored = SessionState.GetString(SessionKey, "0");
+                    if (long.TryParse(stored, out long ptr) && ptr != 0)
+                        _activity = new IntPtr(ptr);
+                    
+                    _cachedApplicationPath = SessionState.GetString(PathKey, "");
+                } catch { }
+            }
         }
 
         // Objective-C runtime
@@ -71,6 +76,8 @@ namespace UnityMCP.Editor
 
         public static void CacheApplicationPath()
         {
+            if (!_isMainThread) return;
+
             string path = EditorApplication.applicationPath;
             if (string.IsNullOrEmpty(path)) return;
 
@@ -105,7 +112,7 @@ namespace UnityMCP.Editor
                 if (activity != IntPtr.Zero)
                 {
                     _activity = CFRetain(activity);
-                    SessionState.SetString(SessionKey, _activity.ToInt64().ToString());
+                    if (_isMainThread) SessionState.SetString(SessionKey, _activity.ToInt64().ToString());
                     Debug.Log("[MCP] App Nap bypass ENABLED.");
                 }
             }
@@ -129,14 +136,14 @@ namespace UnityMCP.Editor
 
                 CFRelease(_activity);
                 _activity = IntPtr.Zero;
-                SessionState.SetString(SessionKey, "0");
+                if (_isMainThread) SessionState.SetString(SessionKey, "0");
                 Debug.Log("[MCP] App Nap bypass DISABLED.");
             }
             catch (Exception e)
             {
                 Debug.LogWarning($"[MCP] AppNapBypass.Disable failed: {e.Message}");
                 _activity = IntPtr.Zero;
-                SessionState.SetString(SessionKey, "0");
+                if (_isMainThread) SessionState.SetString(SessionKey, "0");
             }
         }
 
@@ -198,10 +205,11 @@ namespace UnityMCP.Editor
         {
             try
             {
-                string prevApp = SessionState.GetString(PrevAppKey, "");
+                string prevApp = "";
+                if (_isMainThread) prevApp = SessionState.GetString(PrevAppKey, "");
                 if (string.IsNullOrEmpty(prevApp)) return;
 
-                SessionState.SetString(PrevAppKey, "");
+                if (_isMainThread) SessionState.SetString(PrevAppKey, "");
 
                 var proc = new System.Diagnostics.Process();
                 proc.StartInfo.FileName = "open";

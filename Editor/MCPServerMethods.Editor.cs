@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using UnityEditor.SceneManagement;
 
 namespace UnityMCP.Editor
 {
@@ -26,6 +27,39 @@ namespace UnityMCP.Editor
             _methods["get_editor_state"] = GetEditorState;
             _methods["get_project_info"] = GetProjectInfo;
             _methods["set_property"] = SetProperty;
+            _methods["open_prefab_stage"] = OpenPrefabStage;
+            _methods["close_prefab_stage"] = ClosePrefabStage;
+        }
+
+        private static JToken OpenPrefabStage(JToken p)
+        {
+            if (p == null || p["path"] == null) throw new System.Exception("path is required");
+            string path = p["path"].ToString();
+            
+            var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefabAsset == null) throw new System.Exception($"Prefab not found at {path}");
+
+            AssetDatabase.OpenAsset(prefabAsset);
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            
+            if (stage != null)
+            {
+                return new JObject { 
+                    ["status"] = "Success", 
+                    ["message"] = $"Opened Prefab Stage for {prefabAsset.name}",
+                    ["stage_path"] = stage.assetPath
+                };
+            }
+            return new JObject { ["status"] = "Failed", ["message"] = "Failed to open Prefab Stage" };
+        }
+
+        private static JToken ClosePrefabStage(JToken p)
+        {
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage == null) return new JObject { ["status"] = "Failed", ["message"] = "No Prefab Stage is currently open" };
+            
+            StageUtility.GoToMainStage();
+            return new JObject { ["status"] = "Success", ["message"] = "Returned to Main Stage" };
         }
 
         private static JToken ListScenes(JToken p)

@@ -2,6 +2,39 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.7.0] - 2026-04-01
+
+### Added
+- **Comprehensive Server Health Monitoring**: Introduced explicit, structured health and state reporting.
+  - `unity_get_server_status`: Returns detailed JSON including `sessionId`, `sessionGeneration`, `projectPath`, `unityVersion`, and real-time responsiveness of the main thread.
+  - `unity_ping_main_thread`: Explicit main-thread liveness check to verify execution capability.
+  - `unity_attach_existing_session`: Gracefully attaches to a healthy session on an already bound port.
+- **Intelligent Session Management**: 
+  - Implemented `SessionId` persistence and `SessionGeneration` incrementing across Unity domain reloads using `SessionState`.
+  - Added caching for critical engine states (Compiling, Importing, Playing, Paused) to allow non-blocking health checks from background threads.
+- **Deterministic Ready Wait**: Added `unity_wait_until_ready` to the Python bridge, ensuring AI agents wait until Unity is fully idle and the main thread is responsive before proceeding.
+- **ScriptableObject Diff & Balancing Tools**:
+  - `unity_diff_scriptable_objects`: Compare two assets of the same type and get a structured JSON diff of all serialized fields.
+  - `unity_diff_scriptable_object_against_defaults`: Compare an asset against its default (code-defined) state to identify all modifications.
+  - Enhanced `unity_update_scriptable_object` with surgical field patching for precise balancing passes.
+- **Strong Object Inspection**:
+  - `unity_inspect_object`: Universal inspector capable of extracting all serialized data and type information from ANY Unity object (Materials, Textures, Meshes, ScriptableObjects, GameObjects, etc.).
+  - Deep Nesting Support: Array, List, and `[SerializeReference]` (ManagedReference) types are now fully supported with structured, recursively expanding JSON outputs.
+  - Added optional `detailed` flag to `unity_inspect_object`, `unity_inspect_component`, and `unity_read_scriptable_object` to retrieve full type metadata (C# type, Unity propertyType, displayName, tooltip) alongside values.
+- **Prefab Editing Helpers**:
+  - `unity_open_prefab_stage` and `unity_close_prefab_stage`: Allow AI agents to open a prefab asset in isolation mode and interact with it like a scene.
+  - `unity_edit_prefab_asset`: Directly modify a prefab asset on disk without instantiating it in the active scene.
+  - `unity_get_prefab_overrides`: Inspect a prefab instance in the scene and return a structured list of modifications (changed properties, added/removed components).
+  - Guided Overrides: `unity_apply_prefab_overrides` and `unity_revert_prefab_overrides` now return exactly what was applied or reverted in their response.
+
+### Improved
+- **Concurrency & Responsiveness**: Refactored the internal HTTP listener to process requests asynchronously via `Task.Run`. This prevents a single blocked main-thread command from hanging the entire server, allowing health checks to remain responsive even during long engine operations.
+- **Port Conflict UX**: Completely overhauled "Address already in use" handling. The server now identifies the owner of a busy port. If it belongs to the same project, it attaches automatically. If it belongs to a different project, it provides a clear, actionable error message with the remote project path.
+
+### Fixed
+- **Heartbeat Stability**: Migrated the background heartbeat from unstable `Task.Delay` continuations to the native `EditorApplication.update` loop, ensuring reliable responsiveness tracking and state caching.
+- **Compiler Compatibility**: Fixed numerous compilation errors caused by improper assembly referencing and missing `using` directives in log and input modules.
+
 ## [2.6.0] - 2026-04-01
 
 ### Added

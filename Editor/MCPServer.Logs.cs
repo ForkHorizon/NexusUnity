@@ -17,7 +17,6 @@ namespace UnityMCP.Editor
 
         public static List<LogEntry> GetLogs(int count, string filterType, string searchText)
         {
-            try { System.IO.File.AppendAllText("sync_debug.txt", $"[GET_LOGS] Count: {count}\n"); } catch { }
             SyncWithUnityConsole();
             var query = _logs.AsEnumerable();
             if (!string.IsNullOrEmpty(filterType)) query = query.Where(l => l.Type.Equals(filterType, StringComparison.OrdinalIgnoreCase));
@@ -56,8 +55,7 @@ namespace UnityMCP.Editor
                 if (getCountMethod == null || getEntryMethod == null) return;
 
                 int count = (int)getCountMethod.Invoke(null, null);
-                System.IO.File.AppendAllText("sync_debug.txt", $"[SYNC] Unity Console Count: {count}\n");
-                
+
                 var logEntryType = typeof(UnityEditor.EditorWindow).Assembly.GetType("UnityEditor.LogEntry");
                 var entry = Activator.CreateInstance(logEntryType);
                 var messageField = logEntryType.GetField("condition");
@@ -90,9 +88,13 @@ namespace UnityMCP.Editor
 
         internal static void HandleMainThreadQueue()
         {
-            try { System.IO.File.AppendAllText("update_trace.txt", $"[UPDATE] IsPlaying: {EditorApplication.isPlaying}, QueueEmpty: {(_mainThreadQueue?.IsEmpty ?? true)}\n"); } catch {}
+            LastMainThreadTickUtc = DateTime.UtcNow;
+            IsCompilingCached = EditorApplication.isCompiling;
+            IsUpdatingCached = EditorApplication.isUpdating;
+            IsPlayingCached = EditorApplication.isPlaying;
+            IsPausedCached = EditorApplication.isPaused;
+
             if (_mainThreadQueue == null || _mainThreadQueue.IsEmpty) return;
-            Debug.Log("[MCP] MainThreadQueue Processing Heartbeat");
 
             while (_mainThreadQueue.TryDequeue(out var action))
             {
@@ -100,20 +102,19 @@ namespace UnityMCP.Editor
                 catch (Exception e) { Debug.LogError($"[MCP] Error executing enqueued action: {e.Message}"); }
             }
         }
-[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-private static void RuntimeInitLogs()
-{
-    try { System.IO.File.AppendAllText("mcp_log_capture.txt", $"[{DateTime.Now}] RuntimeInitLogs starting\n"); } catch {}
-    Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-    Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
-    UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
-    UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;
-}
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeInitLogs()
+        {
+            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
+            Application.logMessageReceivedThreaded += OnLogMessageReceived;
+
+            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
+            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;
+        }
 
         private static void OnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
-            System.IO.File.AppendAllText("mcp_log_capture.txt", $"[{DateTime.Now}] {type}: {condition}\n");
             long id = Interlocked.Increment(ref _logCounter);
             AddLog(new LogEntry(id, condition, stackTrace, type));
         }

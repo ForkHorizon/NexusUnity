@@ -13,24 +13,67 @@ namespace UnityMCP.Editor
     {
         private static void RegisterScriptableObjectMethods()
         {
+            Debug.Log("[MCP] Registering ScriptableObject Methods...");
             _methods["read_scriptable_object"] = ReadScriptableObject;
             _methods["update_scriptable_object"] = UpdateScriptableObject;
+            _methods["patch_scriptable_object"] = UpdateScriptableObject;
             _methods["create_scriptable_object_asset"] = CreateScriptableObjectAsset;
             _methods["duplicate_scriptable_object_asset"] = DuplicateScriptableObjectAsset;
             _methods["list_fields_for_type"] = ListFieldsForType;
+            _methods["diff_scriptable_objects"] = DiffScriptableObjects;
+            _methods["diff_scriptable_object_against_defaults"] = DiffScriptableObjectAgainstDefaults;
         }
 
-        private static ScriptableObject GetScriptableObject(JToken p)
+        private static JToken DiffScriptableObjectAgainstDefaults(JToken p)
         {
-            if (p["path"] != null)
+            var so = GetScriptableObject(p);
+            var defaults = ScriptableObject.CreateInstance(so.GetType());
+            
+            var sObj = new SerializedObject(so);
+            var sDefaults = new SerializedObject(defaults);
+
+            JObject diffs = new JObject();
+            SerializedProperty prop = sObj.GetIterator();
+            bool enterChildren = true;
+            while (prop.Next(enterChildren))
             {
-                string path = p["path"].ToString();
+                enterChildren = false;
+                if (prop.name == "m_Script") continue;
+
+                SerializedProperty propDefault = sDefaults.FindProperty(prop.name);
+                if (propDefault == null) continue;
+
+                if (!SerializedProperty.DataEquals(prop, propDefault))
+                {
+                    diffs[prop.name] = new JObject
+                    {
+                        ["current"] = SerializeProperty(prop),
+                        ["default"] = SerializeProperty(propDefault)
+                    };
+                }
+            }
+
+            UnityEngine.Object.DestroyImmediate(defaults);
+
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["type"] = so.GetType().Name,
+                ["differences"] = diffs
+            };
+        }
+
+        private static ScriptableObject GetScriptableObject(JToken p, string pathKey = "path", string idKey = "instance_id")
+        {
+            if (p[pathKey] != null)
+            {
+                string path = p[pathKey].ToString();
                 var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
                 if (so == null) throw new Exception($"ScriptableObject not found at path: {path}");
                 return so;
             }
             
-            EntityId id = ExtractId(p);
+            EntityId id = ExtractId(p, idKey);
             if (!id.Equals(default(EntityId)))
             {
                 var obj = IdToObject(id) as ScriptableObject;
@@ -38,12 +81,60 @@ namespace UnityMCP.Editor
                 return obj;
             }
 
-            throw new Exception("Either 'path' or 'instance_id' must be provided");
+            throw new Exception($"Either '{pathKey}' or '{idKey}' must be provided");
+        }
+
+        private static JToken DiffScriptableObjects(JToken p)
+        {
+            var soA = GetScriptableObject(p, "path_a", "instance_id_a");
+            var soB = GetScriptableObject(p, "path_b", "instance_id_b");
+
+            if (soA.GetType() != soB.GetType())
+                throw new Exception($"Type mismatch: {soA.GetType().Name} vs {soB.GetType().Name}");
+
+            var sObjA = new SerializedObject(soA);
+            var sObjB = new SerializedObject(soB);
+
+            JObject diffs = new JObject();
+            JArray identical = new JArray();
+
+            SerializedProperty propA = sObjA.GetIterator();
+            bool enterChildren = true;
+            while (propA.Next(enterChildren))
+            {
+                enterChildren = false;
+                if (propA.name == "m_Script") continue;
+
+                SerializedProperty propB = sObjB.FindProperty(propA.name);
+                if (propB == null) continue;
+
+                if (!SerializedProperty.DataEquals(propA, propB))
+                {
+                    diffs[propA.name] = new JObject
+                    {
+                        ["a"] = SerializeProperty(propA),
+                        ["b"] = SerializeProperty(propB)
+                    };
+                }
+                else
+                {
+                    identical.Add(propA.name);
+                }
+            }
+
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["type"] = soA.GetType().Name,
+                ["differences"] = diffs,
+                ["identical"] = identical
+            };
         }
 
         private static JToken ReadScriptableObject(JToken p)
         {
             var so = GetScriptableObject(p);
+            bool detailed = p["detailed"]?.Value<bool>() ?? false;
             var serializedObj = new SerializedObject(so);
             JObject result = new JObject();
             SerializedProperty prop = serializedObj.GetIterator();
@@ -52,7 +143,7 @@ namespace UnityMCP.Editor
             while (prop.Next(enterChildren))
             {
                 enterChildren = false;
-                try { result[prop.name] = SerializeProperty(prop); } catch { }
+                try { result[prop.name] = SerializeProperty(prop, detailed); } catch { }
             }
             
             result["status"] = "Success";
@@ -172,3 +263,4 @@ namespace UnityMCP.Editor
         }
     }
 }
+// Force Recompile Wed Apr  1 17:06:22 CEST 2026

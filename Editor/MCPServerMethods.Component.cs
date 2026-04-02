@@ -40,6 +40,7 @@ namespace UnityMCP.Editor
             var comp = go?.GetComponent(p["component_name"].ToString());
             if (comp == null) throw new Exception("Component not found");
 
+            bool detailed = p["detailed"]?.Value<bool>() ?? false;
             SerializedObject so = new SerializedObject(comp);
             JObject result = new JObject();
             SerializedProperty prop = so.GetIterator();
@@ -47,7 +48,7 @@ namespace UnityMCP.Editor
             while (prop.Next(enterChildren))
             {
                 enterChildren = false; // Only enter children for the root
-                try { result[prop.name] = SerializeProperty(prop); } catch { }
+                try { result[prop.name] = SerializeProperty(prop, detailed); } catch { }
             }
             result["status"] = "Success";
             return result;

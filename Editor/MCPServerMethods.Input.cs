@@ -34,6 +34,43 @@ namespace UnityMCP.Editor
             return new Vector2(x, y);
         }
 
+        private static void FocusGameView()
+        {
+            var gameViewType = typeof(UnityEditor.EditorWindow).Assembly.GetType("UnityEditor.GameView");
+            if (gameViewType == null) return;
+
+            var gameView = EditorWindow.GetWindow(gameViewType);
+            if (gameView != null) gameView.Focus();
+        }
+
+        private static void QueueCrossFrameMouseClick(Mouse mouse, MouseState state, MouseButton button)
+        {
+            InputSystem.QueueStateEvent(mouse, state.WithButton(button, true));
+            if (EditorApplication.isPlaying) InputSystem.Update();
+
+            int updatesRemaining = 2;
+            void ReleaseOnUpdate()
+            {
+                if (!EditorApplication.isPlaying)
+                {
+                    EditorApplication.update -= ReleaseOnUpdate;
+                    return;
+                }
+
+                if (updatesRemaining-- > 0)
+                {
+                    InputSystem.Update();
+                    return;
+                }
+
+                EditorApplication.update -= ReleaseOnUpdate;
+                InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
+                InputSystem.Update();
+            }
+
+            EditorApplication.update += ReleaseOnUpdate;
+        }
+
         private static JToken SimulateMouse(JToken p)
         {
             var mouse = Mouse.current;
@@ -43,13 +80,7 @@ namespace UnityMCP.Editor
             Vector2 pos = GetScreenPosition(p);
             int buttonIdx = p["button"]?.Value<int>() ?? 0;
 
-            // Focus GameView to ensure InputSystem processes it for the game
-            var gameViewType = typeof(UnityEditor.EditorWindow).Assembly.GetType("UnityEditor.GameView");
-            if (gameViewType != null)
-            {
-                var gameView = EditorWindow.GetWindow(gameViewType);
-                if (gameView != null) gameView.Focus();
-            }
+            FocusGameView();
 
             MouseButton button = MouseButton.Left;
             if (buttonIdx == 1) button = MouseButton.Right;
@@ -70,15 +101,7 @@ namespace UnityMCP.Editor
                     InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
                     break;
                 case "click":
-                    InputSystem.QueueStateEvent(mouse, state.WithButton(button, true));
-                    if (EditorApplication.isPlaying) InputSystem.Update();
-                    
-                    System.Threading.Tasks.Task.Delay(50).ContinueWith(_ => {
-                        MCPServer.Enqueue(() => {
-                            InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
-                            if (EditorApplication.isPlaying) InputSystem.Update();
-                        });
-                    });
+                    QueueCrossFrameMouseClick(mouse, state, button);
                     break;
             }
 
@@ -134,27 +157,12 @@ namespace UnityMCP.Editor
             var mouse = Mouse.current;
             if (mouse == null) throw new Exception("No mouse found.");
 
-            var gameViewType = typeof(UnityEditor.EditorWindow).Assembly.GetType("UnityEditor.GameView");
-            if (gameViewType != null)
-            {
-                var gameView = EditorWindow.GetWindow(gameViewType);
-                if (gameView != null) gameView.Focus();
-            }
+            FocusGameView();
 
             Vector2 finalPos = new Vector2(screenPos.x, screenPos.y);
             var state = new MouseState { position = finalPos };
-            
-            InputSystem.QueueStateEvent(mouse, state.WithButton(MouseButton.Left, true));
-            if (EditorApplication.isPlaying) InputSystem.Update();
-            
-            System.Threading.Tasks.Task.Delay(50).ContinueWith(_ => {
-                MCPServer.Enqueue(() => {
-                    InputSystem.QueueStateEvent(mouse, state.WithButton(MouseButton.Left, false));
-                    if (EditorApplication.isPlaying) InputSystem.Update();
-                });
-            });
 
-            if (EditorApplication.isPlaying) InputSystem.Update();
+            QueueCrossFrameMouseClick(mouse, state, MouseButton.Left);
 
             return new JObject 
             { 

@@ -16,7 +16,7 @@ namespace UnityMCP.Editor
     /// </summary>
     public static partial class MCPServerMethods
     {
-        private static int _mainThreadId;
+        private static int _mainThreadId = -1;
 
         private static bool _isMainThread => Thread.CurrentThread.ManagedThreadId == _mainThreadId;
 
@@ -24,9 +24,21 @@ namespace UnityMCP.Editor
 
         internal static void Init()
         {
+            if (_mainThreadId == -1) 
+            {
+                _mainThreadId = Thread.CurrentThread.ManagedThreadId;
+                Debug.Log($"[MCP] Main Thread ID captured: {_mainThreadId}");
+            }
+            
+            if (!_isMainThread)
+            {
+                Debug.LogWarning("[MCP] MCPServerMethods.Init called from non-main thread. Registration skipped to avoid state corruption.");
+                return;
+            }
+
+            Debug.Log("[MCP] MCPServerMethods.Init starting...");
             _methods.Clear();
             ClearCache();
-            _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             RegisterCoreMethods();
             RegisterSceneMethods();
             RegisterDiscoveryMethods();
@@ -41,6 +53,7 @@ namespace UnityMCP.Editor
             RegisterScriptableObjectMethods();
             RegisterSyncMethods();
             RegisterInputMethods();
+            Debug.Log($"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");
         }
 
         /// <summary>
@@ -48,10 +61,6 @@ namespace UnityMCP.Editor
         /// </summary>
         public static string ProcessJsonRpc(string json)
         {
-            try { 
-                string path = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "mcp_rpc_trace.txt");
-                System.IO.File.AppendAllText(path, $"[RPC] JSON received at {DateTime.Now}: {json}\n"); 
-            } catch {}
             try
             {
                 JObject request = JObject.Parse(json);
@@ -86,8 +95,18 @@ namespace UnityMCP.Editor
         private static string ProcessJsonRequest(JObject request)
         {
             JToken id = request["id"];
-            if (request["method"] == null) return CreateErrorResponse(id, -32600, "Method missing");
-            return ExecuteOnMainThread(request["method"].ToString(), request["params"], id);
+            string method = request["method"]?.ToString();
+            if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
+            
+            // Fast-path for health checks (execute on current thread, usually listener thread)
+            if (method == "get_server_status" || method == "attach_existing_session") {
+                try {
+                    JToken result = ExecuteMethod(method, request["params"]);
+                    return CreateJsonResponse(id, result, null);
+                } catch(Exception e) { return CreateJsonResponse(id, null, e.Message); }
+            }
+
+            return ExecuteOnMainThread(method, request["params"], id);
         }
 
         private static string ExecuteOnMainThread(string method, JToken requestParams, JToken id)
@@ -152,3 +171,4 @@ namespace UnityMCP.Editor
         }
     }
 }
+ 
