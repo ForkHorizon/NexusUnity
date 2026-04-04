@@ -46,29 +46,14 @@ namespace UnityMCP.Editor
         private static void QueueCrossFrameMouseClick(Mouse mouse, MouseState state, MouseButton button)
         {
             InputSystem.QueueStateEvent(mouse, state.WithButton(button, true));
-            if (EditorApplication.isPlaying) InputSystem.Update();
 
-            int updatesRemaining = 2;
-            void ReleaseOnUpdate()
-            {
-                if (!EditorApplication.isPlaying)
-                {
-                    EditorApplication.update -= ReleaseOnUpdate;
-                    return;
-                }
-
-                if (updatesRemaining-- > 0)
-                {
-                    InputSystem.Update();
-                    return;
-                }
-
-                EditorApplication.update -= ReleaseOnUpdate;
-                InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
-                InputSystem.Update();
-            }
-
-            EditorApplication.update += ReleaseOnUpdate;
+            // Sequence of two delayCalls ensures at least one "Editor" frame processing
+            EditorApplication.delayCall += () => {
+                EditorApplication.delayCall += () => {
+                    if (!EditorApplication.isPlaying) return;
+                    InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
+                };
+            };
         }
 
         private static JToken SimulateMouse(JToken p)
@@ -105,8 +90,6 @@ namespace UnityMCP.Editor
                     break;
             }
 
-            if (EditorApplication.isPlaying) InputSystem.Update();
-
             return new JObject { ["status"] = "Success", ["position"] = new JObject { ["x"] = pos.x, ["y"] = pos.y } };
         }
 
@@ -134,8 +117,6 @@ namespace UnityMCP.Editor
                     InputSystem.QueueStateEvent(touch, new TouchState { touchId = touchId, phase = UnityEngine.InputSystem.TouchPhase.Ended, position = pos });
                     break;
             }
-
-            if (EditorApplication.isPlaying) InputSystem.Update();
 
             return new JObject { ["status"] = "Success" };
         }

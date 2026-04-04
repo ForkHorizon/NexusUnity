@@ -16,7 +16,6 @@ namespace UnityMCP.Editor
     /// Static service that runs the local MCP server autonomously.
     /// Handles the background heartbeat and OS-level App Nap bypass.
     /// </summary>
-    [InitializeOnLoad]
     public static partial class MCPServer
     {
         private static string _version = "2.7.0";
@@ -39,7 +38,7 @@ namespace UnityMCP.Editor
         private static WebSocket _webSocket;
         private static CancellationTokenSource _cts;
         private static int? _cliPortOverride;
-        private const int _MAX_LOGS = 1000;
+        private const int _MAX_LOGS = 5000;
         
         // Use a deterministic hash or just the sanitized path
         private static string GetDeterministicProjectKey()
@@ -54,6 +53,8 @@ namespace UnityMCP.Editor
         
         private static int _mainThreadId = -1;
         public static int MainThreadId => _mainThreadId;
+
+        private static readonly object _startLock = new object();
 
         static MCPServer()
         {
@@ -82,6 +83,28 @@ namespace UnityMCP.Editor
                 
                 SessionGeneration = SessionState.GetInt("MCP_SessionGen", 0) + 1;
                 SessionState.SetInt("MCP_SessionGen", SessionGeneration);
+
+                // Handle Autonomous Script Attachment
+                string pendingScript = SessionState.GetString("MCP_PendingAttach_Script", "");
+                if (!string.IsNullOrEmpty(pendingScript))
+                {
+                    int targetId = SessionState.GetInt("MCP_PendingAttach_GO", 0);
+                    SessionState.EraseString("MCP_PendingAttach_Script");
+                    SessionState.EraseInt("MCP_PendingAttach_GO");
+
+                    EditorApplication.delayCall += () => {
+                        // ExtractIdFromToken handles bridging the legacy int to EntityId in Unity 6
+                        var entityId = MCPServerMethods.ExtractIdFromToken(targetId.ToString());
+                        var go = MCPServerMethods.IdToObject(entityId) as GameObject;
+                        if (go != null) {
+                            var type = MCPServerMethods.FindType(pendingScript);
+                            if (type != null) {
+                                Undo.AddComponent(go, type);
+                                Debug.Log($"[MCP] Autonomously attached {pendingScript} to {go.name}");
+                            }
+                        }
+                    };
+                }
             }
             
             LastMainThreadTickUtc = DateTime.UtcNow;
@@ -114,12 +137,17 @@ namespace UnityMCP.Editor
             
             if (EditorPrefs.GetBool(StablePrefsKey, false))
             {
-                // Delayed auto-start to ensure Unity is ready
-                EditorApplication.delayCall += () => {
-                    Task.Delay(1500).ContinueWith(_ => {
-                        EditorApplication.delayCall += Start;
-                    });
+                // Delayed auto-start to ensure Unity is ready. 
+                // Frame-based delay is more reliable than Task.Delay during domain reloads.
+                int framesToWait = 60;
+                EditorApplication.CallbackFunction autoStart = null;
+                autoStart = () => {
+                    if (framesToWait-- <= 0) {
+                        EditorApplication.update -= autoStart;
+                        Start();
+                    }
                 };
+                EditorApplication.update += autoStart;
                 
                 #if UNITY_EDITOR_OSX
                 // After domain reload, wait for the editor to fully settle before 
@@ -180,9 +208,15 @@ namespace UnityMCP.Editor
                 return;
             }
 
-            if (_isRunning) return;
+            lock (_startLock)
+            {
+                if (_isRunning) return;
+                _isRunning = true;
+            }
             
             MCPServerMethods.Init();
+            
+            if (EditorApplication.isPlaying) Application.runInBackground = true;
 
             if (_port <= 0) {
                 ParseCommandLineArgs();
@@ -200,19 +234,20 @@ namespace UnityMCP.Editor
             
             Debug.Log($"[MCP] Attempting to start server on port {_port}...");
 
+            _cts = new CancellationTokenSource();
+            
             Task.Run(async () => {
                 try {
                     if (IsPortBusy(_port))
                     {
                         if (await IsAnotherMcpInstanceRunning()) {
-                            _isRunning = true; // Mark as running so we don't try to start again
                             return;
                         }
                         Debug.LogError($"[MCP] Port {_port} is being used by another application.");
+                        _isRunning = false;
                         return;
                     }
 
-                    _isRunning = true;
                     // Note: AppNapBypass.Enable is now background-thread safe
                     #if UNITY_EDITOR_OSX
                     AppNapBypass.Enable();

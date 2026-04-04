@@ -12,7 +12,7 @@ namespace UnityMCP.Editor
     {
         private static Dictionary<string, Type> _typeCache = new Dictionary<string, Type>();
 
-        private static Type FindType(string name)
+        internal static Type FindType(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
             if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;

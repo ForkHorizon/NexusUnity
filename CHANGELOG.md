@@ -2,6 +2,16 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.7.1] - 2026-04-04
+
+### Fixed
+- **Autonomous Script Attachment**: Restored the logic to automatically attach newly compiled scripts to their target GameObjects. Fixed Unity 6 compatibility by using version-agnostic ID helpers.
+- **Server Auto-Start Reliability**: Replaced `Task.Delay` with a robust 60-frame delay in `MCPServer.Init` to ensure the server starts only after the engine has fully settled post-compilation.
+- **Input System Stability**: Eliminated `InvalidCastException` and nested update crashes by removing manual `InputSystem.Update()` calls and migrating to sequential `EditorApplication.delayCall`s for simulated clicks.
+- **Play Mode Liveness**: Forced `Application.runInBackground = true` during server initialization to prevent timeouts when the Editor loses focus in Play Mode.
+- **Race Condition Protection**: Added thread-synchronization locks to `MCPServer.Start()` to prevent duplicate initialization attempts on the same port.
+- **Mode Transition Focus**: Integrated `AppNapBypass.ScheduleActivation()` into `TogglePlayMode` to ensure consistent background behavior through mode changes.
+
 ## [2.7.0] - 2026-04-01
 
 ### Added

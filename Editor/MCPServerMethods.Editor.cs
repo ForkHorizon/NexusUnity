@@ -113,6 +113,10 @@ namespace UnityMCP.Editor
 
         private static JToken TogglePlayMode(JToken p)
         {
+            #if UNITY_EDITOR_OSX
+            AppNapBypass.ScheduleActivation();
+            #endif
+
             bool? value = p?["value"]?.ToObject<bool>();
             if (value.HasValue) EditorApplication.isPlaying = value.Value;
             else EditorApplication.isPlaying = !EditorApplication.isPlaying;
