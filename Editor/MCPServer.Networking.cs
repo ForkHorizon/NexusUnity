@@ -144,9 +144,36 @@ namespace UnityMCP.Editor
                     return;
                 }
 
+                // 10 MB limit to prevent Denial of Service via memory exhaustion
+                const long MaxContentLength = 10 * 1024 * 1024;
+                if (context.Request.ContentLength64 > MaxContentLength)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                    context.Response.Close();
+                    return;
+                }
+
                 using (var reader = new System.IO.StreamReader(context.Request.InputStream, context.Request.ContentEncoding ?? Encoding.UTF8))
                 {
-                    string json = reader.ReadToEnd();
+                    // To be safe against chunked requests bypassing ContentLength
+                    char[] bufferChunk = new char[4096];
+                    int charsRead;
+                    int totalChars = 0;
+                    StringBuilder sb = new StringBuilder();
+
+                    while ((charsRead = reader.Read(bufferChunk, 0, bufferChunk.Length)) > 0)
+                    {
+                        totalChars += charsRead;
+                        if (totalChars > MaxContentLength)
+                        {
+                            context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                            context.Response.Close();
+                            return;
+                        }
+                        sb.Append(bufferChunk, 0, charsRead);
+                    }
+
+                    string json = sb.ToString();
                     string response = MCPServerMethods.ProcessJsonRpc(json);
                     byte[] buffer = Encoding.UTF8.GetBytes(response);
                     context.Response.ContentType = "application/json";

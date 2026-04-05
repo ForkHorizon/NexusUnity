@@ -27,3 +27,7 @@
 **Vulnerability:** The MCP server accepted HTTP requests without validating the `Origin` header, allowing arbitrary websites to connect to localhost (CSRF) and execute commands.
 **Learning:** The previous fix only applied `Origin` validation to WebSocket connections, leaving HTTP requests vulnerable. Both endpoints need `Origin` checks.
 **Prevention:** In `HandleHttpRequest`, verify `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
+## 2026-04-05 - [Denial of Service via Unbounded Stream Reading]
+**Vulnerability:** Reading an HTTP request body using `reader.ReadToEnd()` without enforcing a maximum size limit allows an attacker to send an arbitrarily large payload (e.g., 10GB), causing memory exhaustion (OOM) and crashing the application (DoS).
+**Learning:** Relying on the client to send reasonably sized requests is unsafe. Unbounded reads load the entire stream into memory at once.
+**Prevention:** Enforce a strict limit on the request body size by checking `context.Request.ContentLength64` and incrementally reading the stream while validating the byte/character count, returning `HTTP 413 (RequestEntityTooLarge)` if exceeded.
