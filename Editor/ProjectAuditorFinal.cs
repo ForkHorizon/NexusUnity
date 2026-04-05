@@ -11,6 +11,7 @@ namespace UnityMCP.Editor
     public static class ProjectAuditorWrapper
     {
         private static List<Component> _componentCache = new List<Component>();
+        private static Stack<string> _pathStackCache = new Stack<string>();
 
         [MenuItem("Window/Nexus Unity/Run Full Project Audit")]
         public static void RunAuditMenu()
@@ -237,14 +238,15 @@ namespace UnityMCP.Editor
 
         private static string GetGameObjectPath(GameObject obj)
         {
-            string path = obj.name;
+            _pathStackCache.Clear();
+            _pathStackCache.Push(obj.name);
             var current = obj.transform;
             while (current.parent != null)
             {
                 current = current.parent;
-                path = current.name + "/" + path;
+                _pathStackCache.Push(current.name);
             }
-            return path;
+            return string.Join("/", _pathStackCache);
         }
     }
 }
