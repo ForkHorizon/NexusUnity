@@ -17,8 +17,9 @@ namespace UnityMCP.Editor
             if (string.IsNullOrEmpty(name)) return null;
             if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;
 
-            // Priority 1: Check Assembly-CSharp (where most user scripts live)
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            
+            // Priority 1: Check Assembly-CSharp
             var mainAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "Assembly-CSharp");
             if (mainAsm != null)
             {
@@ -34,7 +35,7 @@ namespace UnityMCP.Editor
                     var t = a.GetType(name) ?? a.GetTypes().FirstOrDefault(x => x.Name == name);
                     if (t != null) return _typeCache[name] = t;
                 }
-                catch { /* Ignore assemblies that fail to load types */ }
+                catch { }
             }
 
             _typeCache[name] = null;

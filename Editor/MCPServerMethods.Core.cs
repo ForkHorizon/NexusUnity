@@ -159,9 +159,35 @@ namespace UnityMCP.Editor
             AddScriptableObjectTools(tools);
             AddSyncTools(tools);
             AddInputTools(tools);
+            AddSnapshotTools(tools);
+            AddTimelineTools(tools);
+            AddContextTools(tools);
 
             _cachedTools = tools;
             return tools;
+        }
+
+        private static void AddContextTools(JArray tools)
+        {
+            tools.Add(CreateTool("get_selected_object_full_context", "Returns a massive, context-rich JSON payload for the currently selected GameObject (including all serialized components, prefab status, and hierarchy path)", new JObject { }));
+            tools.Add(CreateTool("show_unresolved_missing_references", "Scans the active scene for 'Missing Script' components or broken ObjectReferences", new JObject { }));
+        }
+
+        private static void AddTimelineTools(JArray tools)
+        {
+            tools.Add(CreateTool("get_editor_timeline", "Returns a list of recent Editor actions (imports, scene changes, play mode transitions)", new JObject { }));
+        }
+
+        private static void AddSnapshotTools(JArray tools)
+        {
+            tools.Add(CreateTool("dump_scene_graph", "Dump a recursive tree of the active scene with components and key fields", new JObject 
+            { 
+                ["root_id"] = new JObject { ["type"] = "integer", ["description"] = "Optional: instance_id of the root object to start from" },
+                ["max_depth"] = new JObject { ["type"] = "integer", ["description"] = "Maximum recursion depth (default: 5)" },
+                ["include_all_properties"] = new JObject { ["type"] = "boolean", ["description"] = "If true, serializes all component properties instead of just key fields" }
+            }));
+
+            tools.Add(CreateTool("get_scene_dependencies", "Scans the scene for cross-object references and returns a dependency map", new JObject { }));
         }
 
         private static void AddServerHealthTools(JArray tools)

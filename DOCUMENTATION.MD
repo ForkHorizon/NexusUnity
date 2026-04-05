@@ -126,7 +126,29 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 #### 🎮 Runtime Input (Play Mode Only)
 `unity_simulate_mouse`, `unity_simulate_touch`, `unity_click_object_in_game`.
 
-#### 🖥 UI Toolkit Automation
+#### 📸 Snapshots & Dependency Mapping
+`unity_dump_scene_graph`, `unity_get_scene_dependencies`, `unity_get_editor_timeline`.
+
+#---
+
+### 📸 Snapshots & Dependency Mapping
+
+#### `unity_dump_scene_graph`
+Generates a recursive JSON tree of the active scene.
+- **`root_id`** (optional): ID of specific object to start from.
+- **`max_depth`** (default 5): Recursion limit.
+- **`include_all_properties`** (default false): If true, dumps every field of every component.
+- **Note**: Always includes vital "Key Properties" (Transform, Camera, Light, etc.) even when deep dumping is off.
+
+#### `unity_get_scene_dependencies`
+Maps all cross-object references in the current scene.
+- **Returns**: A flat list of dependency links showing which components/fields point to which objects.
+
+#### `unity_get_editor_timeline`
+Returns a history of the last 50 Editor events (imports, scene changes, reloads).
+- **Note**: Persists across domain reloads using `SessionState`.
+
+### 🖥 UI Toolkit Automation
 `unity_ui_list_windows`, `unity_ui_get_hierarchy`, `unity_ui_query_elements`, `unity_ui_click`, `unity_ui_input_text`.
 
 ---

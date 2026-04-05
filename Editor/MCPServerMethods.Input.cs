@@ -50,8 +50,12 @@ namespace UnityMCP.Editor
             // Sequence of two delayCalls ensures at least one "Editor" frame processing
             EditorApplication.delayCall += () => {
                 EditorApplication.delayCall += () => {
-                    if (!EditorApplication.isPlaying) return;
-                    InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
+                    System.Threading.Tasks.Task.Delay(100).ContinueWith(_ => {
+                        EditorApplication.delayCall += () => {
+                            if (!EditorApplication.isPlaying) return;
+                            InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
+                        };
+                    });
                 };
             };
         }

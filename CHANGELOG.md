@@ -2,6 +2,29 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [2.9.0] - 2026-04-05
+
+### Added
+- **Selection & Context Helpers**: Added specialized tools to give AI agents deep situational awareness about selected objects and broken references.
+  - `get_selected_object_full_context`: Returns a massive, context-rich JSON payload for the currently selected GameObject, including all serialized components, prefab status, and exact hierarchy path.
+  - `show_unresolved_missing_references`: Scans the active scene for "Missing Script" components or broken `ObjectReference` fields and returns their exact locations.
+- **Enhanced Reference Tracking**: Upgraded `find_references` to not just return the component type, but the precise `propertyPath` (field name) that holds the reference, answering exactly "why is this object referenced here?".
+
+## [2.8.0] - 2026-04-04
+
+### Added
+- **Scene Snapshot & Graph Dumping**: Introduced `dump_scene_graph`, a high-performance recursive tool that serializes the entire scene hierarchy into a JSON tree.
+  - Automatically captures "Key Properties" for common components (Transform, Camera, Light, MeshRenderer) even when deep serialization is disabled.
+  - Supports configurable recursion depth and root filtering.
+- **Scene Dependency Mapping**: Added `get_scene_dependencies`, which performs a deep scan of all scene components to identify cross-object references.
+  - Maps connections between GameObjects and Components within the active scene.
+  - Useful for architectural analysis and identifying broken or redundant links.
+- **Editor Action Timeline**: Introduced `get_editor_timeline`, providing a persistent history of recent events.
+  - Tracks asset imports, deletes, and moves.
+  - Tracks scene transitions (opened, saved).
+  - Automatically records domain reloads and play mode state changes.
+  - Helps AI agents maintain context of "what just happened" in the Editor.
+
 ## [2.7.1] - 2026-04-04
 
 ### Fixed

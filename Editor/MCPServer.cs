@@ -114,6 +114,7 @@ namespace UnityMCP.Editor
             #endif
             UpdateVersion();
             MCPServerMethods.Init();
+            InitTimeline();
             
             EditorApplication.update -= HandleMainThreadQueue;
             EditorApplication.update += HandleMainThreadQueue;

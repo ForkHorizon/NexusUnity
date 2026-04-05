@@ -580,6 +580,24 @@ Finds GameObjects by scanning class names, field names, method names, and object
   - `query` (string, required): Semantic search term (e.g., "Player Controller", "Inventory", "Update").
 - **Returns**: Object with `matches` array, ranked by relevance score and reasons for the match.
 
+## 📸 Snapshots & Dependency Mapping
+
+### `unity_dump_scene_graph`
+Recursively serializes the active scene (or a specific subtree) into a JSON graph.
+- **Parameters**:
+  - `root_id` (integer, optional): ID of specific object to start from.
+  - `max_depth` (integer, optional): Depth limit (default 5).
+  - `include_all_properties` (boolean, optional): If true, dumps every field of every component.
+- **Returns**: Hierarchical JSON tree of GameObjects, components, and key properties.
+
+### `unity_get_scene_dependencies`
+Maps all cross-object references within the current scene.
+- **Returns**: Flat list of `{from_id, from_go, component, field, to_id, to_go, to_comp}` objects.
+
+### `unity_get_editor_timeline`
+Returns a history of recent Editor events (imports, scene changes, reloads, play mode transitions).
+- **Returns**: Object with `events` array, each containing `timestamp`, `type`, and `details`.
+
 ### `unity_lint_project`
 ...
 Runs a comprehensive project and scene health audit.
@@ -588,4 +606,4 @@ Runs a comprehensive project and scene health audit.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays (with a `status: "Success"` key).
 
 ---
-*Generated for Nexus Unity v2.7.0*
+*Generated for Nexus Unity v2.8.0*

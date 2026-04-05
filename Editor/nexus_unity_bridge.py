@@ -103,6 +103,11 @@ STATIC_TOOLS = [
     {"name": "unity_capture_game_view_screenshot", "description": "Capture PNG of Game View", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_generate_mermaid_diagram", "description": "Generate Mermaid diagram of scene", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_semantic_find", "description": "Find objects by semantic meaning", "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
+    {"name": "unity_dump_scene_graph", "description": "Dump a recursive tree of the active scene with components and key fields", "inputSchema": {"type": "object", "properties": {"root_id": {"type": "integer"}, "max_depth": {"type": "integer"}, "include_all_properties": {"type": "boolean"}}}},
+    {"name": "unity_get_scene_dependencies", "description": "Scans the scene for cross-object references and returns a dependency map", "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "unity_get_editor_timeline", "description": "Returns a list of recent Editor actions (imports, scene changes, play mode transitions)", "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "unity_get_selected_object_full_context", "description": "Returns a massive, context-rich JSON payload for the currently selected GameObject", "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "unity_show_unresolved_missing_references", "description": "Scans the active scene for 'Missing Script' components or broken ObjectReferences", "inputSchema": {"type": "object", "properties": {}}},
 
     # Autonomous Macros (AI Efficiency)
     {"name": "unity_apply_code_change", "description": "Macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use this instead of individual write+refresh+wait steps.", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},

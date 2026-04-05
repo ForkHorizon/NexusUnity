@@ -53,8 +53,10 @@ namespace UnityMCP.Editor
             RegisterScriptableObjectMethods();
             RegisterSyncMethods();
             RegisterInputMethods();
-            Debug.Log($"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");
-        }
+            RegisterSnapshotMethods();
+            RegisterTimelineMethods();
+            RegisterContextMethods();
+            Debug.Log($"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");        }
 
         /// <summary>
         /// Processes a JSON-RPC request string and returns the response string.

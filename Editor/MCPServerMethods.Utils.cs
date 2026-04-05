@@ -52,6 +52,16 @@ namespace UnityMCP.Editor
             return fullPath;
         }
 
+        internal static JObject SerializeVector3(Vector3 v)
+        {
+            return new JObject { ["x"] = v.x, ["y"] = v.y, ["z"] = v.z };
+        }
+
+        internal static string SerializeColor(Color c)
+        {
+            return "#" + ColorUtility.ToHtmlStringRGBA(c);
+        }
+
         private static EditorWindow FindWindow(string title)
         {
             return Resources.FindObjectsOfTypeAll<EditorWindow>().FirstOrDefault(w => w.titleContent.text == title);

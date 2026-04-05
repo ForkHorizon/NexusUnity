@@ -188,8 +188,7 @@ namespace UnityMCP.Editor
                     if (go.scene == null || !go.scene.isLoaded) continue;
 
                     go.GetComponents(components);
-                    bool matches = false;
-                    List<string> matchingComponents = new List<string>();
+                    var goMatches = new JArray();
 
                     foreach (var comp in components)
                     {
@@ -206,21 +205,22 @@ namespace UnityMCP.Editor
                                 {
                                     if (targetInstanceIds.Contains(prop.objectReferenceEntityIdValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
                                     {
-                                        matches = true;
-                                        matchingComponents.Add(comp.GetType().Name);
-                                        break;
+                                        var matchDetail = new JObject();
+                                        matchDetail["component"] = comp.GetType().Name;
+                                        matchDetail["field"] = prop.propertyPath;
+                                        goMatches.Add(matchDetail);
                                     }
                                 }
                             }
                         }
                     }
 
-                    if (matches)
+                    if (goMatches.Count > 0)
                     {
                         var goData = new JObject();
                         goData["name"] = go.name;
                         goData["instance_id"] = go.GetRawId();
-                        goData["components"] = new JArray(matchingComponents.Distinct());
+                        goData["references"] = goMatches;
                         sceneRefs.Add(goData);
                     }
                 }
