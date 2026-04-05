@@ -110,8 +110,16 @@ namespace UnityMCP.Editor
             GUILayout.Label("Resources", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                if (GUILayout.Button("Documentation", EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
-                if (GUILayout.Button("API Reference", EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
+                GUIContent docContent = EditorGUIUtility.IconContent("_Help");
+                docContent.text = " Documentation";
+                docContent.tooltip = "Open the general documentation for Nexus Unity";
+
+                GUIContent apiContent = EditorGUIUtility.IconContent("TextAsset Icon");
+                apiContent.text = " API Reference";
+                apiContent.tooltip = "Open the API protocol reference for tools";
+
+                if (GUILayout.Button(docContent, EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
+                if (GUILayout.Button(apiContent, EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
             }
         }
 
