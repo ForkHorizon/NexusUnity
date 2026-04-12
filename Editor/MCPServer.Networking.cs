@@ -144,9 +144,42 @@ namespace UnityMCP.Editor
                     return;
                 }
 
+                const long MaxPayloadSize = 10 * 1024 * 1024; // 10MB
+                if (context.Request.ContentLength64 > MaxPayloadSize)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                    context.Response.Close();
+                    return;
+                }
+
                 using (var reader = new System.IO.StreamReader(context.Request.InputStream, context.Request.ContentEncoding ?? Encoding.UTF8))
                 {
-                    string json = reader.ReadToEnd();
+                    string json;
+                    if (context.Request.ContentLength64 >= 0)
+                    {
+                        json = reader.ReadToEnd();
+                    }
+                    else
+                    {
+                        char[] charBuffer = new char[8192];
+                        var sb = new StringBuilder();
+                        int read;
+                        long totalBytes = 0;
+                        var encoding = context.Request.ContentEncoding ?? Encoding.UTF8;
+                        while ((read = reader.Read(charBuffer, 0, charBuffer.Length)) > 0)
+                        {
+                            totalBytes += encoding.GetByteCount(charBuffer, 0, read);
+                            if (totalBytes > MaxPayloadSize)
+                            {
+                                context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                                context.Response.Close();
+                                return;
+                            }
+                            sb.Append(charBuffer, 0, read);
+                        }
+                        json = sb.ToString();
+                    }
+
                     string response = MCPServerMethods.ProcessJsonRpc(json);
                     byte[] buffer = Encoding.UTF8.GetBytes(response);
                     context.Response.ContentType = "application/json";
@@ -168,6 +201,7 @@ namespace UnityMCP.Editor
         {
             var buffer = new byte[4096];
             using var ms = new MemoryStream();
+            const long MaxWebSocketPayloadSize = 10 * 1024 * 1024; // 10MB
 
             while (_webSocket.State == WebSocketState.Open && !token.IsCancellationRequested)
             {
@@ -182,6 +216,12 @@ namespace UnityMCP.Editor
                         return;
                     }
                     ms.Write(buffer, 0, result.Count);
+
+                    if (ms.Length > MaxWebSocketPayloadSize)
+                    {
+                        await _webSocket.CloseAsync(WebSocketCloseStatus.MessageTooBig, "Payload exceeds 10MB limit", CancellationToken.None);
+                        return;
+                    }
                 } while (!result.EndOfMessage && !token.IsCancellationRequested);
 
                 if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
