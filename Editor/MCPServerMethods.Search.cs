@@ -89,21 +89,23 @@ namespace UnityMCP.Editor
             return new JObject { ["objects"] = new JArray(results.Take(50).Select(SerializeGameObject)) };
         }
 
+        private static Stack<string> _pathStackCache = new Stack<string>();
+
         private static JToken GetObjectPath(JToken p)
         {
             if (p == null || p["instance_id"] == null) throw new System.Exception("instance_id is required");
             var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new System.Exception("Object not found");
 
-            var pathParts = new Stack<string>();
-            pathParts.Push(go.name);
+            _pathStackCache.Clear();
+            _pathStackCache.Push(go.name);
             Transform t = go.transform.parent;
             while (t != null)
             {
-                pathParts.Push(t.name);
+                _pathStackCache.Push(t.name);
                 t = t.parent;
             }
-            return new JObject { ["status"] = "Success", ["path"] = string.Join("/", pathParts) };
+            return new JObject { ["status"] = "Success", ["path"] = string.Join("/", _pathStackCache) };
         }
 
         private static JToken PingObject(JToken p)

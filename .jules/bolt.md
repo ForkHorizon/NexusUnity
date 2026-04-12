@@ -13,3 +13,7 @@
 ## 2025-03-01 - [FindObjects N+1 Component Allocation]
 **Learning:** Calling `go.GetComponent(typeName)` in a LINQ query that iterates over all GameObjects (e.g., `Resources.FindObjectsOfTypeAll<GameObject>()`) creates a massive N+1 bottleneck, scaling poorly with project size. For Regex, while static `Regex.IsMatch` uses an internal cache and doesn't explicitly re-compile, it still incurs lookup and parsing overhead per iteration. However, using `RegexOptions.Compiled` on short-lived objects is a massive performance trap due to IL compilation latency.
 **Action:** Start component searches with `Resources.FindObjectsOfTypeAll(type)` mapped back via `.OfType<Component>().Select(c => c.gameObject).Distinct()`. Pre-instantiate local `Regex` objects without `Compiled` before entering loops.
+
+## 2025-03-01 - [GetObjectPath Allocation]
+**Learning:** Constructing hierarchy paths from leaf to root by dynamically instantiating `Stack<string>` in `MCPServerMethods.GetObjectPath` creates unnecessary heap allocations and GC churn, especially when querying paths for many objects.
+**Action:** Use a `private static Stack<string> _pathStackCache` and clear it before reuse to eliminate string array allocations per path query.
