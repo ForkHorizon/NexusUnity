@@ -24,3 +24,6 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2024-05-22 - [Resource Accessibility in Unity Packages]
 **Learning:** Users of Unity packages often struggle to find documentation because it lives in the `Packages/` folder, which is separate from `Assets/`. Providing direct "Open Documentation" buttons in the main editor window using `AssetDatabase.OpenAsset` significantly reduces friction.
 **Action:** When building Editor Tools for packages, always include a "Resources" or "Help" section with direct links to key documentation files.
+## 2024-04-12 - Unity Editor IMGUI Accessibility and Consistency
+**Learning:** Unity's IMGUI standard `GUILayout.Button` supports passing `GUIContent` instead of a plain string. This enables the addition of inline tooltips and built-in Editor icons (via `EditorGUIUtility.IconContent`), which significantly improves accessibility for icon-only buttons or complex dashboards without requiring structural layout changes.
+**Action:** When implementing or modifying Unity Editor windows (`EditorWindow`), always prefer `new GUIContent(text, tooltip)` or `new GUIContent(text, icon, tooltip)` over plain strings for buttons and labels to enhance visual consistency and discoverability for end users.
