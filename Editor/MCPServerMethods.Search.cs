@@ -203,7 +203,13 @@ namespace UnityMCP.Editor
                                 enterChildren = true;
                                 if (prop.propertyType == SerializedPropertyType.ObjectReference)
                                 {
-                                    if (targetInstanceIds.Contains(prop.objectReferenceEntityIdValue) || (prop.objectReferenceValue != null && targetInstanceIds.Contains(prop.objectReferenceValue.GetId())))
+                                    var propId = prop.objectReferenceEntityIdValue;
+                                    var objRef = prop.objectReferenceValue;
+                                    
+                                    bool directMatch = targetInstanceIds.Contains(propId);
+                                    bool indirectMatch = objRef != null && targetInstanceIds.Contains(objRef.GetId());
+
+                                    if (directMatch || indirectMatch)
                                     {
                                         var matchDetail = new JObject();
                                         matchDetail["component"] = comp.GetType().Name;

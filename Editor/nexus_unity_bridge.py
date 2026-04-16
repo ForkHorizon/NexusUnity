@@ -76,6 +76,8 @@ STATIC_TOOLS = [
     {"name": "unity_read_logs", "description": "Get current Console logs", "inputSchema": {"type": "object", "properties": {"count": {"type": "integer"}}}},
     {"name": "unity_clear_logs", "description": "Clear the Console", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_attach_script", "description": "Create a C# script and link it", "inputSchema": {"type": "object", "properties": {"script_name": {"type": "string"}, "script_content": {"type": "string"}}, "required": ["script_name"]}},
+    {"name": "unity_run_tests", "description": "Run NUnit tests (EditMode or PlayMode)", "inputSchema": {"type": "object", "properties": {"filter": {"type": "string"}, "mode": {"type": "string", "enum": ["EditMode", "PlayMode"]}}}},
+    {"name": "unity_shutdown_server", "description": "Safely stop the MCP server for this instance", "inputSchema": {"type": "object", "properties": {}}},
 
     # Discovery & Search
     {"name": "unity_get_game_object", "description": "Get basic metadata for an ID", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
@@ -91,6 +93,7 @@ STATIC_TOOLS = [
     {"name": "unity_get_editor_state", "description": "Get Play/Paused/Compiling state", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_get_project_info", "description": "Get project metadata", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_set_selection", "description": "Select objects in Editor", "inputSchema": {"type": "object", "properties": {"instance_ids": {"type": "array", "items": {"type": "integer"}}}, "required": ["instance_ids"]}},
+    {"name": "unity_enforce_forced_defaults", "description": "Apply [ForceDefault] attribute values", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
 
     # UI Toolkit & Debugging
     {"name": "unity_ui_list_windows", "description": "List open Editor windows", "inputSchema": {"type": "object", "properties": {}}},

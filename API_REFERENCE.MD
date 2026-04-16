@@ -12,6 +12,8 @@ This document provides a comprehensive, AI-optimized reference for all 77+ tools
 Returns explicit health and state of the MCP server and Unity editor. Use this to determine if Unity is busy compiling, importing, or if the main thread is responsive.
 - **Returns**: A structured JSON object:
   - `serverAlive`: (bool) True if the HTTP listener is running.
+  - `state`: (string) Explicit server state (`Stopped`, `Starting`, `Running`, `Attached`, `Error`).
+  - `lastError`: (string) The last recorded startup or runtime error, if any.
   - `editorConnected`: (bool) True if attached to a Unity Editor instance.
   - `projectPath`: (string) Absolute path to the current project.
   - `unityVersion`: (string) Version of the Unity engine.
@@ -20,6 +22,11 @@ Returns explicit health and state of the MCP server and Unity editor. Use this t
   - `commandState`: (object) Indicates if the server currently accepts read/write commands.
   - `sessionId`: (string) Unique ID for the current editor session.
   - `sessionGeneration`: (int) Increments every time scripts are recompiled (domain reload).
+
+### `unity_shutdown_server`
+Safely stops the MCP server listener for the current Unity instance. Useful for resolving port conflicts or manual resets.
+- **Returns**: `{ "status": "Shutting down..." }`.
+- **Note**: This command bypasses the main thread check to ensure it works even for zombie listeners from old domains.
 
 ### `unity_ping_main_thread`
 Explicit main-thread liveness check. Unlike `get_server_status` which returns cached data from a background thread, this tool MUST execute on Unity's main thread.
@@ -605,5 +612,13 @@ Runs a comprehensive project and scene health audit.
 - **Scene Health Scan**: Recursively scans the active scene for missing scripts, broken prefab instances, and "pink" (Internal Error) materials.
 - **Returns**: Object containing `code_issues` and `scene_issues` arrays (with a `status: "Success"` key).
 
+### `unity_run_tests`
+Executes NUnit tests (EditMode or PlayMode) within the Unity Editor instance.
+- **Parameters**:
+  - `filter` (string, optional): Regex or exact name of the test, class, or namespace to run.
+  - `mode` (string, optional): One of `EditMode` or `PlayMode` (Default: `EditMode`).
+- **Returns**: Status object indicating if the test run was successfully triggered.
+- **Note**: This tool uses reflection to avoid hard dependencies on the Unity Test Framework package.
+
 ---
-*Generated for Nexus Unity v2.8.0*
+*Generated for Nexus Unity v2.9.0*

@@ -47,13 +47,22 @@ namespace UnityMCP.Editor
             GUILayout.Label("Server Control", EditorStyles.boldLabel);
             DrawServerStatusBar();
             EditorGUILayout.Space();
-            if (!MCPServer.IsRunning)
+            
+            bool canStart = MCPServer.State == ServerState.Stopped || MCPServer.State == ServerState.Error || MCPServer.State == ServerState.Attached;
+            bool canStop = MCPServer.State == ServerState.Running || MCPServer.State == ServerState.Starting || MCPServer.State == ServerState.Attached || MCPServer.State == ServerState.Error;
+
+            using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(new GUIContent("START SERVER", $"Start the local MCP server on port {MCPServer.Port}"), GUILayout.Height(40))) MCPServer.Start();
-            }
-            else
-            {
-                if (GUILayout.Button(new GUIContent("STOP SERVER", "Stop the running MCP server"), GUILayout.Height(40))) MCPServer.Stop();
+                if (canStart)
+                {
+                    string label = MCPServer.State == ServerState.Error ? "RETRY START" : "START SERVER";
+                    if (GUILayout.Button(new GUIContent(label, $"Start the local MCP server on port {MCPServer.Port}"), GUILayout.Height(40))) MCPServer.Start();
+                }
+
+                if (canStop)
+                {
+                    if (GUILayout.Button(new GUIContent("STOP / RESET", "Stop the running server or reset the state"), GUILayout.Height(40))) MCPServer.Stop();
+                }
             }
             EditorGUILayout.Space();
             DrawCliIntegration();
@@ -64,8 +73,18 @@ namespace UnityMCP.Editor
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                string status = MCPServer.IsRunning ? "RUNNING" : "STOPPED";
-                GUI.color = MCPServer.IsRunning ? Color.green : Color.red;
+                string status = MCPServer.State.ToString().ToUpper();
+                Color statusColor = Color.white;
+                switch (MCPServer.State)
+                {
+                    case ServerState.Running: statusColor = Color.green; break;
+                    case ServerState.Starting: statusColor = Color.yellow; break;
+                    case ServerState.Attached: statusColor = Color.cyan; break;
+                    case ServerState.Error: statusColor = Color.red; break;
+                    default: statusColor = Color.gray; status = "STOPPED"; break;
+                }
+
+                GUI.color = statusColor;
                 GUILayout.Label(new GUIContent($"● {status}"), EditorStyles.boldLabel);
                 GUI.color = Color.white;
                 GUILayout.FlexibleSpace();
@@ -76,6 +95,15 @@ namespace UnityMCP.Editor
                     EditorGUIUtility.systemCopyBuffer = $"http://localhost:{MCPServer.Port}";
                     ShowNotification(new GUIContent("URL Copied to Clipboard"));
                 }
+            }
+
+            if (MCPServer.State == ServerState.Error && !string.IsNullOrEmpty(MCPServer.LastError))
+            {
+                EditorGUILayout.HelpBox(MCPServer.LastError, MessageType.Error);
+            }
+            else if (MCPServer.State == ServerState.Attached)
+            {
+                EditorGUILayout.HelpBox("This instance is attached to an existing session from another Unity editor instance. Remote server is active.", MessageType.Info);
             }
         }
 

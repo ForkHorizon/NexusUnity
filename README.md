@@ -7,6 +7,7 @@ A core library for Unity providing a built-in Model Context Protocol (MCP) serve
 ## 🚀 Features
 
 - **Autonomous Background Workflow**: Native macOS App Nap bypass and focus-stealing synchronization for 100% zero-touch script compilation.
+- **Robust Port Management & UX**: Automatic process owner detection (`lsof`/`netstat`) and support for dynamic port assignment (**Port 0**).
 - **Explicit Server Health Monitoring**: Real-time tracking of main-thread responsiveness and engine state (`compiling`, `importing`, `playing`).
 - **Persistent Session Management**: Unique session IDs and generation tracking that survive domain reloads for deterministic AI synchronization.
 - **Hybrid Deep Auditor**: Combined static code analysis (via Project Auditor) and Nexus-native scene health scanning.

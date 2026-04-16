@@ -2,13 +2,39 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
-## [2.9.0] - 2026-04-05
+## [2.9.2] - 2026-04-16
+
+### Fixed
+- **Stale "Attached" State**: Resolved a bug where the server remained in an `Attached` state when only one Unity instance was active. This occurred due to "zombie" listeners surviving domain reloads without a proper handle cleanup. 
+- **Domain Reload Resilience**: Added `processId` to the status response and implemented a PID-based verification. If the server detects its own PID holding the port from a previous domain, it now sends a `shutdown_server` command to the stale listener before starting a fresh instance.
+
+### Added
+- **New Tool**: `unity_shutdown_server` RPC method added to safely terminate the listener for a specific Unity instance (useful for troubleshooting and automated cleanup).
+
+## [2.9.1] - 2026-04-16
+
+### Improved
+- **Port Conflict Resilience**: Refactored `MCPServer.Start` to handle "Unknown Process" port collisions gracefully. Instead of failing when `IsPortBusy` returns true but the owner is unidentified (common on macOS due to path restrictions), the server now proceeds with a force-bind attempt, allowing the native `HttpListener` to be the final authority.
+- **Robust Port Ownership Detection**: Updated `GetPortOwner` on macOS to use the full path `/usr/sbin/lsof` as a fallback, ensuring reliable process identification even when the Editor's execution environment has a restricted `PATH`.
+
+## [2.9.0] - 2026-04-13
 
 ### Added
 - **Selection & Context Helpers**: Added specialized tools to give AI agents deep situational awareness about selected objects and broken references.
   - `get_selected_object_full_context`: Returns a massive, context-rich JSON payload for the currently selected GameObject, including all serialized components, prefab status, and exact hierarchy path.
   - `show_unresolved_missing_references`: Scans the active scene for "Missing Script" components or broken `ObjectReference` fields and returns their exact locations.
+- **NUnit Test Execution**: Introduced `run_tests` tool to programmatically trigger EditMode and PlayMode tests from the MCP server. Uses reflection for zero-dependency portability.
 - **Enhanced Reference Tracking**: Upgraded `find_references` to not just return the component type, but the precise `propertyPath` (field name) that holds the reference, answering exactly "why is this object referenced here?".
+- **Workflow Optimization**: Added `unity_write_files_batch` to allow AI agents to write multiple files in a singlepass, dramatically reducing turn usage and improving synchronization.
+- **Component Balancing**: Introduced `unity_enforce_forced_defaults` to programmatically apply `[ForceDefault]` attribute values across GameObjects.
+
+### Improved
+- **Robust Port Management & UX**: Completely overhauled the server's networking and state management.
+  - **Process Owner Detection**: The server now identifies the exact process (name and PID) holding a busy port using `lsof` (macOS/Linux) and `netstat` (Windows).
+  - **IPv4/IPv6 Accuracy**: Replaced connection-based port checking with `IPGlobalProperties` for 100% reliable detection across all IP stacks, preventing "Address already in use" crashes.
+  - **ServerState Lifecycle**: Introduced a formal `ServerState` machine (`Stopped`, `Starting`, `Running`, `Attached`, `Error`) to replace simple booleans, fixing race conditions and providing accurate "Attached" status for multi-instance projects.
+  - **Dynamic Port Assignment**: Added support for **Port 0**, allowing the OS to automatically assign a free port to the MCP server.
+  - **Visual Diagnostics**: Updated the Unity Editor dashboard to display explicit error messages and real-time state transitions, making server startup failures transparent and easy to debug.
 
 ## [2.8.0] - 2026-04-04
 

@@ -27,18 +27,29 @@ namespace UnityMCP.Editor
                 {
                     var json = JObject.Parse(body);
                     string remoteProjectPath = json["result"]?["projectPath"]?.ToString();
-                    string localProjectPath = Directory.GetCurrentDirectory();
+                    string localProjectPath = Directory.GetCurrentDirectory().Replace("\\", "/");
+                    int remotePid = json["result"]?["processId"]?.Value<int>() ?? -1;
+                    int localPid = System.Diagnostics.Process.GetCurrentProcess().Id;
 
                     if (!string.IsNullOrEmpty(remoteProjectPath))
                     {
-                        if (remoteProjectPath.Replace("\\", "/") == localProjectPath.Replace("\\", "/"))
+                        if (remoteProjectPath == localProjectPath)
                         {
+                            if (remotePid == localPid)
+                            {
+                                Debug.LogWarning($"[MCP] Detected zombie listener from previous domain (PID: {localPid}). Disconnecting stale entity...");
+                                var shutdownContent = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"shutdown_server\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
+                                try { await client.PostAsync($"http://127.0.0.1:{_port}/", shutdownContent); } catch { }
+                                await Task.Delay(200); // Give it time to close
+                                return false; // Allow Start() to try binding its own listener
+                            }
+
                             Debug.Log($"[MCP] Existing MCP server found on port {_port}. Project matches current workspace. Action taken: attached to existing session.");
                             return true;
                         }
                         else
                         {
-                            Debug.LogError($"[MCP] Existing MCP server found on port {_port}. Project does NOT match current workspace. Action required: choose another port or stop the other session. Remote project: {remoteProjectPath}");
+                            Debug.LogError($"[MCP] Existing MCP server found on port {_port}. Project does NOT match current workspace. Action required: choose another port or stop the other session. Remote project: {remoteProjectPath} (PID: {remotePid})");
                             return true; // We consider it "running" to prevent attempting to start our own and throwing a cryptic error
                         }
                     }
@@ -62,18 +73,23 @@ namespace UnityMCP.Editor
         {
             try
             {
-                _cts = new CancellationTokenSource();
+                if (_cts == null || _cts.IsCancellationRequested) return;
+
                 _listener = new HttpListener();
                 _listener.Prefixes.Add($"http://127.0.0.1:{_port}/");
                 _listener.Prefixes.Add($"http://localhost:{_port}/");
                 _listener.Start();
+                _state = ServerState.Running;
                 _ = Task.Run(() => ServerLoop(_cts.Token));
                 Debug.Log($"[MCP] Server started on port {_port}");
             }
             catch (Exception e)
             {
                 Cleanup();
-                Debug.LogError($"[MCP] Server failed to start: {e.Message}");
+                _state = ServerState.Error;
+                string owner = GetPortOwner(_port);
+                LastError = $"{e.Message} (Port {_port} owner: {owner})";
+                Debug.LogError($"[MCP] Server failed to start: {LastError}");
             }
         }
 
@@ -93,7 +109,7 @@ namespace UnityMCP.Editor
                 if (!token.IsCancellationRequested)
                     Debug.LogError($"[MCP] Fatal server loop error: {e.Message}");
             }
-            finally { _isRunning = false; }
+            finally { if (_state == ServerState.Running) _state = ServerState.Stopped; }
         }
 
         private static bool IsValidOrigin(HttpListenerContext context)

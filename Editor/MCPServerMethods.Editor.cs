@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
@@ -29,6 +30,57 @@ namespace UnityMCP.Editor
             _methods["set_property"] = SetProperty;
             _methods["open_prefab_stage"] = OpenPrefabStage;
             _methods["close_prefab_stage"] = ClosePrefabStage;
+            _methods["run_tests"] = RunTests;
+        }
+
+        private static JToken RunTests(JToken p)
+        {
+            try
+            {
+                string filter = p?["filter"]?.ToString();
+                string modeStr = p?["mode"]?.ToString() ?? "EditMode";
+                
+                // Reflection to avoid hard dependency on UnityEditor.TestRunner
+                var apiType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes())
+                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.TestRunnerApi");
+
+                if (apiType == null) throw new Exception("UnityEditor.TestRunner.Api not found. Is Test Framework package installed?");
+
+                var settingsType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes())
+                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.ExecutionSettings");
+                
+                var filterType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes())
+                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.Filter");
+
+                var modeType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes())
+                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.TestMode");
+
+                var api = ScriptableObject.CreateInstance(apiType);
+                var filterObj = Activator.CreateInstance(filterType);
+                
+                // Set filter fields
+                var testNamesField = filterType.GetField("testNames");
+                if (!string.IsNullOrEmpty(filter)) testNamesField.SetValue(filterObj, new[] { filter });
+
+                var testModeField = filterType.GetField("testMode");
+                object modeValue = Enum.Parse(modeType, modeStr, true);
+                testModeField.SetValue(filterObj, modeValue);
+
+                var settings = Activator.CreateInstance(settingsType, new[] { filterObj });
+                
+                var executeMethod = apiType.GetMethod("Execute");
+                executeMethod.Invoke(api, new[] { settings });
+
+                return new JObject { ["status"] = "Success", ["message"] = $"Test run triggered for {modeStr} (filter: {filter ?? "none"})" };
+            }
+            catch (Exception e)
+            {
+                return new JObject { ["status"] = "Error", ["message"] = $"Failed to run tests: {e.Message}" };
+            }
         }
 
         private static JToken OpenPrefabStage(JToken p)

@@ -27,6 +27,15 @@ namespace UnityMCP.Editor
             _methods["get_server_status"] = GetServerStatus;
             _methods["attach_existing_session"] = AttachExistingSession;
             _methods["ping_main_thread"] = PingMainThread;
+            _methods["shutdown_server"] = ShutdownServer;
+        }
+
+        private static JToken ShutdownServer(JToken p)
+        {
+            // Note: We bypass the main thread check for shutdown to ensure it 
+            // works for zombie listeners from old domains.
+            MCPServer.Cleanup();
+            return new JObject { ["status"] = "Shutting down..." };
         }
 
         private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
@@ -44,9 +53,12 @@ namespace UnityMCP.Editor
 
             return new JObject {
                 ["serverAlive"] = MCPServer.IsRunning,
+                ["state"] = MCPServer.State.ToString(),
+                ["lastError"] = MCPServer.LastError,
                 ["port"] = MCPServer.Port,
                 ["sessionId"] = MCPServer.SessionId,
-                ["projectPath"] = Directory.GetCurrentDirectory(),
+                ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id,
+                ["projectPath"] = Directory.GetCurrentDirectory().Replace("\\", "/"),
                 ["unityVersion"] = Application.unityVersion,
                 ["editorConnected"] = true,
                 ["mainThreadResponsive"] = isMainThreadResponsive,
@@ -135,7 +147,11 @@ namespace UnityMCP.Editor
         // This avoids creating thousands of JObjects every time 'list_tools' is called.
         private static JToken _cachedTools;
 
-        internal static void ClearCache() => _cachedTools = null;
+        internal static void ClearCache()
+        {
+            _cachedTools = null;
+            _typeCache.Clear();
+        }
 
         /// <summary>Lists all available tools for the MCP server.</summary>
         private static JToken ListTools(JToken p)
@@ -357,6 +373,11 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("clear_logs", "Clear Console", new JObject { }));
             tools.Add(CreateTool("attach_script", "Create & Link C#", new JObject { ["script_name"] = new JObject { ["type"] = "string" }, ["script_content"] = new JObject { ["type"] = "string" } }, "script_name"));
             tools.Add(CreateTool("wait_for_ready", "Wait until server is responsive", new JObject { }));
+            tools.Add(CreateTool("run_tests", "Run NUnit tests in the editor", new JObject 
+            { 
+                ["filter"] = new JObject { ["type"] = "string", ["description"] = "Optional: name of test or class" },
+                ["mode"] = new JObject { ["type"] = "string", ["description"] = "EditMode or PlayMode" }
+            }));
         }
 
         private static void AddDiscoveryTools(JArray tools)

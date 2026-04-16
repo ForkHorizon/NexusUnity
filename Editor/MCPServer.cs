@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +13,11 @@ using UnityEngine;
 
 namespace UnityMCP.Editor
 {
-    /// <summary>
-    /// Static service that runs the local MCP server autonomously.
-    /// Handles the background heartbeat and OS-level App Nap bypass.
-    /// </summary>
+    public enum ServerState { Stopped, Starting, Running, Attached, Error }
+
     public static partial class MCPServer
     {
-        private static string _version = "2.7.0";
+        private static string _version = "2.9.2";
         private static long _logCounter = 0;
         public static string Version => _version;
 
@@ -33,14 +32,16 @@ namespace UnityMCP.Editor
         private static ConcurrentQueue<Action> _mainThreadQueue;
         private static ConcurrentQueue<LogEntry> _logs;
         private static int _port;
-        private static bool _isRunning;
+        private static ServerState _state = ServerState.Stopped;
+        public static ServerState State => _state;
+        public static string LastError { get; private set; }
+
         private static HttpListener _listener;
         private static WebSocket _webSocket;
         private static CancellationTokenSource _cts;
         private static int? _cliPortOverride;
         private const int _MAX_LOGS = 5000;
         
-        // Use a deterministic hash or just the sanitized path
         private static string GetDeterministicProjectKey()
         {
             int hash = 17;
@@ -63,16 +64,12 @@ namespace UnityMCP.Editor
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void RuntimeInit()
-        {
-            Init();
-        }
+        private static void RuntimeInit() => Init();
 
         [InitializeOnLoadMethod]
         internal static void Init()
         {
             if (_mainThreadId == -1) _mainThreadId = Thread.CurrentThread.ManagedThreadId;
-
             _mainThreadQueue = _mainThreadQueue ?? new ConcurrentQueue<Action>();
             _logs = _logs ?? new ConcurrentQueue<LogEntry>();
 
@@ -80,45 +77,19 @@ namespace UnityMCP.Editor
             {
                 SessionId = SessionState.GetString("MCP_SessionId", Guid.NewGuid().ToString("N"));
                 SessionState.SetString("MCP_SessionId", SessionId);
-                
                 SessionGeneration = SessionState.GetInt("MCP_SessionGen", 0) + 1;
                 SessionState.SetInt("MCP_SessionGen", SessionGeneration);
-
-                // Handle Autonomous Script Attachment
-                string pendingScript = SessionState.GetString("MCP_PendingAttach_Script", "");
-                if (!string.IsNullOrEmpty(pendingScript))
-                {
-                    int targetId = SessionState.GetInt("MCP_PendingAttach_GO", 0);
-                    SessionState.EraseString("MCP_PendingAttach_Script");
-                    SessionState.EraseInt("MCP_PendingAttach_GO");
-
-                    EditorApplication.delayCall += () => {
-                        // ExtractIdFromToken handles bridging the legacy int to EntityId in Unity 6
-                        var entityId = MCPServerMethods.ExtractIdFromToken(targetId.ToString());
-                        var go = MCPServerMethods.IdToObject(entityId) as GameObject;
-                        if (go != null) {
-                            var type = MCPServerMethods.FindType(pendingScript);
-                            if (type != null) {
-                                Undo.AddComponent(go, type);
-                                Debug.Log($"[MCP] Autonomously attached {pendingScript} to {go.name}");
-                            }
-                        }
-                    };
-                }
             }
             
             LastMainThreadTickUtc = DateTime.UtcNow;
-
             #if UNITY_EDITOR_OSX
             AppNapBypass.CacheApplicationPath();
             #endif
-            UpdateVersion();
             MCPServerMethods.Init();
             InitTimeline();
             
             EditorApplication.update -= HandleMainThreadQueue;
             EditorApplication.update += HandleMainThreadQueue;
-
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
@@ -127,7 +98,6 @@ namespace UnityMCP.Editor
             Application.logMessageReceived += OnLogMessageReceived;
             #endif
 
-            // Bridge from Runtime assembly
             UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
             UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;            
             AssemblyReloadEvents.beforeAssemblyReload -= Cleanup;
@@ -138,25 +108,21 @@ namespace UnityMCP.Editor
             
             if (EditorPrefs.GetBool(StablePrefsKey, false))
             {
-                // Delayed auto-start to ensure Unity is ready. 
-                // Frame-based delay is more reliable than Task.Delay during domain reloads.
                 int framesToWait = 60;
                 EditorApplication.CallbackFunction autoStart = null;
                 autoStart = () => {
                     if (framesToWait-- <= 0) {
                         EditorApplication.update -= autoStart;
-                        Start();
+                        if (_state != ServerState.Running) Start();
                     }
                 };
                 EditorApplication.update += autoStart;
-                
-                #if UNITY_EDITOR_OSX
-                // After domain reload, wait for the editor to fully settle before 
-                // returning focus to the previous app.
-                _postCompileFramesToWait = 15;
-                EditorApplication.update += HandlePostCompileFocusReturn;
-                #endif
             }
+
+            #if UNITY_EDITOR_OSX
+            _postCompileFramesToWait = 15;
+            EditorApplication.update += HandlePostCompileFocusReturn;
+            #endif
         }
 
         #if UNITY_EDITOR_OSX
@@ -164,7 +130,6 @@ namespace UnityMCP.Editor
         private static void HandlePostCompileFocusReturn()
         {
             if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
-
             _postCompileFramesToWait--;
             if (_postCompileFramesToWait <= 0)
             {
@@ -174,35 +139,11 @@ namespace UnityMCP.Editor
         }
         #endif
 
-        private static void UpdateVersion()
-        {
-            try {
-                var pkg = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(MCPServer).Assembly);
-                if (pkg != null) {
-                    _version = pkg.version;
-                    return;
-                }
-
-                string scriptPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(ScriptableObject.CreateInstance<MCPServerWindow>()));
-                string dir = Path.GetDirectoryName(scriptPath);
-                while (!string.IsNullOrEmpty(dir)) {
-                    string pkgPath = Path.Combine(dir, "package.json");
-                    if (File.Exists(pkgPath)) {
-                        var data = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(pkgPath));
-                        _version = data["version"]?.ToString() ?? "0.0.0";
-                        return;
-                    }
-                    dir = Path.GetDirectoryName(dir);
-                }
-            } catch { _version = "2.7.0"; }
-        }
-
         public static int Port => _port;
-        public static bool IsRunning => _isRunning;
+        public static bool IsRunning => _state == ServerState.Running;
 
         public static void Start()
         {
-            // Thread safety check
             if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
             {
                 EditorApplication.delayCall += Start;
@@ -211,52 +152,63 @@ namespace UnityMCP.Editor
 
             lock (_startLock)
             {
-                if (_isRunning) return;
-                _isRunning = true;
+                if (_state == ServerState.Running || _state == ServerState.Starting) return;
+                _state = ServerState.Starting;
+                LastError = null;
+                _cts = new CancellationTokenSource();
             }
             
             MCPServerMethods.Init();
-            
             if (EditorApplication.isPlaying) Application.runInBackground = true;
 
             if (_port <= 0) {
                 ParseCommandLineArgs();
                 _port = _cliPortOverride ?? MCPSettings.Port;
             }
-            
-            // Re-subscribe to logs to be absolutely sure
-            Application.logMessageReceivedThreaded -= OnLogMessageReceived;
-            Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
-            // Persist auto-start immediately while we're still on the main thread.
-            // Doing this via the queue after listener startup is vulnerable to domain reloads
-            // that can discard the queued action before it runs.
-            EditorPrefs.SetBool(StablePrefsKey, true);
+            if (_port == 0)
+            {
+                try {
+                    var l = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+                    l.Start();
+                    _port = ((System.Net.IPEndPoint)l.LocalEndpoint).Port;
+                    l.Stop();
+                    System.Threading.Thread.Sleep(100);
+                } catch { }
+            }
             
+            EditorPrefs.SetBool(StablePrefsKey, true);
             Debug.Log($"[MCP] Attempting to start server on port {_port}...");
 
-            _cts = new CancellationTokenSource();
-            
+            var token = _cts.Token;
             Task.Run(async () => {
                 try {
                     if (IsPortBusy(_port))
                     {
                         if (await IsAnotherMcpInstanceRunning()) {
+                            _state = ServerState.Attached;
                             return;
                         }
-                        Debug.LogError($"[MCP] Port {_port} is being used by another application.");
-                        _isRunning = false;
-                        return;
+                        
+                        string owner = GetPortOwner(_port);
+                        if (owner != "Unknown Process")
+                        {
+                            _state = ServerState.Error;
+                            LastError = $"Port {_port} is being used by another application: {owner}.";
+                            Debug.LogError($"[MCP] {LastError}");
+                            return;
+                        }
+                        Debug.LogWarning($"[MCP] Port {_port} reported busy by Unknown Process. Proceeding with force-bind attempt...");
                     }
 
-                    // Note: AppNapBypass.Enable is now background-thread safe
+                    if (token.IsCancellationRequested) return;
                     #if UNITY_EDITOR_OSX
                     AppNapBypass.Enable();
                     #endif
-
                     BindAndStartListener();
                 } catch (Exception e) {
-                    _isRunning = false;
+                    _state = ServerState.Error;
+                    LastError = e.Message;
                     Debug.LogError($"[MCP] Server start error: {e.Message}");
                 }
             });
@@ -269,37 +221,103 @@ namespace UnityMCP.Editor
                 MCPServer.Enqueue(Stop);
                 return;
             }
-
             EditorPrefs.SetBool(StablePrefsKey, false);
             #if UNITY_EDITOR_OSX
             AppNapBypass.Disable();
             #endif
             Cleanup();
-            Debug.Log("[MCP] Server stopped manually");
         }
 
         internal static void Cleanup()
         {
-            _cts?.Cancel();
-            if (_listener != null)
+            lock (_startLock)
             {
-                try { if (_listener.IsListening) _listener.Stop(); } catch { }
-                try { _listener.Close(); } catch { }
+                _cts?.Cancel();
+                if (_listener != null)
+                {
+                    try { if (_listener.IsListening) _listener.Stop(); } catch { }
+                    try { _listener.Close(); } catch { }
+                    _listener = null;
+                }
+                _state = ServerState.Stopped;
             }
-            _isRunning = false;
         }
 
         private static bool IsPortBusy(int port)
         {
             try {
+                var ipProperties = IPGlobalProperties.GetIPGlobalProperties();
+                var tcpListeners = ipProperties.GetActiveTcpListeners();
+                if (tcpListeners != null && tcpListeners.Any(l => l.Port == port)) return true;
+            } catch { }
+            
+            try
+            {
                 using (var tcp = new System.Net.Sockets.TcpClient()) {
                     var result = tcp.BeginConnect("127.0.0.1", port, null, null);
-                    bool success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(100));
-                    if (!success) return false;
-                    tcp.EndConnect(result);
-                    return true;
+                    if (result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(200))) {
+                        tcp.EndConnect(result);
+                        return true;
+                    }
                 }
-            } catch { return false; }
+            } catch { }
+            return false;
+        }
+
+        private static string GetPortOwner(int port)
+        {
+            try
+            {
+                var p = new System.Diagnostics.Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = true;
+
+                if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.LinuxEditor)
+                {
+                    p.StartInfo.FileName = "/bin/bash";
+                    p.StartInfo.Arguments = $"-c \"lsof -i TCP:{port} -s TCP:LISTEN -P -n || /usr/sbin/lsof -i TCP:{port} -s TCP:LISTEN -P -n\"";
+                    p.Start();
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+
+                    string[] lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (lines.Length > 1)
+                    {
+                        string[] parts = lines[1].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length >= 2) return $"{parts[0]} (PID: {parts[1]})";
+                    }
+                }
+                else if (Application.platform == RuntimePlatform.WindowsEditor)
+                {
+                    p.StartInfo.FileName = "cmd.exe";
+                    p.StartInfo.Arguments = $"/c netstat -a -n -o | findstr :{port}";
+                    p.Start();
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+
+                    string[] lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        if (line.Contains("LISTENING"))
+                        {
+                            string[] parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
+                            {
+                                string pid = parts[parts.Length - 1];
+                                try
+                                {
+                                    var proc = System.Diagnostics.Process.GetProcessById(int.Parse(pid));
+                                    return $"{proc.ProcessName} (PID: {pid})";
+                                }
+                                catch { return $"PID: {pid}"; }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return "Unknown Process";
         }
 
         private static void ParseCommandLineArgs()

@@ -23,13 +23,18 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.7.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.9.2" } }`
 
 #### `get_server_status`
 Returns explicit health and state of the MCP server and Unity editor.
 - **Responsiveness**: Reports if the Unity main thread is currently responsive or blocked.
 - **Engine State**: Reports `isCompiling`, `isImporting`, `isPlaying`, and `isPaused`.
+- **Server State**: Reports `state` (`Running`, `Attached`, `Starting`, `Error`) and `lastError` if any.
 - **Session Tracking**: Includes `sessionId` and `sessionGeneration` (increments on domain reload).
+- **Process ID**: Includes `processId` of the host Unity instance.
+
+#### `shutdown_server`
+Safely stops the MCP server listener for the current Unity instance. Useful for resolving port conflicts or manual resets.
 
 #### `ping_main_thread`
 Explicit main-thread liveness check. Returns `pong` only when Unity can execute main-thread API calls.
@@ -94,10 +99,10 @@ The bridge includes deterministic waiting tools to synchronize with Unity's stat
 For a detailed breakdown of every tool, its parameters, and return types, see:
 **[👉 API_REFERENCE.MD](./API_REFERENCE.MD)**
 
-### Categorized Tool List (64+ Tools)
+### Categorized Tool List (85+ Tools)
 
 #### 🏥 Server Health & State
-`unity_get_server_status`, `unity_ping_main_thread`, `unity_attach_existing_session`, `unity_wait_until_ready`.
+`unity_get_server_status`, `unity_ping_main_thread`, `unity_attach_existing_session`, `unity_wait_until_ready`, `unity_shutdown_server`.
 
 #### 🏞 Scene & Hierarchy
 `unity_create_scene`, `unity_open_scene`, `unity_save_scene`, `unity_list_scenes`, `unity_create_game_object`, `unity_create_primitive`, `unity_destroy_game_object`, `unity_duplicate_object`, `unity_set_active`, `unity_set_parent`, `unity_set_sibling_index`, `unity_create_hierarchy`.
@@ -106,10 +111,10 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 `unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_get_component_schema`, `unity_update_component`, `unity_invoke_method`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
 
 #### 📦 Asset Management
-`unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`.
+`unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`, `unity_write_files_batch`.
 
 #### 🎮 Editor Control
-`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_read_logs_since_cursor`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_wait_for_ready`, `unity_wait_for_compilation`, `unity_wait_for_play_mode`, `unity_enforce_forced_defaults`.
+`unity_undo`, `unity_redo`, `unity_toggle_play_mode`, `unity_pause_play_mode`, `unity_step_frame`, `unity_execute_menu_item`, `unity_focus_scene_view`, `unity_read_logs`, `unity_read_logs_since_cursor`, `unity_clear_logs`, `unity_attach_script`, `unity_lint_project`, `unity_run_tests`, `unity_wait_for_ready`, `unity_wait_for_compilation`, `unity_wait_for_play_mode`, `unity_enforce_forced_defaults`.
 
 #### 🔍 Discovery & Inspection
 `unity_get_game_object`, `unity_get_active_game_object`, `unity_get_root_game_objects`, `unity_get_object_path`, `unity_find_objects`, `unity_find_references`, `unity_find_by_path`, `unity_get_tags_and_layers`, `unity_ping_object`, `unity_get_children`, `unity_get_editor_state`, `unity_get_project_info`, `unity_set_selection`.
