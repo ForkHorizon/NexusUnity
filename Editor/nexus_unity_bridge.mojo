@@ -3,7 +3,8 @@ from math import sqrt
 
 fn spatial_cull(objects: PythonObject) raises -> String:
     var py = Python.import_module("builtins")
-    var n = atol(String(py.len(objects)))
+    var n_py = py.len(objects)
+    var n = int(n_py)
     if n == 0: return "Empty Scene"
     
     # Identify Camera first
@@ -16,9 +17,10 @@ fn spatial_cull(objects: PythonObject) raises -> String:
         var obj = objects[i]
         var name = String(obj[0])
         if "Camera" in name or "camera" in name:
-            cam_x = atof(String(obj[2]))
-            cam_y = atof(String(obj[3]))
-            cam_z = atof(String(obj[4]))
+            # We only convert to Float when necessary to avoid String intermediate allocations
+            cam_x = py.float(obj[2]).to_float64()
+            cam_y = py.float(obj[3]).to_float64()
+            cam_z = py.float(obj[4]).to_float64()
             found_cam = True
             break
             
@@ -29,12 +31,13 @@ fn spatial_cull(objects: PythonObject) raises -> String:
         var obj = objects[i]
         var name = String(obj[0])
         var id = String(obj[1])
-        var ox = atof(String(obj[2]))
-        var oy = atof(String(obj[3]))
-        var oz = atof(String(obj[4]))
         
         var dist: Float64 = 0.0
         if found_cam:
+            var ox = py.float(obj[2]).to_float64()
+            var oy = py.float(obj[3]).to_float64()
+            var oz = py.float(obj[4]).to_float64()
+
             var dx = ox - cam_x
             var dy = oy - cam_y
             var dz = oz - cam_z
@@ -94,10 +97,9 @@ fn mojo_http_post(url: String, body: String) raises -> String:
         
     s.close()
     
-    # Extract Body using Python slicing to bypass Mojo String slicing ambiguity
-    var response_str = String(response_py)
-    var body_idx = response_str.find("\r\n\r\n")
-    if body_idx == -1: return response_str
+    # Extract Body using Python slicing to ensure character-level accuracy for UTF-8
+    var body_idx = int(response_py.find("\r\n\r\n"))
+    if body_idx == -1: return String(response_py)
     
     var final_body = response_py[body_idx + 4:]
     return String(final_body)
@@ -346,12 +348,17 @@ while True:
                     
                     try:
                         var res_body = mojo_http_post(llm_url, String(json.dumps(llm_payload)))
-                        var ai_json = json.loads(py.str(res_body))
-                        var content = py.str("AI failed to respond")
                         
-                        var msg_obj = py.getattr(ai_json, "get")(py.str("message"))
-                        if py.bool(msg_obj):
-                            content = py.getattr(msg_obj, "get")(py.str("content"), py.str("Empty"))
+                        var content = py.str("AI failed to respond")
+                        try:
+                            var ai_json = json.loads(py.str(res_body))
+                            var msg_obj = py.getattr(ai_json, "get")(py.str("message"))
+                            if py.bool(msg_obj):
+                                content = py.getattr(msg_obj, "get")(py.str("content"), py.str("Empty"))
+                        except:
+                            sys.stderr.write(py.str("DEBUG_LLM_ERR: Failed to parse JSON from Ollama response.\n"))
+                            sys.stderr.flush()
+                            content = py.str("AI Error: Invalid response from Ollama")
                         
                         var response_call = py.dict()
                         response_call["jsonrpc"] = py.str("2.0")
@@ -369,7 +376,20 @@ while True:
                     except e:
                         sys.stderr.write(py.str("DEBUG_LLM_ERR: ") + py.str(String(e)) + py.str("\n"))
                         sys.stderr.flush()
-                        raise Error("Ollama request failed: " + String(e))
+
+                        var response_call = py.dict()
+                        response_call["jsonrpc"] = py.str("2.0")
+                        response_call["id"] = req_id
+                        var content_list = py.list()
+                        var content_obj = py.dict()
+                        content_obj["type"] = py.str("text")
+                        content_obj["text"] = py.str("AI Error: Native Socket Failed. ") + py.str(String(e))
+                        content_list.append(content_obj)
+                        var res_obj = py.dict()
+                        res_obj["content"] = content_list
+                        response_call["result"] = res_obj
+                        sys.stdout.write(py.str(json.dumps(response_call)) + py.str("\n"))
+                        sys.stdout.flush()
                 else:
                     var payload = py.dict()
                     payload["jsonrpc"] = py.str("2.0")
