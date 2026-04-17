@@ -21,16 +21,52 @@ namespace UnityMCP.Editor
 
         private static JToken CaptureGameViewScreenshot(JToken p)
         {
+            var gameView = Resources.FindObjectsOfTypeAll<EditorWindow>()
+                .FirstOrDefault(w => w.GetType().Name == "GameView");
+
+            if (gameView == null) throw new Exception("Game View window not found or not open.");
+
+            gameView.Focus();
+            gameView.Repaint();
+
+            Rect pos = gameView.position;
+            // On macOS, the top bar is offset. screencapture -R uses Screen coordinates.
+            // We need to account for Unity's window header if needed, but usually gameView.position is the whole window.
+            int x = (int)pos.x;
+            int y = (int)pos.y;
+            int w = (int)pos.width;
+            int h = (int)pos.height;
+
             string tempPath = Path.Combine(Path.GetTempPath(), $"unity_gameview_{DateTime.Now.Ticks}.png");
+            Debug.Log($"[MCP_SCREENSHOT] Capturing GameView at {x},{y},{w},{h} to {tempPath}");
+
+            #if UNITY_EDITOR_OSX
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "screencapture",
+                Arguments = $"-x -R{x},{y},{w},{h} \"{tempPath}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            };
+
+            using (var process = System.Diagnostics.Process.Start(startInfo))
+            {
+                process.WaitForExit();
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                if (process.ExitCode != 0) Debug.LogError($"[MCP_SCREENSHOT] screencapture failed with exit code {process.ExitCode}. Error: {error}");
+            }
+            #else
             ScreenCapture.CaptureScreenshot(tempPath);
-            
-            // We need to wait a bit because CaptureScreenshot is asynchronous in some cases or takes time to write
             int retries = 0;
             while (!File.Exists(tempPath) && retries < 20)
             {
                 System.Threading.Thread.Sleep(100);
                 retries++;
             }
+            #endif
 
             if (!File.Exists(tempPath)) throw new Exception("Failed to capture Game View screenshot.");
 

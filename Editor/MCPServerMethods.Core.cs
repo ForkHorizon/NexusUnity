@@ -46,14 +46,18 @@ namespace UnityMCP.Editor
             bool isUpdating = MCPServer.IsUpdatingCached;
             bool isPlaying = MCPServer.IsPlayingCached;
             bool isPaused = MCPServer.IsPausedCached;
+            bool isPlayModeTransition = MCPServer.IsPlayModeTransitionCached;
             bool isMainThreadResponsive = (DateTime.UtcNow - MCPServer.LastMainThreadTickUtc).TotalSeconds < 5;
+            
             string busyReason = "idle";
             if (isCompiling) busyReason = "compiling";
             else if (isUpdating) busyReason = "importing";
+            else if (isPlayModeTransition && !isPlaying) busyReason = "play_mode_transition";
 
             return new JObject {
                 ["serverAlive"] = MCPServer.IsRunning,
                 ["state"] = MCPServer.State.ToString(),
+                ["busyReason"] = busyReason,
                 ["lastError"] = MCPServer.LastError,
                 ["port"] = MCPServer.Port,
                 ["sessionId"] = MCPServer.SessionId,
@@ -66,7 +70,8 @@ namespace UnityMCP.Editor
                     ["isPlaying"] = isPlaying,
                     ["isCompiling"] = isCompiling,
                     ["isImporting"] = isUpdating,
-                    ["isPaused"] = isPaused
+                    ["isPaused"] = isPaused,
+                    ["isPlayModeTransition"] = isPlayModeTransition
                 },
                 ["commandState"] = new JObject {
                     ["acceptsReadCommands"] = true,

@@ -93,6 +93,7 @@ namespace UnityMCP.Editor
             IsUpdatingCached = EditorApplication.isUpdating;
             IsPlayingCached = EditorApplication.isPlaying;
             IsPausedCached = EditorApplication.isPaused;
+            IsPlayModeTransitionCached = EditorApplication.isPlayingOrWillChangePlaymode;
 
             if (_mainThreadQueue == null || _mainThreadQueue.IsEmpty) return;
 

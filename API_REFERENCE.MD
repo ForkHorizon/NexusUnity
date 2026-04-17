@@ -13,15 +13,17 @@ Returns explicit health and state of the MCP server and Unity editor. Use this t
 - **Returns**: A structured JSON object:
   - `serverAlive`: (bool) True if the HTTP listener is running.
   - `state`: (string) Explicit server state (`Stopped`, `Starting`, `Running`, `Attached`, `Error`).
+  - `busyReason`: (string) Current blocking reason (`idle`, `compiling`, `importing`, `play_mode_transition`).
   - `lastError`: (string) The last recorded startup or runtime error, if any.
   - `editorConnected`: (bool) True if attached to a Unity Editor instance.
   - `projectPath`: (string) Absolute path to the current project.
   - `unityVersion`: (string) Version of the Unity engine.
   - `mainThreadResponsive`: (bool) True if the Unity main thread has ticked within the last 5 seconds.
-  - `editorState`: (object) Current engine flags (`isPlaying`, `isCompiling`, `isImporting`, `isPaused`).
+  - `editorState`: (object) Current engine flags (`isPlaying`, `isCompiling`, `isImporting`, `isPaused`, `isPlayModeTransition`).
   - `commandState`: (object) Indicates if the server currently accepts read/write commands.
   - `sessionId`: (string) Unique ID for the current editor session.
   - `sessionGeneration`: (int) Increments every time scripts are recompiled (domain reload).
+- **Note**: This tool executes on the background listener thread and returns cached state, ensuring it never times out even during domain reloads.
 
 ### `unity_shutdown_server`
 Safely stops the MCP server listener for the current Unity instance. Useful for resolving port conflicts or manual resets.
@@ -580,14 +582,16 @@ Captures a PNG screenshot of the Game View.
 ### `unity_generate_mermaid_diagram`
 Generates a Mermaid.js compatible graph string of the current scene hierarchy and component dependencies.
 - **Returns**: Object with `mermaid` string.
-
 ### `unity_semantic_find`
 Finds GameObjects by scanning class names, field names, method names, and object names for semantic meaning (intent-based discovery).
 - **Parameters**:
   - `query` (string, required): Semantic search term (e.g., "Player Controller", "Inventory", "Update").
 - **Returns**: Object with `matches` array, ranked by relevance score and reasons for the match.
+- **Mojo Enhancement**: When using the Mojo bridge, this tool leverages local AI reasoning (Gemma/Qwen) to perform a deep analysis of the scene graph, allowing for human-like spatial and architectural queries.
 
-## 📸 Snapshots & Dependency Mapping
+---
+*Generated for Nexus Unity v3.0.0*
+
 
 ### `unity_dump_scene_graph`
 Recursively serializes the active scene (or a specific subtree) into a JSON graph.
@@ -621,4 +625,4 @@ Executes NUnit tests (EditMode or PlayMode) within the Unity Editor instance.
 - **Note**: This tool uses reflection to avoid hard dependencies on the Unity Test Framework package.
 
 ---
-*Generated for Nexus Unity v2.9.0*
+*Generated for Nexus Unity v3.0.0*

@@ -17,7 +17,7 @@ namespace UnityMCP.Editor
 
     public static partial class MCPServer
     {
-        private static string _version = "2.9.2";
+        private static string _version = "3.0.0";
         private static long _logCounter = 0;
         public static string Version => _version;
 
@@ -28,6 +28,7 @@ namespace UnityMCP.Editor
         public static bool IsUpdatingCached { get; private set; }
         public static bool IsPlayingCached { get; private set; }
         public static bool IsPausedCached { get; private set; }
+        public static bool IsPlayModeTransitionCached { get; private set; }
 
         private static ConcurrentQueue<Action> _mainThreadQueue;
         private static ConcurrentQueue<LogEntry> _logs;

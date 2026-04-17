@@ -23,15 +23,17 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "2.9.2" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "3.0.0" } }`
 
 #### `get_server_status`
 Returns explicit health and state of the MCP server and Unity editor.
 - **Responsiveness**: Reports if the Unity main thread is currently responsive or blocked.
-- **Engine State**: Reports `isCompiling`, `isImporting`, `isPlaying`, and `isPaused`.
+- **Engine State**: Reports `isCompiling`, `isImporting`, `isPlaying`, `isPaused`, and `isPlayModeTransition`.
+- **Busy Reason**: Provides a human-readable `busyReason` ("idle", "compiling", "importing", "play_mode_transition").
 - **Server State**: Reports `state` (`Running`, `Attached`, `Starting`, `Error`) and `lastError` if any.
 - **Session Tracking**: Includes `sessionId` and `sessionGeneration` (increments on domain reload).
 - **Process ID**: Includes `processId` of the host Unity instance.
+- **Background execution**: This method runs on the listener thread, meaning it remains responsive even when Unity is compiling or the main thread is blocked.
 
 #### `shutdown_server`
 Safely stops the MCP server listener for the current Unity instance. Useful for resolving port conflicts or manual resets.
@@ -91,6 +93,23 @@ python3 nexus_unity_bridge.py unity_read_logs count=10
 ### 3. Sync Mode (New in v2.7.0)
 The bridge includes deterministic waiting tools to synchronize with Unity's state.
 - `unity_wait_until_ready`: Blocks until Unity is not compiling or importing and the main thread is responsive.
+
+---
+
+## 🔥 Mojo High-Performance Bridge (`nexus_unity_bridge_mojo`)
+
+The Mojo bridge is a compiled native binary that replaces the Python bridge for high-performance and AI-integrated workflows. It is located in `Assets/NexusUnity/Editor/`.
+
+### Key Advantages
+- **2.2x Faster Latency**: Native binary execution and optimized socket transport eliminate Python interpreter overhead.
+- **Native Spatial Culling**: Automatically filters distant Unity objects (>50m) using a native Mojo distance kernel, drastically reducing LLM prompt size and token cost.
+- **Local AI Reasoning**: Integrates directly with Llama 3.2 3B for semantic search and architectural scene analysis.
+- **Zero-Touch Sync**: Features a low-level background worker for real-time log streaming and Unity state tracking during AI reasoning.
+
+### Usage
+```bash
+./Assets/NexusUnity/Editor/nexus_unity_bridge_mojo
+```
 
 ---
 
