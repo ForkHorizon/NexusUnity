@@ -193,10 +193,30 @@ def get_scene_data(unity_url):
             results.append((name, obj_id, 0.0, 0.0, 0.0))
             idx = i_pos + 10
     return results
+
+def query_kg(inherits, uses, name):
+    import os, json
+    kg_path = 'Library/nexus_kg.json'
+    if not os.path.exists(kg_path):
+        return []
+    try:
+        with open(kg_path, 'r', encoding='utf-8') as f:
+            kg = json.load(f)
+    except:
+        return []
+
+    results = []
+    for cls_name, data in kg.items():
+        if inherits and inherits not in data.get('inherits', []): continue
+        if uses and uses not in data.get('uses', []): continue
+        if name and name.lower() not in cls_name.lower(): continue
+        results.append(cls_name)
+    return results
 """)
     var py_globals = py.dict()
     py.getattr(py, "exec")(scanner_script, py_globals)
     var get_scene_data = py_globals.get("get_scene_data")
+    var query_kg = py_globals.get("query_kg")
 
     sys.stderr.write(py.str("DEBUG: NexusUnity Mojo Stage 6 Active (Native Socket Transport + Spatial Culling)\n"))
     sys.stderr.flush()
@@ -204,6 +224,56 @@ def get_scene_data(unity_url):
     # Auto-Start Ollama if it's down
     var started_ollama = False
     var ollama_process = py.None
+
+    # Start Knowledge Graph Background Daemon
+    var kg_worker_code = py.str("""import os, sys, time, json, re
+
+def build_kg():
+    kg = {}
+    class_pattern = re.compile(r'class\s+([A-Za-z0-9_]+)(?:\s*:\s*([A-Za-z0-9_,\s]+))?')
+    type_pattern = re.compile(r'\b([A-Z][A-Za-z0-9_]+)\b')
+
+    for root, _, files in os.walk('Assets'):
+        for file in files:
+            if not file.endswith('.cs'): continue
+            path = os.path.join(root, file)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            except:
+                continue
+
+            for match in class_pattern.finditer(content):
+                cls_name = match.group(1)
+                inherits_str = match.group(2)
+                inherits = [i.strip() for i in inherits_str.split(',')] if inherits_str else []
+
+                # Heuristic for usage: any Capitalized word in the file
+                uses = list(set(type_pattern.findall(content)))
+
+                kg[cls_name] = {'inherits': inherits, 'uses': uses, 'file': path}
+
+    os.makedirs('Library', exist_ok=True)
+    try:
+        with open('Library/nexus_kg_temp.json', 'w', encoding='utf-8') as f:
+            json.dump(kg, f)
+        os.replace('Library/nexus_kg_temp.json', 'Library/nexus_kg.json')
+    except: pass
+
+main_pid = int(sys.argv[1])
+while True:
+    try: os.kill(main_pid, 0)
+    except: sys.exit(0)
+
+    build_kg()
+    time.sleep(10.0) # Rebuild every 10 seconds
+""")
+    var kg_args = py.list()
+    kg_args.append(py.str("python3"))
+    kg_args.append(py.str("-c"))
+    kg_args.append(kg_worker_code)
+    kg_args.append(py.str(os.getpid()))
+    var kg_process = subprocess.Popen(kg_args)
 
     # Start Background Worker for Log Streaming and Heartbeat
     var bg_worker_code = py.str("""import os, sys, time, json, urllib.request
@@ -295,6 +365,10 @@ while True:
                 result["tools"] = py.list()
                 var s2_tool = json.loads(py.str('{"name": "unity_semantic_find", "description": "Search scene using Llama 3.2 3B high-efficiency intelligence. Optimized for structural scene analysis.", "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}}'))
                 result["tools"].append(s2_tool)
+
+                var kg_tool = json.loads(py.str('{"name": "unity_knowledge_graph", "description": "Queries the real-time project Knowledge Graph to find C# classes based on inheritance, usages, or name.", "inputSchema": {"type": "object", "properties": {"inherits": {"type": "string"}, "uses": {"type": "string"}, "name": {"type": "string"}}}}'))
+                result["tools"].append(kg_tool)
+
                 var response = py.dict()
                 response["jsonrpc"] = py.str("2.0")
                 response["id"] = req_id
@@ -308,7 +382,28 @@ while True:
                 var name = String(name_py).replace("unity_", "")
                 var args = params.get("arguments")
                 
-                if name == "semantic_find":
+                if name == "knowledge_graph":
+                    var inherits = args.get("inherits", py.None)
+                    var uses = args.get("uses", py.None)
+                    var q_name = args.get("name", py.None)
+
+                    var kg_results = query_kg(inherits, uses, q_name)
+
+                    var response_call = py.dict()
+                    response_call["jsonrpc"] = py.str("2.0")
+                    response_call["id"] = req_id
+                    var content_list = py.list()
+                    var content_obj = py.dict()
+                    content_obj["type"] = py.str("text")
+                    content_obj["text"] = py.str("Found classes: ") + py.str(", ").join(kg_results)
+                    content_list.append(content_obj)
+                    var res_obj = py.dict()
+                    res_obj["content"] = content_list
+                    response_call["result"] = res_obj
+                    sys.stdout.write(py.str(json.dumps(response_call)) + py.str("\n"))
+                    sys.stdout.flush()
+
+                elif name == "semantic_find":
                     sys.stderr.write(py.str("DEBUG: [SemanticFind] Fetching & Scanning Scene (Zero-Copy)...\n"))
                     sys.stderr.flush()
                     
@@ -418,6 +513,7 @@ while True:
                 if started_ollama and py.bool(ollama_process):
                     ollama_process.terminate()
                 bg_process.terminate()
+                kg_process.terminate()
                 os._exit(0)
 
         except e:
@@ -438,3 +534,4 @@ while True:
     if started_ollama and py.bool(ollama_process):
         ollama_process.terminate()
     bg_process.terminate()
+    kg_process.terminate()
