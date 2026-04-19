@@ -27,3 +27,7 @@
 **Vulnerability:** The MCP server accepted HTTP requests without validating the `Origin` header, allowing arbitrary websites to connect to localhost (CSRF) and execute commands.
 **Learning:** The previous fix only applied `Origin` validation to WebSocket connections, leaving HTTP requests vulnerable. Both endpoints need `Origin` checks.
 **Prevention:** In `HandleHttpRequest`, verify `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
+## 2026-04-19 - Prevent DoS memory exhaustion via payload limits
+**Vulnerability:** The HTTP and WebSocket endpoints in `MCPServer.Networking.cs` lacked payload size limits and used unbounded reading methods (`reader.ReadToEnd()`, `ms.Write()` loop), allowing attackers to cause Denial of Service (DoS) via memory exhaustion by sending oversized payloads.
+**Learning:** Network endpoints utilizing unbounded streams and string parsing without content limits expose the server to out-of-memory crashes.
+**Prevention:** Always enforce a maximum payload size limit (e.g., 10MB) for HTTP endpoints by checking `ContentLength64` or accumulating stream size in chunked reads. For WebSockets, enforce a maximum memory stream size before accumulating message fragments.

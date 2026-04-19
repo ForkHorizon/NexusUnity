@@ -160,9 +160,35 @@ namespace UnityMCP.Editor
                     return;
                 }
 
+                const long MAX_PAYLOAD_SIZE = 10 * 1024 * 1024; // 10MB limit
+
+                if (context.Request.ContentLength64 > MAX_PAYLOAD_SIZE)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                    context.Response.Close();
+                    return;
+                }
+
                 using (var reader = new System.IO.StreamReader(context.Request.InputStream, context.Request.ContentEncoding ?? Encoding.UTF8))
                 {
-                    string json = reader.ReadToEnd();
+                    var sb = new StringBuilder();
+                    char[] chunk = new char[4096];
+                    int charsRead;
+                    long totalRead = 0;
+
+                    while ((charsRead = reader.Read(chunk, 0, chunk.Length)) > 0)
+                    {
+                        totalRead += charsRead;
+                        if (totalRead > MAX_PAYLOAD_SIZE)
+                        {
+                            context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                            context.Response.Close();
+                            return;
+                        }
+                        sb.Append(chunk, 0, charsRead);
+                    }
+
+                    string json = sb.ToString();
                     string response = MCPServerMethods.ProcessJsonRpc(json);
                     byte[] buffer = Encoding.UTF8.GetBytes(response);
                     context.Response.ContentType = "application/json";
@@ -182,6 +208,7 @@ namespace UnityMCP.Editor
 
         private static async Task ReceiveWebsocketLoop(CancellationToken token)
         {
+            const long MAX_PAYLOAD_SIZE = 10 * 1024 * 1024; // 10MB limit
             var buffer = new byte[4096];
             using var ms = new MemoryStream();
 
@@ -198,6 +225,12 @@ namespace UnityMCP.Editor
                         return;
                     }
                     ms.Write(buffer, 0, result.Count);
+
+                    if (ms.Length > MAX_PAYLOAD_SIZE)
+                    {
+                        await _webSocket.CloseAsync(WebSocketCloseStatus.MessageTooBig, "Payload too large", CancellationToken.None);
+                        return;
+                    }
                 } while (!result.EndOfMessage && !token.IsCancellationRequested);
 
                 if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
