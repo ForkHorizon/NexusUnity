@@ -13,3 +13,11 @@
 ## 2025-03-01 - [FindObjects N+1 Component Allocation]
 **Learning:** Calling `go.GetComponent(typeName)` in a LINQ query that iterates over all GameObjects (e.g., `Resources.FindObjectsOfTypeAll<GameObject>()`) creates a massive N+1 bottleneck, scaling poorly with project size. For Regex, while static `Regex.IsMatch` uses an internal cache and doesn't explicitly re-compile, it still incurs lookup and parsing overhead per iteration. However, using `RegexOptions.Compiled` on short-lived objects is a massive performance trap due to IL compilation latency.
 **Action:** Start component searches with `Resources.FindObjectsOfTypeAll(type)` mapped back via `.OfType<Component>().Select(c => c.gameObject).Distinct()`. Pre-instantiate local `Regex` objects without `Compiled` before entering loops.
+
+## 2025-03-01 - [Hierarchy GetComponent Cache Allocation]
+**Learning:** O(N) `GetComponent(string)` lookups within property-setting loops cause significant C#/C++ boundary crossings and memory allocations, degrading performance during deep hierarchy iterations.
+**Action:** Use a local `Dictionary<string, Component>` mapped via `UnityEngine.Pool.ListPool<Component>` and `go.GetComponents(list)` to achieve O(1) lookups and eliminate cross-boundary garbage collection overhead per component.
+
+## 2025-03-01 - [Hierarchy GetComponent Cache Allocation (Revised)]
+**Learning:** Instantiating a `new Dictionary<string, Component>()` per GameObject during hierarchy operations introduces heap allocations and GC spikes that negate the benefits of avoiding `GetComponent(string)`. Furthermore, GameObjects can have multiple components of the same type; populating a dictionary via overwriting causes it to cache the *last* component rather than the *first* (which is what `GetComponent(string)` returns), causing a functional regression.
+**Action:** Since the number of components on a single GameObject is typically small, a zero-allocation O(N) linear search through the pre-populated `ListPool<Component>` list is far more performant than allocating a Dictionary. Avoid heap allocations entirely inside high-frequency loops.
