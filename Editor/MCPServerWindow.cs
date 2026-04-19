@@ -113,12 +113,12 @@ namespace UnityMCP.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
-                if (GUILayout.Button("Refresh", GUILayout.Width(60))) CheckCliLinkStatus();
+                if (GUILayout.Button(new GUIContent("Refresh", "Refresh the CLI link status"), GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Link to Gemini CLI", GUILayout.Height(30)))
+                if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Link the server to the Gemini CLI"), GUILayout.Height(30)))
                 {
                     MCPCliInstaller.LinkToGemini();
                     CheckCliLinkStatus();
