@@ -28,6 +28,22 @@ namespace UnityMCP.Editor
             _methods["attach_existing_session"] = AttachExistingSession;
             _methods["ping_main_thread"] = PingMainThread;
             _methods["shutdown_server"] = ShutdownServer;
+            _methods["batch_execute"] = BatchExecute;
+        }
+
+        private static JToken BatchExecute(JToken p)
+        {
+            if (p == null || p["requests"] == null) throw new Exception("requests array is required");
+            var requests = p["requests"] as JArray;
+            var results = new JArray();
+            foreach (var req in requests)
+            {
+                string method = req["method"]?.ToString();
+                JToken par = req["params"];
+                try { results.Add(ExecuteMethod(method, par)); }
+                catch (Exception e) { results.Add(new JObject { ["status"] = "Error", ["message"] = e.Message }); }
+            }
+            return new JObject { ["results"] = results };
         }
 
         private static JToken ShutdownServer(JToken p)
