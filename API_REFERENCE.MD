@@ -453,6 +453,15 @@ Search for a GameObject using its hierarchy path.
 - **Returns**: Status object with `data` (serialized GameObject).
 - **Example**: `Canvas/Main/Title`.
 
+### `unity_knowledge_graph` (Mojo)
+Queries the real-time project Knowledge Graph to find C# classes based on inheritance, usages, or name. This is the primary tool for architectural discovery and understanding class relationships.
+- **Parameters**:
+  - `name` (string, optional): Search for classes with this name (substring match).
+  - `inherits` (string, optional): Find classes that inherit from this type (e.g., "MonoBehaviour").
+  - `uses` (string, optional): Find classes that use or reference this type.
+- **Returns**: Array of matching class names.
+- **Note**: This tool relies on a background indexing daemon that scans the project's C# source files.
+
 ### `unity_get_tags_and_layers`
 Lists all defined Tags and Layers in the project.
 - **Returns**: Object with `tags` and `layers` arrays.

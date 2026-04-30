@@ -15,6 +15,18 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 - **Main Thread Dispatching**: Unity APIs are not thread-safe; all operations are executed on the main thread via a thread-safe queue.
 - **Port**: 8081 (Default). Configurable via Project Settings or CLI.
 
+### Performance & Scalability (Bolt)
+The v3.1+ architecture is optimized for low-latency and large-scale Unity projects:
+- **Zero-Allocation Parsing**: Uses `JsonTextReader` to process incoming JSON-RPC payloads directly from network streams, preventing Large Object Heap (LOH) fragmentation.
+- **Pooled Resource Management**: Implements `UnityEngine.Pool` for internal list buffers and path stacks, minimizing Garbage Collection (GC) spikes during frequent scene traversal or property inspection.
+- **Native Spatial Culling**: Offloads distance-based object filtering to the Mojo bridge, reducing the processing load on the Unity Main Thread.
+
+### Security (Sentinel)
+Nexus Unity implements multiple layers of protection:
+- **Payload Limiting**: A strict 10MB limit is enforced on all incoming requests to prevent memory exhaustion Denial of Service (DoS) attacks.
+- **Origin Validation**: Strict enforcement of `Origin` and `Host` loopback headers prevents Cross-Site Request Forgery (CSRF), DNS Rebinding, and unauthorized browser-based access.
+- **Path Isolation**: All file operations (`unity_read_file`, `unity_write_file`) are sandboxed to the project root directory with path-traversal protection.
+
 ---
 
 ## 🛠 JSON-RPC 2.0 API Reference

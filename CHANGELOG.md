@@ -4,10 +4,25 @@ All notable changes to the `NexusUnity` library will be documented in this file.
 
 ## [3.1.1] - 2026-04-30
 
+### Added
+- **Knowledge Graph Tool**: Introduced `unity_knowledge_graph` (Mojo-native) for high-speed indexing and querying of project C# classes, inheritance, and usages.
+- **Sentinel Security**: Hardened the server against Denial of Service (DoS) by enforcing a 10MB payload limit on all HTTP and WebSocket requests.
+- **Robust Origin Validation**: Implemented strict loopback validation for `Origin` and `Host` headers to protect against CSRF, CSWSH, and DNS Rebinding attacks.
+
+### Improved
+- **🔥 Bolt Performance Architecture**:
+  - **Zero-Allocation Stream Parsing**: Refactored JSON-RPC handling to parse directly from network streams using `JsonTextReader`. This eliminates intermediate string allocations and Large Object Heap (LOH) churn.
+  - **Stack-Based Path Construction**: Optimized hierarchy path retrieval (`GetObjectPath`) using a pooled `Stack<string>` to eliminate O(N^2) string allocations during deep scene traversal.
+  - **Pooled Component Caching**: Optimized `ApplyPropertiesToHierarchyObject` and `FindReferences` using non-allocating `GetComponents(list)` overloads with a shared `List<Component>` pool.
+- **Visual Polish**:
+  - Enhanced the MCP Server Control Panel with standard Unity Editor icons and descriptive tooltips using `GUIContent`.
+  - Improved accessibility for primary actions (Documentation, API Reference, Server Control) in the main window.
+- **Unity 2022 Compatibility**: Backported frame-based auto-start reliability and thread-safety locks to ensure stability on older Unity versions.
+
 ### Fixed
 - **Unity 6 Compatibility**: Resolved multiple compiler errors in `MCPServerMethods.Delta.cs` related to obsolete `ObjectChangeStream` event members. Replaced `instanceId` with `entityId` and updated `InstanceIDToObject` calls to use the modern `EntityIdToObject` API.
-- **EntityId Handling**: Implemented safe conversion of `EntityId` to legacy `int` values using `ConvertEntityIdToLegacyInt` to maintain backward compatibility with existing JSON-RPC clients while adhering to the new Unity 6 object identification standards.
-- **Input Simulation Reliability**: Refactored `QueueCrossFrameMouseClick` to use a deterministic `EditorApplication.update` timer instead of `Task.Delay`. This significantly improves the reliability of mouse click and touch simulations during Play Mode, ensuring events are correctly processed across engine frames.
+- **EntityId Handling**: Implemented safe conversion of `EntityId` to legacy `int` values using `ConvertEntityIdToLegacyInt` to maintain backward compatibility with existing JSON-RPC clients while adhering to the modern Unity identification standards.
+- **Input Simulation Reliability**: Refactored `QueueCrossFrameMouseClick` to use a deterministic `EditorApplication.update` timer instead of `Task.Delay`. This significantly improves the reliability of mouse click and touch simulations during Play Mode.
 - **Type Discovery**: Enhanced the internal `FindType` method with better assembly-priority logic to ensure dynamically created scripts are correctly identified immediately after compilation.
 
 ## [3.1.0] - 2026-04-18
