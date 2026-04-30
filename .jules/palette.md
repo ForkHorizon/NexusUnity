@@ -24,3 +24,7 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2024-05-22 - [Resource Accessibility in Unity Packages]
 **Learning:** Users of Unity packages often struggle to find documentation because it lives in the `Packages/` folder, which is separate from `Assets/`. Providing direct "Open Documentation" buttons in the main editor window using `AssetDatabase.OpenAsset` significantly reduces friction.
 **Action:** When building Editor Tools for packages, always include a "Resources" or "Help" section with direct links to key documentation files.
+
+## 2024-11-13 - [Editor Window Tooltips and Icons]
+**Learning:** Unity developers rely heavily on tooltips for guidance in dense control panels. In `EditorWindow` interfaces, using `GUIContent` with explicit descriptions and standard Unity Editor icons (`EditorGUIUtility.IconContent`) significantly improves accessibility and discoverability of actions without cluttering the UI.
+**Action:** Always wrap plain string labels for tabs and buttons in `GUIContent` with helpful tooltips, and prefer `GUIContent(text, icon, tooltip)` for primary actions or resources.
