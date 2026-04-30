@@ -160,9 +160,18 @@ namespace UnityMCP.Editor
                     return;
                 }
 
+                const long maxPayloadSize = 10 * 1024 * 1024; // 10MB limit to prevent memory exhaustion
+                if (context.Request.ContentLength64 > maxPayloadSize)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                    context.Response.Close();
+                    return;
+                }
+
                 using (var reader = new System.IO.StreamReader(context.Request.InputStream, context.Request.ContentEncoding ?? Encoding.UTF8))
                 {
                     // Bolt: Parsing JSON directly from the StreamReader avoids Large Object Heap (LOH) allocations for large payloads.
+                    // Sentinel: ContentLength64 check above provides baseline DoS protection.
                     string response = MCPServerMethods.ProcessJsonRpc(reader);
                     byte[] buffer = Encoding.UTF8.GetBytes(response);
                     context.Response.ContentType = "application/json";
@@ -184,6 +193,7 @@ namespace UnityMCP.Editor
         {
             var buffer = new byte[4096];
             using var ms = new MemoryStream();
+            const long maxPayloadSize = 10 * 1024 * 1024; // 10MB limit
 
             while (_webSocket.State == WebSocketState.Open && !token.IsCancellationRequested)
             {
@@ -197,6 +207,14 @@ namespace UnityMCP.Editor
                         await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                         return;
                     }
+
+                    if (ms.Length + result.Count > maxPayloadSize)
+                    {
+                        Debug.LogError("[MCP] WebSocket payload exceeded maximum size. Disconnecting.");
+                        await _webSocket.CloseAsync(WebSocketCloseStatus.MessageTooBig, "Payload too large", CancellationToken.None);
+                        return;
+                    }
+
                     ms.Write(buffer, 0, result.Count);
                 } while (!result.EndOfMessage && !token.IsCancellationRequested);
 

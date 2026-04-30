@@ -37,3 +37,13 @@
 ## 2025-03-10 - [Direct Stream Reading for HTTP JSON Payloads]
 **Learning:** Reading `context.Request.InputStream` fully into a `string` before parsing HTTP requests causes huge Large Object Heap (LOH) allocations for deep hierarchies or large payloads. Stream reading prevents this LOH penalty entirely.
 **Action:** Always parse JSON payloads by passing a `StreamReader` directly to `JObject.Load` (or the internal `ProcessJsonRpc(TextReader)`) instead of using `ReadToEnd()` -> `JObject.Parse()`.
+
+## 2025-02-28 - HTTP CSRF & DNS Rebinding
+**Vulnerability:** The MCP server accepted HTTP requests without validating the `Origin` header, allowing arbitrary websites to connect to localhost (CSRF) and execute commands.
+**Learning:** The previous fix only applied `Origin` validation to WebSocket connections, leaving HTTP requests vulnerable. Both endpoints need `Origin` checks.
+**Prevention:** In `HandleHttpRequest`, verify `context.Request.Headers["Origin"]` to ensure it is either empty/safe or coming from a loopback address.
+
+## 2024-04-26 - [High] DoS vulnerability via memory exhaustion in Unity Networking
+**Vulnerability:** Unbounded use of `StreamReader.ReadToEnd()` for HTTP requests and unbounded accumulation via `MemoryStream.Write()` in WebSocket loop.
+**Learning:** Unity networking logic that reads directly from standard input streams into memory (strings/byte arrays) without checking stream limits can cause total memory exhaustion and Denial of Service if the server handles massive or chunked payloads.
+**Prevention:** Always enforce a maximum payload limit (e.g. 10MB) via `ContentLength64` or string length limits for HTTP requests, and accumulate check chunk sizes (`ms.Length`) inside the WebSocket `ReceiveAsync` loop before executing writes.
