@@ -18,6 +18,14 @@
 **Learning:** Calling `go.GetComponents<Component>()` inside loops that iterate over the entire scene hierarchy (like `SemanticFind` or `FindReferences`) allocates a new array on the heap for every single GameObject, leading to extreme GC pressure and stuttering in large projects.
 **Action:** Always acquire a `List<Component>` from `UnityEngine.Pool.ListPool<Component>.Get(out var list)` outside the loop, use the non-allocating overload `go.GetComponents(list)` inside the loop, and rely on the `using` block to safely release the buffer. In static utility functions, a persistent private static `List<Component>` can also be used if thread-safety is not a concern (e.g., Unity Main Thread execution).
 
+## 2025-03-01 - [Hierarchy GetComponent Cache Allocation]
+**Learning:** O(N) `GetComponent(string)` lookups within property-setting loops cause significant C#/C++ boundary crossings and memory allocations, degrading performance during deep hierarchy iterations.
+**Action:** Use a local `Dictionary<string, Component>` mapped via `UnityEngine.Pool.ListPool<Component>` and `go.GetComponents(list)` to achieve O(1) lookups and eliminate cross-boundary garbage collection overhead per component.
+
+## 2025-03-01 - [Hierarchy GetComponent Cache Allocation (Revised)]
+**Learning:** Instantiating a `new Dictionary<string, Component>()` per GameObject during hierarchy operations introduces heap allocations and GC spikes that negate the benefits of avoiding `GetComponent(string)`. Furthermore, GameObjects can have multiple components of the same type; populating a dictionary via overwriting causes it to cache the *last* component rather than the *first* (which is what `GetComponent(string)` returns), causing a functional regression.
+**Action:** Since the number of components on a single GameObject is typically small, a zero-allocation O(N) linear search through the pre-populated `ListPool<Component>` list is far more performant than allocating a Dictionary. Avoid heap allocations entirely inside high-frequency loops.
+
 ## 2025-03-02 - [FindReferences GetComponents Array Allocation]
 **Learning:** During scene traversal in `FindReferences`, calling `go.GetComponents<Component>()` on every GameObject allocates a new array each time. In a large scene with thousands of objects, this causes massive GC pressure and unnecessary garbage collection pauses. Similarly, allocating a new `List<string>` for matching components per object compounds the issue.
 **Action:** Use the non-allocating overload `GetComponents(List<Component>)` with a static/reused buffer list. Also reuse the matching components list with `.Clear()` instead of creating a new instance per GameObject.

@@ -63,22 +63,44 @@ namespace UnityMCP.Editor
         private static void ApplyPropertiesToHierarchyObject(GameObject go, JObject properties)
         {
             if (properties == null) return;
-            foreach (var compPair in properties)
-            {
-                var comp = go.GetComponent(compPair.Key);
-                if (comp == null) continue;
 
-                SerializedObject so = new SerializedObject(comp);
-                var data = compPair.Value as JObject;
-                if (data != null)
+            var componentsList = UnityEngine.Pool.ListPool<Component>.Get();
+            try
+            {
+                go.GetComponents(componentsList);
+
+                foreach (var compPair in properties)
                 {
-                    foreach (var propPair in data)
+                    Component comp = null;
+                    foreach (var c in componentsList)
                     {
-                        SerializedProperty prop = so.FindProperty(propPair.Key);
-                        if (prop != null) ApplyValueToProperty(prop, propPair.Value);
+                        if (c == null) continue;
+                        var type = c.GetType();
+                        if (type.Name == compPair.Key || type.FullName == compPair.Key)
+                        {
+                            comp = c;
+                            break;
+                        }
                     }
+
+                    if (comp == null) continue;
+
+                    SerializedObject so = new SerializedObject(comp);
+                    var data = compPair.Value as JObject;
+                    if (data != null)
+                    {
+                        foreach (var propPair in data)
+                        {
+                            SerializedProperty prop = so.FindProperty(propPair.Key);
+                            if (prop != null) ApplyValueToProperty(prop, propPair.Value);
+                        }
+                    }
+                    so.ApplyModifiedProperties();
                 }
-                so.ApplyModifiedProperties();
+            }
+            finally
+            {
+                UnityEngine.Pool.ListPool<Component>.Release(componentsList);
             }
         }
 
