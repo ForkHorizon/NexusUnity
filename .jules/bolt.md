@@ -17,3 +17,7 @@
 ## 2025-03-01 - [GetComponents Array Allocation in Scene Traversal]
 **Learning:** Calling `go.GetComponents<Component>()` inside loops that iterate over the entire scene hierarchy (like `SemanticFind` or `FindReferences`) allocates a new array on the heap for every single GameObject, leading to extreme GC pressure and stuttering in large projects.
 **Action:** Always acquire a `List<Component>` from `UnityEngine.Pool.ListPool<Component>.Get(out var list)` outside the loop, use the non-allocating overload `go.GetComponents(list)` inside the loop, and rely on the `using` block to safely release the buffer. In static utility functions, a persistent private static `List<Component>` can also be used if thread-safety is not a concern (e.g., Unity Main Thread execution).
+
+## 2025-03-02 - [FindReferences GetComponents Array Allocation]
+**Learning:** During scene traversal in `FindReferences`, calling `go.GetComponents<Component>()` on every GameObject allocates a new array each time. In a large scene with thousands of objects, this causes massive GC pressure and unnecessary garbage collection pauses. Similarly, allocating a new `List<string>` for matching components per object compounds the issue.
+**Action:** Use the non-allocating overload `GetComponents(List<Component>)` with a static/reused buffer list. Also reuse the matching components list with `.Clear()` instead of creating a new instance per GameObject.
