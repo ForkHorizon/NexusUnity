@@ -45,19 +45,25 @@ namespace UnityMCP.Editor
 
         private static void QueueCrossFrameMouseClick(Mouse mouse, MouseState state, MouseButton button)
         {
+            // Immediate press
             InputSystem.QueueStateEvent(mouse, state.WithButton(button, true));
+            Debug.Log($"[MCP] Queued mouse {button} PRESS at {state.position}");
 
-            // Sequence of two delayCalls ensures at least one "Editor" frame processing
-            EditorApplication.delayCall += () => {
-                EditorApplication.delayCall += () => {
-                    System.Threading.Tasks.Task.Delay(100).ContinueWith(_ => {
-                        EditorApplication.delayCall += () => {
-                            if (!EditorApplication.isPlaying) return;
-                            InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
-                        };
-                    });
-                };
+            // Use a simple timer to release after 100ms
+            double releaseTime = EditorApplication.timeSinceStartup + 0.1;
+            
+            EditorApplication.CallbackFunction releaseAction = null;
+            releaseAction = () => {
+                if (EditorApplication.timeSinceStartup < releaseTime) return;
+                
+                EditorApplication.update -= releaseAction;
+                if (!EditorApplication.isPlaying) return;
+
+                InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
+                Debug.Log($"[MCP] Queued mouse {button} RELEASE at {state.position}");
             };
+
+            EditorApplication.update += releaseAction;
         }
 
         private static JToken SimulateMouse(JToken p)

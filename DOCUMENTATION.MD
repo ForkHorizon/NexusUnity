@@ -23,7 +23,7 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 
 #### `initialize`
 Returns server capabilities and metadata.
-- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "3.0.0" } }`
+- **Result**: `{ "protocolVersion": "2024-11-05", "serverInfo": { "name": "Unity MCP Server", "version": "3.1.1" } }`
 
 #### `get_server_status`
 Returns explicit health and state of the MCP server and Unity editor.

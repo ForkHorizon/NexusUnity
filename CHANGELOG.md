@@ -2,6 +2,14 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [3.1.1] - 2026-04-30
+
+### Fixed
+- **Unity 6 Compatibility**: Resolved multiple compiler errors in `MCPServerMethods.Delta.cs` related to obsolete `ObjectChangeStream` event members. Replaced `instanceId` with `entityId` and updated `InstanceIDToObject` calls to use the modern `EntityIdToObject` API.
+- **EntityId Handling**: Implemented safe conversion of `EntityId` to legacy `int` values using `ConvertEntityIdToLegacyInt` to maintain backward compatibility with existing JSON-RPC clients while adhering to the new Unity 6 object identification standards.
+- **Input Simulation Reliability**: Refactored `QueueCrossFrameMouseClick` to use a deterministic `EditorApplication.update` timer instead of `Task.Delay`. This significantly improves the reliability of mouse click and touch simulations during Play Mode, ensuring events are correctly processed across engine frames.
+- **Type Discovery**: Enhanced the internal `FindType` method with better assembly-priority logic to ensure dynamically created scripts are correctly identified immediately after compilation.
+
 ## [3.1.0] - 2026-04-18
 
 ### Added

@@ -86,12 +86,12 @@ namespace UnityMCP.Editor
                     {
                         case ObjectChangeKind.CreateGameObjectHierarchy:
                             stream.GetCreateGameObjectHierarchyEvent(i, out var createEvt);
-                            var go = EditorUtility.InstanceIDToObject(createEvt.instanceId) as GameObject;
+                            var go = EditorUtility.EntityIdToObject(createEvt.entityId) as GameObject;
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "CreateGameObject",
-                                instanceId = createEvt.instanceId,
+                                instanceId = ConvertEntityIdToLegacyInt(createEvt.entityId),
                                 name = go != null ? go.name : "Unknown",
                                 timestamp = timestamp
                             };
@@ -103,7 +103,7 @@ namespace UnityMCP.Editor
                             {
                                 id = ++_deltaCounter,
                                 type = "DestroyGameObject",
-                                instanceId = destroyEvt.instanceId,
+                                instanceId = ConvertEntityIdToLegacyInt(destroyEvt.entityId),
                                 name = "DestroyedObject", // Name not available in event args
                                 timestamp = timestamp
                             };
@@ -111,13 +111,13 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.ChangeGameObjectParent:
                             stream.GetChangeGameObjectParentEvent(i, out var parentEvt);
-                            var movedGo = EditorUtility.InstanceIDToObject(parentEvt.instanceId) as GameObject;
+                            var movedGo = EditorUtility.EntityIdToObject(parentEvt.entityId) as GameObject;
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "ReparentGameObject",
-                                instanceId = parentEvt.instanceId,
-                                parentId = parentEvt.newParentInstanceId,
+                                instanceId = ConvertEntityIdToLegacyInt(parentEvt.entityId),
+                                parentId = ConvertEntityIdToLegacyInt(parentEvt.newParentEntityId),
                                 name = movedGo != null ? movedGo.name : "Unknown",
                                 timestamp = timestamp
                             };
@@ -125,12 +125,12 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.ChangeGameObjectOrComponentProperties:
                             stream.GetChangeGameObjectOrComponentPropertiesEvent(i, out var changePropEvt);
-                            var changedObj = EditorUtility.InstanceIDToObject(changePropEvt.instanceId);
+                            var changedObj = EditorUtility.EntityIdToObject(changePropEvt.entityId);
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "PropertiesChanged",
-                                instanceId = changePropEvt.instanceId,
+                                instanceId = ConvertEntityIdToLegacyInt(changePropEvt.entityId),
                                 name = changedObj != null ? changedObj.name : "Unknown",
                                 timestamp = timestamp
                             };
@@ -138,12 +138,12 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.ChangeChildrenOrder:
                             stream.GetChangeChildrenOrderEvent(i, out var orderEvt);
-                            var parentObj = EditorUtility.InstanceIDToObject(orderEvt.instanceId);
+                            var parentObj = EditorUtility.EntityIdToObject(orderEvt.entityId);
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "ChildrenOrderChanged",
-                                instanceId = orderEvt.instanceId,
+                                instanceId = ConvertEntityIdToLegacyInt(orderEvt.entityId),
                                 name = parentObj != null ? parentObj.name : "Unknown",
                                 timestamp = timestamp
                             };
