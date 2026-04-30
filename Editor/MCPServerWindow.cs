@@ -117,18 +117,18 @@ namespace UnityMCP.Editor
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUILayout.Label($"Status: {_cliStatusMessage}");
-                if (GUILayout.Button(new GUIContent("Refresh", "Check the link status to external CLIs"), GUILayout.Width(60))) CheckCliLinkStatus();
+                if (GUILayout.Button(new GUIContent("Refresh", "Check the current CLI installation and link status"), GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Setup integration with the Gemini CLI"), GUILayout.Height(30)))
+                if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Install and link the Gemini CLI tools to this Unity project"), GUILayout.Height(30)))
                 {
                     MCPCliInstaller.LinkToGemini();
                     CheckCliLinkStatus();
                 }
 
-                if (GUILayout.Button(new GUIContent("Link to Codex CLI", "Setup integration with the Codex CLI"), GUILayout.Height(30)))
+                if (GUILayout.Button(new GUIContent("Link to Codex CLI", "Install and link the Codex CLI tools to this Unity project"), GUILayout.Height(30)))
                 {
                     MCPCliInstaller.LinkToCodex();
                     CheckCliLinkStatus();
@@ -142,11 +142,8 @@ namespace UnityMCP.Editor
             GUILayout.Label("Resources", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                GUIContent docContent = new GUIContent("Documentation", EditorGUIUtility.IconContent("_Help").image, "Open the general documentation");
-                if (GUILayout.Button(docContent, EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
-
-                GUIContent apiContent = new GUIContent("API Reference", EditorGUIUtility.IconContent("TextAsset Icon").image, "Open the API reference documentation");
-                if (GUILayout.Button(apiContent, EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
+                if (GUILayout.Button(new GUIContent(" Documentation", EditorGUIUtility.IconContent("_Help").image, "Open project documentation"), EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
+                if (GUILayout.Button(new GUIContent(" API Reference", EditorGUIUtility.IconContent("TextAsset Icon").image, "Open API reference documentation"), EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
             }
         }
 
@@ -164,17 +161,17 @@ namespace UnityMCP.Editor
         private void DrawToolsTab()
         {
             GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Open Test Window", "Open a test window to verify UI interaction"))) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the MCP server logs"))) MCPServer.ClearLogs();
+            if (GUILayout.Button(new GUIContent("Open Test Window", "Open a test window with UI elements for verification testing"))) MCPTestWindow.ShowWindow();
+            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the MCP server log history"))) MCPServer.ClearLogs();
         }
 
         private void DrawVerificationTab()
         {
             GUILayout.Label("API Verification", EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Run Full Project Audit", "Audit the project for issues and health"))) ProjectAuditorWrapper.RunAuditMenu();
-            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Run all automated API verification tests"))) GetWindow<MCPVerificationWindow>().Show();
-            if (GUILayout.Button(new GUIContent("Verify UI", "Run verification tests for UI components"))) UIVerification.Verify();
-            if (GUILayout.Button(new GUIContent("Verify Logs", "Run verification tests for log entries"))) LogVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Run Full Project Audit", "Scan the current scene for project health and structure issues"))) ProjectAuditorWrapper.RunAuditMenu();
+            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the comprehensive API verification test suite window"))) GetWindow<MCPVerificationWindow>().Show();
+            if (GUILayout.Button(new GUIContent("Verify UI", "Run automated UI toolkit interaction tests"))) UIVerification.Verify();
+            if (GUILayout.Button(new GUIContent("Verify Logs", "Run automated log capture and parsing tests"))) LogVerification.Verify();
         }
 
         private void LoadVersion()

@@ -28,3 +28,7 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2024-11-13 - [Editor Window Tooltips and Icons]
 **Learning:** Unity developers rely heavily on tooltips for guidance in dense control panels. In `EditorWindow` interfaces, using `GUIContent` with explicit descriptions and standard Unity Editor icons (`EditorGUIUtility.IconContent`) significantly improves accessibility and discoverability of actions without cluttering the UI.
 **Action:** Always wrap plain string labels for tabs and buttons in `GUIContent` with helpful tooltips, and prefer `GUIContent(text, icon, tooltip)` for primary actions or resources.
+
+## 2024-04-12 - Unity Editor IMGUI Accessibility and Consistency
+**Learning:** Unity's IMGUI standard `GUILayout.Button` supports passing `GUIContent` instead of a plain string. This enables the addition of inline tooltips and built-in Editor icons (via `EditorGUIUtility.IconContent`), which significantly improves accessibility for icon-only buttons or complex dashboards without requiring structural layout changes.
+**Action:** When implementing or modifying Unity Editor windows (`EditorWindow`), always prefer `new GUIContent(text, tooltip)` or `new GUIContent(text, icon, tooltip)` over plain strings for buttons and labels to enhance visual consistency and discoverability for end users.
