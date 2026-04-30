@@ -162,8 +162,8 @@ namespace UnityMCP.Editor
 
                 using (var reader = new System.IO.StreamReader(context.Request.InputStream, context.Request.ContentEncoding ?? Encoding.UTF8))
                 {
-                    string json = reader.ReadToEnd();
-                    string response = MCPServerMethods.ProcessJsonRpc(json);
+                    // Bolt: Parsing JSON directly from the StreamReader avoids Large Object Heap (LOH) allocations for large payloads.
+                    string response = MCPServerMethods.ProcessJsonRpc(reader);
                     byte[] buffer = Encoding.UTF8.GetBytes(response);
                     context.Response.ContentType = "application/json";
                     context.Response.ContentLength64 = buffer.Length;

@@ -25,3 +25,7 @@
 ## 2025-03-02 - [GetGameObjectPath Allocation]
 **Learning:** Constructing hierarchy paths from leaf to root using `string.Concat` (i.e. `path = current.name + "/" + path`) in a loop results in O(N^2) string allocations and performance overhead during deep scene traversal.
 **Action:** Always use a cached `Stack<string>` to push node names and use `string.Join("/", stack)` to generate paths from leaf to root efficiently without intermediate string allocations.
+
+## 2025-03-10 - [Direct Stream Reading for HTTP JSON Payloads]
+**Learning:** Reading `context.Request.InputStream` fully into a `string` before parsing HTTP requests causes huge Large Object Heap (LOH) allocations for deep hierarchies or large payloads. Stream reading prevents this LOH penalty entirely.
+**Action:** Always parse JSON payloads by passing a `StreamReader` directly to `JObject.Load` (or the internal `ProcessJsonRpc(TextReader)`) instead of using `ReadToEnd()` -> `JObject.Parse()`.
