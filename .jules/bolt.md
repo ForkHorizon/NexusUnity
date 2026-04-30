@@ -26,13 +26,13 @@
 **Learning:** Instantiating a `new Dictionary<string, Component>()` per GameObject during hierarchy operations introduces heap allocations and GC spikes that negate the benefits of avoiding `GetComponent(string)`. Furthermore, GameObjects can have multiple components of the same type; populating a dictionary via overwriting causes it to cache the *last* component rather than the *first* (which is what `GetComponent(string)` returns), causing a functional regression.
 **Action:** Since the number of components on a single GameObject is typically small, a zero-allocation O(N) linear search through the pre-populated `ListPool<Component>` list is far more performant than allocating a Dictionary. Avoid heap allocations entirely inside high-frequency loops.
 
+## 2025-03-01 - [GetObjectPath Allocation]
+**Learning:** Constructing hierarchy paths from leaf to root by dynamically instantiating `Stack<string>` in `MCPServerMethods.GetObjectPath` (or using `string.Concat` in a loop) creates unnecessary heap allocations and GC churn, especially during deep scene traversal.
+**Action:** Use a `private static Stack<string> _pathStackCache` and clear it before reuse to eliminate allocations per path query. Use `string.Join("/", stack)` for efficient final path assembly.
+
 ## 2025-03-02 - [FindReferences GetComponents Array Allocation]
 **Learning:** During scene traversal in `FindReferences`, calling `go.GetComponents<Component>()` on every GameObject allocates a new array each time. In a large scene with thousands of objects, this causes massive GC pressure and unnecessary garbage collection pauses. Similarly, allocating a new `List<string>` for matching components per object compounds the issue.
 **Action:** Use the non-allocating overload `GetComponents(List<Component>)` with a static/reused buffer list. Also reuse the matching components list with `.Clear()` instead of creating a new instance per GameObject.
-
-## 2025-03-02 - [GetGameObjectPath Allocation]
-**Learning:** Constructing hierarchy paths from leaf to root using `string.Concat` (i.e. `path = current.name + "/" + path`) in a loop results in O(N^2) string allocations and performance overhead during deep scene traversal.
-**Action:** Always use a cached `Stack<string>` to push node names and use `string.Join("/", stack)` to generate paths from leaf to root efficiently without intermediate string allocations.
 
 ## 2025-03-10 - [Direct Stream Reading for HTTP JSON Payloads]
 **Learning:** Reading `context.Request.InputStream` fully into a `string` before parsing HTTP requests causes huge Large Object Heap (LOH) allocations for deep hierarchies or large payloads. Stream reading prevents this LOH penalty entirely.
