@@ -51,11 +51,13 @@ namespace UnityMCP.Editor
             RegisterHighValueMethods();
             RegisterPlayerPrefsMethods();
             RegisterScriptableObjectMethods();
+            RegisterReflectionMethods();
             RegisterSyncMethods();
             RegisterInputMethods();
             RegisterSnapshotMethods();
             RegisterTimelineMethods();
             RegisterContextMethods();
+            RegisterDeltaMethods();
             Debug.Log($"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");        }
 
         /// <summary>

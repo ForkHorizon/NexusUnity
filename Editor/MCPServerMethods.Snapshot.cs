@@ -12,7 +12,15 @@ namespace UnityMCP.Editor
         private static void RegisterSnapshotMethods()
         {
             _methods["dump_scene_graph"] = DumpSceneGraph;
+            _methods["compact_scene_snapshot"] = CompactSceneSnapshot;
             _methods["get_scene_dependencies"] = GetSceneDependencies;
+        }
+
+        private static JToken CompactSceneSnapshot(JToken p)
+        {
+            var jo = p?.DeepClone() as JObject ?? new JObject();
+            jo["compact"] = true;
+            return DumpSceneGraph(jo);
         }
 
         private static JToken DumpSceneGraph(JToken p)
@@ -20,6 +28,7 @@ namespace UnityMCP.Editor
             var rootId = ExtractId(p, "root_id");
             int maxDepth = p?["max_depth"]?.Value<int>() ?? 5;
             bool includeAllProperties = p?["include_all_properties"]?.Value<bool>() ?? false;
+            bool compact = p?["compact"]?.Value<bool>() ?? false;
 
             JArray roots = new JArray();
             if (rootId != default)
@@ -27,7 +36,7 @@ namespace UnityMCP.Editor
                 var rootGo = IdToObject(rootId) as GameObject;
                 if (rootGo != null)
                 {
-                    roots.Add(SerializeSceneNode(rootGo, 0, maxDepth, includeAllProperties));
+                    roots.Add(SerializeSceneNode(rootGo, 0, maxDepth, includeAllProperties, compact));
                 }
             }
             else
@@ -36,7 +45,7 @@ namespace UnityMCP.Editor
                 var rootGOs = activeScene.GetRootGameObjects();
                 foreach (var go in rootGOs)
                 {
-                    roots.Add(SerializeSceneNode(go, 0, maxDepth, includeAllProperties));
+                    roots.Add(SerializeSceneNode(go, 0, maxDepth, includeAllProperties, compact));
                 }
             }
 
@@ -48,35 +57,51 @@ namespace UnityMCP.Editor
             };
         }
 
-        internal static JObject SerializeSceneNode(GameObject go, int currentDepth, int maxDepth, bool includeAllProperties)
+        internal static JObject SerializeSceneNode(GameObject go, int currentDepth, int maxDepth, bool includeAllProperties, bool compact = false)
         {
             JObject node = new JObject
             {
                 ["name"] = go.name,
-                ["instance_id"] = go.GetRawId(),
-                ["active"] = go.activeSelf,
-                ["tag"] = go.tag,
-                ["layer"] = LayerMask.LayerToName(go.layer)
+                ["instance_id"] = go.GetRawId()
             };
 
-            JArray components = new JArray();
-            using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
+            if (compact)
             {
-                go.GetComponents(comps);
-                foreach (var comp in comps)
+                JArray components = new JArray();
+                using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
                 {
-                    if (comp == null) continue;
-                    components.Add(SerializeComponentSnapshot(comp, includeAllProperties));
+                    go.GetComponents(comps);
+                    foreach (var comp in comps)
+                    {
+                        if (comp != null) components.Add(comp.GetType().Name);
+                    }
                 }
+                node["components"] = components;
             }
-            node["components"] = components;
+            else
+            {
+                node["active"] = go.activeSelf;
+                node["tag"] = go.tag;
+                node["layer"] = LayerMask.LayerToName(go.layer);
+
+                JArray componentNodes = new JArray();
+                using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
+                {
+                    go.GetComponents(comps);
+                    foreach (var comp in comps)
+                    {
+                        if (comp != null) componentNodes.Add(SerializeComponentSnapshot(comp, includeAllProperties));
+                    }
+                }
+                node["components"] = componentNodes;
+            }
 
             if (currentDepth < maxDepth)
             {
                 JArray children = new JArray();
                 foreach (Transform child in go.transform)
                 {
-                    children.Add(SerializeSceneNode(child.gameObject, currentDepth + 1, maxDepth, includeAllProperties));
+                    children.Add(SerializeSceneNode(child.gameObject, currentDepth + 1, maxDepth, includeAllProperties, compact));
                 }
                 if (children.Count > 0) node["children"] = children;
             }

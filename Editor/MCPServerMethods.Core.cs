@@ -35,10 +35,18 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["requests"] == null) throw new Exception("requests array is required");
             var requests = p["requests"] as JArray;
+            if (requests == null) throw new Exception("requests must be a JSON array");
+
             var results = new JArray();
             foreach (var req in requests)
             {
                 string method = req["method"]?.ToString();
+                if (method == "batch_execute") 
+                {
+                    results.Add(new JObject { ["status"] = "Error", ["message"] = "Recursive batch_execute is not allowed" });
+                    continue;
+                }
+
                 JToken par = req["params"];
                 try { results.Add(ExecuteMethod(method, par)); }
                 catch (Exception e) { results.Add(new JObject { ["status"] = "Error", ["message"] = e.Message }); }
@@ -138,7 +146,15 @@ namespace UnityMCP.Editor
         }
 
         private static JToken ReadLogs(JToken p) {
-            return new JObject { ["logs"] = JArray.FromObject(MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString())) };
+            var logs = MCPServer.GetLogs((int)(p?["count"] ?? 50), p?["filter_type"]?.ToString(), p?["search_text"]?.ToString());
+            bool structured = p?["structured"]?.Value<bool>() ?? false;
+
+            if (structured)
+            {
+                logs = CollapseLogs(logs);
+            }
+
+            return new JObject { ["logs"] = JArray.FromObject(logs) };
         }
 
         private static JToken ReadLogsSinceCursor(JToken p)
@@ -146,8 +162,15 @@ namespace UnityMCP.Editor
             long cursor = p?["cursor"]?.Value<long>() ?? 0;
             string[] severities = p?["severities"]?.ToObject<string[]>();
             string searchText = p?["search_text"]?.ToString();
+            bool structured = p?["structured"]?.Value<bool>() ?? false;
 
             var logs = MCPServer.GetLogsSince(cursor, severities, searchText);
+            
+            if (structured)
+            {
+                logs = CollapseLogs(logs);
+            }
+
             long newCursor = logs.Count > 0 ? logs.Max(l => l.Id) : cursor;
 
             return new JObject
@@ -188,6 +211,7 @@ namespace UnityMCP.Editor
             AddAssetTools(tools);
             AddEditorControlTools(tools);
             AddDiscoveryTools(tools);
+            AddReflectionTools(tools);
             AddUITools(tools);
             AddSerializationTools(tools);
             AddLinterTools(tools);
@@ -199,6 +223,7 @@ namespace UnityMCP.Editor
             AddSnapshotTools(tools);
             AddTimelineTools(tools);
             AddContextTools(tools);
+            AddDeltaTools(tools);
 
             _cachedTools = tools;
             return tools;
@@ -221,7 +246,14 @@ namespace UnityMCP.Editor
             { 
                 ["root_id"] = new JObject { ["type"] = "integer", ["description"] = "Optional: instance_id of the root object to start from" },
                 ["max_depth"] = new JObject { ["type"] = "integer", ["description"] = "Maximum recursion depth (default: 5)" },
-                ["include_all_properties"] = new JObject { ["type"] = "boolean", ["description"] = "If true, serializes all component properties instead of just key fields" }
+                ["include_all_properties"] = new JObject { ["type"] = "boolean", ["description"] = "If true, serializes all component properties instead of just key fields" },
+                ["compact"] = new JObject { ["type"] = "boolean", ["description"] = "If true, only include name, instance_id, and component types (no properties)" }
+            }));
+
+            tools.Add(CreateTool("compact_scene_snapshot", "Get a highly compressed hierarchy (name/id/component list only) for fast full-scene overview", new JObject
+            {
+                ["root_id"] = new JObject { ["type"] = "integer", ["description"] = "Optional: instance_id of the root object to start from" },
+                ["max_depth"] = new JObject { ["type"] = "integer", ["description"] = "Maximum recursion depth (default: 5)" }
             }));
 
             tools.Add(CreateTool("get_scene_dependencies", "Scans the scene for cross-object references and returns a dependency map", new JObject { }));
@@ -232,6 +264,23 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_server_status", "Get explicit health and state of the MCP server and Unity editor", new JObject { }));
             tools.Add(CreateTool("attach_existing_session", "Attach to an existing healthy session", new JObject { }));
             tools.Add(CreateTool("ping_main_thread", "Explicit liveness check for Unity API execution on main thread", new JObject { }));
+            tools.Add(CreateTool("batch_execute", "Execute multiple JSON-RPC calls in a single HTTP request", new JObject 
+            { 
+                ["requests"] = new JObject 
+                { 
+                    ["type"] = "array", 
+                    ["items"] = new JObject 
+                    { 
+                        ["type"] = "object", 
+                        ["properties"] = new JObject 
+                        { 
+                            ["method"] = new JObject { ["type"] = "string" }, 
+                            ["params"] = new JObject { ["type"] = "object" } 
+                        },
+                        ["required"] = new JArray("method")
+                    } 
+                } 
+            }, "requests"));
         }
 
         private static void AddInputTools(JArray tools)
@@ -342,7 +391,19 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("add_component", "Add component", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name"));
             tools.Add(CreateTool("remove_component", "Remove component", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name"));
-            tools.Add(CreateTool("inspect_component", "Get properties and values", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name"));
+            tools.Add(CreateTool("inspect_component", "Get properties and values", new JObject 
+            { 
+                ["instance_id"] = new JObject { ["type"] = "integer" }, 
+                ["component_name"] = new JObject { ["type"] = "string" },
+                ["fields"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "string" }, ["description"] = "Optional: only return these specific fields" },
+                ["detailed"] = new JObject { ["type"] = "boolean", ["description"] = "If true, returns values with type metadata" }
+            }, "instance_id", "component_name"));
+            tools.Add(CreateTool("component_values", "Surgically read specific component fields as a clean key-value object", new JObject 
+            { 
+                ["instance_id"] = new JObject { ["type"] = "integer" }, 
+                ["component_name"] = new JObject { ["type"] = "string" },
+                ["fields"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "string" }, ["description"] = "Array of field names to read" }
+            }, "instance_id", "component_name", "fields"));
             tools.Add(CreateTool("get_component_schema", "Get serializable fields names/types", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name"));
             tools.Add(CreateTool("update_component", "Update component with detailed result", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" }, ["json_data"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name", "json_data"));
             tools.Add(CreateTool("set_transform", "Move/Rotate", GetTransformSchema()));
@@ -384,10 +445,17 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("focus_scene_view", "Frame selection", new JObject { }));
             tools.Add(CreateTool("open_prefab_stage", "Open prefab asset in isolation mode", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("close_prefab_stage", "Exit prefab isolation mode", new JObject { }));
-            tools.Add(CreateTool("read_logs", "Get Console", new JObject { ["count"] = new JObject { ["type"] = "integer" } }));
-            tools.Add(CreateTool("read_logs_since_cursor", "Read only new logs since last poll", new JObject 
+            tools.Add(CreateTool("read_logs", "Get Console logs with optional noise reduction", new JObject 
+            { 
+                ["count"] = new JObject { ["type"] = "integer", ["description"] = "Number of logs to retrieve" },
+                ["structured"] = new JObject { ["type"] = "boolean", ["description"] = "If true, collapses consecutive identical messages" },
+                ["filter_type"] = new JObject { ["type"] = "string", ["description"] = "Filter by type (Log, Warning, Error)" },
+                ["search_text"] = new JObject { ["type"] = "string", ["description"] = "Search in message or stacktrace" }
+            }));
+            tools.Add(CreateTool("read_logs_since_cursor", "Read only new logs since last poll with optional noise reduction", new JObject 
             { 
                 ["cursor"] = new JObject { ["type"] = "integer", ["description"] = "Last seen log ID" },
+                ["structured"] = new JObject { ["type"] = "boolean", ["description"] = "If true, collapses consecutive identical messages" },
                 ["severities"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "string" }, ["description"] = "e.g. ['Error', 'Exception']" },
                 ["search_text"] = new JObject { ["type"] = "string", ["description"] = "Filter by content" }
             }));
@@ -446,5 +514,30 @@ namespace UnityMCP.Editor
 
         private static string SanitizeScriptName(string n) => System.Text.RegularExpressions.Regex.Replace(n, @"[^a-zA-Z0-9_]", "_");
         private static string GetDefaultScript(string n) => $"using UnityEngine;\npublic class {n} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {n}\"); }} }}";
+
+        private static List<LogEntry> CollapseLogs(List<LogEntry> logs)
+        {
+            if (logs == null || logs.Count == 0) return logs;
+
+            var collapsed = new List<LogEntry>();
+            foreach (var log in logs)
+            {
+                int lastIdx = collapsed.Count - 1;
+                if (lastIdx >= 0)
+                {
+                    var last = collapsed[lastIdx];
+                    if (last.Message == log.Message && last.Type == log.Type)
+                    {
+                        last.Count += log.Count;
+                        // Keep the lexicographically later timestamp (most recent within same day)
+                        if (string.Compare(last.Timestamp, log.Timestamp) < 0) 
+                            last.Timestamp = log.Timestamp;
+                        continue;
+                    }
+                }
+                collapsed.Add(new LogEntry(log));
+            }
+            return collapsed;
+        }
     }
 }

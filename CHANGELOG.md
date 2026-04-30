@@ -2,6 +2,19 @@
 
 All notable changes to the `NexusUnity` library will be documented in this file.
 
+## [3.1.0] - 2026-04-18
+
+### Added
+- **Batch Execution**: Introduced `unity_batch_execute` to execute multiple JSON-RPC calls in a single request, reducing network round-trips.
+- **Scene Delta Tracking**: Added `unity_scene_delta` to retrieve incremental hierarchy changes since a specific generation ID, optimizing state synchronization.
+- **Symbol Indexing**: Introduced `unity_symbol_index` for fuzzy and regex-based searching of all compiled C# symbols (Classes, Methods, Fields).
+- **Surgical Component Values**: Introduced `unity_component_values` for high-speed, clean reading of specific component fields as a flat key-value object.
+- **Compact Scene Snapshot**: Added `unity_compact_scene_snapshot` for high-compression hierarchy dumps, significantly reducing data transfer for large scenes.
+
+### Improved
+- **Enhanced Log Reading**: `unity_read_logs` now supports a `structured` parameter for retrieving logs as typed objects instead of raw strings.
+- **Granular Component Inspection**: `unity_inspect_component` now supports a `fields` parameter to filter specific properties, reducing prompt size and token usage.
+
 ## [3.0.0] - 2026-04-17
 
 ### Added

@@ -41,6 +41,14 @@ Safely stops the MCP server listener for the current Unity instance. Useful for 
 #### `ping_main_thread`
 Explicit main-thread liveness check. Returns `pong` only when Unity can execute main-thread API calls.
 
+#### `batch_execute`
+Executes multiple JSON-RPC calls in a single HTTP request. This is the primary tool for reducing network latency and improving AI responsiveness by bundling independent operations.
+- **Processing**: Iterates through the `requests` array on the Main Thread.
+- **Recursive Guard**: To prevent stack overflow, `batch_execute` cannot call itself recursively.
+- **Failures**: Independent (Best Effort). If one method fails, its error is captured in the results array, and execution continues for remaining requests.
+- **Security**: Inherits project path validation and security checks from the individual methods being executed.
+- **Params**: `requests` (Array of objects with `method` and optional `params`).
+
 #### `attach_existing_session`
 Verifies and attaches to an already running MCP session on the configured port. This is automatically handled during server startup if the project path matches.
 
@@ -121,13 +129,13 @@ For a detailed breakdown of every tool, its parameters, and return types, see:
 ### Categorized Tool List (85+ Tools)
 
 #### 🏥 Server Health & State
-`unity_get_server_status`, `unity_ping_main_thread`, `unity_attach_existing_session`, `unity_wait_until_ready`, `unity_shutdown_server`.
+`unity_get_server_status`, `unity_ping_main_thread`, `unity_attach_existing_session`, `unity_wait_until_ready`, `unity_shutdown_server`, `unity_batch_execute`.
 
 #### 🏞 Scene & Hierarchy
 `unity_create_scene`, `unity_open_scene`, `unity_save_scene`, `unity_list_scenes`, `unity_create_game_object`, `unity_create_primitive`, `unity_destroy_game_object`, `unity_duplicate_object`, `unity_set_active`, `unity_set_parent`, `unity_set_sibling_index`, `unity_create_hierarchy`.
 
 #### 🧩 Components & Properties
-`unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_get_component_schema`, `unity_update_component`, `unity_invoke_method`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
+`unity_add_component`, `unity_remove_component`, `unity_inspect_component`, `unity_component_values`, `unity_get_component_schema`, `unity_update_component`, `unity_invoke_method`, `unity_set_transform`, `unity_set_property`, `unity_set_enabled`.
 
 #### 📦 Asset Management
 `unity_list_assets`, `unity_explore_asset`, `unity_create_material`, `unity_refresh_asset_database`, `unity_import_asset`, `unity_instantiate_prefab`, `unity_create_prefab`, `unity_apply_prefab_overrides`, `unity_revert_prefab_overrides`, `unity_move_asset`, `unity_delete_asset`, `unity_copy_asset`, `unity_get_dependencies`, `unity_create_folder`, `unity_read_file`, `unity_write_file`, `unity_write_files_batch`.
@@ -197,9 +205,37 @@ Creates a standard Unity primitive.
 
 #### `inspect_component`
 Returns full serialized state of any component.
+- **`fields`** (optional): Array of specific field names to return. If omitted, all fields are returned.
 - **Recursive Unpacking**: Automatically unpacks Arrays, Lists, and Generic Structs into nested JSON.
 - **Full Visibility**: Exposes all serialized fields, including those with `[HideInInspector]`.
 - **Note**: Optimized for complex types like `BoxCollider` (unpacks `m_Center` and `m_Size`).
+
+#### `component_values`
+Surgically read specific component fields as a clean key-value object.
+- **`fields`** (required): Array of field names to read.
+- **Clean Output**: Returns a flat key-value object of the requested fields without extra status metadata (unless requested in the RPC wrapper). Ideal for high-speed balancing and state polling.
+
+#### `batch_execute`
+Executes multiple JSON-RPC calls in a single HTTP request. This is the primary tool for reducing network latency and improving AI responsiveness by bundling independent operations.
+- **Processing**: Iterates through the `requests` array on the Main Thread.
+- **Recursive Guard**: To prevent stack overflow, `batch_execute` cannot call itself recursively.
+- **Failures**: Independent (Best Effort). If one method fails, its error is captured in the results array, and execution continues for remaining requests.
+- **Security**: Inherits project path validation and security checks from the individual methods being executed.
+- **Params**: `requests` (Array of objects with `method` and optional `params`).
+
+#### `scene_delta`
+Retrieves incremental hierarchy changes since a specific generation ID.
+- **Params**: `generation` (long, required): The last known session generation ID.
+- **Returns**: A list of changes (added, removed, modified) to optimize state synchronization.
+
+#### `symbol_index`
+Fuzzy and regex-based searching of all compiled C# symbols (Classes, Methods, Fields).
+- **Params**: `query` (string, required): Search query.
+- **Returns**: A list of matching symbols with their metadata.
+
+#### `compact_scene_snapshot`
+High-compression hierarchy dump for large scenes.
+- **Returns**: A minimized JSON representation of the scene graph to reduce token usage.
 
 #### `update_component`
 Updates component values using `SerializedObject`. Returns a detailed result with `status` and `errors`.

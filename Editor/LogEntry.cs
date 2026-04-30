@@ -38,5 +38,25 @@ namespace UnityMCP.Editor
             this.Timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
             this.Count = 1;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogEntry"/> class.
+        /// Required for serialization.
+        /// </summary>
+        public LogEntry() { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogEntry"/> class by copying another instance.
+        /// </summary>
+        /// <param name="other">The entry to copy.</param>
+        public LogEntry(LogEntry other)
+        {
+            this.Id = other.Id;
+            this.Message = other.Message;
+            this.StackTrace = other.StackTrace;
+            this.Type = other.Type;
+            this.Timestamp = other.Timestamp;
+            this.Count = other.Count;
+        }
     }
 }

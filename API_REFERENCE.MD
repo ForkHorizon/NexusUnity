@@ -35,6 +35,16 @@ Explicit main-thread liveness check. Unlike `get_server_status` which returns ca
 - **Returns**: `{status: "pong", timestamp: "..."}`.
 - **Use Case**: Verify that Unity is not just "alive" but actually capable of executing API calls.
 
+### `unity_batch_execute`
+Executes multiple JSON-RPC calls in a single HTTP request. This is the primary tool for reducing network latency and improving AI responsiveness by bundling independent operations.
+- **Parameters**:
+  - `requests` (array of objects, required): The list of requests to execute. Each object must have a `method` (string) and optional `params` (object).
+- **Behavior**:
+  - Executes sequentially on the Main Thread.
+  - **Recursive Guard**: To prevent stack overflow, `unity_batch_execute` cannot call itself recursively.
+  - **Best Effort**: If a single request fails, its error is captured in the results array, but the overall batch continues.
+- **Returns**: `{ "results": [ { "status": "Success", ... }, { "status": "Error", "message": "..." } ] }`.
+
 ### `unity_attach_existing_session`
 Verifies and attaches to an already running MCP session on the configured port.
 - **Returns**: `{status: "attached", sessionId: "..."}`.
@@ -153,7 +163,39 @@ Retrieves all visible properties and their current values.
 - **Parameters**:
   - `instance_id` (integer, required): Target object ID.
   - `component_name` (string, required): Component type name.
+  - `fields` (array, optional): Specific field names to return.
+  - `detailed` (boolean, optional): If true, returns full type metadata.
 - **Returns**: JSON object containing all serialized fields and their current values (with a `status: "Success"` key).
+
+### `unity_component_values`
+Surgically read specific component fields as a clean key-value object.
+- **Parameters**:
+  - `instance_id` (integer, required): Target object ID.
+  - `component_name` (string, required): Component type name.
+  - `fields` (array, required): Array of field names to read.
+- **Returns**: Flat key-value object of requested fields.
+
+### `unity_batch_execute`
+Executes multiple JSON-RPC calls in a single HTTP request.
+- **Parameters**:
+  - `requests` (array of objects, required): The list of requests (method, params).
+- **Returns**: Results array.
+
+### `unity_scene_delta`
+Retrieves incremental hierarchy changes since a specific generation ID.
+- **Parameters**:
+  - `generation` (long, required): The last known session generation ID.
+- **Returns**: List of changes (added, removed, modified).
+
+### `unity_symbol_index`
+Fuzzy and regex-based searching of all compiled C# symbols (Classes, Methods, Fields).
+- **Parameters**:
+  - `query` (string, required): Search query.
+- **Returns**: List of matching symbols with metadata.
+
+### `unity_compact_scene_snapshot`
+High-compression hierarchy dump for large scenes.
+- **Returns**: Minimized JSON representation of the scene graph.
 
 ### `unity_get_component_schema`
 Retrieves property names and types for a component (without current values).
@@ -328,6 +370,7 @@ Frames the current selection in the Scene View.
 Retrieves Unity Console logs.
 - **Parameters**:
   - `count` (integer, optional): Max logs (Default: 50).
+  - `structured` (boolean, optional): If true, returns logs as objects (Timestamp, Type, Message).
 - **Returns**: Object with `logs` array.
 
 ### `unity_attach_script`

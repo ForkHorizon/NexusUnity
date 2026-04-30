@@ -17,11 +17,11 @@ namespace UnityMCP.Editor
             _typeCache.Clear();
             _methods["add_component"] = AddComponent;
             _methods["inspect_component"] = InspectComponent;
+            _methods["component_values"] = ComponentValues;
             _methods["update_component"] = UpdateComponent;
             _methods["get_component_schema"] = GetComponentSchema;
             _methods["set_transform"] = SetTransform;
             _methods["set_parent"] = SetParent;
-            _methods["invoke_method"] = InvokeMethod;
             _methods["instantiate_prefab"] = InstantiatePrefab;
         }
 
@@ -41,16 +41,64 @@ namespace UnityMCP.Editor
             if (comp == null) throw new Exception("Component not found");
 
             bool detailed = p["detailed"]?.Value<bool>() ?? false;
+            JArray fieldsFilter = p["fields"] as JArray;
+            
             SerializedObject so = new SerializedObject(comp);
             JObject result = new JObject();
-            SerializedProperty prop = so.GetIterator();
-            bool enterChildren = true;
-            while (prop.Next(enterChildren))
+
+            if (fieldsFilter != null && fieldsFilter.Count > 0)
             {
-                enterChildren = false; // Only enter children for the root
-                try { result[prop.name] = SerializeProperty(prop, detailed); } catch { }
+                foreach (var field in fieldsFilter)
+                {
+                    string fieldName = field.ToString();
+                    var prop = FindPropertyFuzzy(so, fieldName);
+                    if (prop != null)
+                    {
+                        try { result[fieldName] = SerializeProperty(prop, detailed); } 
+                        catch (Exception e) { Debug.LogWarning($"[MCP] Serialization error for {fieldName}: {e.Message}"); }
+                    }
+                }
+            }
+            else
+            {
+                SerializedProperty prop = so.GetIterator();
+                bool enterChildren = true;
+                while (prop.Next(enterChildren))
+                {
+                    enterChildren = false; // Only enter children for the root
+                    try { result[prop.name] = SerializeProperty(prop, detailed); } 
+                    catch (Exception e) { Debug.LogWarning($"[MCP] Serialization error for {prop.name}: {e.Message}"); }
+                }
             }
             result["status"] = "Success";
+            return result;
+        }
+
+        private static JToken ComponentValues(JToken p)
+        {
+            var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
+            var comp = go?.GetComponent(p["component_name"].ToString());
+            if (comp == null) throw new Exception("Component not found");
+
+            JArray fields = p["fields"] as JArray;
+            if (fields == null || fields.Count == 0) throw new Exception("fields array is required");
+
+            SerializedObject so = new SerializedObject(comp);
+            JObject result = new JObject();
+            foreach (var field in fields)
+            {
+                string fieldName = field.ToString();
+                var prop = FindPropertyFuzzy(so, fieldName);
+                if (prop != null)
+                {
+                    try { result[fieldName] = SerializeProperty(prop, false); } 
+                    catch (Exception e) { Debug.LogWarning($"[MCP] Serialization error for {fieldName}: {e.Message}"); }
+                }
+                else
+                {
+                    result[fieldName] = null;
+                }
+            }
             return result;
         }
 
