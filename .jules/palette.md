@@ -36,3 +36,7 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2024-10-25 - [Visual Polish in IMGUI]
 **Learning:** Text-only buttons in dense Unity Editor IMGUI layouts can blend in and be harder to parse quickly. Using `EditorGUIUtility.IconContent` to combine standard Unity icons (like `_Help` or `TextAsset Icon`) with text significantly improves the scannability and professional feel of the interface. Tooltips also provide crucial context for newer users.
 **Action:** When building Editor interfaces, enrich text buttons with relevant standard Editor icons and tooltips to improve scannability and accessibility.
+
+## 2026-04-19 - [Adding tooltips to GUILayout.Button]
+**Learning:** Adding tooltips using `GUIContent("text", "tooltip")` instead of plain strings for `GUILayout.Button` significantly improves accessibility and discoverability in Unity Editor toolings.
+**Action:** Always prefer `new GUIContent(text, tooltip)` over simple string titles for buttons in IMGUI to help users understand the purpose of each button, especially when space is constrained or icons are used.

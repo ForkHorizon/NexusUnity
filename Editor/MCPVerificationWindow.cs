@@ -15,7 +15,7 @@ namespace UnityMCP.Editor
 
         private void OnGUI()
         {
-            if (GUILayout.Button("Run API Verification")) 
+            if (GUILayout.Button(new GUIContent("Run API Verification", "Start the API verification process")))
             {
                 EditorApplication.delayCall += RunVerification;
             }
