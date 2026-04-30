@@ -142,8 +142,16 @@ namespace UnityMCP.Editor
             GUILayout.Label("Resources", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                if (GUILayout.Button(new GUIContent(" Documentation", EditorGUIUtility.IconContent("_Help").image, "Open project documentation"), EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
-                if (GUILayout.Button(new GUIContent(" API Reference", EditorGUIUtility.IconContent("TextAsset Icon").image, "Open API reference documentation"), EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
+                GUIContent docContent = EditorGUIUtility.IconContent("_Help");
+                docContent.text = " Documentation";
+                docContent.tooltip = "Open project documentation";
+
+                GUIContent apiContent = EditorGUIUtility.IconContent("TextAsset Icon");
+                apiContent.text = " API Reference";
+                apiContent.tooltip = "Open API reference documentation";
+
+                if (GUILayout.Button(docContent, EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
+                if (GUILayout.Button(apiContent, EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
             }
         }
 

@@ -32,3 +32,7 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2024-04-12 - Unity Editor IMGUI Accessibility and Consistency
 **Learning:** Unity's IMGUI standard `GUILayout.Button` supports passing `GUIContent` instead of a plain string. This enables the addition of inline tooltips and built-in Editor icons (via `EditorGUIUtility.IconContent`), which significantly improves accessibility for icon-only buttons or complex dashboards without requiring structural layout changes.
 **Action:** When implementing or modifying Unity Editor windows (`EditorWindow`), always prefer `new GUIContent(text, tooltip)` or `new GUIContent(text, icon, tooltip)` over plain strings for buttons and labels to enhance visual consistency and discoverability for end users.
+
+## 2024-10-25 - [Visual Polish in IMGUI]
+**Learning:** Text-only buttons in dense Unity Editor IMGUI layouts can blend in and be harder to parse quickly. Using `EditorGUIUtility.IconContent` to combine standard Unity icons (like `_Help` or `TextAsset Icon`) with text significantly improves the scannability and professional feel of the interface. Tooltips also provide crucial context for newer users.
+**Action:** When building Editor interfaces, enrich text buttons with relevant standard Editor icons and tooltips to improve scannability and accessibility.
