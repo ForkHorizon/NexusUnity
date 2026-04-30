@@ -21,3 +21,7 @@
 ## 2025-03-02 - [FindReferences GetComponents Array Allocation]
 **Learning:** During scene traversal in `FindReferences`, calling `go.GetComponents<Component>()` on every GameObject allocates a new array each time. In a large scene with thousands of objects, this causes massive GC pressure and unnecessary garbage collection pauses. Similarly, allocating a new `List<string>` for matching components per object compounds the issue.
 **Action:** Use the non-allocating overload `GetComponents(List<Component>)` with a static/reused buffer list. Also reuse the matching components list with `.Clear()` instead of creating a new instance per GameObject.
+
+## 2025-03-02 - [GetGameObjectPath Allocation]
+**Learning:** Constructing hierarchy paths from leaf to root using `string.Concat` (i.e. `path = current.name + "/" + path`) in a loop results in O(N^2) string allocations and performance overhead during deep scene traversal.
+**Action:** Always use a cached `Stack<string>` to push node names and use `string.Join("/", stack)` to generate paths from leaf to root efficiently without intermediate string allocations.
