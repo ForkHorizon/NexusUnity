@@ -643,3 +643,9 @@ This major release marks the successful consolidation of 35+ feature and archite
 - Basic MCP Server implementation with support for `initialize`, `create_primitive`, and `attach_script`.
 - Internal main-thread task queue.
 - Basic Editor GUI for server control.
+
+## [3.1.2] - 2026-05-02
+
+### Merged
+- Knowledge Graph Optimization (Jules)
+

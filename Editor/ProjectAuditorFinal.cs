@@ -10,8 +10,10 @@ namespace UnityMCP.Editor
 {
     public static class ProjectAuditorWrapper
     {
-        private static List<Component> _componentCache = new List<Component>();
-        private static Stack<string> _pathStackCache = new Stack<string>();
+        private static readonly List<Component> _componentCache = new List<Component>();
+        private static readonly List<Renderer> _rendererCache = new List<Renderer>();
+        private static readonly List<Material> _materialCache = new List<Material>();
+        private static readonly Stack<string> _pathStackCache = new Stack<string>();
 
         [MenuItem("Window/Nexus Unity/Run Full Project Audit")]
         public static void RunAuditMenu()
@@ -178,44 +180,43 @@ namespace UnityMCP.Editor
 
             foreach (var go in allGOs)
             {
-                if (go.scene == null || !go.scene.isLoaded) continue;
+                // In Unity 6, go.scene is a struct. Check for validity and if it's loaded to only scan active scene objects.
+                if (!go.scene.IsValid() || !go.scene.isLoaded) continue;
 
-                go.GetComponents(_componentCache);
-                foreach (var comp in _componentCache)
+                int missingScripts = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go);
+                for (int i = 0; i < missingScripts; i++)
                 {
-                    if (comp == null)
-                    {
-                        issues.Add(new JObject {
-                            ["type"] = "MissingScript",
-                            ["object"] = go.name,
-                            ["path"] = GetGameObjectPath(go),
-                            ["description"] = "GameObject has a missing script reference."
-                        });
-                        continue;
-                    }
+                    issues.Add(new JObject {
+                        ["type"] = "MissingScript",
+                        ["object"] = go.name,
+                        ["path"] = GetGameObjectPath(go),
+                        ["description"] = "GameObject has a missing script reference."
+                    });
+                }
 
-                    if (comp is Renderer renderer)
+                go.GetComponents<Renderer>(_rendererCache);
+                foreach (var renderer in _rendererCache)
+                {
+                    renderer.GetSharedMaterials(_materialCache);
+                    foreach (var mat in _materialCache)
                     {
-                        foreach (var mat in renderer.sharedMaterials)
+                        if (mat == null)
                         {
-                            if (mat == null)
-                            {
-                                issues.Add(new JObject {
-                                    ["type"] = "MissingMaterial",
-                                    ["object"] = go.name,
-                                    ["path"] = GetGameObjectPath(go),
-                                    ["description"] = "Renderer has a null material entry."
-                                });
-                            }
-                            else if (mat.shader != null && mat.shader.name == "Hidden/InternalErrorShader")
-                            {
-                                issues.Add(new JObject {
-                                    ["type"] = "PinkMaterial",
-                                    ["object"] = go.name,
-                                    ["path"] = GetGameObjectPath(go),
-                                    ["description"] = "Material is using the error shader (Pink)."
-                                });
-                            }
+                            issues.Add(new JObject {
+                                ["type"] = "MissingMaterial",
+                                ["object"] = go.name,
+                                ["path"] = GetGameObjectPath(go),
+                                ["description"] = "Renderer has a null material entry."
+                            });
+                        }
+                        else if (mat.shader != null && mat.shader.name == "Hidden/InternalErrorShader")
+                        {
+                            issues.Add(new JObject {
+                                ["type"] = "PinkMaterial",
+                                ["object"] = go.name,
+                                ["path"] = GetGameObjectPath(go),
+                                ["description"] = "Material is using the error shader (Pink)."
+                            });
                         }
                     }
                 }

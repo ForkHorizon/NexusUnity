@@ -71,12 +71,7 @@ namespace UnityMCP.Editor
         {
             if (root == null) return null;
             if (root.name == name) return root;
-            foreach (var child in root.Children())
-            {
-                var found = FindElementByName(child, name);
-                if (found != null) return found;
-            }
-            return null;
+            return root.Q(name);
         }
 
         private static JToken SerializeVisualElement(VisualElement el, bool deep = false)
