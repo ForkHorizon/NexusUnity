@@ -71,12 +71,7 @@ namespace UnityMCP.Editor
         {
             if (root == null) return null;
             if (root.name == name) return root;
-            foreach (var child in root.Children())
-            {
-                var found = FindElementByName(child, name);
-                if (found != null) return found;
-            }
-            return null;
+            return root.Q(name);
         }
 
         private static JToken SerializeVisualElement(VisualElement el, bool deep = false)
@@ -165,16 +160,15 @@ namespace UnityMCP.Editor
 
         private static System.Func<int, EntityId> CreateLegacyIntToEntityId()
         {
-            MethodInfo operatorMethod = typeof(EntityId).GetMethod(
-                "op_Implicit",
-                BindingFlags.Public | BindingFlags.Static,
-                binder: null,
-                types: new[] { typeof(int) },
-                modifiers: null);
+            var method = typeof(EntityId).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .FirstOrDefault(m => (m.Name == "op_Implicit" || m.Name == "op_Explicit") &&
+                                     m.ReturnType == typeof(EntityId) &&
+                                     m.GetParameters().Length == 1 &&
+                                     m.GetParameters()[0].ParameterType == typeof(int));
 
-            if (operatorMethod != null)
+            if (method != null)
             {
-                return (System.Func<int, EntityId>)System.Delegate.CreateDelegate(typeof(System.Func<int, EntityId>), operatorMethod);
+                return (System.Func<int, EntityId>)System.Delegate.CreateDelegate(typeof(System.Func<int, EntityId>), method);
             }
 
             return value => EntityId.FromULong(unchecked((ulong)(uint)value));
@@ -182,16 +176,15 @@ namespace UnityMCP.Editor
 
         private static System.Func<EntityId, int> CreateLegacyEntityIdToInt()
         {
-            MethodInfo operatorMethod = typeof(EntityId).GetMethod(
-                "op_Implicit",
-                BindingFlags.Public | BindingFlags.Static,
-                binder: null,
-                types: new[] { typeof(EntityId) },
-                modifiers: null);
+            var method = typeof(EntityId).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .FirstOrDefault(m => (m.Name == "op_Implicit" || m.Name == "op_Explicit") &&
+                                     m.ReturnType == typeof(int) &&
+                                     m.GetParameters().Length == 1 &&
+                                     m.GetParameters()[0].ParameterType == typeof(EntityId));
 
-            if (operatorMethod != null)
+            if (method != null)
             {
-                return (System.Func<EntityId, int>)System.Delegate.CreateDelegate(typeof(System.Func<EntityId, int>), operatorMethod);
+                return (System.Func<EntityId, int>)System.Delegate.CreateDelegate(typeof(System.Func<EntityId, int>), method);
             }
 
             return value => unchecked((int)EntityId.ToULong(value));
