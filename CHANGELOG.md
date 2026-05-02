@@ -1,3 +1,8 @@
+## [3.1.2] - 2026-05-02
+
+### Merged
+- Knowledge Graph Optimization (Jules)
+
 # Changelog - NexusUnity
 
 All notable changes to the `NexusUnity` library will be documented in this file.
