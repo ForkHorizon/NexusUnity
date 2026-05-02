@@ -1,7 +1,17 @@
 ## [3.1.2] - 2026-05-02
 
-### Merged
-- Knowledge Graph Optimization (Jules)
+### Added
+- **Project-Wide Knowledge Graph**: Integrated Jules' background daemon to index C# classes, inheritance, and usages.
+- **`unity_knowledge_graph`**: New tool for querying the Knowledge Graph.
+
+### Fixed
+- **Reflection Ambiguity**: Resolved `AmbiguousMatchException` in `EntityId` conversion by filtering by return type.
+- **Unity 6 Compatibility**: Fixed scene validity checks for the new `Scene` struct.
+
+### Optimized
+- **High-Performance Audits**: Re-implemented `Renderer` and `Material` list pooling in `ScanSceneHealth` to eliminate GC spikes.
+- **Fast UI Search**: Restored `VisualElement.Q` optimization for editor window element lookups.
+- **Bolt Bridge**: Cached Knowledge Graph parsing in the Mojo bridge interop.
 
 # Changelog - NexusUnity
 
@@ -648,9 +658,4 @@ This major release marks the successful consolidation of 35+ feature and archite
 - Basic MCP Server implementation with support for `initialize`, `create_primitive`, and `attach_script`.
 - Internal main-thread task queue.
 - Basic Editor GUI for server control.
-
-## [3.1.2] - 2026-05-02
-
-### Merged
-- Knowledge Graph Optimization (Jules)
 
