@@ -228,37 +228,64 @@ def query_kg(inherits, uses, name):
     # Start Knowledge Graph Background Daemon
     var kg_worker_code = py.str("""import os, sys, time, json, re
 
+file_cache = {}
+
 def build_kg():
     kg = {}
     class_pattern = re.compile(r'class\s+([A-Za-z0-9_]+)(?:\s*:\s*([A-Za-z0-9_,\s]+))?')
     type_pattern = re.compile(r'\b([A-Z][A-Za-z0-9_]+)\b')
+    changed = False
+
+    current_files = set()
 
     for root, _, files in os.walk('Assets'):
         for file in files:
             if not file.endswith('.cs'): continue
             path = os.path.join(root, file)
+            current_files.add(path)
             try:
+                mtime = os.path.getmtime(path)
+                if path in file_cache and file_cache[path]['mtime'] == mtime:
+                    for cls_name, data in file_cache[path]['classes'].items():
+                        kg[cls_name] = data
+                    continue
+
                 with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
+
+                changed = True
+                file_classes = {}
+
+                for match in class_pattern.finditer(content):
+                    cls_name = match.group(1)
+                    inherits_str = match.group(2)
+                    inherits = [i.strip() for i in inherits_str.split(',')] if inherits_str else []
+
+                    # Heuristic for usage: any Capitalized word in the file
+                    uses = list(set(type_pattern.findall(content)))
+
+                    class_data = {'inherits': inherits, 'uses': uses, 'file': path}
+                    file_classes[cls_name] = class_data
+                    kg[cls_name] = class_data
+
+                file_cache[path] = {'mtime': mtime, 'classes': file_classes}
             except:
                 continue
 
-            for match in class_pattern.finditer(content):
-                cls_name = match.group(1)
-                inherits_str = match.group(2)
-                inherits = [i.strip() for i in inherits_str.split(',')] if inherits_str else []
+    # Handle deleted files
+    cached_paths = list(file_cache.keys())
+    for path in cached_paths:
+        if path not in current_files:
+            changed = True
+            del file_cache[path]
 
-                # Heuristic for usage: any Capitalized word in the file
-                uses = list(set(type_pattern.findall(content)))
-
-                kg[cls_name] = {'inherits': inherits, 'uses': uses, 'file': path}
-
-    os.makedirs('Library', exist_ok=True)
-    try:
-        with open('Library/nexus_kg_temp.json', 'w', encoding='utf-8') as f:
-            json.dump(kg, f)
-        os.replace('Library/nexus_kg_temp.json', 'Library/nexus_kg.json')
-    except: pass
+    if changed or not os.path.exists('Library/nexus_kg.json'):
+        os.makedirs('Library', exist_ok=True)
+        try:
+            with open('Library/nexus_kg_temp.json', 'w', encoding='utf-8') as f:
+                json.dump(kg, f)
+            os.replace('Library/nexus_kg_temp.json', 'Library/nexus_kg.json')
+        except: pass
 
 main_pid = int(sys.argv[1])
 while True:
