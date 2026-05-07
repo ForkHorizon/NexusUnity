@@ -4,6 +4,18 @@ This document provides a comprehensive reference for the `Nexus Unity` library.
 
 **Requirements**: Unity 6000.0 or newer.
 
+## NexusSoma Routing Notice
+
+Nexus Unity is the low-level Unity Editor control layer. In the current NexusSoma workflow, Big AI clients should normally connect to **Soma**, not directly to this raw Nexus MCP server.
+
+Recommended route:
+
+```text
+Big AI client -> Soma MCP gateway -> Nexus Unity -> Unity Editor
+```
+
+Direct Nexus bridge usage remains supported for diagnostics and library development, but normal AI-assisted Unity work should use Soma's compact `soma_*` tools to avoid exposing the full raw `unity_*` catalog to Big AI.
+
 ## 🔌 Unity MCP Server
 
 The library implements a Model Context Protocol (MCP) server that enables external tools to interact with the Unity Editor via JSON-RPC 2.0.
@@ -307,5 +319,6 @@ Go to **Edit > Project Settings > Nexus Unity** to configure the port.
 
 ### Integration
 1. Open **Window > Nexus Unity > Server Control Panel**.
-2. Click **Link to Gemini CLI** or **Link to Codex CLI**.
-3. Your local CLI is now connected to this Unity instance with all 61+ tools.
+2. Click **START SERVER**.
+3. For NexusSoma workflows, open Soma, select the Unity project root, and connect Big AI to Soma only.
+4. Use direct **Link to Gemini CLI** or **Link to Codex CLI** only for explicit raw Nexus diagnostics or Nexus library development.

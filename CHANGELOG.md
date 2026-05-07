@@ -1,3 +1,15 @@
+
+# Changelog - NexusUnity
+
+All notable changes to the `NexusUnity` library will be documented in this file.
+
+## [Unreleased] - NexusSoma Documentation Alignment
+
+### Documentation
+- Updated Nexus Unity package documentation to describe Soma as the recommended Big AI gateway in front of raw Nexus Unity tools.
+- Clarified that direct `unity_*` bridge and CLI usage remains supported for diagnostics, bridge testing, and library development.
+- Added guidance for using Soma live verification and `soma_apply` for compile-safe Big AI Unity workflows.
+
 ## [3.1.2] - 2026-05-02
 
 ### Added
@@ -13,9 +25,6 @@
 - **Fast UI Search**: Restored `VisualElement.Q` optimization for editor window element lookups.
 - **Bolt Bridge**: Cached Knowledge Graph parsing in the Mojo bridge interop.
 
-# Changelog - NexusUnity
-
-All notable changes to the `NexusUnity` library will be documented in this file.
 
 ## [3.1.1] - 2026-04-30
 
@@ -658,4 +667,3 @@ This major release marks the successful consolidation of 35+ feature and archite
 - Basic MCP Server implementation with support for `initialize`, `create_primitive`, and `attach_script`.
 - Internal main-thread task queue.
 - Basic Editor GUI for server control.
-

@@ -3,6 +3,8 @@
 This document provides a comprehensive, AI-optimized reference for all 77+ tools available in the `Nexus Unity` MCP server. These tools allow for full programmatic control over the Unity Editor.
 
 > **Note for AI Agents**: All tools are prefixed with `unity_` when called via the Gemini CLI or Codex CLI/MCP bridge.
+>
+> **NexusSoma Routing**: For normal Big AI workflows, do not expose this raw `unity_*` catalog directly. Connect Big AI to Soma and let Soma call Nexus through compact `soma_*` tools. Use this reference for low-level Nexus diagnostics, library development, and explicit direct-tool tasks.
 
 ---
 
