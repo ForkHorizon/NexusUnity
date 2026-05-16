@@ -199,34 +199,60 @@ def route_tool(name, args):
             res = call_unity("write_file", {"path": f["path"], "content": f["content"]})
             if res and "error" in res:
                 write_errors.append({"path": f["path"], "error": res["error"]})
-        
+
         if write_errors:
             return {"result": {"status": "Failed", "message": "Failed to write some files", "errors": write_errors}}
         else:
-            timeout = 90
-            reload_started = False
-            while time.time() - start_time < 20: 
-                res = call_unity("initialize")
-                if res is None or "error" in res:
-                    reload_started = True
-                    break
-                time.sleep(0.5)
-            
-            if not reload_started:
-                call_unity("refresh_asset_database")
+            refresh_res = call_unity("refresh_asset_database")
+            immediate_errors = []
+            if refresh_res and "result" in refresh_res:
+                immediate_errors = refresh_res["result"].get("compiler_errors", [])
 
-            status = "Ready"
-            while time.time() - start_time < timeout:
-                res = call_unity("initialize")
-                if res and "result" in res:
-                    time.sleep(2.0)
-                    state = call_unity("get_editor_state")
-                    if state and "result" in state:
-                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
-                            break
-                time.sleep(1.0)
+            timeout = 200
+            
+            if immediate_errors:
+                # Syntax errors abort domain reload completely.
+                status = "Ready"
             else:
                 status = "Timeout"
+
+                # Phase 1: Wait up to 5 seconds for Unity to start compiling or go offline.
+                # If nothing happens, it means no files needed compilation.
+                started_compiling = False
+                phase1_start = time.time()
+                while time.time() - phase1_start < 5.0:
+                    try:
+                        state_res = call_unity("get_editor_state")
+                        if state_res is None or "error" in state_res:
+                            started_compiling = True
+                            break
+                        elif state_res and "result" in state_res:
+                            state = state_res["result"]
+                            if state.get("is_compiling") or state.get("is_updating"):
+                                started_compiling = True
+                                break
+                    except Exception:
+                        started_compiling = True
+                        break
+                    time.sleep(0.5)
+
+                if not started_compiling:
+                    # Never went offline and never showed compiling state. It's done.
+                    status = "Ready"
+                else:
+                    # Phase 2: It started compiling (or went offline for domain reload).
+                    # Wait up to the remainder of our 200s timeout for it to come back online and finish.
+                    while time.time() - start_time < timeout:
+                        try:
+                            state_res = call_unity("get_editor_state")
+                            if state_res and "result" in state_res:
+                                state = state_res["result"]
+                                if not state.get("is_compiling") and not state.get("is_updating"):
+                                    status = "Ready"
+                                    break
+                        except Exception:
+                            pass
+                        time.sleep(1.0)
 
             compiler_errors = []
             if status == "Ready":
@@ -330,24 +356,44 @@ def route_tool(name, args):
         start_time = time.time()
         status = "Ready"
 
+        # Override default wait timeout to 200s for compilation
         if cond == "compilation":
-            reload_started = False
-            while time.time() - start_time < 20: 
-                res = call_unity("initialize")
-                if res is None or "error" in res:
-                    reload_started = True
+            timeout = 200
+            call_unity("refresh_asset_database")
+
+            started_compiling = False
+            phase1_start = time.time()
+            while time.time() - phase1_start < 5.0:
+                try:
+                    state_res = call_unity("get_editor_state")
+                    if state_res is None or "error" in state_res:
+                        started_compiling = True
+                        break
+                    elif state_res and "result" in state_res:
+                        state = state_res["result"]
+                        if state.get("is_compiling") or state.get("is_updating"):
+                            started_compiling = True
+                            break
+                except Exception:
+                    started_compiling = True
                     break
                 time.sleep(0.5)
-            if not reload_started: call_unity("refresh_asset_database")
-            while time.time() - start_time < timeout:
-                res = call_unity("initialize")
-                if res and "result" in res:
-                    time.sleep(2.0)
-                    state = call_unity("get_editor_state")
-                    if state and "result" in state:
-                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"): break
-                time.sleep(1.0)
-            else: status = "Timeout"
+
+            if not started_compiling:
+                status = "Ready"
+            else:
+                status = "Timeout"
+                while time.time() - start_time < timeout:
+                    try:
+                        state_res = call_unity("get_editor_state")
+                        if state_res and "result" in state_res:
+                            state = state_res["result"]
+                            if not state.get("is_compiling") and not state.get("is_updating"):
+                                status = "Ready"
+                                break
+                    except Exception:
+                        pass
+                    time.sleep(1.0)
         elif cond == "play_mode":
             target_state = args.get("state", True)
             while time.time() - start_time < timeout:
