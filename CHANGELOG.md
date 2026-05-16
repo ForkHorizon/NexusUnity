@@ -2,27 +2,22 @@
 
 All notable changes to Nexus Unity are documented here.
 
-## [Unreleased] - Open Source Release Preparation
-
-### Changed
-- Renamed the Unity package id to `com.forkhorizon.nexus.unity`.
-- Repositioned package documentation around standalone Nexus Unity usage.
-- Removed references to non-public product planning from package docs.
-- Updated the Python bridge to prefer the live Unity `list_tools` catalog and keep its offline fallback aligned with Unity's public tool list.
-
-### Fixed
-- Registered the previously listed `set_enabled` RPC handler.
-- Registered public wait handlers for `wait_for_asset_import_idle` and `wait_for_editor_idle`.
-- Added missing public tool schema entries for `shutdown_server`, `find_references`, and `ui_query_elements`.
-- Removed the debug-only `test_coroutine` handler from the public dispatch registry.
+## [Unreleased] - Open Source Release Preparation (Deep Consolidation Phase)
 
 ### Added
-- Added GPLv3 license notice.
-- Added editor tests that fail when Unity `list_tools`, RPC dispatch registration, and Python bridge fallback drift apart.
+- **Deep Tool Consolidation:** Groups 64+ granular tools into **14 core entry points**. New managers include `search_manager`, `asset_manager`, `editor_controller`, and `ui_automation`.
+- **Strict JSON Schemas:** Implemented `oneOf` logic for all Managers, ensuring the AI cannot provide invalid parameters for a specific action.
+- **Integrated Dev Macro:** Renamed `apply_code_change` to `write_and_compile` to reinforce the recommended autonomous development workflow.
+
+### Changed
+- Refactored Python bridge with unified `route_tool` logic for consistent CLI and MCP behavior.
+- Updated API Reference to v2.8.0.
+- Synchronized all root documentation with the `Assets/NexusUnity` package.
 
 ### Removed
-- Removed generated Graphify cache files from the public package.
-- Removed previous experimental Mojo bridge artifacts from the public package.
+- Removed 50+ redundant micro-tools from the public schema to minimize LLM token overhead and analysis paralysis.
+- Removed `write_files_batch` to prevent race conditions during domain reloads.
+
 
 ## [3.1.2] - 2026-05-02
 

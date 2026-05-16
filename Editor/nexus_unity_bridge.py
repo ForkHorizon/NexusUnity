@@ -16,897 +16,149 @@ UNITY_URL = f"http://127.0.0.1:{PORT}/"
 PARENT_PID = os.getppid()
 
 # --- Static Tool Definitions (Hybrid Bridge Strategy) ---
-# These are always returned to the AI CLI (Gemini, Codex, etc.) even if Unity is offline.
-# Descriptions are optimized for LLM context windows.
+# Optimized for 100% integrated AI development with strict parameter validation.
 STATIC_TOOLS = [
+    # --- Consolidated Core Managers ---
     {
-        "name": "unity_add_component",
-        "description": "Add component",
+        "name": "unity_scene_manager",
+        "description": "Unified scene management (create, open, save, list)",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "create"}, "name": {"type": "string"}}, "required": ["action", "name"]},
+                {"properties": {"action": {"const": "open"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"const": "save"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"const": "list"}}, "required": ["action"]}
+            ]
         }
     },
     {
-        "name": "unity_apply_prefab_overrides",
-        "description": "Apply changes to prefab asset",
+        "name": "unity_hierarchy_manager",
+        "description": "Unified GameObject hierarchy and lifecycle management",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "create_empty"}, "name": {"type": "string"}, "parent_id": {"type": "integer"}}, "required": ["action", "name"]},
+                {"properties": {"action": {"const": "create_primitive"}, "primitive_type": {"type": "string", "enum": ["Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad"]}}, "required": ["action", "primitive_type"]},
+                {"properties": {"action": {"const": "destroy"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
+                {"properties": {"action": {"const": "duplicate"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
+                {"properties": {"action": {"const": "set_active"}, "instance_id": {"type": "integer"}, "active": {"type": "boolean"}}, "required": ["action", "instance_id", "active"]},
+                {"properties": {"action": {"const": "set_parent"}, "instance_id": {"type": "integer"}, "parent_id": {"type": "integer"}}, "required": ["action", "instance_id", "parent_id"]},
+                {"properties": {"action": {"const": "set_sibling_index"}, "instance_id": {"type": "integer"}, "index": {"type": "string"}}, "required": ["action", "instance_id", "index"]}
+            ]
         }
     },
     {
-        "name": "unity_attach_existing_session",
-        "description": "Attach to an existing healthy session",
+        "name": "unity_component_manager",
+        "description": "Unified component and property management",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "add"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"properties": {"action": {"const": "remove"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"properties": {"action": {"const": "inspect"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"properties": {"action": {"const": "get_schema"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"properties": {"action": {"const": "update_properties"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "properties": {"type": "object"}}, "required": ["action", "instance_id", "component_name", "properties"]},
+                {"properties": {"action": {"const": "set_property"}, "instance_id": {"type": "integer"}, "property_name": {"type": "string"}, "value": {"type": "string"}}, "required": ["action", "instance_id", "property_name", "value"]},
+                {"properties": {"action": {"const": "set_enabled"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["action", "instance_id", "component_name", "enabled"]}
+            ]
         }
     },
     {
-        "name": "unity_attach_script",
-        "description": "Create & Link C#",
+        "name": "unity_search_manager",
+        "description": "Unified discovery and reference search",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"strategy": {"const": "regex"}, "query": {"type": "string"}, "tag": {"type": "string"}, "type": {"type": "string"}}, "required": ["strategy"]},
+                {"properties": {"strategy": {"const": "path"}, "query": {"type": "string"}}, "required": ["strategy", "query"]},
+                {"properties": {"strategy": {"const": "semantic"}, "query": {"type": "string"}}, "required": ["strategy", "query"]},
+                {"properties": {"strategy": {"const": "references"}, "target_id": {"type": "integer"}, "target_guid": {"type": "string"}}, "required": ["strategy"]}
+            ]
         }
     },
     {
-        "name": "unity_batch_execute",
-        "description": "Execute multiple JSON-RPC calls in a single HTTP request",
+        "name": "unity_asset_manager",
+        "description": "Unified asset and prefab pipeline management",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "search"}, "filter": {"type": "string"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "explore"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"const": "create_material"}, "name": {"type": "string"}, "shader": {"type": "string"}}, "required": ["action", "name"]},
+                {"properties": {"action": {"const": "import"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"const": "refresh"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "instantiate_prefab"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"const": "create_prefab"}, "instance_id": {"type": "integer"}, "path": {"type": "string"}}, "required": ["action", "instance_id", "path"]},
+                {"properties": {"action": {"const": "apply_overrides"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
+                {"properties": {"action": {"const": "revert_overrides"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]}
+            ]
         }
     },
     {
-        "name": "unity_capture_game_view_screenshot",
-        "description": "Capture PNG of Game View",
+        "name": "unity_editor_controller",
+        "description": "Unified editor state and play mode control",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "undo"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "redo"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "play"}, "state": {"type": "boolean"}}, "required": ["action", "state"]},
+                {"properties": {"action": {"const": "pause"}, "state": {"type": "boolean"}}, "required": ["action", "state"]},
+                {"properties": {"action": {"const": "step"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "menu"}, "item_path": {"type": "string"}}, "required": ["action", "item_path"]},
+                {"properties": {"action": {"const": "read_logs"}, "count": {"type": "integer"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "clear_logs"}}, "required": ["action"]}
+            ]
         }
     },
     {
-        "name": "unity_capture_inspector_screenshot",
-        "description": "Capture PNG of Inspector (macOS only)",
+        "name": "unity_ui_automation",
+        "description": "Unified UI Toolkit window automation",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "list_windows"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "get_hierarchy"}, "window_title": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"properties": {"action": {"const": "query"}, "window_title": {"type": "string"}, "name": {"type": "string"}, "text": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"properties": {"action": {"const": "click"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}}, "required": ["action", "window_title", "element_name"]},
+                {"properties": {"action": {"const": "input"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}, "text": {"type": "string"}}, "required": ["action", "window_title", "element_name", "text"]}
+            ]
         }
     },
     {
-        "name": "unity_clear_logs",
-        "description": "Clear Console",
+        "name": "unity_wait",
+        "description": "Wait for specific Unity editor states or events",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"condition": {"const": "compilation"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]},
+                {"properties": {"condition": {"const": "play_mode"}, "state": {"type": "boolean"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition", "state"]},
+                {"properties": {"condition": {"const": "import"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]},
+                {"properties": {"condition": {"const": "editor_idle"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]}
+            ]
         }
     },
     {
-        "name": "unity_click_object_in_game",
-        "description": "Click a GameObject in the Game View",
+        "name": "unity_playerprefs_manager",
+        "description": "Unified PlayerPrefs management",
         "inputSchema": {
             "type": "object",
-            "properties": {}
+            "oneOf": [
+                {"properties": {"action": {"const": "get"}, "key": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key"]},
+                {"properties": {"action": {"const": "set"}, "key": {"type": "string"}, "value": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key", "value"]},
+                {"properties": {"action": {"const": "delete"}, "key": {"type": "string"}}, "required": ["action", "key"]},
+                {"properties": {"action": {"const": "list"}}, "required": ["action"]}
+            ]
         }
     },
-    {
-        "name": "unity_close_prefab_stage",
-        "description": "Exit prefab isolation mode",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_compact_scene_snapshot",
-        "description": "Get a highly compressed hierarchy (name/id/component list only) for fast full-scene overview",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_component_values",
-        "description": "Surgically read specific component fields as a clean key-value object",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_copy_asset",
-        "description": "Duplicate file",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_folder",
-        "description": "Create directory",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_game_object",
-        "description": "Create empty GameObject",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_hierarchy",
-        "description": "Batch create full hierarchy",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_material",
-        "description": "Create material",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_prefab",
-        "description": "Save as Prefab",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_primitive",
-        "description": "Create primitive (Cube, Sphere...)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_scene",
-        "description": "Create new scene",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_create_scriptable_object_asset",
-        "description": "Create new ScriptableObject asset",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_delete_asset",
-        "description": "Delete file",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_delete_player_pref",
-        "description": "Delete PlayerPref key or 'all'",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_destroy_game_object",
-        "description": "Delete GameObject",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_diff_scriptable_object_against_defaults",
-        "description": "Compare an asset against its default state",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_diff_scriptable_objects",
-        "description": "Compare two ScriptableObject assets",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_dump_scene_graph",
-        "description": "Dump a recursive tree of the active scene with components and key fields",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_duplicate_object",
-        "description": "Copy GameObject",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_duplicate_scriptable_object_asset",
-        "description": "Duplicate ScriptableObject asset",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_edit_prefab_asset",
-        "description": "Directly modify a prefab asset on disk without instantiating it",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_enforce_forced_defaults",
-        "description": "Enforce [ForceDefault] attributes",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_execute_menu_item",
-        "description": "Execute Menu",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_explore_asset",
-        "description": "List all internal sub-assets (e.g., sliced sprites) and their fileIDs within a single file.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_find_by_path",
-        "description": "Search by exact path",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_find_objects",
-        "description": "Deep search",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_find_references",
-        "description": "Find scene and asset references to a target object or GUID",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_focus_scene_view",
-        "description": "Frame selection",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_generate_mermaid_diagram",
-        "description": "Generate Mermaid diagram of scene",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_active_game_object",
-        "description": "Get current selection",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_children",
-        "description": "Get direct children",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_component_schema",
-        "description": "Get serializable fields names/types",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_dependencies",
-        "description": "Get file deps",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_editor_state",
-        "description": "Get Play/Paused/Compiling",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_editor_timeline",
-        "description": "Returns a list of recent Editor actions (imports, scene changes, play mode transitions)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_game_object",
-        "description": "Get object data",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_object_path",
-        "description": "Get hierarchy breadcrumb",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_player_pref",
-        "description": "Get PlayerPref value",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_prefab_overrides",
-        "description": "Get list of property and component modifications on a prefab instance",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_project_info",
-        "description": "Get Project metadata",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_root_game_objects",
-        "description": "Get top-level objects",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_scene_dependencies",
-        "description": "Scans the scene for cross-object references and returns a dependency map",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_selected_object_full_context",
-        "description": "Returns a massive, context-rich JSON payload for the currently selected GameObject (including all serialized components, prefab status, and hierarchy path)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_server_status",
-        "description": "Get explicit health and state of the MCP server and Unity editor",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_get_tags_and_layers",
-        "description": "Get Tags/Layers list",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_import_asset",
-        "description": "Import file",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_inspect_component",
-        "description": "Get properties and values",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_inspect_object",
-        "description": "Universal inspector for ANY Unity object (Material, Texture, Mesh, ScriptableObject, etc.)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_instantiate_prefab",
-        "description": "Create from Prefab",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_invoke_method",
-        "description": "Invoke a C# method on a component",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_lint_project",
-        "description": "Run deterministic C# audit",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_list_assets",
-        "description": "List assets",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_list_fields_for_type",
-        "description": "List serializable fields for a type",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_list_player_prefs",
-        "description": "List all PlayerPref keys and values",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_list_scenes",
-        "description": "List all scene files",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_move_asset",
-        "description": "Move/Rename",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_open_prefab_stage",
-        "description": "Open prefab asset in isolation mode",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_open_scene",
-        "description": "Open scene file",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_patch_scriptable_object",
-        "description": "Surgically update ScriptableObject fields (alias for update_scriptable_object)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_pause_play_mode",
-        "description": "Pause/Unpause",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ping_main_thread",
-        "description": "Explicit liveness check for Unity API execution on main thread",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ping_object",
-        "description": "Ping in Editor",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_read_file",
-        "description": "Read text content",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_read_logs",
-        "description": "Get Console logs with optional noise reduction",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_read_logs_since_cursor",
-        "description": "Read only new logs since last poll with optional noise reduction",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_read_scriptable_object",
-        "description": "Read ScriptableObject properties",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_redo",
-        "description": "Unity Redo",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_refresh_asset_database",
-        "description": "Refresh Assets",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_remove_component",
-        "description": "Remove component",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_revert_prefab_overrides",
-        "description": "Revert scene changes to prefab defaults",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_run_tests",
-        "description": "Run NUnit tests in the editor",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_save_scene",
-        "description": "Save active scene",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_scene_delta",
-        "description": "Returns a list of scene changes (created, destroyed, reparented, property changes) since a specific generation",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_semantic_find",
-        "description": "Find objects by semantic meaning",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_active",
-        "description": "Enable/Disable GameObject",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_enabled",
-        "description": "Enable/Disable Component",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_parent",
-        "description": "Parent an object",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_player_pref",
-        "description": "Set PlayerPref value",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_property",
-        "description": "Surgical field edit",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_selection",
-        "description": "Select objects",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_sibling_index",
-        "description": "Reorder in hierarchy",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_set_transform",
-        "description": "Move/Rotate",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_show_unresolved_missing_references",
-        "description": "Scans the active scene for 'Missing Script' components or broken ObjectReferences",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_shutdown_server",
-        "description": "Safely stop the MCP server for this Unity instance",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_simulate_mouse",
-        "description": "Simulate mouse input in Play Mode",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_simulate_touch",
-        "description": "Simulate touch input in Play Mode",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_step_frame",
-        "description": "Advance frame",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_symbol_index",
-        "description": "Index and search all compiled symbols (Classes, Methods, Fields)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_toggle_play_mode",
-        "description": "Start/Stop",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ui_click",
-        "description": "Simulate UI Click",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ui_get_hierarchy",
-        "description": "Inspect Window UI",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ui_input_text",
-        "description": "Type into UI field",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ui_list_windows",
-        "description": "List Editor Windows",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_ui_query_elements",
-        "description": "Find UI Toolkit elements by text, name, or USS class",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_undo",
-        "description": "Unity Undo",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_update_component",
-        "description": "Update component with detailed result",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_update_scriptable_object",
-        "description": "Update ScriptableObject properties",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_wait_for_asset_import_idle",
-        "description": "Wait until Unity is done importing assets",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_wait_for_editor_idle",
-        "description": "Wait until the editor is fully idle (not compiling, not importing, no background tasks)",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_wait_for_ready",
-        "description": "Wait until server is responsive",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_write_file",
-        "description": "Write text content",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "unity_write_files_batch",
-        "description": "Write multiple files in a single pass",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
-    }
+
+    # --- Specialized Diagnostics ---
+    {"name": "unity_write_and_compile", "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},
+    {"name": "unity_invoke_method", "description": "Invoke a C# method on a component via reflection", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "method_name": {"type": "string"}, "arguments": {"type": "array"}}, "required": ["instance_id", "method_name"]}},
+    {"name": "unity_dump_scene_graph", "description": "Dump recursive tree of active scene with components and key fields", "inputSchema": {"type": "object", "properties": {"root_id": {"type": "integer"}, "max_depth": {"type": "integer"}, "include_all_properties": {"type": "boolean"}}}},
+    {"name": "unity_get_scene_dependencies", "description": "Return a scene-wide dependency map of cross-object references", "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "unity_lint_project", "description": "Run Roslyn-based C# audit of the entire project", "inputSchema": {"type": "object", "properties": {}}}
 ]
 
 def log(msg):
@@ -922,23 +174,7 @@ def call_unity(method, params=None):
         with urllib.request.urlopen(req, timeout=120) as f:
             return json.loads(f.read().decode('utf-8'))
     except Exception as e:
-        return {"error": {"code": -32000, "message": f"Unity Server unreachable. Ensure 'Window > Nexus Unity' is open and 'START SERVER' is clicked. Error: {str(e)}"}}
-
-def prefixed_unity_tools():
-    """Return the live Unity tool catalog with the MCP bridge unity_ prefix."""
-    res = call_unity("list_tools")
-    if not res or "error" in res or "result" not in res:
-        return None
-
-    tools = []
-    for tool in res["result"]:
-        if not isinstance(tool, dict) or "name" not in tool:
-            continue
-        copied = dict(tool)
-        name = copied["name"]
-        copied["name"] = name if name.startswith("unity_") else f"unity_{name}"
-        tools.append(copied)
-    return tools
+        return {"error": {"code": -32000, "message": f"Unity Server unreachable. Error: {str(e)}"}}
 
 def orphan_monitor():
     """Monitor if the parent process (AI CLI) is still alive."""
@@ -952,20 +188,202 @@ def orphan_monitor():
             os._exit(0)
         time.sleep(5)
 
+def route_tool(name, args):
+    if name in ["write_and_compile", "apply_code_change"]:
+        files = args.get("files", [])
+        start_time = time.time()
+        call_unity("clear_logs")
+        
+        write_errors = []
+        for f in files:
+            res = call_unity("write_file", {"path": f["path"], "content": f["content"]})
+            if res and "error" in res:
+                write_errors.append({"path": f["path"], "error": res["error"]})
+        
+        if write_errors:
+            return {"result": {"status": "Failed", "message": "Failed to write some files", "errors": write_errors}}
+        else:
+            timeout = 90
+            reload_started = False
+            while time.time() - start_time < 20: 
+                res = call_unity("initialize")
+                if res is None or "error" in res:
+                    reload_started = True
+                    break
+                time.sleep(0.5)
+            
+            if not reload_started:
+                call_unity("refresh_asset_database")
+
+            status = "Ready"
+            while time.time() - start_time < timeout:
+                res = call_unity("initialize")
+                if res and "result" in res:
+                    time.sleep(2.0)
+                    state = call_unity("get_editor_state")
+                    if state and "result" in state:
+                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
+                            break
+                time.sleep(1.0)
+            else:
+                status = "Timeout"
+
+            compiler_errors = []
+            if status == "Ready":
+                log_res = call_unity("read_logs", {"count": 200})
+                if log_res and "result" in log_res:
+                    for l in log_res["result"].get("logs", []):
+                        if l.get("Type") in ["Error", "Exception", "Assert"]:
+                            compiler_errors.append(l)
+
+            return {
+                "result": {
+                    "status": "Failed" if compiler_errors else status,
+                    "time_waited_seconds": round(time.time() - start_time, 2),
+                    "compiler_errors": compiler_errors
+                }
+            }
+
+    elif name == "scene_manager":
+        action = args.get("action")
+        if action == "create": return call_unity("create_scene", {"name": args.get("name")})
+        elif action == "open": return call_unity("open_scene", {"path": args.get("path")})
+        elif action == "save": return call_unity("save_scene", {"path": args.get("path")})
+        elif action == "list": return call_unity("list_scenes")
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "hierarchy_manager":
+        action = args.get("action")
+        if action == "create_empty": return call_unity("create_game_object", {"name": args.get("name"), "parent_id": args.get("parent_id")})
+        elif action == "create_primitive": return call_unity("create_primitive", {"primitive_type": args.get("primitive_type")})
+        elif action == "destroy": return call_unity("destroy_game_object", {"instance_id": args.get("instance_id")})
+        elif action == "duplicate": return call_unity("duplicate_object", {"instance_id": args.get("instance_id")})
+        elif action == "set_active": return call_unity("set_active", {"instance_id": args.get("instance_id"), "active": args.get("active")})
+        elif action == "set_parent": return call_unity("set_parent", {"instance_id": args.get("instance_id"), "parent_id": args.get("parent_id")})
+        elif action == "set_sibling_index": return call_unity("set_sibling_index", {"instance_id": args.get("instance_id"), "index": args.get("index")})
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "component_manager":
+        action = args.get("action")
+        if action == "add": return call_unity("add_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        elif action == "remove": return call_unity("remove_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        elif action == "inspect": return call_unity("inspect_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        elif action == "get_schema": return call_unity("get_component_schema", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        elif action == "update_properties": return call_unity("update_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name"), "properties": args.get("properties")})
+        elif action == "set_property": return call_unity("set_property", {"instance_id": args.get("instance_id"), "property_name": args.get("property_name"), "value": args.get("value")})
+        elif action == "set_enabled": return call_unity("set_enabled", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name"), "enabled": args.get("enabled")})
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "search_manager":
+        strategy = args.get("strategy")
+        if strategy == "regex": return call_unity("find_objects", {"name": args.get("query"), "tag": args.get("tag"), "type": args.get("type")})
+        elif strategy == "path": return call_unity("find_by_path", {"path": args.get("query")})
+        elif strategy == "semantic": return call_unity("semantic_find", {"query": args.get("query")})
+        elif strategy == "references": return call_unity("find_references", {"target_id": args.get("target_id"), "target_guid": args.get("target_guid")})
+        else: return {"error": {"code": -32602, "message": f"Invalid strategy: {strategy}"}}
+
+    elif name == "asset_manager":
+        action = args.get("action")
+        if action == "search": return call_unity("list_assets", {"filter": args.get("filter")})
+        elif action == "explore": return call_unity("explore_asset", {"path": args.get("path")})
+        elif action == "create_material": return call_unity("create_material", {"name": args.get("name"), "shader": args.get("shader")})
+        elif action == "import": return call_unity("import_asset", {"path": args.get("path")})
+        elif action == "refresh": return call_unity("refresh_asset_database")
+        elif action == "instantiate_prefab": return call_unity("instantiate_prefab", {"path": args.get("path")})
+        elif action == "create_prefab": return call_unity("create_prefab", {"instance_id": args.get("instance_id"), "path": args.get("path")})
+        elif action == "apply_overrides": return call_unity("apply_prefab_overrides", {"instance_id": args.get("instance_id")})
+        elif action == "revert_overrides": return call_unity("revert_prefab_overrides", {"instance_id": args.get("instance_id")})
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "editor_controller":
+        action = args.get("action")
+        if action == "undo": return call_unity("undo")
+        elif action == "redo": return call_unity("redo")
+        elif action == "play": return call_unity("toggle_play_mode", {"value": args.get("state")})
+        elif action == "pause": return call_unity("pause_play_mode", {"value": args.get("state")})
+        elif action == "step": return call_unity("step_frame")
+        elif action == "menu": return call_unity("execute_menu_item", {"item_path": args.get("item_path")})
+        elif action == "read_logs": return call_unity("read_logs", {"count": args.get("count", 100)})
+        elif action == "clear_logs": return call_unity("clear_logs")
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "ui_automation":
+        action = args.get("action")
+        if action == "list_windows": return call_unity("ui_list_windows")
+        elif action == "get_hierarchy": return call_unity("ui_get_hierarchy", {"window_title": args.get("window_title")})
+        elif action == "query": return call_unity("ui_query_elements", {"window_title": args.get("window_title"), "name": args.get("name"), "text": args.get("text")})
+        elif action == "click": return call_unity("ui_click", {"window_title": args.get("window_title"), "element_name": args.get("element_name")})
+        elif action == "input": return call_unity("ui_input_text", {"window_title": args.get("window_title"), "element_name": args.get("element_name"), "text": args.get("text")})
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "playerprefs_manager":
+        action = args.get("action")
+        if action == "get": return call_unity("get_player_pref", {"key": args.get("key"), "type": args.get("type", "string")})
+        elif action == "set": return call_unity("set_player_pref", {"key": args.get("key"), "value": args.get("value"), "type": args.get("type", "string")})
+        elif action == "delete": return call_unity("delete_player_pref", {"key": args.get("key")})
+        elif action == "list": return call_unity("list_player_prefs")
+        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+
+    elif name == "wait":
+        cond = args.get("condition")
+        timeout = args.get("timeout_seconds", 60)
+        start_time = time.time()
+        status = "Ready"
+
+        if cond == "compilation":
+            reload_started = False
+            while time.time() - start_time < 20: 
+                res = call_unity("initialize")
+                if res is None or "error" in res:
+                    reload_started = True
+                    break
+                time.sleep(0.5)
+            if not reload_started: call_unity("refresh_asset_database")
+            while time.time() - start_time < timeout:
+                res = call_unity("initialize")
+                if res and "result" in res:
+                    time.sleep(2.0)
+                    state = call_unity("get_editor_state")
+                    if state and "result" in state:
+                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"): break
+                time.sleep(1.0)
+            else: status = "Timeout"
+        elif cond == "play_mode":
+            target_state = args.get("state", True)
+            while time.time() - start_time < timeout:
+                state_res = call_unity("get_editor_state")
+                if state_res and "result" in state_res:
+                    if state_res["result"].get("is_playing") == target_state: break
+                time.sleep(1.0)
+            else: status = "Timeout"
+        elif cond == "import":
+            while time.time() - start_time < timeout:
+                res = call_unity("is_asset_import_idle")
+                if res and "result" in res:
+                    if res["result"].get("is_idle"): break
+                time.sleep(1.0)
+            else: status = "Timeout"
+        elif cond == "editor_idle":
+            while time.time() - start_time < timeout:
+                res = call_unity("is_editor_idle")
+                if res and "result" in res:
+                    if res["result"].get("is_idle"): break
+                time.sleep(1.0)
+            else: status = "Timeout"
+        
+        return {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
+
+    else:
+        return call_unity(name, args)
+
 def main():
     # --- DUAL MODE: CLI vs MCP ---
-    # If arguments are provided and the first one isn't just a number (port),
-    # we treat it as a direct CLI call to a Unity tool.
     if len(sys.argv) > 1:
         arg1 = sys.argv[1]
         try:
-            # If it's an integer, it's a port override for MCP mode
             int(arg1)
         except ValueError:
-            # It's a string, treat as a tool name
             method_name = arg1.replace("unity_", "")
-            
-            # Simple parameter parsing
             params = {}
             for arg in sys.argv[2:]:
                 if "=" in arg:
@@ -974,17 +392,17 @@ def main():
                     except: params[k] = v
 
             log(f"CLI Mode: Calling {method_name} with {params}")
-            res = call_unity(method_name, params)
+            res = route_tool(method_name, params)
             if "error" in res:
                 print(json.dumps(res["error"], indent=2))
                 sys.exit(1)
             else:
-                print(json.dumps(res["result"], indent=2))
+                final_res = res.get("result", res)
+                print(json.dumps(final_res, indent=2))
                 sys.exit(0)
 
     log(f"NexusUnity Bridge started (Parent PID: {PARENT_PID})")
     
-    # Start the orphan monitor in a background thread
     monitor_thread = threading.Thread(target=orphan_monitor, daemon=True)
     monitor_thread.start()
 
@@ -998,208 +416,39 @@ def main():
             method = request.get("method")
             req_id = request.get("id")
             
-            # Standard MCP lifecycle methods
             if method == "initialize":
                 res = {
                     "protocolVersion": "2024-11-05", 
-                    "capabilities": {
-                        "tools": {}, 
-                        "resources": {}, 
-                        "prompts": {}
-                    }, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "3.1.2"}                }
+                    "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.8.0"}
+                }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
-            elif method == "notifications/initialized":
-                continue 
             elif method in ["tools/list", "listTools", "list_tools"]:
-                tools = prefixed_unity_tools() or STATIC_TOOLS
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": tools}}
-            elif method in ["resources/list", "listResources", "list_resources"]:
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
+            elif method in ["resources/list", "listResources"]:
                 resources = [
-                    {
-                        "uri": "unity://docs/api-reference",
-                        "name": "Nexus Unity API Reference",
-                        "mimeType": "text/markdown",
-                        "description": "Reference for the public Nexus Unity tool surface."
-                    },
-                    {
-                        "uri": "unity://docs/setup",
-                        "name": "Nexus Unity Setup Guide",
-                        "mimeType": "text/markdown",
-                        "description": "General architecture and configuration."
-                    }
+                    {"uri": "unity://docs/api-reference", "name": "API Reference", "mimeType": "text/markdown"},
+                    {"uri": "unity://docs/setup", "name": "Setup Guide", "mimeType": "text/markdown"}
                 ]
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": resources}}
-            elif method in ["resources/templates/list", "listResourceTemplates"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resourceTemplates": []}}
-            elif method in ["prompts/list", "listPrompts"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"prompts": []}}
-            elif method in ["resources/read", "readResource"]:
-                uri = request.get("params", {}).get("uri")
-                filename = None
-                if uri == "unity://docs/api-reference": filename = "API_REFERENCE.MD"
-                elif uri == "unity://docs/setup": filename = "DOCUMENTATION.MD"
-
-                content = "Documentation file not found. Please check Assets/NexusUnity/ or project root."
-                if filename:
-                    search_paths = [
-                        filename,
-                        f"Assets/NexusUnity/{filename}",
-                        f"Packages/com.forkhorizon.nexus.unity/{filename}"
-                    ]
-                    for p in search_paths:
-                        if os.path.exists(p):
-                            with open(p, 'r') as f:
-                                content = f.read()
-                                break
-                
-                response = {
-                    "jsonrpc": "2.0", 
-                    "id": req_id, 
-                    "result": {"contents": [{"uri": uri, "mimeType": "text/markdown", "text": content}]}}
             elif method in ["tools/call", "callTool"]:
                 params = request.get("params", {})
                 name = params.get("name", "").replace("unity_", "")
                 args = params.get("arguments", {})
 
-                if name == "apply_code_change":
-                    files = args.get("files", [])
-                    start_time = time.time()
-                    call_unity("clear_logs")
-                    
-                    write_errors = []
-                    for f in files:
-                        res = call_unity("write_file", {"path": f["path"], "content": f["content"]})
-                        if res and "error" in res:
-                            write_errors.append({"path": f["path"], "error": res["error"]})
-                    
-                    if write_errors:
-                        unity_res = {"result": {"status": "Failed", "message": "Failed to write some files", "errors": write_errors}}
-                    else:
-                        timeout = 90
-                        reload_started = False
-                        while time.time() - start_time < 20: 
-                            res = call_unity("initialize")
-                            if res is None or "error" in res:
-                                reload_started = True
-                                break
-                            time.sleep(0.5)
-                        
-                        if not reload_started:
-                            call_unity("refresh_asset_database")
-
-                        status = "Ready"
-                        while time.time() - start_time < timeout:
-                            res = call_unity("initialize")
-                            if res and "result" in res:
-                                time.sleep(2.0)
-                                state = call_unity("get_editor_state")
-                                if state and "result" in state:
-                                    if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
-                                        break
-                            time.sleep(1.0)
-                        else:
-                            status = "Timeout"
-
-                        compiler_errors = []
-                        if status == "Ready":
-                            log_res = call_unity("read_logs", {"count": 200})
-                            if log_res and "result" in log_res:
-                                for l in log_res["result"].get("logs", []):
-                                    if l.get("Type") in ["Error", "Exception", "Assert"]:
-                                        compiler_errors.append(l)
-
-                        unity_res = {
-                            "result": {
-                                "status": "Failed" if compiler_errors else status,
-                                "time_waited_seconds": round(time.time() - start_time, 2),
-                                "compiler_errors": compiler_errors
-                            }
-                        }
-
-                elif name == "wait_for_compilation":
-                    timeout = args.get("timeout_seconds", 90)
-                    start_time = time.time()
-                    reload_started = False
-                    while time.time() - start_time < 20: 
-                        res = call_unity("initialize")
-                        if res is None or "error" in res:
-                            reload_started = True
-                            break
-                        time.sleep(0.5)
-                    
-                    if not reload_started:
-                        call_unity("refresh_asset_database")
-
-                    status = "Ready"
-                    while time.time() - start_time < timeout:
-                        res = call_unity("initialize")
-                        if res and "result" in res:
-                            time.sleep(2.0)
-                            state = call_unity("get_editor_state")
-                            if state and "result" in state:
-                                if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
-                                    break
-                        time.sleep(1.0)
-                    else:
-                        status = "Timeout"
-
-                    unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
-
-                elif name == "wait_for_play_mode":
-                    target_state = args.get("state", True)
-                    timeout = args.get("timeout_seconds", 60)
-                    start_time = time.time()
-                    status = "Ready"
-                    while time.time() - start_time < timeout:
-                        state_res = call_unity("get_editor_state")
-                        if state_res and "result" in state_res:
-                            if state_res["result"].get("is_playing") == target_state:
-                                break
-                        time.sleep(1.0)
-                    else:
-                        status = "Timeout"
-                    
-                    unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
-
-                elif name == "wait_for_asset_import_idle":
-                    timeout = args.get("timeout_seconds", 60)
-                    start_time = time.time()
-                    status = "Ready"
-                    while time.time() - start_time < timeout:
-                        res = call_unity("is_asset_import_idle")
-                        if res and "result" in res:
-                            if res["result"].get("is_idle"):
-                                break
-                        time.sleep(1.0)
-                    else:
-                        status = "Timeout"
-                    unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
-
-                elif name == "wait_for_editor_idle":
-                    timeout = args.get("timeout_seconds", 120)
-                    start_time = time.time()
-                    status = "Ready"
-                    while time.time() - start_time < timeout:
-                        res = call_unity("is_editor_idle")
-                        if res and "result" in res:
-                            if res["result"].get("is_idle"):
-                                break
-                        time.sleep(1.0)
-                    else:
-                        status = "Timeout"
-                    unity_res = {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
-
-                else:
-                    unity_res = call_unity(name, args)
+                unity_res = route_tool(name, args)
 
                 if "error" in unity_res:
                     response = {"jsonrpc": "2.0", "id": req_id, "error": unity_res["error"]}
                 else:
-                    response = {
-                        "jsonrpc": "2.0", 
-                        "id": req_id, 
-                        "result": {"content": [{"type": "text", "text": json.dumps(unity_res["result"]) }]}}
+                    result_content = unity_res.get("result", unity_res)
+                    if isinstance(result_content, dict) and "content" in result_content:
+                        response = {"jsonrpc": "2.0", "id": req_id, "result": result_content}
+                    else:
+                        response = {
+                            "jsonrpc": "2.0", 
+                            "id": req_id, 
+                            "result": {"content": [{"type": "text", "text": json.dumps(result_content) }]}}
             elif req_id is not None:
                 response = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Method not found"}}
             else:

@@ -1,128 +1,93 @@
-# Nexus Unity Technical Documentation
+# Technical Documentation - Nexus Unity
 
-Nexus Unity is a Unity Editor automation package built around a local JSON-RPC server. It is intended for trusted local developer workflows and local AI tooling.
+This document provides a comprehensive reference for the `Nexus Unity` library.
 
-## Architecture
+**Requirements**: Unity 6000.0 or newer.
 
-```text
-Local tool or MCP client
-  -> optional Python stdio bridge
-  -> Nexus Unity HTTP JSON-RPC server
-  -> Unity Editor main thread
+## Overview
+
+Nexus Unity is a bridge for deep Unity Editor control. It allows AI agents and external tools to interact with the Unity Editor using the Model Context Protocol (MCP).
+
+## 🔌 Unity MCP Server
+
+The library implements a Model Context Protocol (MCP) server that enables external tools to interact with the Unity Editor via JSON-RPC 2.0.
+
+### Architecture
+- **Server**: Runs on a background thread using `System.Net.HttpListener`.
+- **Self-Healing**: Automatically restarts the server loop if a network crash occurs.
+- **Persistence**: Uses `SessionState` and `[InitializeOnLoad]` to survive Unity domain reloads (compilation) autonomously.
+- **Main Thread Dispatching**: Unity APIs are not thread-safe; all operations are executed on the main thread via a thread-safe queue.
+- **Port**: 8081 (Default). Configurable via Project Settings or CLI.
+
+---
+
+## 🐍 Python Bridge (`nexus_unity_bridge.py`)
+
+The Python bridge is located in the project root. It handles communication between external AI tools (like Gemini, Claude, or Codex) and the Unity Editor.
+
+### 1. MCP Mode (Default)
+When run without arguments, the bridge acts as a persistent JSON-RPC 2.0 translator.
+```bash
+python3 nexus_unity_bridge.py
 ```
 
-The server runs inside the Unity Editor. Network handling happens off the main thread, while Unity API calls are queued back onto the editor main thread.
-
-## Server Lifecycle
-
-- Default port: `8081`.
-- Dynamic port mode is supported by setting the configured port to `0`.
-- Session id and session generation are stored through Unity editor session state.
-- Domain reloads increment the session generation and rebuild the method registry.
-- Health checks such as `get_server_status` run without blocking on the Unity main thread.
-
-The recommended startup path is:
-
-1. Install the package.
-2. Open `Window > Nexus Unity`.
-3. Click `START SERVER`.
-4. Call `get_server_status`.
-5. Call `list_tools` to discover the public tool catalog.
-
-## JSON-RPC Protocol
-
-Requests use JSON-RPC 2.0:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "get_server_status",
-  "params": {},
-  "id": 1
-}
+### 2. CLI Mode
+Execute any Unity tool directly from the command line:
+```bash
+python3 nexus_unity_bridge.py unity_refresh_asset_database
+```
+Parameters can be passed as `key=value` pairs:
+```bash
+python3 nexus_unity_bridge.py unity_read_logs count=10
 ```
 
-Successful responses return a `result`. Failures return a JSON-RPC `error` with a message suitable for diagnostics.
+---
 
-## MCP Bridge
+## 🛠 Consolidated Tool Architecture
 
-`Editor/nexus_unity_bridge.py` adapts MCP stdio clients to the Unity HTTP server.
+To maximize performance for Large Language Models (LLMs), Nexus Unity consolidates granular operations into high-level "Managers".
 
-- Unity HTTP method names are unprefixed.
-- MCP bridge tool names are prefixed with `unity_`.
-- When Unity is online, the bridge reads the live `list_tools` catalog from Unity.
-- When Unity is offline, the bridge returns a static fallback catalog generated from the same public tool list.
+### Scene Management (`unity_scene_manager`)
+Manages scene transitions (create, open, save, list).
+- **Note**: Automatically saves the current scene to `Assets/AutoSavedScene.unity` if it has unsaved changes.
 
-## Threading
+### Hierarchy Management (`unity_hierarchy_manager`)
+Handles GameObject lifecycle: creating primitives, empty objects, destroying, duplicating, and reparenting.
 
-Unity APIs are not thread-safe. Nexus Unity separates work into two paths:
+### Component Management (`unity_component_manager`)
+A powerful tool for adding/removing components and updating properties.
+- **Recursive Unpacking**: `inspect` action returns nested JSON for Arrays, Lists, and Structs.
+- **Fuzzy Naming**: Automatically resolves AI-friendly names (e.g., `sprite`) to internal fields (e.g., `m_Sprite`).
+- **Advanced Referencing**: Supports setting object references via `instance_id`, asset path, or GUID.
 
-- Listener-thread operations for health and wait tools that only read cached editor state.
-- Main-thread operations for scene, asset, editor, and serialized object changes.
+### Wait Controller (`unity_wait`)
+Blocks the agent until Unity reaches a specific state (compilation finished, entered play mode, asset import idle, or editor idle).
 
-Long-running write workflows should prefer batch or sync tools instead of many small calls.
+---
 
-## Security
+## 🔍 Discovery & Analysis
 
-Nexus Unity is a local automation server, not a public network service.
+### Advanced Inspection
+- `unity_find_references`: Find which assets or scene objects reference a specific target.
+- `unity_semantic_find`: Locate objects by intent-based search.
+- `unity_dump_scene_graph`: Generate a recursive tree of the active scene.
 
-- Bind to local loopback only.
-- Reject non-loopback host and origin headers.
-- Limit incoming request payload size.
-- Keep file operations inside the Unity project root.
-- Use Unity Undo for scene and asset operations where practical.
+### UI Toolkit Automation
+Inspect and interact with any Editor Window's VisualElement tree using `unity_ui_get_hierarchy`, `unity_ui_click`, and `unity_ui_input_text`.
 
-Do not expose the server port to untrusted networks.
+---
 
-## Package Layout
+## ⚡ Workflow Optimization
 
-| Path | Purpose |
-|---|---|
-| `Editor/MCPServer.cs` | Server lifecycle, state, and main-thread queue |
-| `Editor/MCPServer.Networking.cs` | HTTP listener and request handling |
-| `Editor/MCPServerMethods*.cs` | JSON-RPC tool implementations |
-| `Editor/MCPServerWindow*.cs` | Unity Editor dashboard |
-| `Editor/nexus_unity_bridge.py` | Python MCP stdio bridge |
-| `Editor/Tests/` | Editor tests |
-| `Runtime/` | Runtime support code |
-| `package.json` | Unity package manifest |
+### `unity_apply_code_change`
+The primary tool for C# development. It performs a "Write -> Wait -> Check" loop in a single turn, ensuring the AI agent receives compiler feedback immediately.
 
-## Packaging Rules
+---
 
-The public package repository should be cut from `Assets/NexusUnity`.
+## ⚙️ Configuration
 
-Do not publish validation project files, local agent configs, Graphify caches, Unity generated folders, or binary bridge artifacts without corresponding source and build instructions.
+### Project Settings
+Go to **Edit > Project Settings > Nexus Unity** to configure the port.
 
-## Troubleshooting
-
-### Server Does Not Start
-
-- Check that another process is not using the configured port.
-- Use port `0` for dynamic port assignment.
-- Open `Window > Nexus Unity` and inspect the displayed server state.
-
-### Requests Timeout
-
-- Call `get_server_status` first.
-- Check `busyReason`, `isCompiling`, `isImporting`, and `mainThreadResponsive`.
-- Wait for `wait_for_editor_idle` before sending write commands.
-
-### File Operations Fail
-
-- Use paths inside the Unity project root.
-- Prefer `Assets/...` project paths for assets.
-- Path traversal and sibling project access are intentionally rejected.
-
-### Tests Do Not Run
-
-- Confirm Unity Test Framework is installed.
-- Use `run_tests` with `mode` set to `EditMode` or `PlayMode`.
-
-## Development Checks
-
-Before release:
-
-- Run Editor tests.
-- Confirm `list_tools`, dispatch registration, and bridge fallback match.
-- Confirm no public docs mention private or future internal products.
-- Confirm no generated cache or binary-only bridge artifact is tracked.
+### Server Control Panel
+Open **Window > Nexus Unity > Server Control Panel** to start or stop the server manually and view logs.

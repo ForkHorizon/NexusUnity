@@ -70,16 +70,13 @@ python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py unity_read_logs count=20
 
 ## Features
 
-- Server health and readiness checks.
-- Scene, hierarchy, component, and prefab automation.
-- Asset database and project file operations constrained to the project root.
-- Console log reading with cursor-based incremental polling.
-- ScriptableObject read, diff, duplicate, create, and update tools.
-- PlayerPrefs utilities.
-- Runtime mouse and touch simulation for Play Mode workflows.
-- UI Toolkit window inspection and interaction helpers.
-- Compact scene snapshots, dependency mapping, and editor timeline tools.
-- NUnit test triggering through Unity's Test Runner API.
+- **Consolidated Tooling:** Unified managers for Scene, Hierarchy, Components, and Wait conditions to reduce token overhead.
+- **Batch Operations:** `unity_apply_code_change` macro for optimized write-compile-verify cycles.
+- **Server Health:** Readiness checks and self-healing server loop.
+- **Discovery:** Semantic search, dependency mapping, and hierarchy snapshots.
+- **Play Mode:** Runtime mouse and touch simulation.
+- **UI Toolkit:** Inspector and Editor Window interaction helpers.
+- **Test Runner:** NUnit test triggering support.
 
 ## Security Model
 
