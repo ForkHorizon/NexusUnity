@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,7 +6,6 @@ namespace UnityMCP.Editor
     public partial class MCPServerWindow : EditorWindow
     {
         private string _cliStatusMessage = "Checking link...";
-        private string _version = "2.6.0";
         private int _selectedTab = 0;
         private GUIContent[] _tabs;
 
@@ -180,26 +177,6 @@ namespace UnityMCP.Editor
             if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the comprehensive API verification test suite window"))) GetWindow<MCPVerificationWindow>().Show();
             if (GUILayout.Button(new GUIContent("Verify UI", "Run automated UI toolkit interaction tests"))) UIVerification.Verify();
             if (GUILayout.Button(new GUIContent("Verify Logs", "Run automated log capture and parsing tests"))) LogVerification.Verify();
-        }
-
-        private void LoadVersion()
-        {
-            try {
-                var script = MonoScript.FromScriptableObject(this);
-                string path = AssetDatabase.GetAssetPath(script);
-                string dir = Path.GetDirectoryName(path);
-                while (!string.IsNullOrEmpty(dir)) {
-                    string pkgPath = Path.Combine(dir, "package.json");
-                    if (File.Exists(pkgPath)) {
-                        string json = File.ReadAllText(pkgPath);
-                        var data = Newtonsoft.Json.Linq.JObject.Parse(json);
-                        _version = data["version"]?.ToString() ?? "0.0.0";
-                        titleContent = new GUIContent($"Nexus Unity v{_version}");
-                        return;
-                    }
-                    dir = Path.GetDirectoryName(dir);
-                }
-            } catch { _version = "unknown"; }
         }
 
         private void CheckCliLinkStatus() { _cliStatusMessage = "Ready to Link"; }

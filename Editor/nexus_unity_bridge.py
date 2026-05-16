@@ -19,105 +19,894 @@ PARENT_PID = os.getppid()
 # These are always returned to the AI CLI (Gemini, Codex, etc.) even if Unity is offline.
 # Descriptions are optimized for LLM context windows.
 STATIC_TOOLS = [
-    # Scene Management
-    {"name": "unity_create_scene", "description": "Create a new Unity scene", "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}}}},
-    {"name": "unity_open_scene", "description": "Open an existing scene file", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_save_scene", "description": "Save the active scene", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}}},
-    {"name": "unity_list_scenes", "description": "List all scene assets in the project", "inputSchema": {"type": "object", "properties": {}}},
-
-    # Hierarchy & GameObject Lifecycle
-    {"name": "unity_create_game_object", "description": "Create an empty GameObject", "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "parent_id": {"type": "integer"}}, "required": ["name"]}},
-    {"name": "unity_create_primitive", "description": "Create a primitive (Cube, Sphere, Capsule, Cylinder, Plane, Quad)", "inputSchema": {"type": "object", "properties": {"primitive_type": {"type": "string", "enum": ["Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad"]}}, "required": ["primitive_type"]}},
-    {"name": "unity_destroy_game_object", "description": "Delete a GameObject", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_duplicate_object", "description": "Copy a GameObject", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_set_active", "description": "Enable/Disable a GameObject", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "active": {"type": "boolean"}}, "required": ["instance_id", "active"]}},
-    {"name": "unity_set_parent", "description": "Parent an object", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "parent_id": {"type": "integer"}}, "required": ["instance_id", "parent_id"]}},
-    {"name": "unity_set_sibling_index", "description": "Reorder in hierarchy", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "index": {"type": "string", "description": "int or 'first' or 'last'"}}, "required": ["instance_id", "index"]}},
-    {"name": "unity_create_hierarchy", "description": "Batch create full hierarchy", "inputSchema": {"type": "object", "properties": {"tree": {"type": "object"}, "parent_id": {"type": "integer"}}, "required": ["tree"]}},
-
-    # Components & Properties
-    {"name": "unity_add_component", "description": "Add a component to a GameObject", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["instance_id", "component_name"]}},
-    {"name": "unity_remove_component", "description": "Remove a component from a GameObject", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["instance_id", "component_name"]}},
-    {"name": "unity_inspect_component", "description": "Get all properties of a component", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["instance_id", "component_name"]}},
-    {"name": "unity_get_component_schema", "description": "Get property types", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["instance_id", "component_name"]}},
-    {"name": "unity_update_component", "description": "Update component properties (supports fuzzy naming and raw arrays)", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "properties": {"type": "object"}}, "required": ["instance_id", "component_name"]}},
-    {"name": "unity_set_transform", "description": "Update position/rotation/scale", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "position": {"type": "object", "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "z": {"type": "number"}}}}}},
-    {"name": "unity_set_property", "description": "Surgical field edit (m_Enabled, m_Name, etc)", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "property_name": {"type": "string"}, "value": {"type": "string"}}, "required": ["instance_id", "property_name", "value"]}},
-    {"name": "unity_set_enabled", "description": "Enable/Disable a component", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["instance_id", "component_name", "enabled"]}},
-    {"name": "unity_invoke_method", "description": "Invoke a C# method on a component", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "method_name": {"type": "string"}, "arguments": {"type": "array"}}, "required": ["instance_id", "method_name"]}},
-
-    # Assets & Files
-    {"name": "unity_list_assets", "description": "Search for assets", "inputSchema": {"type": "object", "properties": {"filter": {"type": "string"}}}},
-    {"name": "unity_explore_asset", "description": "List all internal sub-assets (e.g., sliced sprites) and their fileIDs within a single file", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_create_material", "description": "Create a material", "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "shader": {"type": "string"}}, "required": ["name"]}},
-    {"name": "unity_refresh_asset_database", "description": "Force Unity to scan for changed files", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_import_asset", "description": "Import a file into the project", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_instantiate_prefab", "description": "Create an instance of a prefab", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_create_prefab", "description": "Save an object as a prefab", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "path": {"type": "string"}}, "required": ["instance_id", "path"]}},
-    {"name": "unity_apply_prefab_overrides", "description": "Apply scene changes back to prefab asset", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_revert_prefab_overrides", "description": "Revert scene changes to prefab asset", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_move_asset", "description": "Move/Rename an asset", "inputSchema": {"type": "object", "properties": {"old_path": {"type": "string"}, "new_path": {"type": "string"}}, "required": ["old_path", "new_path"]}},
-    {"name": "unity_delete_asset", "description": "Delete an asset", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_copy_asset", "description": "Duplicate an asset", "inputSchema": {"type": "object", "properties": {"source_path": {"type": "string"}, "dest_path": {"type": "string"}}, "required": ["source_path", "dest_path"]}},
-    {"name": "unity_get_dependencies", "description": "Get file dependencies", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_create_folder", "description": "Create a directory in the project", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_read_file", "description": "Read text content from a project file", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_write_file", "description": "Write text content to a project file", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}},
-    {"name": "unity_write_files_batch", "description": "Write multiple files in a single pass (saves context).", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},
-
-    # Editor State & Control
-    {"name": "unity_undo", "description": "Perform Unity Undo", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_redo", "description": "Perform Unity Redo", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_toggle_play_mode", "description": "Start or stop Play Mode", "inputSchema": {"type": "object", "properties": {"value": {"type": "boolean"}}}},
-    {"name": "unity_pause_play_mode", "description": "Pause or unpause Play Mode", "inputSchema": {"type": "object", "properties": {"value": {"type": "boolean"}}}},
-    {"name": "unity_step_frame", "description": "Advance one frame in Play Mode", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_execute_menu_item", "description": "Execute any Unity menu command", "inputSchema": {"type": "object", "properties": {"item_path": {"type": "string"}}, "required": ["item_path"]}},
-    {"name": "unity_focus_scene_view", "description": "Frame the current selection", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_read_logs", "description": "Get current Console logs", "inputSchema": {"type": "object", "properties": {"count": {"type": "integer"}}}},
-    {"name": "unity_clear_logs", "description": "Clear the Console", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_attach_script", "description": "Create a C# script and link it", "inputSchema": {"type": "object", "properties": {"script_name": {"type": "string"}, "script_content": {"type": "string"}}, "required": ["script_name"]}},
-    {"name": "unity_run_tests", "description": "Run NUnit tests (EditMode or PlayMode)", "inputSchema": {"type": "object", "properties": {"filter": {"type": "string"}, "mode": {"type": "string", "enum": ["EditMode", "PlayMode"]}}}},
-    {"name": "unity_shutdown_server", "description": "Safely stop the MCP server for this instance", "inputSchema": {"type": "object", "properties": {}}},
-
-    # Discovery & Search
-    {"name": "unity_get_game_object", "description": "Get basic metadata for an ID", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_get_active_game_object", "description": "Get currently selected object", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_get_root_game_objects", "description": "Get top-level scene objects", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_get_object_path", "description": "Get hierarchy breadcrumb", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_find_objects", "description": "Deep regex/tag search for objects", "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}, "tag": {"type": "string"}, "type": {"type": "string"}}}},
-    {"name": "unity_find_by_path", "description": "Find an object by its hierarchy path", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}},
-    {"name": "unity_find_references", "description": "Find which assets or scene GameObjects reference a specific object", "inputSchema": {"type": "object", "properties": {"target_id": {"type": "integer"}, "target_guid": {"type": "string"}}}},
-    {"name": "unity_get_tags_and_layers", "description": "List all project tags/layers", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_ping_object", "description": "Highlight object in Editor", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_get_children", "description": "Get direct child objects", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-    {"name": "unity_get_editor_state", "description": "Get Play/Paused/Compiling state", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_get_project_info", "description": "Get project metadata", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_set_selection", "description": "Select objects in Editor", "inputSchema": {"type": "object", "properties": {"instance_ids": {"type": "array", "items": {"type": "integer"}}}, "required": ["instance_ids"]}},
-    {"name": "unity_enforce_forced_defaults", "description": "Apply [ForceDefault] attribute values", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}, "required": ["instance_id"]}},
-
-    # UI Toolkit & Debugging
-    {"name": "unity_ui_list_windows", "description": "List open Editor windows", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_ui_get_hierarchy", "description": "Inspect window UI tree", "inputSchema": {"type": "object", "properties": {"window_title": {"type": "string"}}, "required": ["window_title"]}},
-    {"name": "unity_ui_query_elements", "description": "Deep query UI elements by text, name, or class", "inputSchema": {"type": "object", "properties": {"window_title": {"type": "string"}, "name": {"type": "string"}, "text": {"type": "string"}, "class_name": {"type": "string"}}, "required": ["window_title"]}},
-    {"name": "unity_ui_click", "description": "Click a UI element", "inputSchema": {"type": "object", "properties": {"window_title": {"type": "string"}, "element_name": {"type": "string"}}, "required": ["window_title", "element_name"]}},
-    {"name": "unity_ui_input_text", "description": "Input text into UI element", "inputSchema": {"type": "object", "properties": {"window_title": {"type": "string"}, "element_name": {"type": "string"}, "text": {"type": "string"}}, "required": ["window_title", "element_name", "text"]}},
-    {"name": "unity_lint_project", "description": "Run Roslyn-based C# audit", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_capture_inspector_screenshot", "description": "Capture PNG of Inspector (macOS only)", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}}}},
-    {"name": "unity_capture_game_view_screenshot", "description": "Capture PNG of Game View", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_generate_mermaid_diagram", "description": "Generate Mermaid diagram of scene", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_semantic_find", "description": "Find objects by semantic meaning", "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
-    {"name": "unity_dump_scene_graph", "description": "Dump a recursive tree of the active scene with components and key fields", "inputSchema": {"type": "object", "properties": {"root_id": {"type": "integer"}, "max_depth": {"type": "integer"}, "include_all_properties": {"type": "boolean"}}}},
-    {"name": "unity_get_scene_dependencies", "description": "Scans the scene for cross-object references and returns a dependency map", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_get_editor_timeline", "description": "Returns a list of recent Editor actions (imports, scene changes, play mode transitions)", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_get_selected_object_full_context", "description": "Returns a massive, context-rich JSON payload for the currently selected GameObject", "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "unity_show_unresolved_missing_references", "description": "Scans the active scene for 'Missing Script' components or broken ObjectReferences", "inputSchema": {"type": "object", "properties": {}}},
-
-    # Autonomous Macros (AI Efficiency)
-    {"name": "unity_apply_code_change", "description": "Macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use this instead of individual write+refresh+wait steps.", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},
-    {"name": "unity_wait_for_compilation", "description": "Blocks until Unity finishes compiling and reloading the domain. Crucial after creating scripts.", "inputSchema": {"type": "object", "properties": {"timeout_seconds": {"type": "integer", "description": "Max seconds to wait (default 60)"}}}},
-    {"name": "unity_wait_for_play_mode", "description": "Blocks until Unity reaches the desired play mode state.", "inputSchema": {"type": "object", "properties": {"state": {"type": "boolean", "description": "True to wait for play mode, false to wait for edit mode"}, "timeout_seconds": {"type": "integer", "description": "Max seconds to wait (default 30)"}}, "required": ["state"]}},
-    {"name": "unity_wait_for_asset_import_idle", "description": "Wait until Unity is done importing assets", "inputSchema": {"type": "object", "properties": {"timeout_seconds": {"type": "integer"}}}},
-    {"name": "unity_wait_for_editor_idle", "description": "Wait until the editor is fully idle (not compiling, not importing, no background tasks)", "inputSchema": {"type": "object", "properties": {"timeout_seconds": {"type": "integer"}}}}
+    {
+        "name": "unity_add_component",
+        "description": "Add component",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_apply_prefab_overrides",
+        "description": "Apply changes to prefab asset",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_attach_existing_session",
+        "description": "Attach to an existing healthy session",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_attach_script",
+        "description": "Create & Link C#",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_batch_execute",
+        "description": "Execute multiple JSON-RPC calls in a single HTTP request",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_capture_game_view_screenshot",
+        "description": "Capture PNG of Game View",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_capture_inspector_screenshot",
+        "description": "Capture PNG of Inspector (macOS only)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_clear_logs",
+        "description": "Clear Console",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_click_object_in_game",
+        "description": "Click a GameObject in the Game View",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_close_prefab_stage",
+        "description": "Exit prefab isolation mode",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_compact_scene_snapshot",
+        "description": "Get a highly compressed hierarchy (name/id/component list only) for fast full-scene overview",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_component_values",
+        "description": "Surgically read specific component fields as a clean key-value object",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_copy_asset",
+        "description": "Duplicate file",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_folder",
+        "description": "Create directory",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_game_object",
+        "description": "Create empty GameObject",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_hierarchy",
+        "description": "Batch create full hierarchy",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_material",
+        "description": "Create material",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_prefab",
+        "description": "Save as Prefab",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_primitive",
+        "description": "Create primitive (Cube, Sphere...)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_scene",
+        "description": "Create new scene",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_create_scriptable_object_asset",
+        "description": "Create new ScriptableObject asset",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_delete_asset",
+        "description": "Delete file",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_delete_player_pref",
+        "description": "Delete PlayerPref key or 'all'",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_destroy_game_object",
+        "description": "Delete GameObject",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_diff_scriptable_object_against_defaults",
+        "description": "Compare an asset against its default state",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_diff_scriptable_objects",
+        "description": "Compare two ScriptableObject assets",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_dump_scene_graph",
+        "description": "Dump a recursive tree of the active scene with components and key fields",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_duplicate_object",
+        "description": "Copy GameObject",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_duplicate_scriptable_object_asset",
+        "description": "Duplicate ScriptableObject asset",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_edit_prefab_asset",
+        "description": "Directly modify a prefab asset on disk without instantiating it",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_enforce_forced_defaults",
+        "description": "Enforce [ForceDefault] attributes",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_execute_menu_item",
+        "description": "Execute Menu",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_explore_asset",
+        "description": "List all internal sub-assets (e.g., sliced sprites) and their fileIDs within a single file.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_find_by_path",
+        "description": "Search by exact path",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_find_objects",
+        "description": "Deep search",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_find_references",
+        "description": "Find scene and asset references to a target object or GUID",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_focus_scene_view",
+        "description": "Frame selection",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_generate_mermaid_diagram",
+        "description": "Generate Mermaid diagram of scene",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_active_game_object",
+        "description": "Get current selection",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_children",
+        "description": "Get direct children",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_component_schema",
+        "description": "Get serializable fields names/types",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_dependencies",
+        "description": "Get file deps",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_editor_state",
+        "description": "Get Play/Paused/Compiling",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_editor_timeline",
+        "description": "Returns a list of recent Editor actions (imports, scene changes, play mode transitions)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_game_object",
+        "description": "Get object data",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_object_path",
+        "description": "Get hierarchy breadcrumb",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_player_pref",
+        "description": "Get PlayerPref value",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_prefab_overrides",
+        "description": "Get list of property and component modifications on a prefab instance",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_project_info",
+        "description": "Get Project metadata",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_root_game_objects",
+        "description": "Get top-level objects",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_scene_dependencies",
+        "description": "Scans the scene for cross-object references and returns a dependency map",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_selected_object_full_context",
+        "description": "Returns a massive, context-rich JSON payload for the currently selected GameObject (including all serialized components, prefab status, and hierarchy path)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_server_status",
+        "description": "Get explicit health and state of the MCP server and Unity editor",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_get_tags_and_layers",
+        "description": "Get Tags/Layers list",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_import_asset",
+        "description": "Import file",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_inspect_component",
+        "description": "Get properties and values",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_inspect_object",
+        "description": "Universal inspector for ANY Unity object (Material, Texture, Mesh, ScriptableObject, etc.)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_instantiate_prefab",
+        "description": "Create from Prefab",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_invoke_method",
+        "description": "Invoke a C# method on a component",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_lint_project",
+        "description": "Run deterministic C# audit",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_list_assets",
+        "description": "List assets",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_list_fields_for_type",
+        "description": "List serializable fields for a type",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_list_player_prefs",
+        "description": "List all PlayerPref keys and values",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_list_scenes",
+        "description": "List all scene files",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_move_asset",
+        "description": "Move/Rename",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_open_prefab_stage",
+        "description": "Open prefab asset in isolation mode",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_open_scene",
+        "description": "Open scene file",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_patch_scriptable_object",
+        "description": "Surgically update ScriptableObject fields (alias for update_scriptable_object)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_pause_play_mode",
+        "description": "Pause/Unpause",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ping_main_thread",
+        "description": "Explicit liveness check for Unity API execution on main thread",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ping_object",
+        "description": "Ping in Editor",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_read_file",
+        "description": "Read text content",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_read_logs",
+        "description": "Get Console logs with optional noise reduction",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_read_logs_since_cursor",
+        "description": "Read only new logs since last poll with optional noise reduction",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_read_scriptable_object",
+        "description": "Read ScriptableObject properties",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_redo",
+        "description": "Unity Redo",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_refresh_asset_database",
+        "description": "Refresh Assets",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_remove_component",
+        "description": "Remove component",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_revert_prefab_overrides",
+        "description": "Revert scene changes to prefab defaults",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_run_tests",
+        "description": "Run NUnit tests in the editor",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_save_scene",
+        "description": "Save active scene",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_scene_delta",
+        "description": "Returns a list of scene changes (created, destroyed, reparented, property changes) since a specific generation",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_semantic_find",
+        "description": "Find objects by semantic meaning",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_active",
+        "description": "Enable/Disable GameObject",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_enabled",
+        "description": "Enable/Disable Component",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_parent",
+        "description": "Parent an object",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_player_pref",
+        "description": "Set PlayerPref value",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_property",
+        "description": "Surgical field edit",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_selection",
+        "description": "Select objects",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_sibling_index",
+        "description": "Reorder in hierarchy",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_set_transform",
+        "description": "Move/Rotate",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_show_unresolved_missing_references",
+        "description": "Scans the active scene for 'Missing Script' components or broken ObjectReferences",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_shutdown_server",
+        "description": "Safely stop the MCP server for this Unity instance",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_simulate_mouse",
+        "description": "Simulate mouse input in Play Mode",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_simulate_touch",
+        "description": "Simulate touch input in Play Mode",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_step_frame",
+        "description": "Advance frame",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_symbol_index",
+        "description": "Index and search all compiled symbols (Classes, Methods, Fields)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_toggle_play_mode",
+        "description": "Start/Stop",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ui_click",
+        "description": "Simulate UI Click",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ui_get_hierarchy",
+        "description": "Inspect Window UI",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ui_input_text",
+        "description": "Type into UI field",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ui_list_windows",
+        "description": "List Editor Windows",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_ui_query_elements",
+        "description": "Find UI Toolkit elements by text, name, or USS class",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_undo",
+        "description": "Unity Undo",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_update_component",
+        "description": "Update component with detailed result",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_update_scriptable_object",
+        "description": "Update ScriptableObject properties",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_wait_for_asset_import_idle",
+        "description": "Wait until Unity is done importing assets",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_wait_for_editor_idle",
+        "description": "Wait until the editor is fully idle (not compiling, not importing, no background tasks)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_wait_for_ready",
+        "description": "Wait until server is responsive",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_write_file",
+        "description": "Write text content",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "unity_write_files_batch",
+        "description": "Write multiple files in a single pass",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
+    }
 ]
 
 def log(msg):
@@ -134,6 +923,22 @@ def call_unity(method, params=None):
             return json.loads(f.read().decode('utf-8'))
     except Exception as e:
         return {"error": {"code": -32000, "message": f"Unity Server unreachable. Ensure 'Window > Nexus Unity' is open and 'START SERVER' is clicked. Error: {str(e)}"}}
+
+def prefixed_unity_tools():
+    """Return the live Unity tool catalog with the MCP bridge unity_ prefix."""
+    res = call_unity("list_tools")
+    if not res or "error" in res or "result" not in res:
+        return None
+
+    tools = []
+    for tool in res["result"]:
+        if not isinstance(tool, dict) or "name" not in tool:
+            continue
+        copied = dict(tool)
+        name = copied["name"]
+        copied["name"] = name if name.startswith("unity_") else f"unity_{name}"
+        tools.append(copied)
+    return tools
 
 def orphan_monitor():
     """Monitor if the parent process (AI CLI) is still alive."""
@@ -202,19 +1007,20 @@ def main():
                         "resources": {}, 
                         "prompts": {}
                     }, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.6.0"}                }
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "3.1.2"}                }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method == "notifications/initialized":
                 continue 
             elif method in ["tools/list", "listTools", "list_tools"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
+                tools = prefixed_unity_tools() or STATIC_TOOLS
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": tools}}
             elif method in ["resources/list", "listResources", "list_resources"]:
                 resources = [
                     {
                         "uri": "unity://docs/api-reference",
                         "name": "Nexus Unity API Reference",
                         "mimeType": "text/markdown",
-                        "description": "Full reference for all 60+ tools."
+                        "description": "Reference for the public Nexus Unity tool surface."
                     },
                     {
                         "uri": "unity://docs/setup",
@@ -239,7 +1045,7 @@ def main():
                     search_paths = [
                         filename,
                         f"Assets/NexusUnity/{filename}",
-                        f"Packages/com.custom.unity.mcp/{filename}"
+                        f"Packages/com.forkhorizon.nexus.unity/{filename}"
                     ]
                     for p in search_paths:
                         if os.path.exists(p):

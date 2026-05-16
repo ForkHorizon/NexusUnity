@@ -103,7 +103,7 @@ namespace UnityMCP.Editor
                                             // Ignore general project noise (outdated packages, etc.) in the sandbox
                                             if (isSandbox) 
                                             {
-                                                if (string.IsNullOrEmpty(filePath) || (!filePath.Contains("com.custom.unity.mcp") && !filePath.Contains("Assets/NexusUnity")))
+                                                if (string.IsNullOrEmpty(filePath) || (!filePath.Contains("com.forkhorizon.nexus.unity") && !filePath.Contains("Assets/NexusUnity")))
                                                 {
                                                     continue;
                                                 }

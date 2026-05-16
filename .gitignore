@@ -98,6 +98,24 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 .DS_Store
+__pycache__/
+*.py[cod]
 repro3/
 repro_test/
 repro/
+
+# Local agent and analysis artifacts
+.agents/
+.codex/
+.soma/
+graphify-out/
+graphify-out/cache/
+graphify-out/*.meta
+graphify-out/cache.meta
+graphify-out/cost.json
+graphify-out/manifest.json
+graphify-out/.graphify_*
+
+# Validation-project-only generated output
+LINT_REPORT.txt
+*.tmp

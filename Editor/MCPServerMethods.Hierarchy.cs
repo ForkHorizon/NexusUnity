@@ -17,6 +17,7 @@ namespace UnityMCP.Editor
             _methods["duplicate_object"] = DuplicateObject;
             _methods["get_children"] = GetChildren;
             _methods["set_active"] = SetActive;
+            _methods["set_enabled"] = SetEnabled;
             _methods["set_sibling_index"] = SetSiblingIndex;
             _methods["create_hierarchy"] = CreateHierarchy;
             _methods["remove_component"] = RemoveComponent;

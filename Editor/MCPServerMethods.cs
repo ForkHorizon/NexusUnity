@@ -103,7 +103,7 @@ namespace UnityMCP.Editor
             if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
             
             // Fast-path for health checks (execute on current thread, usually listener thread)
-            if (method == "get_server_status" || method == "attach_existing_session") {
+            if (method == "get_server_status" || method == "attach_existing_session" || method == "wait_for_asset_import_idle" || method == "wait_for_editor_idle") {
                 try {
                     JToken result = ExecuteMethod(method, request["params"]);
                     return CreateJsonResponse(id, result, null);

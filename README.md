@@ -1,67 +1,37 @@
 # Nexus Unity
 
-Nexus Unity is a Unity Editor automation library that provides a built-in JSON-RPC/MCP server for AI tools and local workflows.
+Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes editor, scene, asset, log, test, and inspection tools to local developer workflows.
 
-**Requirements**: Unity 6000.0 or newer.
+Package id: `com.forkhorizon.nexus.unity`
 
-## Role In NexusSoma
+License: GPLv3
 
-Nexus Unity is the low-level Unity control layer. In the current NexusSoma architecture, Big AI clients should normally connect to **Soma**, not directly to Nexus Unity.
+## Requirements
+
+- Unity `6000.0` or newer.
+- Local machine access to the Unity Editor.
+- Python 3 for the optional MCP stdio bridge.
+
+## Install
+
+Use Unity Package Manager and add the package from a Git URL:
 
 ```text
-Big AI client
-  -> Soma MCP gateway
-  -> Nexus Unity HTTP JSON-RPC server
-  -> Unity Editor
+https://github.com/<owner>/<repo>.git
 ```
 
-Nexus remains powerful and fully available, but Soma hides the large raw `unity_*` tool catalog behind compact `soma_*` tools. This reduces token cost and prevents exploratory Unity tool spam.
+When using the validation project in this repository, the package source is under:
 
-Direct Nexus MCP/CLI linking is still supported for:
+```text
+Assets/NexusUnity
+```
 
-- low-level Nexus library development
-- direct diagnostics
-- bridge testing
-- cases where the user explicitly wants raw Unity tools
+The public package repository should be cut from that folder, not from the full validation project.
 
-For normal Big AI work, use Soma first.
+## Start The Server
 
-## Features
-
-- **Autonomous Background Workflow**: Native macOS App Nap bypass and focus synchronization for script compilation workflows.
-- **Robust Port Management**: Process owner detection and dynamic port support.
-- **Explicit Server Health Monitoring**: Tracks compiling/importing/play mode/main-thread responsiveness.
-- **Persistent Session Management**: Session IDs and generation counters survive domain reloads.
-- **Hybrid Deep Auditor**: Static code analysis plus Nexus-native scene health scanning.
-- **Unity 6 Compatibility**: Uses modern Unity 6000 APIs for instance/object resolution.
-- **Intuitive Component Updates**: Native JSON payloads and fuzzy property naming.
-- **ScriptableObject Diff & Balancing**: Compare and patch data assets.
-- **Prefab Editing Helpers**: Edit prefab assets and inspect overrides.
-- **Strong Serialized Object Inspection**: Deep arrays/lists/managed reference serialization.
-- **Runtime Gameplay Input Tools**: Mouse/touch simulation for Game View workflows.
-- **Enhanced Log Consumption**: Cursor-based log retrieval and Play Mode runtime capture.
-- **PlayerPrefs Tools**: Native get/set/delete/list operations.
-- **Asset Pipeline Sync**: Wait for imports, compilation, and editor idle states.
-- **UI Toolkit Automation**: Inspect/click/type in Unity Editor windows.
-- **High-Value Composition Tools**: Batch execute, compact scene snapshot, scene delta, symbol index, component values, and apply-code macro.
-
-## Internal Structure
-
-| Path | Purpose |
-|---|---|
-| `Editor/MCPServer.cs` | Core server lifecycle and dispatch |
-| `Editor/MCPServerMethods*.cs` | Tool implementations split by feature |
-| `Editor/MCPServerWindow*.cs` | Unity dashboard UI |
-| `Editor/MCPSettings.cs` | Project settings |
-| `Editor/nexus_unity_bridge.py` | Python stdio bridge for direct Nexus workflows |
-| `Editor/nexus_unity_bridge_mojo` | High-performance bridge binary |
-| `Editor/Tests/` | Editor tests |
-| `Runtime/` | Runtime package files |
-
-## Starting The Server
-
-1. Open a Unity project containing Nexus Unity.
-2. Go to `Window > Nexus Unity`.
+1. Open a Unity project with Nexus Unity installed.
+2. Open `Window > Nexus Unity`.
 3. Click `START SERVER`.
 4. Confirm the server is listening, usually on:
 
@@ -69,60 +39,65 @@ For normal Big AI work, use Soma first.
    http://localhost:8081/
    ```
 
-5. For Soma workflows, return to Soma and refresh the selected project status.
+The server only binds to local loopback access. Use it for local editor automation, diagnostics, and trusted local AI tooling.
 
-## Recommended Soma Workflow
+## Direct JSON-RPC
 
-1. Open Soma.
-2. Select the Unity project root.
-3. Start or refresh the Soma MCP gateway.
-4. Install or copy client config that points Big AI to Soma.
-5. Start the Nexus Unity server in Unity.
-6. Run Soma live verification.
-7. Let Big AI use `soma_scene`, `soma_inspect`, `soma_apply`, and `soma_delta` through Soma.
-
-Big AI should not call raw `unity_*` tools in this workflow.
-
-## Direct Nexus Workflow
-
-Direct JSON-RPC remains available:
-
-```text
-http://localhost:8081/
-```
-
-Direct bridge execution:
+Nexus Unity accepts JSON-RPC 2.0 requests over HTTP:
 
 ```bash
-python3 nexus_unity_bridge.py
+curl -s http://127.0.0.1:8081/ \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"get_server_status","params":{},"id":1}'
 ```
 
-Direct command execution:
+Tool names are unprefixed at the HTTP JSON-RPC layer, for example `get_server_status`, `list_tools`, and `read_logs`.
+
+## Python MCP Bridge
+
+The package includes a Python stdio bridge for MCP clients:
 
 ```bash
-python3 nexus_unity_bridge.py unity_get_server_status
-python3 nexus_unity_bridge.py unity_read_logs count=20
+python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py
 ```
 
-Use direct Nexus only when you intentionally need raw Unity tools.
+The bridge exposes the same public tools as Unity `list_tools`, with a `unity_` prefix for MCP clients. For direct one-off calls:
+
+```bash
+python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py unity_get_server_status
+python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py unity_read_logs count=20
+```
+
+## Features
+
+- Server health and readiness checks.
+- Scene, hierarchy, component, and prefab automation.
+- Asset database and project file operations constrained to the project root.
+- Console log reading with cursor-based incremental polling.
+- ScriptableObject read, diff, duplicate, create, and update tools.
+- PlayerPrefs utilities.
+- Runtime mouse and touch simulation for Play Mode workflows.
+- UI Toolkit window inspection and interaction helpers.
+- Compact scene snapshots, dependency mapping, and editor timeline tools.
+- NUnit test triggering through Unity's Test Runner API.
+
+## Security Model
+
+- Requests are limited to local loopback hosts.
+- Origin and host checks protect against browser-origin attacks.
+- File operations are constrained to the Unity project root.
+- Payload size is capped to reduce memory exhaustion risk.
+- Unity API work is dispatched onto the main thread where required.
 
 ## Documentation
 
 | Document | Purpose |
 |---|---|
-| `DOCUMENTATION.MD` | Technical guide and architecture |
-| `API_REFERENCE.MD` | Raw `unity_*` tool reference |
+| `DOCUMENTATION.MD` | Technical guide, architecture, setup, and troubleshooting |
+| `API_REFERENCE.MD` | Public tool catalog |
 | `CHANGELOG.md` | Version history |
-| Root `NEXUS_UNITY_DOCS.md` | AI-facing project context copy |
+| `LICENSE.md` | GPLv3 license notice |
 
-## Safety Notes
+## Release Notes
 
-- Unity APIs must run on the Unity main thread; Nexus dispatches tool work accordingly.
-- File operations are project-root constrained.
-- Use `apply_code_change`/Soma `soma_apply` for compile-safe write loops.
-- Prefer compact snapshots and filtered component values over full dumps.
-- In NexusSoma workflows, prefer Soma's compact packet and narrow tool calls before raw Nexus commands.
-
-## License
-
-Refer to the main project license for details.
+The first public release ships the Python bridge as the supported MCP bridge. Previous experimental Mojo bridge artifacts are not included in the open source package.

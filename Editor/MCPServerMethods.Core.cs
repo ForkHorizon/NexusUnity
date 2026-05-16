@@ -19,7 +19,6 @@ namespace UnityMCP.Editor
             _methods["read_logs"] = ReadLogs;
             _methods["read_logs_since_cursor"] = ReadLogsSinceCursor;
             _methods["clear_logs"] = ClearLogs;
-            _methods["test_coroutine"] = TestCoroutine;
             _methods["list_tools"] = ListTools;
             _methods["wait_for_ready"] = WaitForReady;
             _methods["create_primitive"] = CreatePrimitive;
@@ -264,6 +263,7 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_server_status", "Get explicit health and state of the MCP server and Unity editor", new JObject { }));
             tools.Add(CreateTool("attach_existing_session", "Attach to an existing healthy session", new JObject { }));
             tools.Add(CreateTool("ping_main_thread", "Explicit liveness check for Unity API execution on main thread", new JObject { }));
+            tools.Add(CreateTool("shutdown_server", "Safely stop the MCP server for this Unity instance", new JObject { }));
             tools.Add(CreateTool("batch_execute", "Execute multiple JSON-RPC calls in a single HTTP request", new JObject 
             { 
                 ["requests"] = new JObject 
@@ -477,6 +477,11 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_object_path", "Get hierarchy breadcrumb", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
             tools.Add(CreateTool("find_objects", "Deep search", GetSearchSchema()));
             tools.Add(CreateTool("find_by_path", "Search by exact path", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
+            tools.Add(CreateTool("find_references", "Find scene and asset references to a target object or GUID", new JObject
+            {
+                ["target_id"] = new JObject { ["type"] = "integer", ["description"] = "Optional scene instance/entity id" },
+                ["target_guid"] = new JObject { ["type"] = "string", ["description"] = "Optional asset GUID" }
+            }));
             tools.Add(CreateTool("get_tags_and_layers", "Get Tags/Layers list", new JObject { }));
             tools.Add(CreateTool("ping_object", "Ping in Editor", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
             tools.Add(CreateTool("get_children", "Get direct children", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
@@ -489,6 +494,13 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("ui_list_windows", "List Editor Windows", new JObject { }));
             tools.Add(CreateTool("ui_get_hierarchy", "Inspect Window UI", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
+            tools.Add(CreateTool("ui_query_elements", "Find UI Toolkit elements by text, name, or USS class", new JObject
+            {
+                ["window_title"] = new JObject { ["type"] = "string" },
+                ["name"] = new JObject { ["type"] = "string" },
+                ["text"] = new JObject { ["type"] = "string" },
+                ["class_name"] = new JObject { ["type"] = "string" }
+            }, "window_title"));
             tools.Add(CreateTool("ui_click", "Simulate UI Click", new JObject { ["window_title"] = new JObject { ["type"] = "string" }, ["element_name"] = new JObject { ["type"] = "string" } }, "window_title", "element_name"));
             tools.Add(CreateTool("ui_input_text", "Type into UI field", new JObject { ["window_title"] = new JObject { ["type"] = "string" }, ["element_name"] = new JObject { ["type"] = "string" }, ["text"] = new JObject { ["type"] = "string" } }, "window_title", "element_name", "text"));
         }

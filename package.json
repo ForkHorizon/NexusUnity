@@ -1,9 +1,10 @@
 {
-  "name": "com.custom.unity.mcp",
+  "name": "com.forkhorizon.nexus.unity",
   "version": "3.1.2",
   "displayName": "Nexus Unity",
-  "description": "A Model Context Protocol server for Unity Editor to allow LLMs to interact with the Editor.",
+  "description": "Open source Unity Editor automation server for local AI tools and developer workflows.",
   "unity": "6000.0",
+  "license": "GPL-3.0-only",
   "keywords": [
     "mcp",
     "ai",
@@ -11,8 +12,7 @@
     "tools"
   ],
   "author": {
-    "name": "Daliys",
-    "email": "Daliys133@gmail.com"
+    "name": "Fork Horizon"
   },
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "2.0.0",
