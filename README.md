@@ -10,23 +10,18 @@ License: GPLv3
 
 - Unity `6000.0` or newer.
 - Local machine access to the Unity Editor.
-- Python 3 for the optional MCP stdio bridge.
+- **Python 3** (required if you want to use AI agents like Claude Code or Cursor).
 
 ## Install
 
-Use Unity Package Manager and add the package from a Git URL:
-
-```text
-https://github.com/<owner>/<repo>.git
-```
-
-When using the validation project in this repository, the package source is under:
-
-```text
-Assets/NexusUnity
-```
-
-The public package repository should be cut from that folder, not from the full validation project.
+1. Open your Unity project.
+2. Go to `Window > Package Manager`.
+3. Click the `+` icon in the top left and select **"Add package from git URL..."**.
+4. Enter the repository URL:
+   ```text
+   https://github.com/<owner>/<repo>.git
+   ```
+   *(Note: The actual package code resides in `Assets/NexusUnity` if you are browsing this repository locally).*
 
 ## Start The Server
 
@@ -53,20 +48,42 @@ curl -s http://127.0.0.1:8081/ \
 
 Tool names are unprefixed at the HTTP JSON-RPC layer, for example `get_server_status`, `list_tools`, and `read_logs`.
 
-## Python MCP Bridge
+## Python MCP Bridge & AI Clients
 
-The package includes a Python stdio bridge for MCP clients:
+The package includes a Python script that translates AI tool calls into Unity JSON-RPC calls. This allows tools like **Claude Code** or **Cursor** to directly control your Unity Editor.
 
+To use the bridge, your AI client needs to run it as an MCP (Model Context Protocol) server.
+
+### Connecting Claude Code or Cursor
+
+You need to configure your AI tool to run the Python bridge script. Since Unity installs packages into the `Packages` directory or your `Assets` folder, you must locate the script first.
+
+When installed via Git, the script is typically at:
 ```bash
-python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py
+python3 Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py
 ```
 
-The bridge exposes the same public tools as Unity `list_tools`, with a `unity_` prefix for MCP clients. For direct one-off calls:
+*If you copied the package manually into your Assets folder, it will be at `Assets/NexusUnity/Editor/nexus_unity_bridge.py`.*
 
-```bash
-python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py unity_get_server_status
-python3 Assets/NexusUnity/Editor/nexus_unity_bridge.py unity_read_logs count=20
+#### Claude Code Setup
+Add an MCP server configuration pointing to your Python executable and the bridge script:
+```json
+{
+  "mcpServers": {
+    "nexus-unity": {
+      "command": "python3",
+      "args": ["Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py"]
+    }
+  }
+}
 ```
+
+### Troubleshooting: Port Conflicts
+
+If the Unity server fails to start, port `8081` might be in use by another application.
+1. In Unity, go to **Edit > Project Settings > Nexus Unity**.
+2. Change the **Port** from `8081` to an available port (e.g., `8082`).
+3. Restart the server via **Window > Nexus Unity**.
 
 ## Features
 
