@@ -24,12 +24,12 @@ namespace UnityMCP.Editor
 
         internal static void Init()
         {
-            if (_mainThreadId == -1) 
+            if (_mainThreadId == -1)
             {
                 _mainThreadId = Thread.CurrentThread.ManagedThreadId;
                 Debug.Log($"[MCP] Main Thread ID captured: {_mainThreadId}");
             }
-            
+
             if (!_isMainThread)
             {
                 Debug.LogWarning("[MCP] MCPServerMethods.Init called from non-main thread. Registration skipped to avoid state corruption.");
@@ -101,7 +101,7 @@ namespace UnityMCP.Editor
             JToken id = request["id"];
             string method = request["method"]?.ToString();
             if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
-            
+
             // Fast-path for health checks (execute on current thread, usually listener thread)
             if (method == "get_server_status" || method == "attach_existing_session" || method == "wait_for_asset_import_idle" || method == "wait_for_editor_idle") {
                 try {
@@ -137,8 +137,8 @@ namespace UnityMCP.Editor
             using (var signal = new ManualResetEventSlim(false))
             {
                 MCPServer.Enqueue(() => {
-                    try { 
-                        result = ExecuteMethod(method, requestParams); 
+                    try {
+                        result = ExecuteMethod(method, requestParams);
                     }
                     catch (Exception e) { caughtException = e; }
                     finally { signal.Set(); }
@@ -208,4 +208,3 @@ namespace UnityMCP.Editor
         }
     }
 }
- 
