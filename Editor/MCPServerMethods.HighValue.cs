@@ -152,12 +152,16 @@ namespace UnityMCP.Editor
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("graph TD");
 
-            var roots = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
             HashSet<int> processed = new HashSet<int>();
 
-            foreach (var root in roots)
+            // Use ListPool to avoid GC allocation from array creation
+            using (UnityEngine.Pool.ListPool<GameObject>.Get(out var roots))
             {
-                BuildMermaidRecursive(root, sb, processed);
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects(roots);
+                foreach (var root in roots)
+                {
+                    BuildMermaidRecursive(root, sb, processed);
+                }
             }
 
             return new JObject 

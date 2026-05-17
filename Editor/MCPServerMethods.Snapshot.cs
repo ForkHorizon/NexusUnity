@@ -42,10 +42,15 @@ namespace UnityMCP.Editor
             else
             {
                 var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-                var rootGOs = activeScene.GetRootGameObjects();
-                foreach (var go in rootGOs)
+
+                // Use ListPool to avoid GC allocation from array creation
+                using (UnityEngine.Pool.ListPool<GameObject>.Get(out var rootGOs))
                 {
-                    roots.Add(SerializeSceneNode(go, 0, maxDepth, includeAllProperties, compact));
+                    activeScene.GetRootGameObjects(rootGOs);
+                    foreach (var go in rootGOs)
+                    {
+                        roots.Add(SerializeSceneNode(go, 0, maxDepth, includeAllProperties, compact));
+                    }
                 }
             }
 
