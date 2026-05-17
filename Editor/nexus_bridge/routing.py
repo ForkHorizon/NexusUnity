@@ -1,39 +1,12 @@
-#!/usr/bin/env python3
-import sys
-import json
-import os
 import time
-import threading
-
-# Ensure the Editor directory is in sys.path so we can import the module locally
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-if CURRENT_DIR not in sys.path:
-    sys.path.insert(0, CURRENT_DIR)
-
-from nexus_bridge.schemas import STATIC_TOOLS
-from nexus_bridge.routing import route_tool
-from nexus_bridge.client import log
-
-PARENT_PID = os.getppid()
-
-def orphan_monitor():
-    """Monitor if the parent process (AI CLI) is still alive."""
-    while True:
-        try:
-            # os.getppid() returns 1 if the parent has died (on Unix)
-            if os.getppid() != PARENT_PID or os.getppid() == 1:
-                log("Parent process died. Shutting down bridge.")
-                os._exit(0)
-        except:
-            os._exit(0)
-        time.sleep(5)
+from .client import call_unity, log
 
 def route_tool(name, args):
     if name in ["write_and_compile", "apply_code_change"]:
         files = args.get("files", [])
         start_time = time.time()
         call_unity("clear_logs")
-        
+
         write_errors = []
         for f in files:
             res = call_unity("write_file", {"path": f["path"], "content": f["content"]})
@@ -43,56 +16,30 @@ def route_tool(name, args):
         if write_errors:
             return {"result": {"status": "Failed", "message": "Failed to write some files", "errors": write_errors}}
         else:
-            refresh_res = call_unity("refresh_asset_database")
-            immediate_errors = []
-            if refresh_res and "result" in refresh_res:
-                immediate_errors = refresh_res["result"].get("compiler_errors", [])
+            timeout = 90
+            reload_started = False
+            while time.time() - start_time < 20:
+                res = call_unity("initialize")
+                if res is None or "error" in res:
+                    reload_started = True
+                    break
+                time.sleep(0.5)
 
-            timeout = 200
-            
-            if immediate_errors:
-                # Syntax errors abort domain reload completely.
-                status = "Ready"
+            if not reload_started:
+                call_unity("refresh_asset_database")
+
+            status = "Ready"
+            while time.time() - start_time < timeout:
+                res = call_unity("initialize")
+                if res and "result" in res:
+                    time.sleep(2.0)
+                    state = call_unity("get_editor_state")
+                    if state and "result" in state:
+                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
+                            break
+                time.sleep(1.0)
             else:
                 status = "Timeout"
-
-                # Phase 1: Wait up to 5 seconds for Unity to start compiling or go offline.
-                # If nothing happens, it means no files needed compilation.
-                started_compiling = False
-                phase1_start = time.time()
-                while time.time() - phase1_start < 5.0:
-                    try:
-                        state_res = call_unity("get_editor_state")
-                        if state_res is None or "error" in state_res:
-                            started_compiling = True
-                            break
-                        elif state_res and "result" in state_res:
-                            state = state_res["result"]
-                            if state.get("is_compiling") or state.get("is_updating"):
-                                started_compiling = True
-                                break
-                    except Exception:
-                        started_compiling = True
-                        break
-                    time.sleep(0.5)
-
-                if not started_compiling:
-                    # Never went offline and never showed compiling state. It's done.
-                    status = "Ready"
-                else:
-                    # Phase 2: It started compiling (or went offline for domain reload).
-                    # Wait up to the remainder of our 200s timeout for it to come back online and finish.
-                    while time.time() - start_time < timeout:
-                        try:
-                            state_res = call_unity("get_editor_state")
-                            if state_res and "result" in state_res:
-                                state = state_res["result"]
-                                if not state.get("is_compiling") and not state.get("is_updating"):
-                                    status = "Ready"
-                                    break
-                        except Exception:
-                            pass
-                        time.sleep(1.0)
 
             compiler_errors = []
             if status == "Ready":
@@ -196,44 +143,24 @@ def route_tool(name, args):
         start_time = time.time()
         status = "Ready"
 
-        # Override default wait timeout to 200s for compilation
         if cond == "compilation":
-            timeout = 200
-            call_unity("refresh_asset_database")
-
-            started_compiling = False
-            phase1_start = time.time()
-            while time.time() - phase1_start < 5.0:
-                try:
-                    state_res = call_unity("get_editor_state")
-                    if state_res is None or "error" in state_res:
-                        started_compiling = True
-                        break
-                    elif state_res and "result" in state_res:
-                        state = state_res["result"]
-                        if state.get("is_compiling") or state.get("is_updating"):
-                            started_compiling = True
-                            break
-                except Exception:
-                    started_compiling = True
+            reload_started = False
+            while time.time() - start_time < 20:
+                res = call_unity("initialize")
+                if res is None or "error" in res:
+                    reload_started = True
                     break
                 time.sleep(0.5)
-
-            if not started_compiling:
-                status = "Ready"
-            else:
-                status = "Timeout"
-                while time.time() - start_time < timeout:
-                    try:
-                        state_res = call_unity("get_editor_state")
-                        if state_res and "result" in state_res:
-                            state = state_res["result"]
-                            if not state.get("is_compiling") and not state.get("is_updating"):
-                                status = "Ready"
-                                break
-                    except Exception:
-                        pass
-                    time.sleep(1.0)
+            if not reload_started: call_unity("refresh_asset_database")
+            while time.time() - start_time < timeout:
+                res = call_unity("initialize")
+                if res and "result" in res:
+                    time.sleep(2.0)
+                    state = call_unity("get_editor_state")
+                    if state and "result" in state:
+                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"): break
+                time.sleep(1.0)
+            else: status = "Timeout"
         elif cond == "play_mode":
             target_state = args.get("state", True)
             while time.time() - start_time < timeout:
@@ -256,94 +183,8 @@ def route_tool(name, args):
                     if res["result"].get("is_idle"): break
                 time.sleep(1.0)
             else: status = "Timeout"
-        
+
         return {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
 
     else:
         return call_unity(name, args)
-
-def main():
-    # --- DUAL MODE: CLI vs MCP ---
-    if len(sys.argv) > 1:
-        arg1 = sys.argv[1]
-        try:
-            int(arg1)
-        except ValueError:
-            method_name = arg1.replace("unity_", "")
-            params = {}
-            for arg in sys.argv[2:]:
-                if "=" in arg:
-                    k, v = arg.split("=", 1)
-                    try: params[k] = json.loads(v)
-                    except: params[k] = v
-
-            log(f"CLI Mode: Calling {method_name} with {params}")
-            res = route_tool(method_name, params)
-            if "error" in res:
-                print(json.dumps(res["error"], indent=2))
-                sys.exit(1)
-            else:
-                final_res = res.get("result", res)
-                print(json.dumps(final_res, indent=2))
-                sys.exit(0)
-
-    log(f"NexusUnity Bridge started (Parent PID: {PARENT_PID})")
-    
-    monitor_thread = threading.Thread(target=orphan_monitor, daemon=True)
-    monitor_thread.start()
-
-    while True:
-        line = sys.stdin.readline()
-        if not line:
-            log("Stdin closed. Shutting down bridge.")
-            break
-        try:
-            request = json.loads(line)
-            method = request.get("method")
-            req_id = request.get("id")
-            
-            if method == "initialize":
-                res = {
-                    "protocolVersion": "2024-11-05", 
-                    "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "2.8.0"}
-                }
-                response = {"jsonrpc": "2.0", "id": req_id, "result": res}
-            elif method in ["tools/list", "listTools", "list_tools"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
-            elif method in ["resources/list", "listResources"]:
-                resources = [
-                    {"uri": "unity://docs/api-reference", "name": "API Reference", "mimeType": "text/markdown"},
-                    {"uri": "unity://docs/setup", "name": "Setup Guide", "mimeType": "text/markdown"}
-                ]
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": resources}}
-            elif method in ["tools/call", "callTool"]:
-                params = request.get("params", {})
-                name = params.get("name", "").replace("unity_", "")
-                args = params.get("arguments", {})
-
-                unity_res = route_tool(name, args)
-
-                if "error" in unity_res:
-                    response = {"jsonrpc": "2.0", "id": req_id, "error": unity_res["error"]}
-                else:
-                    result_content = unity_res.get("result", unity_res)
-                    if isinstance(result_content, dict) and "content" in result_content:
-                        response = {"jsonrpc": "2.0", "id": req_id, "result": result_content}
-                    else:
-                        response = {
-                            "jsonrpc": "2.0", 
-                            "id": req_id, 
-                            "result": {"content": [{"type": "text", "text": json.dumps(result_content) }]}}
-            elif req_id is not None:
-                response = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Method not found"}}
-            else:
-                continue
-
-            sys.stdout.write(json.dumps(response) + "\n")
-            sys.stdout.flush()
-        except Exception as e:
-            log(f"Error in bridge loop: {str(e)}")
-
-if __name__ == "__main__":
-    main()
