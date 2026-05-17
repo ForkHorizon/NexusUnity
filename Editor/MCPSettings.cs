@@ -43,7 +43,7 @@ namespace UnityMCP.Editor
                 guiHandler = (searchContext) =>
                 {
                     EditorGUILayout.Space();
-                    GUILayout.Label("Server Configuration", EditorStyles.boldLabel);
+                    GUILayout.Label(new GUIContent("Server Configuration", "Local port and server settings for Nexus Unity"), EditorStyles.boldLabel);
 
                     EditorGUI.BeginChangeCheck();
 
@@ -55,7 +55,7 @@ namespace UnityMCP.Editor
                     }
 
                     GUILayout.Space(10);
-                    GUILayout.Label("Changes to port require server restart.", EditorStyles.helpBox);
+                    GUILayout.Label(new GUIContent("Changes to port require server restart.", "Restart the server from the Nexus Unity control panel after changing this setting"), EditorStyles.helpBox);
                 },
 
                 keywords = new System.Collections.Generic.HashSet<string>(new[] { "MCP", "Server", "Port", "AI" })
