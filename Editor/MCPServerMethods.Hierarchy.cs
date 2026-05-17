@@ -156,7 +156,13 @@ namespace UnityMCP.Editor
         /// <summary>Enables or disables a specific Component.</summary>
         private static JToken SetEnabled(JToken p)
         {
-            if (p?["instance_id"] == null || p["component_name"] == null || p["enabled"] == null) throw new System.Exception("instance_id, component_name, and enabled required");
+            if (p == null || p.Type != JTokenType.Object)
+                throw new System.ArgumentException("Parameters must be a JSON object");
+
+            var pObj = (JObject)p;
+            if (pObj.Count != 3 || p["instance_id"] == null || p["component_name"] == null || p["enabled"] == null)
+                throw new System.ArgumentException("Strict schema validation failed: exactly instance_id, component_name, and enabled are required, with no extra properties.");
+
             var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             var comp = go?.GetComponent(p["component_name"].ToString()) as Behaviour;
             if (comp == null) throw new System.Exception("Component not found or not a Behaviour");

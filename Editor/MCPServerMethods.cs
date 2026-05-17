@@ -107,7 +107,9 @@ namespace UnityMCP.Editor
                 try {
                     JToken result = ExecuteMethod(method, request["params"]);
                     return CreateJsonResponse(id, result, null);
-                } catch(Exception e) { return CreateJsonResponse(id, null, e.Message); }
+                }
+                catch(ArgumentException e) { return CreateErrorResponse(id, -32602, e.Message); }
+                catch(Exception e) { return CreateJsonResponse(id, null, e.Message); }
             }
 
             return ExecuteOnMainThread(method, request["params"], id);
@@ -125,6 +127,10 @@ namespace UnityMCP.Editor
                     JToken syncResult = ExecuteMethod(method, requestParams);
                     return CreateJsonResponse(id, syncResult, null);
                 }
+                catch (ArgumentException e)
+                {
+                    return CreateErrorResponse(id, -32602, e.Message);
+                }
                 catch (Exception e)
                 {
                     return CreateJsonResponse(id, null, e.Message);
@@ -133,18 +139,21 @@ namespace UnityMCP.Editor
 
             JToken result = null;
             string error = null;
+            int errorCode = -32000;
             using (var signal = new ManualResetEventSlim(false))
             {
                 MCPServer.Enqueue(() => {
                     try { 
                         result = ExecuteMethod(method, requestParams); 
                     }
-                    catch (Exception e) { error = e.Message; }
+                    catch (ArgumentException e) { error = e.Message; errorCode = -32602; }
+                    catch (Exception e) { error = e.Message; errorCode = -32000; }
                     finally { signal.Set(); }
                 });
-                if (!signal.Wait(60000)) error = "Timeout waiting for Main Thread";
+                if (!signal.Wait(60000)) { error = "Timeout waiting for Main Thread"; errorCode = -32000; }
             }
-            return CreateJsonResponse(id, result, error);
+            if (error != null) return CreateErrorResponse(id, errorCode, error);
+            return CreateJsonResponse(id, result, null);
         }
 
         private static string CreateJsonResponse(JToken id, JToken result, string error)
