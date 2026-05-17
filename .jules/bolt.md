@@ -47,3 +47,7 @@
 **Vulnerability:** Unbounded use of `StreamReader.ReadToEnd()` for HTTP requests and unbounded accumulation via `MemoryStream.Write()` in WebSocket loop.
 **Learning:** Unity networking logic that reads directly from standard input streams into memory (strings/byte arrays) without checking stream limits can cause total memory exhaustion and Denial of Service if the server handles massive or chunked payloads.
 **Prevention:** Always enforce a maximum payload limit (e.g. 10MB) via `ContentLength64` or string length limits for HTTP requests, and accumulate check chunk sizes (`ms.Length`) inside the WebSocket `ReceiveAsync` loop before executing writes.
+
+## 2025-03-10 - [Scene Roots Array Allocation]
+**Learning:** `UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()` allocates a new `GameObject[]` array on the heap every time it is called. When called repeatedly (e.g., generating mermaid diagrams or taking scene snapshots), this creates unnecessary Garbage Collection (GC) pressure.
+**Action:** Always use the non-allocating overload `GetRootGameObjects(List<GameObject>)` combined with `UnityEngine.Pool.ListPool<GameObject>.Get(out var list)` to reuse buffers and completely eliminate allocations during scene root retrieval. Include comments explaining the use of ListPool for GC avoidance to maintain readability.
