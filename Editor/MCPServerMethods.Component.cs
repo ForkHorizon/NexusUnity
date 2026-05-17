@@ -174,7 +174,8 @@ namespace UnityMCP.Editor
 
         private static JToken InstantiatePrefab(JToken p)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(p["path"].ToString());
+            string path = ValidateAssetPath(p["path"].ToString());
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
             Undo.RegisterCreatedObjectUndo(go, "Instantiate Prefab");
             return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };

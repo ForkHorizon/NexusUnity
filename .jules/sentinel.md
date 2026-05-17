@@ -37,3 +37,7 @@
 **Vulnerability:** The MCP HTTP server allowed requests with missing `Content-Length` (or chunked transfer encoding where `ContentLength64` is `-1`) to bypass the maximum payload size limit.
 **Learning:** Checking `ContentLength64 > maxPayloadSize` is insufficient because `ContentLength64` returns `-1` if the header is missing, allowing unbounded memory allocation via JSON parsing.
 **Prevention:** Always check if `ContentLength64 < 0` and return `411 Length Required` to ensure stream limits are strictly enforced.
+
+## 2024-05-18 - Path Traversal in AssetManager
+**Learning:** `AssetDatabase` string parameters parsing user input via MCP server bridges are vulnerable to path traversal attacks (`../`) even though Unity API often prepends `Assets/` logically.
+**Action:** When implementing bridge actions passing paths into `AssetDatabase`, `PrefabUtility` or `SceneManager`, always validate paths against the project root boundary using rigorous wrapper functions like `ValidateAssetPath` that fully resolve strings into absolute paths before relative boundary checks.
