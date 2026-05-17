@@ -32,3 +32,8 @@
 **Vulnerability:** Unbounded use of `StreamReader.ReadToEnd()` for HTTP requests and unbounded accumulation via `MemoryStream.Write()` in WebSocket loop.
 **Learning:** Unity networking logic that reads directly from standard input streams into memory (strings/byte arrays) without checking stream limits can cause total memory exhaustion and Denial of Service if the server handles massive or chunked payloads.
 **Prevention:** Always enforce a maximum payload limit (e.g. 10MB) via `ContentLength64` or string length limits for HTTP requests, and accumulate check chunk sizes (`ms.Length`) inside the WebSocket `ReceiveAsync` loop before executing writes.
+
+## 2025-03-01 - HTTP Chunked Request DoS
+**Vulnerability:** The MCP HTTP server allowed requests with missing `Content-Length` (or chunked transfer encoding where `ContentLength64` is `-1`) to bypass the maximum payload size limit.
+**Learning:** Checking `ContentLength64 > maxPayloadSize` is insufficient because `ContentLength64` returns `-1` if the header is missing, allowing unbounded memory allocation via JSON parsing.
+**Prevention:** Always check if `ContentLength64 < 0` and return `411 Length Required` to ensure stream limits are strictly enforced.
