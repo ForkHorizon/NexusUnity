@@ -35,7 +35,7 @@ namespace UnityMCP.Editor
         private static JToken ExploreAsset(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
-            string path = p["path"].ToString();
+            string path = ValidateAssetPath(p["path"].ToString());
             
             string mainGuid = AssetDatabase.AssetPathToGUID(path);
             if (string.IsNullOrEmpty(mainGuid)) throw new Exception($"Asset not found at path: {path}");
@@ -91,7 +91,7 @@ namespace UnityMCP.Editor
             string name = p["name"].ToString();
             string shader = p["shader"]?.ToString() ?? "Standard";
             Material mat = new Material(Shader.Find(shader));
-            string path = Path.Combine("Assets", $"{name}.mat");
+            string path = ValidateAssetPath(Path.Combine("Assets", $"{name}.mat"));
             AssetDatabase.CreateAsset(mat, path);
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["path"] = path };
@@ -129,7 +129,8 @@ namespace UnityMCP.Editor
         private static JToken ImportAsset(JToken p)
         {
             if (p == null || p["path"] == null) throw new Exception("path is required");
-            AssetDatabase.ImportAsset(p["path"].ToString());
+            string path = ValidateAssetPath(p["path"].ToString());
+            AssetDatabase.ImportAsset(path);
             return new JObject { ["status"] = "Success", ["message"] = "Imported" };
         }
 
@@ -144,8 +145,8 @@ namespace UnityMCP.Editor
         {
             if (p?["old_path"] == null || p["new_path"] == null) throw new Exception("old_path and new_path required");
             
-            string oldPath = p["old_path"].ToString();
-            string newPath = p["new_path"].ToString();
+            string oldPath = ValidateAssetPath(p["old_path"].ToString());
+            string newPath = ValidateAssetPath(p["new_path"].ToString());
 
             if (AssetDatabase.IsValidFolder(oldPath) && AssetDatabase.IsValidFolder(newPath))
             {
@@ -192,29 +193,33 @@ namespace UnityMCP.Editor
         private static JToken DeleteAsset(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
-            if (!AssetDatabase.DeleteAsset(p["path"].ToString())) throw new Exception("Delete failed");
+            string path = ValidateAssetPath(p["path"].ToString());
+            if (!AssetDatabase.DeleteAsset(path)) throw new Exception("Delete failed");
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         private static JToken CopyAsset(JToken p)
         {
             if (p?["source_path"] == null || p["dest_path"] == null) throw new Exception("source_path and dest_path required");
-            if (!AssetDatabase.CopyAsset(p["source_path"].ToString(), p["dest_path"].ToString())) throw new Exception("Copy failed");
+            string sourcePath = ValidateAssetPath(p["source_path"].ToString());
+            string destPath = ValidateAssetPath(p["dest_path"].ToString());
+            if (!AssetDatabase.CopyAsset(sourcePath, destPath)) throw new Exception("Copy failed");
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
         private static JToken GetDependencies(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
+            string path = ValidateAssetPath(p["path"].ToString());
             bool recursive = p["recursive"]?.Value<bool>() ?? true;
-            var deps = AssetDatabase.GetDependencies(p["path"].ToString(), recursive);
+            var deps = AssetDatabase.GetDependencies(path, recursive);
             return new JObject { ["dependencies"] = new JArray(deps) };
         }
 
         private static JToken CreateFolder(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required (e.g., 'Assets/NewFolder')");
-            string path = p["path"].ToString();
+            string path = ValidateAssetPath(p["path"].ToString());
             string parent = Path.GetDirectoryName(path).Replace("\\", "/");
             string name = Path.GetFileName(path);
             string guid = AssetDatabase.CreateFolder(parent, name);

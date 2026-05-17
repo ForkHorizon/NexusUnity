@@ -13,9 +13,10 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["instance_id"] == null || p["path"] == null) throw new Exception("instance_id and path required");
             var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
-            PrefabUtility.SaveAsPrefabAsset(go, p["path"].ToString());
+            string path = ValidateAssetPath(p["path"].ToString());
+            PrefabUtility.SaveAsPrefabAsset(go, path);
             AssetDatabase.SaveAssets();
-            return new JObject { ["status"] = "Success", ["path"] = p["path"].ToString() };
+            return new JObject { ["status"] = "Success", ["path"] = path };
         }
 
 
@@ -101,7 +102,7 @@ namespace UnityMCP.Editor
             if (p == null || p["path"] == null || p["properties"] == null)
                 throw new Exception("path and properties are required");
 
-            string path = p["path"].ToString();
+            string path = ValidateAssetPath(p["path"].ToString());
             JObject data = p["properties"] as JObject;
             string compName = p["component_name"]?.ToString();
 

@@ -86,7 +86,7 @@ namespace UnityMCP.Editor
         private static JToken OpenPrefabStage(JToken p)
         {
             if (p == null || p["path"] == null) throw new System.Exception("path is required");
-            string path = p["path"].ToString();
+            string path = ValidateAssetPath(p["path"].ToString());
             
             var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefabAsset == null) throw new System.Exception($"Prefab not found at {path}");

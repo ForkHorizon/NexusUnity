@@ -52,6 +52,43 @@ namespace UnityMCP.Editor
             return fullPath;
         }
 
+        /// <summary>
+        /// Validates that an asset path is safe to use with AssetDatabase.
+        /// Prevents traversal outside allowed project folders (Assets, Packages, ProjectSettings).
+        /// Returns the relative, safe asset path.
+        /// </summary>
+        internal static string ValidateAssetPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) throw new System.Exception("Asset path cannot be empty");
+
+            // ValidatePath ensures it resolves securely without escaping the project root
+            string fullPath = ValidatePath(path);
+
+            string projectRoot = System.IO.Path.GetDirectoryName(Application.dataPath).Replace('\\', '/');
+            string projectRootSlash = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
+
+            // If the path is exactly the project root, this usually isn't a valid asset path
+            if (fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase))
+            {
+                throw new System.Exception("Access denied: Cannot use the project root as an asset path.");
+            }
+
+            // Convert absolute path back to a relative path from the project root
+            string relativePath = fullPath.Substring(projectRootSlash.Length).Replace('\\', '/');
+
+            if (!relativePath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase) &&
+                !relativePath.StartsWith("Packages/", System.StringComparison.OrdinalIgnoreCase) &&
+                !relativePath.StartsWith("ProjectSettings/", System.StringComparison.OrdinalIgnoreCase) &&
+                !relativePath.Equals("Assets", System.StringComparison.OrdinalIgnoreCase) &&
+                !relativePath.Equals("Packages", System.StringComparison.OrdinalIgnoreCase) &&
+                !relativePath.Equals("ProjectSettings", System.StringComparison.OrdinalIgnoreCase))
+            {
+                throw new System.Exception("Asset path must be within Assets, Packages, or ProjectSettings folders.");
+            }
+
+            return relativePath;
+        }
+
         internal static JObject SerializeVector3(Vector3 v)
         {
             return new JObject { ["x"] = v.x, ["y"] = v.y, ["z"] = v.z };
