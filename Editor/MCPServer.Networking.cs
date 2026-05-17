@@ -168,17 +168,33 @@ namespace UnityMCP.Editor
                     return;
                 }
 
+                string requestJson;
                 using (var reader = new System.IO.StreamReader(context.Request.InputStream, context.Request.ContentEncoding ?? Encoding.UTF8))
                 {
-                    // Bolt: Parsing JSON directly from the StreamReader avoids Large Object Heap (LOH) allocations for large payloads.
-                    // Sentinel: ContentLength64 check above provides baseline DoS protection.
-                    string response = MCPServerMethods.ProcessJsonRpc(reader);
-                    byte[] buffer = Encoding.UTF8.GetBytes(response);
-                    context.Response.ContentType = "application/json";
-                    context.Response.ContentLength64 = buffer.Length;
-                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                    context.Response.Close();
+                    var sb = new System.Text.StringBuilder();
+                    char[] buffer = new char[4096];
+                    int charsRead;
+                    int totalChars = 0;
+                    while ((charsRead = reader.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        totalChars += charsRead;
+                        if (totalChars > maxPayloadSize)
+                        {
+                            context.Response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+                            context.Response.Close();
+                            return;
+                        }
+                        sb.Append(buffer, 0, charsRead);
+                    }
+                    requestJson = sb.ToString();
                 }
+
+                string response = MCPServerMethods.ProcessJsonRpc(requestJson);
+                byte[] responseBuffer = Encoding.UTF8.GetBytes(response);
+                context.Response.ContentType = "application/json";
+                context.Response.ContentLength64 = responseBuffer.Length;
+                context.Response.OutputStream.Write(responseBuffer, 0, responseBuffer.Length);
+                context.Response.Close();
             }
             catch (ObjectDisposedException) { }
             catch (System.Net.HttpListenerException) { }
