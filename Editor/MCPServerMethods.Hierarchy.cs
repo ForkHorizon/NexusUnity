@@ -77,7 +77,8 @@ namespace UnityMCP.Editor
                     {
                         if (c == null) continue;
                         var type = c.GetType();
-                        if (type.Name == compPair.Key || type.FullName == compPair.Key)
+                        string typeName = GetTypeName(type);
+                        if (typeName == compPair.Key || type.FullName == compPair.Key)
                         {
                             comp = c;
                             break;

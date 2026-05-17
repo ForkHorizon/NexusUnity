@@ -214,7 +214,7 @@ namespace UnityMCP.Editor
                                     if (directMatch || indirectMatch)
                                     {
                                         var matchDetail = new JObject();
-                                        matchDetail["component"] = comp.GetType().Name;
+                                        matchDetail["component"] = GetTypeName(comp.GetType());
                                         matchDetail["field"] = prop.propertyPath;
                                         goMatches.Add(matchDetail);
                                     }

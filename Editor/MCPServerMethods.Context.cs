@@ -127,7 +127,7 @@ namespace UnityMCP.Editor
                                         goIssues.Add(new JObject 
                                         { 
                                             ["type"] = "MissingReference",
-                                            ["component"] = comp.GetType().Name,
+                                            ["component"] = GetTypeName(comp.GetType()),
                                             ["field"] = prop.propertyPath
                                         });
                                     }
