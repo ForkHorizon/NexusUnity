@@ -131,6 +131,16 @@ namespace UnityMCP.Editor
                     MCPCliInstaller.LinkToCodex();
                     CheckCliLinkStatus();
                 }
+
+                if (GUILayout.Button(new GUIContent("Link to Anthropic Claude", "Install and link Anthropic Claude Desktop to this Unity project"), GUILayout.Height(30)))
+                {
+                    MCPCliInstaller.LinkToAnthropic();
+                }
+
+                if (GUILayout.Button(new GUIContent("Link to Antigravity CLI", "Install and link the Antigravity CLI to this Unity project"), GUILayout.Height(30)))
+                {
+                    MCPCliInstaller.LinkToAntigravity();
+                }
             }
         }
 
