@@ -16,6 +16,7 @@ namespace UnityMCP.Editor
         {
             _cachedTools = null;
             _typeCache.Clear();
+            _typeNameCache.Clear();
         }
 
         /// <summary>Lists all available tools for the MCP server.</summary>

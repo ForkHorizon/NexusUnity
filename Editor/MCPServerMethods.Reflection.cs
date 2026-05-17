@@ -13,6 +13,7 @@ namespace UnityMCP.Editor
     public static partial class MCPServerMethods
     {
         private static ConcurrentDictionary<string, Type> _typeCache = new ConcurrentDictionary<string, Type>();
+        private static ConcurrentDictionary<Type, string> _typeNameCache = new ConcurrentDictionary<Type, string>();
         private static List<SymbolInfo> _symbolIndex = new List<SymbolInfo>();
         private static bool _isIndexing = false;
         private static object _indexLock = new object();
@@ -210,6 +211,16 @@ namespace UnityMCP.Editor
                 ["count"] = resultList.Count,
                 ["is_indexing"] = _isIndexing
             };
+        }
+
+        internal static string GetTypeName(Type type)
+        {
+            if (type == null) return "Unknown";
+            if (_typeNameCache.TryGetValue(type, out var cachedName)) return cachedName;
+
+            string name = type.Name;
+            _typeNameCache[type] = name;
+            return name;
         }
 
         internal static Type FindType(string name)

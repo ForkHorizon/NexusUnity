@@ -78,7 +78,7 @@ namespace UnityMCP.Editor
                     go.GetComponents(comps);
                     foreach (var comp in comps)
                     {
-                        if (comp != null) components.Add(comp.GetType().Name);
+                        if (comp != null) components.Add(GetTypeName(comp.GetType()));
                     }
                 }
                 node["components"] = components;
@@ -119,7 +119,7 @@ namespace UnityMCP.Editor
             var type = comp.GetType();
             JObject obj = new JObject
             {
-                ["type"] = type.Name,
+                ["type"] = GetTypeName(type),
                 ["instance_id"] = comp.GetRawId()
             };
 
@@ -214,7 +214,7 @@ namespace UnityMCP.Editor
                                         var dep = new JObject();
                                         dep["from_go"] = go.name;
                                         dep["from_id"] = go.GetRawId();
-                                        dep["component"] = comp.GetType().Name;
+                                        dep["component"] = GetTypeName(comp.GetType());
                                         dep["field"] = prop.name;
                                         dep["to_go"] = targetGO.name;
                                         dep["to_id"] = targetGO.GetRawId();
@@ -225,10 +225,10 @@ namespace UnityMCP.Editor
                                         var dep = new JObject();
                                         dep["from_go"] = go.name;
                                         dep["from_id"] = go.GetRawId();
-                                        dep["component"] = comp.GetType().Name;
+                                        dep["component"] = GetTypeName(comp.GetType());
                                         dep["field"] = prop.name;
                                         dep["to_go"] = targetComp.gameObject.name;
-                                        dep["to_comp"] = targetComp.GetType().Name;
+                                        dep["to_comp"] = GetTypeName(targetComp.GetType());
                                         dep["to_id"] = targetComp.gameObject.GetRawId();
                                         sceneRefs.Add(dep);
                                     }
