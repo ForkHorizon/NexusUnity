@@ -40,3 +40,7 @@ Format: `## YYYY-MM-DD - [Title]
 ## 2026-04-19 - [Adding tooltips to GUILayout.Button]
 **Learning:** Adding tooltips using `GUIContent("text", "tooltip")` instead of plain strings for `GUILayout.Button` significantly improves accessibility and discoverability in Unity Editor toolings.
 **Action:** Always prefer `new GUIContent(text, tooltip)` over simple string titles for buttons in IMGUI to help users understand the purpose of each button, especially when space is constrained or icons are used.
+
+## 2024-11-20 - [Adding tooltips to GUILayout.Label]
+**Learning:** Adding tooltips using `GUIContent("text", "tooltip")` instead of plain strings for `GUILayout.Label` in IMGUI ensures that structural headers and static text provide hover-accessible context for users, making the interface more discoverable and screen-reader friendly without altering layout design.
+**Action:** Always prefer `new GUIContent(text, tooltip)` over simple string labels when defining section headers and informational text blocks in Unity Editor toolings.
