@@ -12,7 +12,7 @@ if CURRENT_DIR not in sys.path:
 
 from nexus_bridge.schemas import STATIC_TOOLS
 from nexus_bridge.routing import route_tool
-from nexus_bridge.client import log
+from nexus_bridge.client import log, call_unity
 
 PARENT_PID = os.getppid()
 
