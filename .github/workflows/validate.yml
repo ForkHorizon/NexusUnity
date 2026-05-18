@@ -32,7 +32,8 @@ jobs:
           PY
 
       - name: Compile Python bridge
-        run: python -m py_compile Editor/nexus_unity_bridge.py Editor/nexus_bridge/*.py
+        run: |
+          python -m py_compile Editor/nexus_unity_bridge.py Editor/nexus_bridge/*.py
 
       - name: Check for generated or local-only files
         run: |
@@ -56,15 +57,14 @@ jobs:
                       forbidden.append(path)
           if forbidden:
               print('Forbidden generated/local files found:')
-              print('
-'.join(forbidden))
+              print('\n'.join(forbidden))
               sys.exit(1)
           PY
 
       - name: Check Unity .meta pairing
         run: |
           python - <<'PY'
-          import os, pathlib, sys
+          import pathlib, sys
           root = pathlib.Path('.')
           missing_meta = []
           orphan_meta = []
@@ -82,11 +82,9 @@ jobs:
           if missing_meta or orphan_meta:
               if missing_meta:
                   print('Missing .meta files:')
-                  print('
-'.join(missing_meta))
+                  print('\n'.join(missing_meta))
               if orphan_meta:
                   print('Orphan .meta files:')
-                  print('
-'.join(orphan_meta))
+                  print('\n'.join(orphan_meta))
               sys.exit(1)
           PY
