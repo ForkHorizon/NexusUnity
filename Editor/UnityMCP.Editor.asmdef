@@ -3,7 +3,8 @@
     "rootNamespace": "UnityMCP.Editor",
     "references": [
         "UnityMCP.Runtime",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Newtonsoft.Json"
     ],
     "includePlatforms": [
         "Editor"
