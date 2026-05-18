@@ -39,14 +39,14 @@ namespace UnityMCP.Editor
             {
                 GUILayout.FlexibleSpace();
                 GUI.enabled = false;
-                GUILayout.Label($"v{MCPServer.Version}", EditorStyles.miniLabel);
+                GUILayout.Label(new GUIContent($"v{MCPServer.Version}", "Current Server Version"), EditorStyles.miniLabel);
                 GUI.enabled = true;
             }
         }
 
         private void DrawServerTab()
         {
-            GUILayout.Label("Server Control", EditorStyles.boldLabel);
+            GUILayout.Label(new GUIContent("Server Control", "Controls for starting and stopping the local server"), EditorStyles.boldLabel);
             DrawServerStatusBar();
             EditorGUILayout.Space();
             
@@ -111,10 +111,10 @@ namespace UnityMCP.Editor
 
         private void DrawCliIntegration()
         {
-            GUILayout.Label("CLI Integrations", EditorStyles.boldLabel);
+            GUILayout.Label(new GUIContent("CLI Integrations", "Setup CLI tools for external systems"), EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
-                GUILayout.Label($"Status: {_cliStatusMessage}");
+                GUILayout.Label(new GUIContent($"Status: {_cliStatusMessage}", "Current linking status of CLI tools"));
                 if (GUILayout.Button(new GUIContent("Refresh", "Check the current CLI installation and link status"), GUILayout.Width(60))) CheckCliLinkStatus();
             }
 
@@ -131,13 +131,23 @@ namespace UnityMCP.Editor
                     MCPCliInstaller.LinkToCodex();
                     CheckCliLinkStatus();
                 }
+
+                if (GUILayout.Button(new GUIContent("Link to Anthropic Claude", "Install and link Anthropic Claude Desktop to this Unity project"), GUILayout.Height(30)))
+                {
+                    MCPCliInstaller.LinkToAnthropic();
+                }
+
+                if (GUILayout.Button(new GUIContent("Link to Antigravity CLI", "Install and link the Antigravity CLI to this Unity project"), GUILayout.Height(30)))
+                {
+                    MCPCliInstaller.LinkToAntigravity();
+                }
             }
         }
 
         private void DrawResources()
         {
             EditorGUILayout.Space();
-            GUILayout.Label("Resources", EditorStyles.boldLabel);
+            GUILayout.Label(new GUIContent("Resources", "Helpful project resources and documentation"), EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 GUIContent docContent = EditorGUIUtility.IconContent("_Help");
@@ -166,14 +176,14 @@ namespace UnityMCP.Editor
 
         private void DrawToolsTab()
         {
-            GUILayout.Label("Developer Tools", EditorStyles.boldLabel);
+            GUILayout.Label(new GUIContent("Developer Tools", "Additional utilities for server management and testing"), EditorStyles.boldLabel);
             if (GUILayout.Button(new GUIContent("Open Test Window", "Open a test window with UI elements for verification testing"))) MCPTestWindow.ShowWindow();
             if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the MCP server log history"))) MCPServer.ClearLogs();
         }
 
         private void DrawVerificationTab()
         {
-            GUILayout.Label("API Verification", EditorStyles.boldLabel);
+            GUILayout.Label(new GUIContent("API Verification", "Run comprehensive API tests"), EditorStyles.boldLabel);
             if (GUILayout.Button(new GUIContent("Run Full Project Audit", "Scan the current scene for project health and structure issues"))) ProjectAuditorWrapper.RunAuditMenu();
             if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the comprehensive API verification test suite window"))) GetWindow<MCPVerificationWindow>().Show();
             if (GUILayout.Button(new GUIContent("Verify UI", "Run automated UI toolkit interaction tests"))) UIVerification.Verify();

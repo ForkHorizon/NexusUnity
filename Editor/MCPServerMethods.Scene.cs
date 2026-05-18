@@ -25,7 +25,7 @@ namespace UnityMCP.Editor
         private static JToken OpenScene(JToken p)
         {
             if (p == null || p["path"] == null) throw new Exception("path is required");
-            string path = p["path"].ToString();
+            string path = ValidateAssetPath(p["path"].ToString());
             
             EnsureCurrentSceneSaved();
             
@@ -72,6 +72,8 @@ namespace UnityMCP.Editor
                 path = "Assets/AutoSavedScene.unity";
                 Debug.Log($"[MCP] Saving new scene to default path: {path}");
             }
+
+            path = ValidateAssetPath(path);
 
             bool result = EditorSceneManager.SaveScene(scene, path);
             AssetDatabase.SaveAssets();

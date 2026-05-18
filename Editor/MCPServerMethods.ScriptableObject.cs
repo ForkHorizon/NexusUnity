@@ -67,7 +67,7 @@ namespace UnityMCP.Editor
         {
             if (p[pathKey] != null)
             {
-                string path = p[pathKey].ToString();
+                string path = ValidateAssetPath(p[pathKey].ToString());
                 var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
                 if (so == null) throw new Exception($"ScriptableObject not found at path: {path}");
                 return so;
@@ -179,7 +179,7 @@ namespace UnityMCP.Editor
         {
             if (p["type"] == null || p["path"] == null) throw new Exception("'type' and 'path' required");
             string typeName = p["type"].ToString();
-            string path = p["path"].ToString();
+            string path = ValidateAssetPath(p["path"].ToString());
 
             Type type = FindType(typeName);
             if (type == null) throw new Exception($"Type '{typeName}' not found");
@@ -200,8 +200,8 @@ namespace UnityMCP.Editor
         private static JToken DuplicateScriptableObjectAsset(JToken p)
         {
             if (p["source_path"] == null || p["dest_path"] == null) throw new Exception("'source_path' and 'dest_path' required");
-            string source = p["source_path"].ToString();
-            string dest = p["dest_path"].ToString();
+            string source = ValidateAssetPath(p["source_path"].ToString());
+            string dest = ValidateAssetPath(p["dest_path"].ToString());
 
             if (!AssetDatabase.CopyAsset(source, dest)) throw new Exception("Failed to copy asset");
             AssetDatabase.SaveAssets();

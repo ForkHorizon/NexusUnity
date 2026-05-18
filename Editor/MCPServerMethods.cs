@@ -106,10 +106,8 @@ namespace UnityMCP.Editor
             if (method == "get_server_status" || method == "attach_existing_session" || method == "wait_for_asset_import_idle" || method == "wait_for_editor_idle") {
                 try {
                     JToken result = ExecuteMethod(method, request["params"]);
-                    return CreateJsonResponse(id, result, null);
-                }
-                catch(ArgumentException e) { return CreateErrorResponse(id, -32602, e.Message); }
-                catch(Exception e) { return CreateJsonResponse(id, null, e.Message); }
+                    return CreateJsonResponse(id, result);
+                } catch(Exception e) { return CreateExceptionResponse(id, e); }
             }
 
             return ExecuteOnMainThread(method, request["params"], id);
@@ -125,7 +123,7 @@ namespace UnityMCP.Editor
                 try
                 {
                     JToken syncResult = ExecuteMethod(method, requestParams);
-                    return CreateJsonResponse(id, syncResult, null);
+                    return CreateJsonResponse(id, syncResult);
                 }
                 catch (ArgumentException e)
                 {
@@ -133,43 +131,73 @@ namespace UnityMCP.Editor
                 }
                 catch (Exception e)
                 {
-                    return CreateJsonResponse(id, null, e.Message);
+                    return CreateExceptionResponse(id, e);
                 }
             }
 
             JToken result = null;
-            string error = null;
-            int errorCode = -32000;
+            Exception caughtException = null;
+            bool timeout = false;
             using (var signal = new ManualResetEventSlim(false))
             {
                 MCPServer.Enqueue(() => {
                     try { 
                         result = ExecuteMethod(method, requestParams); 
                     }
-                    catch (ArgumentException e) { error = e.Message; errorCode = -32602; }
-                    catch (Exception e) { error = e.Message; errorCode = -32000; }
+                    catch (Exception e) { caughtException = e; }
                     finally { signal.Set(); }
                 });
-                if (!signal.Wait(60000)) { error = "Timeout waiting for Main Thread"; errorCode = -32000; }
+                if (!signal.Wait(60000)) timeout = true;
             }
-            if (error != null) return CreateErrorResponse(id, errorCode, error);
-            return CreateJsonResponse(id, result, null);
+
+            if (timeout) return CreateErrorResponse(id, -32000, "Timeout waiting for Main Thread");
+            if (caughtException != null) return CreateExceptionResponse(id, caughtException);
+            return CreateJsonResponse(id, result);
         }
 
-        private static string CreateJsonResponse(JToken id, JToken result, string error)
+        private static string CreateJsonResponse(JToken id, JToken result)
         {
-            JObject response = new JObject { ["jsonrpc"] = "2.0", ["id"] = id };
-            if (error != null) response["error"] = new JObject { ["code"] = -32000, ["message"] = error };
-            else response["result"] = result;
+            JObject response = new JObject { ["jsonrpc"] = "2.0", ["id"] = id, ["result"] = result };
             return response.ToString(Formatting.None);
         }
 
         /// <summary>
-        /// Creates a JSON-RPC error response string.
+        /// Creates a JSON-RPC error response string with an optional data payload containing a stack trace.
         /// </summary>
-        public static string CreateErrorResponse(JToken id, int code, string message)
+        public static string CreateErrorResponse(JToken id, int code, string message, string stackTrace = null)
         {
-            return new JObject { ["jsonrpc"] = "2.0", ["error"] = new JObject { ["code"] = code, ["message"] = message }, ["id"] = id }.ToString(Formatting.None);
+            JObject errorObj = new JObject { ["code"] = code, ["message"] = message };
+            if (!string.IsNullOrEmpty(stackTrace))
+            {
+                errorObj["data"] = new JObject { ["stackTrace"] = stackTrace };
+            }
+            return new JObject { ["jsonrpc"] = "2.0", ["error"] = errorObj, ["id"] = id }.ToString(Formatting.None);
+        }
+
+        /// <summary>
+        /// Unwraps common wrapper exceptions and creates a JSON-RPC error response with a highly readable stack trace.
+        /// </summary>
+        private static string CreateExceptionResponse(JToken id, Exception e)
+        {
+            Exception actualException = e;
+            while (actualException is System.Reflection.TargetInvocationException || actualException is AggregateException)
+            {
+                if (actualException is System.Reflection.TargetInvocationException tie && tie.InnerException != null)
+                {
+                    actualException = tie.InnerException;
+                }
+                else if (actualException is AggregateException ae && ae.InnerExceptions.Count == 1)
+                {
+                    actualException = ae.InnerExceptions[0];
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            string stackTrace = actualException.StackTrace;
+            return CreateErrorResponse(id, -32000, actualException.Message, stackTrace);
         }
 
         private static JToken ExecuteMethod(string method, JToken p)
@@ -184,4 +212,3 @@ namespace UnityMCP.Editor
         }
     }
 }
- 

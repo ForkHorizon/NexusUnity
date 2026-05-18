@@ -17,28 +17,61 @@ The library implements a Model Context Protocol (MCP) server that enables extern
 - **Self-Healing**: Automatically restarts the server loop if a network crash occurs.
 - **Persistence**: Uses `SessionState` and `[InitializeOnLoad]` to survive Unity domain reloads (compilation) autonomously.
 - **Main Thread Dispatching**: Unity APIs are not thread-safe; all operations are executed on the main thread via a thread-safe queue.
-- **Port**: 8081 (Default). Configurable via Project Settings or CLI.
+- **Port**: `8081` (Default). Configurable via **Edit > Project Settings > Nexus Unity**.
+
+### Port Conflicts
+If you see errors that the server cannot start, port `8081` may be in use by another application.
+1. Open Unity.
+2. Go to **Edit > Project Settings > Nexus Unity**.
+3. Change the **Port** field to an available port number (e.g., `8082`, `8083`).
+4. Restart the server via **Window > Nexus Unity > START SERVER**.
 
 ---
 
 ## 🐍 Python Bridge (`nexus_unity_bridge.py`)
 
-The Python bridge is located in the project root. It handles communication between external AI tools (like Gemini, Claude, or Codex) and the Unity Editor.
+The Python bridge translates requests from your AI clients (Claude, Cursor, etc.) into the JSON-RPC format expected by the Unity server.
+
+### Connecting Claude Code or Cursor
+
+When configuring your AI tool to use Nexus Unity, you must point it to the `nexus_unity_bridge.py` script.
+Depending on how you installed the package, the path to the script will be:
+- **Git/Package Manager**: `Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py`
+- **Manual Download**: `Assets/NexusUnity/Editor/nexus_unity_bridge.py`
+
+#### Claude Code (mcp.json)
+```json
+{
+  "mcpServers": {
+    "nexus-unity": {
+      "command": "python3",
+      "args": ["Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py"]
+    }
+  }
+}
+```
+
+#### Cursor
+1. Go to **Settings > Features > MCP**.
+2. Click **+ Add new MCP server**.
+3. Name it `Nexus Unity`.
+4. Select `command` type.
+5. Command: `python3 Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py`
 
 ### 1. MCP Mode (Default)
-When run without arguments, the bridge acts as a persistent JSON-RPC 2.0 translator.
+When run without arguments, the bridge acts as a persistent JSON-RPC 2.0 translator via standard input/output.
 ```bash
-python3 nexus_unity_bridge.py
+python3 Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py
 ```
 
 ### 2. CLI Mode
-Execute any Unity tool directly from the command line:
+You can also execute Unity tools directly from your terminal. Useful for testing or custom scripts:
 ```bash
-python3 nexus_unity_bridge.py unity_refresh_asset_database
+python3 Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py unity_refresh_asset_database
 ```
 Parameters can be passed as `key=value` pairs:
 ```bash
-python3 nexus_unity_bridge.py unity_read_logs count=10
+python3 Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py unity_read_logs count=10
 ```
 
 ---

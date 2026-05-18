@@ -152,12 +152,16 @@ namespace UnityMCP.Editor
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("graph TD");
 
-            var roots = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
             HashSet<int> processed = new HashSet<int>();
 
-            foreach (var root in roots)
+            // Use ListPool to avoid GC allocation from array creation
+            using (UnityEngine.Pool.ListPool<GameObject>.Get(out var roots))
             {
-                BuildMermaidRecursive(root, sb, processed);
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects(roots);
+                foreach (var root in roots)
+                {
+                    BuildMermaidRecursive(root, sb, processed);
+                }
             }
 
             return new JObject 
@@ -174,8 +178,12 @@ namespace UnityMCP.Editor
             processed.Add(id);
 
             string safeName = go.name.Replace("[", "(").Replace("]", ")").Replace("\"", "'");
-            string nodeId = "node_" + id.ToString();
-            sb.AppendLine($"  {nodeId}[\"{safeName}\"]");
+
+            sb.Append("  node_");
+            sb.Append(id);
+            sb.Append("[\"");
+            sb.Append(safeName);
+            sb.AppendLine("\"]");
 
             using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
             {
@@ -183,17 +191,26 @@ namespace UnityMCP.Editor
                 foreach (var comp in comps)
                 {
                     if (comp == null) continue;
-                    string compName = comp.GetType().Name;
+                    string compName = GetTypeName(comp.GetType());
                     if (compName == "Transform" || compName == "RectTransform") continue;
-                    string compId = "comp_" + comp.GetRawId().ToString();
-                    sb.AppendLine($"  {nodeId} --- {compId}([\"{compName}\"])");
+
+                    sb.Append("  node_");
+                    sb.Append(id);
+                    sb.Append(" --- comp_");
+                    sb.Append(comp.GetRawId());
+                    sb.Append("([\"");
+                    sb.Append(compName);
+                    sb.AppendLine("\"])");
                 }
             }
 
             foreach (Transform child in go.transform)
             {
-                string childId = "node_" + child.gameObject.GetRawId().ToString();
-                sb.AppendLine($"  {nodeId} --> {childId}");
+                sb.Append("  node_");
+                sb.Append(id);
+                sb.Append(" --> node_");
+                sb.Append(child.gameObject.GetRawId());
+                sb.AppendLine();
                 BuildMermaidRecursive(child.gameObject, sb, processed);
             }
         }
@@ -207,7 +224,6 @@ namespace UnityMCP.Editor
                 .Where(go => go.hideFlags == HideFlags.None || go.hideFlags == HideFlags.NotEditable);
 
             var matches = new List<JObject>();
-            string lowerQuery = query.ToLower();
 
             using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
             {
@@ -218,7 +234,7 @@ namespace UnityMCP.Editor
                     int score = 0;
                     List<string> reasons = new List<string>();
 
-                    if (go.name.ToLower().Contains(lowerQuery))
+                    if (go.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         score += 50;
                         reasons.Add("Name match");
@@ -229,9 +245,9 @@ namespace UnityMCP.Editor
                     {
                         if (comp == null) continue;
                         var type = comp.GetType();
-                        string typeName = type.Name;
+                        string typeName = GetTypeName(type);
 
-                        if (typeName.ToLower().Contains(lowerQuery))
+                        if (typeName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             score += 30;
                             reasons.Add($"Component type match: {typeName}");
@@ -241,7 +257,7 @@ namespace UnityMCP.Editor
                         var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                         foreach (var f in fields)
                         {
-                            if (f.Name.ToLower().Contains(lowerQuery))
+                            if (f.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
                             {
                                 score += 10;
                                 reasons.Add($"Field match: {typeName}.{f.Name}");
@@ -252,7 +268,7 @@ namespace UnityMCP.Editor
                         var methods = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
                         foreach (var m in methods)
                         {
-                            if (m.Name.ToLower().Contains(lowerQuery))
+                            if (m.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
                             {
                                 score += 15;
                                 reasons.Add($"Method match: {typeName}.{m.Name}()");
