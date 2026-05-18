@@ -1,7 +1,11 @@
 import time
 from .client import call_unity, log
+from .schemas import STATIC_TOOLS
 
 def route_tool(name, args):
+    if name in ["tools/list", "list_tools", "listTools"]:
+        return {"result": {"tools": STATIC_TOOLS}}
+
     if name in ["write_and_compile", "apply_code_change"]:
         files = args.get("files", [])
         start_time = time.time()
