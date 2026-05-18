@@ -158,7 +158,7 @@ namespace UnityMCP.Editor.Tests {
             Assert.IsNotNull(res["result"]);
             var id = res["result"]["data"]?["instance_id"]?.Value<int>();
             if (id.HasValue && id.Value != 0) {
-                var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
+                var go = EditorUtility.EntityIdToObject(id.Value) as GameObject;
                 if (go != null) _createdObjects.Add(go);
             }
         }
@@ -169,7 +169,7 @@ namespace UnityMCP.Editor.Tests {
             Assert.IsNotNull(res["result"]);
             var id = res["result"]["data"]?["instance_id"]?.Value<int>();
             if (id.HasValue && id.Value != 0) {
-                var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
+                var go = EditorUtility.EntityIdToObject(id.Value) as GameObject;
                 if (go != null) _createdObjects.Add(go);
             }
         }
@@ -177,7 +177,7 @@ namespace UnityMCP.Editor.Tests {
         [Test]
         public void UnityComponentManager_Inspect_ReturnsSuccess() {
             var go = CreateTestGameObject();
-            var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetInstanceID(), ["component_name"] = "Transform" });
+            var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetEntityId(), ["component_name"] = "Transform" });
             Assert.IsNotNull(res["result"]);
         }
 
@@ -230,7 +230,7 @@ namespace UnityMCP.Editor.Tests {
         [Test]
         public void UnityInvokeMethod_ReturnsSuccess() {
             var go = CreateTestGameObject();
-            var res = SimulateBridgeRouting("unity_invoke_method", new JObject { ["instance_id"] = go.GetInstanceID(), ["method_name"] = "GetInstanceID" });
+            var res = SimulateBridgeRouting("unity_invoke_method", new JObject { ["instance_id"] = go.GetEntityId(), ["method_name"] = "GetInstanceID" });
             Assert.IsTrue(res["result"] != null || res["error"] != null, "Successfully routed but may have execution specific errors.");
         }
 
