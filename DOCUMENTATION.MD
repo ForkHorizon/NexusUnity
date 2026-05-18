@@ -30,7 +30,7 @@ The server:
 Nexus Unity is a local developer tool and should be used only with trusted local clients.
 
 - HTTP and WebSocket requests must target loopback hosts.
-- Browser origins are validated to reduce CSRF and DNS rebinding exposure.
+- Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
 - Request payload size is capped to reduce memory exhaustion risk.
 - Raw write operations are intentionally powerful; prefer `unity_write_and_compile` through the MCP bridge for code edits.
@@ -99,5 +99,6 @@ For scene work, prefer manager tools:
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
 - Public release version: `1.0.0`.
-- License: GPLv3.
+- License: `GPL-3.0-only`.
+- Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.

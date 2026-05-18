@@ -4,7 +4,7 @@ Nexus Unity is an open source Unity Editor automation package. It runs a local J
 
 - Package id: `com.forkhorizon.nexus.unity`
 - Version: `1.0.0`
-- License: GPLv3
+- License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Requirements
@@ -107,8 +107,11 @@ See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 |---|---|
 | `DOCUMENTATION.MD` | Architecture, setup, security, bridge deployment, and troubleshooting |
 | `API_REFERENCE.MD` | Raw JSON-RPC and MCP bridge tool catalogs |
+| `SECURITY.md` | Supported versions, vulnerability reporting, and local-only security policy |
+| `CONTRIBUTING.md` | Contribution rules and validation expectations |
+| `RELEASE.md` | Public release checklist and smoke test |
 | `CHANGELOG.md` | Public release history |
-| `LICENSE.md` | GPLv3 license |
+| `LICENSE.md` | GPL-3.0-only license text |
 
 ## Release Notes
 

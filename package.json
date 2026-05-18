@@ -5,6 +5,9 @@
   "description": "Open source Unity Editor automation server for local AI tools and developer workflows.",
   "unity": "6000.0",
   "license": "GPL-3.0-only",
+  "documentationUrl": "https://github.com/ForkHorizon/NexusUnity/blob/main/DOCUMENTATION.MD",
+  "changelogUrl": "https://github.com/ForkHorizon/NexusUnity/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/ForkHorizon/NexusUnity/blob/main/LICENSE.md",
   "keywords": [
     "mcp",
     "ai",
@@ -13,6 +16,10 @@
   ],
   "author": {
     "name": "Fork Horizon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForkHorizon/NexusUnity.git"
   },
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "2.0.0",

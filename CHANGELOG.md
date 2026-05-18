@@ -11,13 +11,15 @@ All notable public changes to Nexus Unity are documented here.
 - Modular Python bridge package under `nexus_bridge/`.
 - `unity_write_and_compile` macro for write, wait, and compiler-feedback workflows.
 - Editor tests for path security, port behavior, manager routing, raw registry consistency, and bridge contract consistency.
-- GPLv3 license.
+- Release-readiness docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
+- `GPL-3.0-only` license.
 
 ### Changed
 - Public repository target is `https://github.com/ForkHorizon/NexusUnity.git`.
 - Public documentation now treats Nexus Unity as a standalone open source package.
 - The Unity installer deploys both `nexus_unity_bridge.py` and the required `nexus_bridge/` module to the project root.
 - Package version, server version, bridge version, and public docs now use `1.0.0`.
+- Package metadata now includes public repository, documentation, changelog, and license URLs.
 
 ### Removed
 - Removed generated Graphify cache files from the package repo.
