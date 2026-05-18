@@ -1,3 +1,4 @@
+#pragma warning disable 0618
 using NUnit.Framework;
 using System.IO;
 using UnityEngine;
@@ -126,7 +127,6 @@ namespace UnityMCP.Editor.Tests {
                 ["id"] = 1
             };
 
-            // Assuming ProcessJsonRpc exists and handles raw JSON string.
             var processMethod = typeof(MCPServerMethods).GetMethod("ProcessJsonRpc", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, null);
             if (processMethod == null) throw new Exception("Could not find MCPServerMethods.ProcessJsonRpc(string)");
 
@@ -158,7 +158,7 @@ namespace UnityMCP.Editor.Tests {
             Assert.IsNotNull(res["result"]);
             var id = res["result"]["data"]?["instance_id"]?.Value<int>();
             if (id.HasValue && id.Value != 0) {
-                var go = EditorUtility.EntityIdToObject(id.Value) as GameObject;
+                var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
                 if (go != null) _createdObjects.Add(go);
             }
         }
@@ -169,7 +169,7 @@ namespace UnityMCP.Editor.Tests {
             Assert.IsNotNull(res["result"]);
             var id = res["result"]["data"]?["instance_id"]?.Value<int>();
             if (id.HasValue && id.Value != 0) {
-                var go = EditorUtility.EntityIdToObject(id.Value) as GameObject;
+                var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
                 if (go != null) _createdObjects.Add(go);
             }
         }
@@ -177,7 +177,7 @@ namespace UnityMCP.Editor.Tests {
         [Test]
         public void UnityComponentManager_Inspect_ReturnsSuccess() {
             var go = CreateTestGameObject();
-            var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetEntityId(), ["component_name"] = "Transform" });
+            var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetInstanceID(), ["component_name"] = "Transform" });
             Assert.IsNotNull(res["result"]);
         }
 
@@ -219,10 +219,7 @@ namespace UnityMCP.Editor.Tests {
 
         [Test]
         public void UnityWriteAndCompile_ReturnsSuccess() {
-            // Test mapping macro name
             var res = SimulateBridgeRouting("unity_write_and_compile", new JObject { ["files"] = new JArray() });
-            // C# implementation missing, it might throw or return method missing error
-            // As long as we map correctly to "write_and_compile" RPC
             Assert.IsNotNull(res["error"]);
             Assert.IsTrue(res["error"]["message"].ToString().Contains("Method missing") || res["error"]["message"].ToString().Contains("not found"), "Should correctly try to call write_and_compile");
         }
@@ -230,7 +227,7 @@ namespace UnityMCP.Editor.Tests {
         [Test]
         public void UnityInvokeMethod_ReturnsSuccess() {
             var go = CreateTestGameObject();
-            var res = SimulateBridgeRouting("unity_invoke_method", new JObject { ["instance_id"] = go.GetEntityId(), ["method_name"] = "GetInstanceID" });
+            var res = SimulateBridgeRouting("unity_invoke_method", new JObject { ["instance_id"] = go.GetInstanceID(), ["method_name"] = "GetInstanceID" });
             Assert.IsTrue(res["result"] != null || res["error"] != null, "Successfully routed but may have execution specific errors.");
         }
 
@@ -249,8 +246,8 @@ namespace UnityMCP.Editor.Tests {
         [Test]
         public void UnityLintProject_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_lint_project", new JObject());
-            // It might fail without project auditor, but should map correctly
             Assert.IsTrue(res["result"] != null || res["error"] != null);
         }
     }
 }
+#pragma warning restore 0618
