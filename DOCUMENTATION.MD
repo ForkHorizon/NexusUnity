@@ -32,6 +32,13 @@ If you see errors that the server cannot start, port `8081` may be in use by ano
 
 The Python bridge translates requests from your AI clients (Claude, Cursor, etc.) into the JSON-RPC format expected by the Unity server.
 
+### Modular Architecture (v2.8.0+)
+The bridge is now structured as a modular Python package:
+- `nexus_unity_bridge.py`: Main entry point and MCP loop.
+- `nexus_bridge/client.py`: Handles HTTP JSON-RPC communication with Unity.
+- `nexus_bridge/routing.py`: Logic for consolidated managers and macro execution.
+- `nexus_bridge/schemas.py`: Contains the strict JSON tool definitions.
+
 ### Connecting Claude Code or Cursor
 
 When configuring your AI tool to use Nexus Unity, you must point it to the `nexus_unity_bridge.py` script.

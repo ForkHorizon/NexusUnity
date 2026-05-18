@@ -2,16 +2,23 @@
 
 All notable changes to Nexus Unity are documented here.
 
-## [Unreleased] - Open Source Release Preparation (Deep Consolidation Phase)
+## [2.8.0] - 2026-05-18
 
 ### Added
 - **Deep Tool Consolidation:** Groups 64+ granular tools into **14 core entry points**. New managers include `search_manager`, `asset_manager`, `editor_controller`, and `ui_automation`.
 - **Strict JSON Schemas:** Implemented `oneOf` logic for all Managers, ensuring the AI cannot provide invalid parameters for a specific action.
 - **Integrated Dev Macro:** Renamed `apply_code_change` to `write_and_compile` to reinforce the recommended autonomous development workflow.
+- **Modular Python Bridge:** Refactored `nexus_unity_bridge.py` into a modular package (`nexus_bridge/`) for better maintainability and error isolation.
+- **Unity 6 API Compliance:** Updated codebase and tests to handle `EntityId` and `InstanceIDToObject` obsolescence warnings gracefully.
+
+### Fixed
+- **Assembly Collision Fix:** Removed accidental `.NET` console app artifacts (`temp_verify`) that caused massive `Debug` and `EditorApplication` type collisions in Unity.
+- **Dependency Resolution:** Fixed missing `Newtonsoft.Json` references in Assembly Definitions (`.asmdef`) for both Editor and Test projects.
+- **Bridge Import Bug:** Fixed a missing `call_unity` import in the refactored modular bridge.
 
 ### Changed
 - Refactored Python bridge with unified `route_tool` logic for consistent CLI and MCP behavior.
-- Updated API Reference to v2.8.0.
+- Updated API Reference and Documentation to reflect the v2.8.0 consolidated manager architecture.
 - Synchronized all root documentation with the `Assets/NexusUnity` package.
 
 ### Removed
