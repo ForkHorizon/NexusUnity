@@ -1,75 +1,29 @@
 # Changelog - Nexus Unity
 
-All notable changes to Nexus Unity are documented here.
+All notable public changes to Nexus Unity are documented here.
 
-## [2.8.0] - 2026-05-18
+## [1.0.0] - 2026-05-18
 
 ### Added
-- **Deep Tool Consolidation:** Groups 64+ granular tools into **14 core entry points**. New managers include `search_manager`, `asset_manager`, `editor_controller`, and `ui_automation`.
-- **Strict JSON Schemas:** Implemented `oneOf` logic for all Managers, ensuring the AI cannot provide invalid parameters for a specific action.
-- **Integrated Dev Macro:** Renamed `apply_code_change` to `write_and_compile` to reinforce the recommended autonomous development workflow.
-- **Modular Python Bridge:** Refactored `nexus_unity_bridge.py` into a modular package (`nexus_bridge/`) for better maintainability and error isolation.
-- **Unity 6 API Compliance:** Updated codebase and tests to handle `EntityId` and `InstanceIDToObject` obsolescence warnings gracefully.
-
-### Fixed
-- **Assembly Collision Fix:** Removed accidental `.NET` console app artifacts (`temp_verify`) that caused massive `Debug` and `EditorApplication` type collisions in Unity.
-- **Dependency Resolution:** Fixed missing `Newtonsoft.Json` references in Assembly Definitions (`.asmdef`) for both Editor and Test projects.
-- **Bridge Import Bug:** Fixed a missing `call_unity` import in the refactored modular bridge.
+- First public open source release for `com.forkhorizon.nexus.unity`.
+- Raw HTTP JSON-RPC API with 111 Unity Editor tools discoverable through `list_tools`.
+- Consolidated MCP bridge API with 14 `unity_` manager and macro tools for AI clients.
+- Modular Python bridge package under `nexus_bridge/`.
+- `unity_write_and_compile` macro for write, wait, and compiler-feedback workflows.
+- Editor tests for path security, port behavior, manager routing, raw registry consistency, and bridge contract consistency.
+- GPLv3 license.
 
 ### Changed
-- Refactored Python bridge with unified `route_tool` logic for consistent CLI and MCP behavior.
-- Updated API Reference and Documentation to reflect the v2.8.0 consolidated manager architecture.
-- Synchronized all root documentation with the `Assets/NexusUnity` package.
+- Public repository target is `https://github.com/ForkHorizon/NexusUnity.git`.
+- Public documentation now treats Nexus Unity as a standalone open source package.
+- The Unity installer deploys both `nexus_unity_bridge.py` and the required `nexus_bridge/` module to the project root.
+- Package version, server version, bridge version, and public docs now use `1.0.0`.
 
 ### Removed
-- Removed 50+ redundant micro-tools from the public schema to minimize LLM token overhead and analysis paralysis.
-- Removed `write_files_batch` to prevent race conditions during domain reloads.
+- Removed generated Graphify cache files from the package repo.
+- Removed tracked `.jules/`, `.DS_Store`, Python bytecode, and local validation artifacts from public package contents.
+- Experimental native bridge artifacts are not included in the public release.
 
+## Pre-public History
 
-## [3.1.2] - 2026-05-02
-
-### Added
-- Project-wide knowledge graph support for development-time indexing.
-- `unity_knowledge_graph` for querying code structure.
-
-### Fixed
-- Resolved `AmbiguousMatchException` in `EntityId` conversion by filtering reflection candidates by return type.
-- Fixed Unity 6 scene validity checks for the updated `Scene` struct.
-
-### Optimized
-- Reworked renderer and material list pooling in scene health scanning to reduce GC pressure.
-- Restored optimized UI Toolkit element lookup paths.
-
-## [3.1.1] - 2026-04-30
-
-### Added
-- Payload limiting for HTTP and WebSocket requests.
-- Loopback host and origin validation.
-- Additional server health, state, and session reporting.
-
-### Improved
-- Reduced large-payload allocations in JSON-RPC parsing.
-- Improved path construction and component cache reuse during scene traversal.
-- Improved dashboard clarity for server control and diagnostics.
-
-### Fixed
-- Updated Unity 6 object change handling for modern `EntityId` APIs.
-- Improved input simulation reliability during Play Mode.
-- Improved dynamic type discovery after script compilation.
-
-## [3.1.0] - 2026-04-18
-
-### Added
-- `unity_batch_execute`
-- `unity_scene_delta`
-- `unity_symbol_index`
-- `unity_component_values`
-- `unity_compact_scene_snapshot`
-
-### Improved
-- Added structured log reading support.
-- Added field filtering to component inspection.
-
-## Earlier History
-
-Earlier development history is intentionally collapsed for the first public release. Public releases should keep complete changelog entries from this point forward.
+Earlier internal builds used `2.x` and `3.x` version numbers while the package was being validated. Public semantic versioning starts at `1.0.0`.

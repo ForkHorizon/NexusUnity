@@ -1,44 +1,49 @@
 # Nexus Unity
 
-Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes editor, scene, asset, log, test, and inspection tools to local developer workflows.
+Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
-Package id: `com.forkhorizon.nexus.unity`
-
-License: GPLv3
+- Package id: `com.forkhorizon.nexus.unity`
+- Version: `1.0.0`
+- License: GPLv3
+- Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Requirements
 
 - Unity `6000.0` or newer.
 - Local machine access to the Unity Editor.
-- **Python 3** (required if you want to use AI agents like Claude Code or Cursor).
+- Python 3 for MCP bridge integrations.
 
 ## Install
 
 1. Open your Unity project.
 2. Go to `Window > Package Manager`.
-3. Click the `+` icon in the top left and select **"Add package from git URL..."**.
-4. Enter the repository URL:
-   ```text
-   https://github.com/<owner>/<repo>.git
-   ```
-   *(Note: The actual package code resides in `Assets/NexusUnity` if you are browsing this repository locally).*
+3. Click `+` and select `Add package from git URL...`.
+4. Enter:
+
+```text
+https://github.com/ForkHorizon/NexusUnity.git
+```
 
 ## Start The Server
 
-1. Open a Unity project with Nexus Unity installed.
-2. Open `Window > Nexus Unity`.
-3. Click `START SERVER`.
-4. Confirm the server is listening, usually on:
+1. Open `Window > Nexus Unity`.
+2. Click `START SERVER`.
+3. Confirm the server is listening on the configured loopback port, usually:
 
-   ```text
-   http://localhost:8081/
-   ```
+```text
+http://127.0.0.1:8081/
+```
 
-The server only binds to local loopback access. Use it for local editor automation, diagnostics, and trusted local AI tooling.
+The server is intended for trusted local automation only. It validates loopback hosts and browser origins, constrains file operations to the Unity project root, and limits request payload size.
 
-## Direct JSON-RPC
+## Public APIs
 
-Nexus Unity accepts JSON-RPC 2.0 requests over HTTP:
+Nexus Unity supports two public surfaces:
+
+- Raw HTTP JSON-RPC tools: unprefixed Unity method names returned by `list_tools`.
+- MCP bridge tools: consolidated `unity_` manager tools optimized for AI clients.
+
+Direct JSON-RPC example:
 
 ```bash
 curl -s http://127.0.0.1:8081/ \
@@ -46,27 +51,20 @@ curl -s http://127.0.0.1:8081/ \
   -d '{"jsonrpc":"2.0","method":"get_server_status","params":{},"id":1}'
 ```
 
-Tool names are unprefixed at the HTTP JSON-RPC layer, for example `get_server_status`, `list_tools`, and `read_logs`.
+MCP clients should use the Python bridge:
 
-## Python MCP Bridge & AI Clients
-
-The package includes a Python script that translates AI tool calls into Unity JSON-RPC calls. This allows tools like **Claude Code** or **Cursor** to directly control your Unity Editor.
-
-To use the bridge, your AI client needs to run it as an MCP (Model Context Protocol) server.
-
-### Connecting Claude Code or Cursor
-
-You need to configure your AI tool to run the Python bridge script. Since Unity installs packages into the `Packages` directory or your `Assets` folder, you must locate the script first.
-
-When installed via Git, the script is typically at:
 ```bash
 python3 Packages/com.forkhorizon.nexus.unity/Editor/nexus_unity_bridge.py
 ```
 
-*If you copied the package manually into your Assets folder, it will be at `Assets/NexusUnity/Editor/nexus_unity_bridge.py`.*
+The Unity window can also deploy the bridge to the project root for CLIs that prefer stable local paths. The deployment copies both `nexus_unity_bridge.py` and the required `nexus_bridge/` module.
 
-#### Claude Code Setup
-Add an MCP server configuration pointing to your Python executable and the bridge script:
+## AI Client Setup
+
+For Claude Code, Cursor, Codex, Gemini, Antigravity, or compatible MCP clients, configure a command server that runs Python with the bridge script.
+
+Package path:
+
 ```json
 {
   "mcpServers": {
@@ -78,40 +76,40 @@ Add an MCP server configuration pointing to your Python executable and the bridg
 }
 ```
 
-### Troubleshooting: Port Conflicts
+Root-deployed path:
 
-If the Unity server fails to start, port `8081` might be in use by another application.
-1. In Unity, go to **Edit > Project Settings > Nexus Unity**.
-2. Change the **Port** from `8081` to an available port (e.g., `8082`).
-3. Restart the server via **Window > Nexus Unity**.
+```json
+{
+  "mcpServers": {
+    "nexus-unity": {
+      "command": "python3",
+      "args": ["nexus_unity_bridge.py"]
+    }
+  }
+}
+```
 
-## Features
+## Key Tools
 
-- **Consolidated Tooling:** Unified managers for Scene, Hierarchy, Components, and Wait conditions to reduce token overhead.
-- **Batch Operations:** `unity_apply_code_change` macro for optimized write-compile-verify cycles.
-- **Server Health:** Readiness checks and self-healing server loop.
-- **Discovery:** Semantic search, dependency mapping, and hierarchy snapshots.
-- **Play Mode:** Runtime mouse and touch simulation.
-- **UI Toolkit:** Inspector and Editor Window interaction helpers.
-- **Test Runner:** NUnit test triggering support.
+- `unity_write_and_compile`: write files, wait for Unity reload, and return compiler errors.
+- `unity_scene_manager`: create, open, save, and list scenes.
+- `unity_hierarchy_manager`: create, destroy, duplicate, activate, and parent GameObjects.
+- `unity_component_manager`: add, inspect, update, and remove components.
+- `unity_asset_manager`: search, import, refresh, and manage prefab assets.
+- `unity_editor_controller`: play mode, menus, undo/redo, logs, and editor state.
+- `unity_ui_automation`: query and operate Unity Editor UI Toolkit windows.
 
-## Security Model
-
-- Requests are limited to local loopback hosts.
-- Origin and host checks protect against browser-origin attacks.
-- File operations are constrained to the Unity project root.
-- Payload size is capped to reduce memory exhaustion risk.
-- Unity API work is dispatched onto the main thread where required.
+See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 
 ## Documentation
 
 | Document | Purpose |
 |---|---|
-| `DOCUMENTATION.MD` | Technical guide, architecture, setup, and troubleshooting |
-| `API_REFERENCE.MD` | Public tool catalog |
-| `CHANGELOG.md` | Version history |
-| `LICENSE.md` | GPLv3 license notice |
+| `DOCUMENTATION.MD` | Architecture, setup, security, bridge deployment, and troubleshooting |
+| `API_REFERENCE.MD` | Raw JSON-RPC and MCP bridge tool catalogs |
+| `CHANGELOG.md` | Public release history |
+| `LICENSE.md` | GPLv3 license |
 
 ## Release Notes
 
-The first public release ships the Python bridge as the supported MCP bridge. Previous experimental Mojo bridge artifacts are not included in the open source package.
+The `1.0.0` open source release ships the Python bridge as the supported MCP bridge. Experimental native bridge artifacts are not included.

@@ -32,6 +32,7 @@ namespace UnityMCP.Editor
             try
             {
                 File.Copy(sourcePath, destinationPath, true);
+                DeployBridgeModule(projectRoot, sourcePath);
                 UnityEngine.Debug.Log("[MCP] Bridge script deployed to stable location: " + destinationPath);
                 DeployDocumentationPointer(projectRoot, sourcePath);
                 return true;
@@ -41,6 +42,48 @@ namespace UnityMCP.Editor
                 UnityEngine.Debug.LogError("[MCP] Failed to deploy bridge or docs: " + e.Message);
                 EditorUtility.DisplayDialog("MCP Error", "Failed to deploy integration files to project root.\n\n" + e.Message, "OK");
                 return false;
+            }
+        }
+
+        private static void DeployBridgeModule(string projectRoot, string sourcePath)
+        {
+            string sourceDir = Path.GetDirectoryName(sourcePath);
+            string sourceModuleDir = Path.Combine(sourceDir, "nexus_bridge");
+            if (!Directory.Exists(sourceModuleDir))
+            {
+                return;
+            }
+
+            string destinationModuleDir = Path.Combine(projectRoot, "nexus_bridge");
+            CopyDirectory(sourceModuleDir, destinationModuleDir);
+            UnityEngine.Debug.Log("[MCP] Bridge module deployed to stable location: " + destinationModuleDir);
+        }
+
+        private static void CopyDirectory(string sourceDir, string destinationDir)
+        {
+            Directory.CreateDirectory(destinationDir);
+
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                string fileName = Path.GetFileName(file);
+                if (fileName.EndsWith(".meta", StringComparison.OrdinalIgnoreCase) ||
+                    fileName.EndsWith(".pyc", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                File.Copy(file, Path.Combine(destinationDir, fileName), true);
+            }
+
+            foreach (string dir in Directory.GetDirectories(sourceDir))
+            {
+                string dirName = Path.GetFileName(dir);
+                if (dirName == "__pycache__")
+                {
+                    continue;
+                }
+
+                CopyDirectory(dir, Path.Combine(destinationDir, dirName));
             }
         }
 

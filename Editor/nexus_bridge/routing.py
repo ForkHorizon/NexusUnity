@@ -6,7 +6,7 @@ def route_tool(name, args):
     if name in ["tools/list", "list_tools", "listTools"]:
         return {"result": {"tools": STATIC_TOOLS}}
 
-    if name in ["write_and_compile", "apply_code_change"]:
+    if name == "write_and_compile":
         files = args.get("files", [])
         start_time = time.time()
         call_unity("clear_logs")
