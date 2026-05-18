@@ -2,6 +2,15 @@
 
 All notable public changes to Nexus Unity are documented here.
 
+## [Unreleased]
+
+### Added
+- GitHub issue templates, pull request template, static validation workflow, and code of conduct for public community maintenance.
+- README badges and reproducible install URL pinned to `v1.0.0`.
+
+### Removed
+- Removed orphan `Runtime/Tests.meta` file from the public package.
+
 ## [1.0.0] - 2026-05-18
 
 ### Added

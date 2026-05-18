@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible Nexus Unity bug
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please do not include private project source, secrets, API keys, or proprietary assets.
+  - type: input
+    id: nexus-version
+    attributes:
+      label: Nexus Unity version
+      description: Example: 1.0.0 or commit SHA/tag
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: unity-version
+    attributes:
+      label: Unity version
+      placeholder: "6000.0.x"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: List the smallest steps needed to reproduce the problem.
+      placeholder: |
+        1. Install package from ...
+        2. Open Window > Nexus Unity
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior / logs
+      description: Paste relevant Unity Console or bridge logs. Redact sensitive data.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Screenshots, minimal repro links, or related issues.

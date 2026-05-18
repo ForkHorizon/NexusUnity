@@ -1,5 +1,10 @@
 # Nexus Unity
 
+[![Release](https://img.shields.io/github/v/release/ForkHorizon/NexusUnity?include_prereleases&sort=semver)](https://github.com/ForkHorizon/NexusUnity/releases)
+[![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
+[![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
+[![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
+
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
@@ -22,6 +27,12 @@ Nexus Unity is an open source Unity Editor automation package. It runs a local J
 
 ```text
 https://github.com/ForkHorizon/NexusUnity.git
+```
+
+For reproducible installs, pin the public release tag:
+
+```text
+https://github.com/ForkHorizon/NexusUnity.git#v1.0.0
 ```
 
 ## Start The Server
@@ -109,9 +120,14 @@ See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 | `API_REFERENCE.MD` | Raw JSON-RPC and MCP bridge tool catalogs |
 | `SECURITY.md` | Supported versions, vulnerability reporting, and local-only security policy |
 | `CONTRIBUTING.md` | Contribution rules and validation expectations |
+| `CODE_OF_CONDUCT.md` | Community behavior expectations |
 | `RELEASE.md` | Public release checklist and smoke test |
 | `CHANGELOG.md` | Public release history |
 | `LICENSE.md` | GPL-3.0-only license text |
+
+## Community
+
+Please use GitHub Issues for reproducible bugs and focused feature requests. Security reports should follow `SECURITY.md` and use GitHub Security Advisories rather than public issues.
 
 ## Release Notes
 

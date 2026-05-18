@@ -1,0 +1,92 @@
+name: Validate package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  static-validation:
+    name: Static validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate package.json
+        run: |
+          python -m json.tool package.json > /tmp/package.json
+          python - <<'PY'
+          import json
+          p = json.load(open('package.json'))
+          assert p['name'] == 'com.forkhorizon.nexus.unity'
+          assert p['version']
+          assert p['license'] == 'GPL-3.0-only'
+          assert p['repository']['url'] == 'https://github.com/ForkHorizon/NexusUnity.git'
+          PY
+
+      - name: Compile Python bridge
+        run: python -m py_compile Editor/nexus_unity_bridge.py Editor/nexus_bridge/*.py
+
+      - name: Check for generated or local-only files
+        run: |
+          python - <<'PY'
+          import os, sys
+          forbidden = []
+          for root, dirs, files in os.walk('.'):
+              if '.git' in root.split(os.sep):
+                  continue
+              for name in files:
+                  path = os.path.join(root, name)
+                  if (
+                      name == '.DS_Store'
+                      or name.endswith(('.pyc', '.pyo'))
+                      or '__pycache__' in path
+                      or '/Library/' in path
+                      or '/Temp/' in path
+                      or '/graphify-out/' in path
+                      or '/.soma/' in path
+                  ):
+                      forbidden.append(path)
+          if forbidden:
+              print('Forbidden generated/local files found:')
+              print('
+'.join(forbidden))
+              sys.exit(1)
+          PY
+
+      - name: Check Unity .meta pairing
+        run: |
+          python - <<'PY'
+          import os, pathlib, sys
+          root = pathlib.Path('.')
+          missing_meta = []
+          orphan_meta = []
+          ignore_roots = {'.git', '.github'}
+          for path in root.rglob('*'):
+              if any(part in ignore_roots for part in path.parts):
+                  continue
+              if path.suffix == '.meta':
+                  target = pathlib.Path(str(path)[:-5])
+                  if not target.exists():
+                      orphan_meta.append(str(path))
+              elif path.is_file() and path.name != '.gitignore':
+                  if not pathlib.Path(str(path) + '.meta').exists():
+                      missing_meta.append(str(path))
+          if missing_meta or orphan_meta:
+              if missing_meta:
+                  print('Missing .meta files:')
+                  print('
+'.join(missing_meta))
+              if orphan_meta:
+                  print('Orphan .meta files:')
+                  print('
+'.join(orphan_meta))
+              sys.exit(1)
+          PY

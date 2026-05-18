@@ -14,6 +14,10 @@ Before changing package behavior, check the relevant docs:
 - `SECURITY.md` for vulnerability handling and local-only assumptions.
 - `RELEASE.md` for release steps.
 
+## Branch Workflow
+
+The default branch is `main`. Use short-lived feature branches and pull requests for public changes. A separate long-lived development branch is not required unless maintainers explicitly reintroduce it.
+
 ## Development Rules
 
 - Keep the server local-only. Do not add non-loopback binding without an explicit security design.
