@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -22,11 +23,16 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabVerification"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusStartButton"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusStopButton"));
+                Assert.AreEqual(320, MCPServerWindow.UsableMinSize.x);
+                Assert.GreaterOrEqual(MCPServerWindow.UsableMinSize.y, 420);
 
+                var headerStatus = window.rootVisualElement.Q("NexusHeaderStatus");
                 var cliActions = window.rootVisualElement.Q("NexusCliActions");
                 var resources = window.rootVisualElement.Q("NexusResources");
+                Assert.IsNotNull(headerStatus);
                 Assert.IsNotNull(cliActions);
                 Assert.IsNotNull(resources);
+                Assert.AreEqual(Wrap.NoWrap, headerStatus.style.flexWrap.value);
                 Assert.AreEqual(Wrap.Wrap, cliActions.style.flexWrap.value);
                 Assert.AreEqual(Wrap.Wrap, resources.style.flexWrap.value);
             }
@@ -68,6 +74,27 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsNotNull(window.rootVisualElement.Q<TextField>("TestInput"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("TestButton"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Label>("TestLabel"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(window);
+            }
+        }
+
+        [Test]
+        public void ServerWindowAppliesMinimumUsableSize()
+        {
+            var window = ScriptableObject.CreateInstance<MCPServerWindow>();
+            try
+            {
+                window.position = new Rect(100, 100, 280, 300);
+                typeof(MCPServerWindow)
+                    .GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Invoke(window, null);
+
+                Assert.AreEqual(MCPServerWindow.UsableMinSize, window.minSize);
+                Assert.GreaterOrEqual(window.position.width, MCPServerWindow.UsableMinSize.x);
+                Assert.GreaterOrEqual(window.position.height, MCPServerWindow.UsableMinSize.y);
             }
             finally
             {

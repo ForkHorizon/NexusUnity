@@ -34,6 +34,7 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(name)) label.name = name;
             label.style.fontSize = size;
             label.style.color = color ?? TextColor;
+            label.style.whiteSpace = WhiteSpace.Normal;
             label.style.unityFontStyleAndWeight = bold ? FontStyle.Bold : FontStyle.Normal;
             return label;
         }
@@ -97,6 +98,8 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(tooltip)) button.tooltip = tooltip;
             button.style.height = 30;
             button.style.minWidth = 124;
+            button.style.flexGrow = 0;
+            button.style.flexShrink = 0;
             button.style.marginRight = 6;
             button.style.marginBottom = 6;
             button.style.paddingLeft = 10;

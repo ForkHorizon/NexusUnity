@@ -20,7 +20,7 @@ All notable public changes to Nexus Unity are documented here.
 - The package validation workflow now reuses the local static validator and includes an optional Unity EditMode test job when a Unity license secret is configured.
 - The local pre-push hook now runs a sub-minute quick gate by default; full Python integration validation is opt-in with `scripts/prepush-validate.sh --integration`.
 - Validation now runs on both `main` and `development` and documents that direct pushes to protected branches are blocked for everyone.
-- Rebuilt Nexus Unity editor windows with compact UI Toolkit layouts, responsive wrapping, and named automation elements.
+- Rebuilt Nexus Unity editor windows with compact UI Toolkit layouts, responsive wrapping, minimum usable bounds, and named automation elements.
 - Raw API schemas now document `update_component`'s preferred `properties` payload, keep its legacy `json_data` payload compatible, and expose `invoke_method.arguments` as a valid array schema.
 - `create_material` now accepts an optional explicit asset `path`, allowing stress tests and automation to keep generated materials isolated.
 - Public docs now identify `unity_write_and_compile` as the supported code-edit macro and treat old `unity_apply_code_change` wording as stale.

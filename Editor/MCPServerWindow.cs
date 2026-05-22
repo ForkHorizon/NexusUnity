@@ -6,6 +6,8 @@ namespace UnityMCP.Editor
 {
     public partial class MCPServerWindow : EditorWindow
     {
+        internal static readonly Vector2 UsableMinSize = new Vector2(320, 420);
+
         private string _cliStatusMessage = "Checking link...";
         private int _selectedTab = 0;
         private VisualElement _content;
@@ -33,7 +35,8 @@ namespace UnityMCP.Editor
         private void OnEnable()
         {
             titleContent = new GUIContent("Nexus Unity");
-            minSize = new Vector2(560, 420);
+            minSize = UsableMinSize;
+            EnforceUsableMinSize();
             CheckCliLinkStatus();
         }
 
@@ -70,22 +73,24 @@ namespace UnityMCP.Editor
         private VisualElement BuildHeader()
         {
             var header = NexusEditorUi.Panel("NexusHeader");
-            header.style.flexDirection = FlexDirection.Row;
+            header.style.flexDirection = FlexDirection.Column;
             header.style.flexWrap = Wrap.Wrap;
-            header.style.alignItems = Align.Center;
+            header.style.alignItems = Align.Stretch;
             header.style.marginBottom = 8;
 
             var titleBlock = new VisualElement();
-            titleBlock.style.flexGrow = 1;
-            titleBlock.style.minWidth = 220;
-            titleBlock.Add(NexusEditorUi.Label("Server Control Panel", 18, true));
-            titleBlock.Add(NexusEditorUi.Label($"Nexus Unity editor automation server v{MCPServer.Version}", 11, false, NexusEditorUi.Muted));
+            titleBlock.style.minWidth = 0;
+            titleBlock.style.marginBottom = 6;
+            titleBlock.Add(NexusEditorUi.Label("Server Control Panel", 16, true));
+            titleBlock.Add(NexusEditorUi.Label($"Nexus Unity server v{MCPServer.Version}", 11, false, NexusEditorUi.Muted));
             header.Add(titleBlock);
 
             var statusBlock = NexusEditorUi.Row(true, "NexusHeaderStatus");
-            statusBlock.style.justifyContent = Justify.FlexEnd;
-            statusBlock.style.flexGrow = 1;
-            statusBlock.style.minWidth = 260;
+            statusBlock.style.justifyContent = Justify.FlexStart;
+            statusBlock.style.flexWrap = Wrap.NoWrap;
+            statusBlock.style.flexGrow = 0;
+            statusBlock.style.flexShrink = 0;
+            statusBlock.style.minWidth = 0;
 
             _statusPill = NexusEditorUi.Pill("STOPPED", Color.gray, "NexusStatusPill");
             _statusPill.style.marginRight = 6;
@@ -97,7 +102,9 @@ namespace UnityMCP.Editor
             _portLabel.style.marginBottom = 6;
             statusBlock.Add(_portLabel);
 
-            statusBlock.Add(NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy server URL to clipboard", false, "NexusCopyUrlButton"));
+            var copyButton = NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy server URL to clipboard", false, "NexusCopyUrlButton");
+            copyButton.style.minWidth = 82;
+            statusBlock.Add(copyButton);
             header.Add(statusBlock);
             return header;
         }
@@ -115,7 +122,10 @@ namespace UnityMCP.Editor
 
             foreach (var tab in _tabButtons)
             {
+                tab.style.flexBasis = 0;
                 tab.style.flexGrow = 1;
+                tab.style.flexShrink = 1;
+                tab.style.minWidth = 72;
                 tab.style.marginBottom = 0;
                 tabs.Add(tab);
             }
@@ -159,5 +169,16 @@ namespace UnityMCP.Editor
             UpdateDynamicState();
         }
 
+        private void EnforceUsableMinSize()
+        {
+            if (position.width <= 0 || position.height <= 0) return;
+            if (position.width >= minSize.x && position.height >= minSize.y) return;
+
+            position = new Rect(
+                position.x,
+                position.y,
+                Mathf.Max(position.width, minSize.x),
+                Mathf.Max(position.height, minSize.y));
+        }
     }
 }
