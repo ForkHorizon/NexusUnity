@@ -9,7 +9,7 @@ namespace UnityMCP.Editor
     {
         private static readonly object _toolUsageLock = new object();
         private static readonly Dictionary<string, ToolUsageStat> _toolUsageStats = new Dictionary<string, ToolUsageStat>();
-        private static readonly DateTime _toolUsageStartedUtc = DateTime.UtcNow;
+        private static DateTime _toolUsageStartedUtc = DateTime.UtcNow;
 
         private sealed class ToolUsageStat
         {
@@ -88,6 +88,21 @@ namespace UnityMCP.Editor
             {
                 ["since_utc"] = _toolUsageStartedUtc.ToString("o"),
                 ["tools"] = stats
+            };
+        }
+
+        private static JToken ResetToolUsageStats(JToken p)
+        {
+            lock (_toolUsageLock)
+            {
+                _toolUsageStats.Clear();
+                _toolUsageStartedUtc = DateTime.UtcNow;
+            }
+
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["since_utc"] = _toolUsageStartedUtc.ToString("o")
             };
         }
     }

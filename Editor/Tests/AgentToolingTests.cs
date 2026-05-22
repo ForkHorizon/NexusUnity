@@ -89,6 +89,18 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void ResetToolUsageStatsClearsPreviousCalls()
+        {
+            RpcResult("get_editor_state");
+            JObject reset = RpcResult("reset_tool_usage_stats");
+            JObject stats = RpcResult("get_tool_usage_stats");
+            JArray tools = (JArray)stats["tools"];
+
+            Assert.AreEqual("Success", reset["status"]?.ToString());
+            Assert.IsFalse(tools.Children<JObject>().Any(t => t["method"]?.ToString() == "get_editor_state"));
+        }
+
+        [Test]
         public void UiWindowRectMethodsRoundTrip()
         {
             MCPTestWindow window = MCPTestWindow.ShowWindow();
@@ -108,6 +120,35 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual("Success", getResult["status"]?.ToString());
             Assert.GreaterOrEqual(getResult["rect"]?["width"]?.Value<float>() ?? 0, window.minSize.x);
             Assert.GreaterOrEqual(getResult["rect"]?["height"]?.Value<float>() ?? 0, window.minSize.y);
+        }
+
+        [Test]
+        public void UiCaptureWindowSnapshotReturnsRectHierarchyAndBestEffortImage()
+        {
+            MCPTestWindow window = MCPTestWindow.ShowWindow();
+            window.position = new Rect(80, 80, 420, 260);
+
+            JObject result = RpcResult("ui_capture_window_snapshot", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["include_image"] = true,
+                ["include_hierarchy"] = true
+            });
+
+            string status = result["status"]?.ToString();
+            Assert.IsTrue(status == "Success" || status == "PartialSuccess", result.ToString(Formatting.None));
+            Assert.IsNotNull(result["rect"]);
+            Assert.IsNotNull(result["ui_hierarchy"]);
+
+#if UNITY_EDITOR_OSX
+            if (status == "Success")
+                Assert.IsFalse(string.IsNullOrEmpty(result["image_base64"]?.ToString()));
+            else
+                Assert.IsFalse(string.IsNullOrEmpty(result["message"]?.ToString()));
+#else
+            Assert.AreEqual("PartialSuccess", status);
+            Assert.IsNull(result["image_base64"]);
+#endif
         }
 
         private void WriteTestResults(string xml)

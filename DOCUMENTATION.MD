@@ -23,7 +23,7 @@ The server:
 - Binds to loopback use only.
 - Restarts after Unity domain reloads when the previous session was running.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
-- Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, and `get_tool_usage_stats` for robust automation loops.
+- Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, `get_tool_usage_stats`, and `reset_tool_usage_stats` for robust automation loops.
 
 ## Unity Editor Menu
 
@@ -65,6 +65,8 @@ Manual or root-deployed path:
 python3 nexus_unity_bridge.py
 ```
 
+Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`. A positional port argument is still supported for existing MCP client configs.
+
 The bridge is modular:
 
 - `nexus_unity_bridge.py`: MCP loop and CLI entry point.
@@ -82,7 +84,7 @@ Raw HTTP JSON-RPC:
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
 - Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, and `create_material` accepts an optional explicit asset `path`.
-- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries, `get_tool_usage_stats` for in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` for resize-based editor UI QA.
+- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
 
 MCP bridge:
 
@@ -90,7 +92,7 @@ MCP bridge:
 - Intended for AI clients and day-to-day automation.
 - Reduces schema size while preserving access to the supported raw capabilities.
 - `unity_editor_controller` includes `run_tests_wait`, which waits in the Python bridge by polling raw `get_test_results` instead of blocking the Unity main thread.
-- `unity_ui_automation` passes through `deep` for UI hierarchy reads, `class_name` for queries, and window rect actions for layout checks.
+- `unity_ui_automation` passes through `deep` for UI hierarchy reads, `class_name` for queries, and window rect/snapshot actions for layout checks.
 
 ## Current Compatibility Decisions
 
@@ -101,7 +103,7 @@ The current development line preserves backward compatibility while correcting p
 - `create_material` accepts an optional explicit `path` so automation can isolate generated materials in a known project folder.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
-- `get_test_results`, `get_tool_usage_stats`, and editor-window rect automation are public raw diagnostics for agent-driven development.
+- `get_test_results`, scoped tool usage stats, and editor-window rect/snapshot automation are public raw diagnostics for agent-driven development.
 
 ## Recommended AI Workflow
 
@@ -134,6 +136,8 @@ bash scripts/prepush-validate.sh --integration
 ```
 
 Integration validation requires the Unity project to be open and the Nexus Unity server to be running on `http://127.0.0.1:8081/`.
+
+For a focused agent tooling check, run `python3 scripts/agent-tooling-smoke.py`. It exercises server status, raw catalog discovery, scoped usage stats, Nexus Unity window UI automation, snapshot capture, and bridge-side `run_tests_wait` without writing repo-tracked files.
 
 Before release, maintainers should run a public API stress audit that compares raw `list_tools` output with the MCP bridge catalog, exercises read-only and mutating tool groups in a disposable namespace, and verifies cleanup of generated assets and PlayerPrefs keys.
 

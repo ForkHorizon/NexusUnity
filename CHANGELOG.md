@@ -18,6 +18,9 @@ All notable public changes to Nexus Unity are documented here.
 - Editor tests for integration config generation and responsive integration hub controls.
 - Raw agent diagnostics: `get_test_results`, `get_tool_usage_stats`, `ui_get_window_rect`, and `ui_set_window_rect`.
 - Bridge actions for `unity_editor_controller` test polling/server state/asset refresh and `unity_ui_automation` window rect/layout QA.
+- Window snapshot diagnostics through raw `ui_capture_window_snapshot` and `unity_ui_automation` `capture_window_snapshot`.
+- Scoped tool usage reset via raw `reset_tool_usage_stats`.
+- Optional `scripts/agent-tooling-smoke.py` for focused local agent tooling verification.
 
 ### Changed
 - Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.
@@ -31,6 +34,7 @@ All notable public changes to Nexus Unity are documented here.
 - The quick pre-push validator now supports `NEXUS_UNITY_HOOK_LIVE=auto|required|off`, retries transient live-smoke failures, and prints validation timing.
 - `unity_editor_controller` can run tests and wait for results through bridge-side polling instead of blocking the Unity main thread.
 - `unity_ui_automation` now forwards `deep` hierarchy reads and `class_name` queries through the MCP bridge.
+- The Python MCP bridge now supports `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`, and avoids writing Python bytecode caches.
 - Raw API schemas now document `update_component`'s preferred `properties` payload, keep its legacy `json_data` payload compatible, and expose `invoke_method.arguments` as a valid array schema.
 - `create_material` now accepts an optional explicit asset `path`, allowing stress tests and automation to keep generated materials isolated.
 - Public docs now identify `unity_write_and_compile` as the supported code-edit macro and treat old `unity_apply_code_change` wording as stale.

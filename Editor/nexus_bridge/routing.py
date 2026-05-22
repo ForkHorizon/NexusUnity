@@ -186,6 +186,7 @@ def route_tool(name, args):
         elif action == "query": return call_unity("ui_query_elements", _compact({"window_title": args.get("window_title"), "name": args.get("name"), "text": args.get("text"), "class_name": args.get("class_name")}))
         elif action == "get_window_rect": return call_unity("ui_get_window_rect", {"window_title": args.get("window_title")})
         elif action == "set_window_rect": return call_unity("ui_set_window_rect", _compact({"window_title": args.get("window_title"), "x": args.get("x"), "y": args.get("y"), "width": args.get("width"), "height": args.get("height")}))
+        elif action == "capture_window_snapshot": return call_unity("ui_capture_window_snapshot", _compact({"window_title": args.get("window_title"), "include_image": args.get("include_image"), "include_hierarchy": args.get("include_hierarchy")}))
         elif action == "click": return call_unity("ui_click", {"window_title": args.get("window_title"), "element_name": args.get("element_name")})
         elif action == "input": return call_unity("ui_input_text", {"window_title": args.get("window_title"), "element_name": args.get("element_name"), "text": args.get("text")})
         else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}

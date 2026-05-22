@@ -22,6 +22,7 @@ namespace UnityMCP.Editor
             _methods["ui_query_elements"] = UIQueryElements;
             _methods["ui_get_window_rect"] = UIGetWindowRect;
             _methods["ui_set_window_rect"] = UISetWindowRect;
+            _methods["ui_capture_window_snapshot"] = UICaptureWindowSnapshot;
         }
 
         private static JToken UIListWindows(JToken p)

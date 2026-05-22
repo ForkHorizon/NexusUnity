@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import sys
+sys.dont_write_bytecode = True
+
 import json
 import os
 import time
@@ -9,6 +11,20 @@ import threading
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
+
+def consume_positional_port_arg():
+    if len(sys.argv) <= 1:
+        return
+
+    try:
+        port = int(sys.argv[1])
+    except ValueError:
+        return
+
+    os.environ.setdefault("NEXUS_UNITY_PORT", str(port))
+    del sys.argv[1]
+
+consume_positional_port_arg()
 
 from nexus_bridge.schemas import STATIC_TOOLS
 from nexus_bridge.routing import route_tool
