@@ -5,11 +5,13 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_ROOT=$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)
 MODE="${1:---quick}"
 NEXUS_UNITY_URL="${NEXUS_UNITY_URL:-http://127.0.0.1:8081/}"
+NEXUS_UNITY_HOOK_LIVE="${NEXUS_UNITY_HOOK_LIVE:-auto}"
+VALIDATION_STARTED=$SECONDS
 
 cd "$PACKAGE_ROOT"
 
 log() {
-  printf '\n==> %s\n' "$1"
+  printf '\n==> [%ss] %s\n' "$((SECONDS - VALIDATION_STARTED))" "$1"
 }
 
 fail() {
@@ -18,6 +20,7 @@ fail() {
 }
 
 run_static_validation() {
+  local started=$SECONDS
   log "Validating package metadata"
   python3 -m json.tool package.json > /tmp/nexus-package-json.$$.json
   python3 - <<'PY'
@@ -105,46 +108,107 @@ if missing_meta or orphan_meta:
         print("\n".join(orphan_meta))
     sys.exit(1)
 PY
+
+  printf 'Static validation completed in %ss.\n' "$((SECONDS - started))"
 }
 
 run_quick_live_smoke() {
+  case "$NEXUS_UNITY_HOOK_LIVE" in
+    auto|required|off)
+      ;;
+    *)
+      fail "Invalid NEXUS_UNITY_HOOK_LIVE=$NEXUS_UNITY_HOOK_LIVE. Use auto, required, or off."
+      ;;
+  esac
+
+  if [[ "$NEXUS_UNITY_HOOK_LIVE" == "off" ]]; then
+    log "Skipping quick live server smoke"
+    printf 'NOTICE: NEXUS_UNITY_HOOK_LIVE=off; static validation only.\n'
+    return
+  fi
+
+  local started=$SECONDS
   log "Running quick live server smoke"
-  python3 - "$NEXUS_UNITY_URL" <<'PY'
+  python3 - "$NEXUS_UNITY_URL" "$NEXUS_UNITY_HOOK_LIVE" <<'PY'
 import json
 import sys
+import time
 import urllib.error
 import urllib.request
 
 url = sys.argv[1]
+mode = sys.argv[2]
 
-def rpc(method, params=None, timeout=2):
+TRANSIENT_ERRORS = (
+    OSError,
+    TimeoutError,
+    urllib.error.URLError,
+    json.JSONDecodeError,
+)
+
+
+class TransientFailure(Exception):
+    pass
+
+
+class ContractFailure(Exception):
+    pass
+
+
+def rpc(method, params=None, timeout=2, retries=0):
     payload = json.dumps({
         "jsonrpc": "2.0",
         "method": method,
         "params": params or {},
         "id": 1,
     }).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-    )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        data = json.loads(response.read().decode("utf-8"))
-    if "error" in data:
-        raise RuntimeError(f"{method} returned error: {data['error']}")
-    return data.get("result")
 
-try:
-    server = rpc("get_server_status")
-except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError) as exc:
-    print(f"NOTICE: Nexus Unity server is not reachable at {url}; skipping live smoke ({exc}).")
-    sys.exit(0)
+    last_error = None
+    for attempt in range(retries + 1):
+        try:
+            request = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            if "error" in data:
+                raise ContractFailure(f"{method} returned error: {data['error']}")
+            return data.get("result")
+        except ContractFailure:
+            raise
+        except TRANSIENT_ERRORS as exc:
+            last_error = exc
+            if attempt < retries:
+                time.sleep(min(0.25 * (2 ** attempt), 2.0))
+
+    raise TransientFailure(str(last_error))
+
+
+def live_or_skip(operation):
+    try:
+        return operation()
+    except TransientFailure as exc:
+        if mode == "auto":
+            print(f"NOTICE: Nexus Unity server is not reachable or timed out at {url}; skipping live smoke ({exc}).")
+            sys.exit(0)
+        raise SystemExit(f"Nexus Unity live smoke failed in required mode: {exc}")
+
+
+def stage(label, operation):
+    started = time.monotonic()
+    result = live_or_skip(operation)
+    print(f"{label}: {time.monotonic() - started:.2f}s")
+    return result
+
+total_started = time.monotonic()
+server = stage("get_server_status", lambda: rpc("get_server_status", timeout=2, retries=4))
 
 if not server:
     raise SystemExit("get_server_status returned an empty result")
 
-tools = rpc("list_tools")
+tools = stage("list_tools", lambda: rpc("list_tools", timeout=3, retries=2))
 if not isinstance(tools, list) or len(tools) < 100:
     raise SystemExit(f"list_tools returned an unexpected catalog size: {len(tools) if isinstance(tools, list) else type(tools).__name__}")
 
@@ -175,9 +239,10 @@ if not isinstance(invoke_args, dict) or invoke_args.get("type") != "array":
 if "path" not in by_name["create_material"]["inputSchema"]["properties"]:
     raise SystemExit("create_material schema must expose optional path")
 
-rpc("get_editor_state")
-print(f"Quick live smoke passed: {len(tools)} raw tools, server state={server.get('state', 'unknown')}.")
+stage("get_editor_state", lambda: rpc("get_editor_state", timeout=3, retries=2))
+print(f"Quick live smoke passed in {time.monotonic() - total_started:.2f}s: {len(tools)} raw tools, server state={server.get('state', 'unknown')}.")
 PY
+  printf 'Quick live server smoke completed in %ss.\n' "$((SECONDS - started))"
 }
 
 resolve_unity_project_root() {
@@ -231,7 +296,7 @@ while time.time() < deadline:
 print(
     "Nexus Unity server is unreachable at http://127.0.0.1:8081/.\n"
     f"Open {project_root} in Unity and start the server from "
-    "Window > Nexus Unity > Server Control Panel > START SERVER.",
+    "Window > Nexus Unity > Server > Start Server.",
     file=sys.stderr,
 )
 sys.exit(1)
@@ -269,4 +334,4 @@ case "$MODE" in
     ;;
 esac
 
-log "Nexus Unity validation passed"
+log "Nexus Unity validation passed in $((SECONDS - VALIDATION_STARTED))s"

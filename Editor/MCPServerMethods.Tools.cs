@@ -86,6 +86,7 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_server_status", "Get explicit health and state of the MCP server and Unity editor", new JObject { }));
             tools.Add(CreateTool("attach_existing_session", "Attach to an existing healthy session", new JObject { }));
             tools.Add(CreateTool("ping_main_thread", "Explicit liveness check for Unity API execution on main thread", new JObject { }));
+            tools.Add(CreateTool("get_tool_usage_stats", "Return in-memory raw tool call counts, durations, and errors since domain load", new JObject { }));
             tools.Add(CreateTool("shutdown_server", "Safely stop the MCP server for this Unity instance", new JObject { }));
             tools.Add(CreateTool("batch_execute", "Execute multiple JSON-RPC calls in a single HTTP request", new JObject
             {
@@ -290,6 +291,10 @@ namespace UnityMCP.Editor
                 ["filter"] = new JObject { ["type"] = "string", ["description"] = "Optional: name of test or class" },
                 ["mode"] = new JObject { ["type"] = "string", ["description"] = "EditMode or PlayMode" }
             }));
+            tools.Add(CreateTool("get_test_results", "Read the latest Unity TestResults XML summary", new JObject
+            {
+                ["result_path"] = new JObject { ["type"] = "string", ["description"] = "Optional TestResults XML path inside the project or Unity persistent data path" }
+            }));
         }
 
         private static void AddDiscoveryTools(JArray tools)
@@ -317,6 +322,15 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("ui_list_windows", "List Editor Windows", new JObject { }));
             tools.Add(CreateTool("ui_get_hierarchy", "Inspect Window UI", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
+            tools.Add(CreateTool("ui_get_window_rect", "Get an EditorWindow position and size for layout QA", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
+            tools.Add(CreateTool("ui_set_window_rect", "Set an EditorWindow position and size for layout QA", new JObject
+            {
+                ["window_title"] = new JObject { ["type"] = "string" },
+                ["x"] = new JObject { ["type"] = "number" },
+                ["y"] = new JObject { ["type"] = "number" },
+                ["width"] = new JObject { ["type"] = "number" },
+                ["height"] = new JObject { ["type"] = "number" }
+            }, "window_title"));
             tools.Add(CreateTool("ui_query_elements", "Find UI Toolkit elements by text, name, or USS class", new JObject
             {
                 ["window_title"] = new JObject { ["type"] = "string" },

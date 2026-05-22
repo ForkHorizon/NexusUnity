@@ -53,7 +53,7 @@ namespace UnityMCP.Editor.Tests
 
             CollectionAssert.IsEmpty(listed.Except(registered).OrderBy(x => x).ToArray(), "Every raw listed tool must be dispatchable.");
             CollectionAssert.IsEmpty(registered.Except(InternalRegisteredMethods).Except(listed).OrderBy(x => x).ToArray(), "Every public registered raw method must be listed.");
-            Assert.AreEqual(111, listed.Count, "Open source API docs assume 111 raw tools.");
+            Assert.AreEqual(115, listed.Count, "Open source API docs assume 115 raw tools.");
         }
 
         [Test]

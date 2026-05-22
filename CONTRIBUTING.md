@@ -64,7 +64,7 @@ The repository includes a tracked pre-push hook for local feedback. Git does not
 bash scripts/install-git-hooks.sh
 ```
 
-The hook runs `scripts/prepush-validate.sh --quick`. This is the contributor default: static package checks always run, and a short read-only live smoke check runs when the Nexus Unity server is already available at `http://127.0.0.1:8081/`. If the server is not running, the hook skips the live smoke instead of blocking the push.
+The hook runs `scripts/prepush-validate.sh --quick`. This is the contributor default: static package checks always run, and `NEXUS_UNITY_HOOK_LIVE=auto` adds a short read-only live smoke check when the Nexus Unity server is available at `http://127.0.0.1:8081/`. If the server is temporarily unreachable or times out, the hook prints `NOTICE` and skips live smoke instead of blocking the push. Use `NEXUS_UNITY_HOOK_LIVE=required` to fail when the live server is unavailable, or `NEXUS_UNITY_HOOK_LIVE=off` to run only static checks.
 
 Run full local integration validation explicitly when changing server behavior, bridge routing, or public API contracts:
 

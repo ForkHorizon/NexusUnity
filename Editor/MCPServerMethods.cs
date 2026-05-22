@@ -203,12 +203,28 @@ namespace UnityMCP.Editor
         private static JToken ExecuteMethod(string method, JToken p)
         {
             UnityEngine.Debug.Log($"[MCP_EXECUTE] {method}");
-            if (_methods.TryGetValue(method, out var func))
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            Exception failure = null;
+            try
             {
-                return func(p);
-            }
+                if (_methods.TryGetValue(method, out var func))
+                {
+                    return func(p);
+                }
 
-            throw new Exception($"Method not found: {method}");
+                throw new Exception($"Method not found: {method}");
+            }
+            catch (Exception e)
+            {
+                failure = e;
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+                RecordToolUsage(method, stopwatch.Elapsed.TotalMilliseconds, failure);
+            }
         }
+
     }
 }

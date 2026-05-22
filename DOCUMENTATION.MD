@@ -23,7 +23,7 @@ The server:
 - Binds to loopback use only.
 - Restarts after Unity domain reloads when the previous session was running.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
-- Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, and `wait_for_editor_idle` for robust automation loops.
+- Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, and `get_tool_usage_stats` for robust automation loops.
 
 ## Unity Editor Menu
 
@@ -82,12 +82,15 @@ Raw HTTP JSON-RPC:
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
 - Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, and `create_material` accepts an optional explicit asset `path`.
+- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries, `get_tool_usage_stats` for in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` for resize-based editor UI QA.
 
 MCP bridge:
 
 - Uses `unity_` prefixed manager tools, for example `unity_scene_manager`, `unity_asset_manager`, and `unity_write_and_compile`.
 - Intended for AI clients and day-to-day automation.
 - Reduces schema size while preserving access to the supported raw capabilities.
+- `unity_editor_controller` includes `run_tests_wait`, which waits in the Python bridge by polling raw `get_test_results` instead of blocking the Unity main thread.
+- `unity_ui_automation` passes through `deep` for UI hierarchy reads, `class_name` for queries, and window rect actions for layout checks.
 
 ## Current Compatibility Decisions
 
@@ -98,6 +101,7 @@ The current development line preserves backward compatibility while correcting p
 - `create_material` accepts an optional explicit `path` so automation can isolate generated materials in a known project folder.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
+- `get_test_results`, `get_tool_usage_stats`, and editor-window rect automation are public raw diagnostics for agent-driven development.
 
 ## Recommended AI Workflow
 
@@ -121,7 +125,7 @@ Contributor pull requests target `development`. The `main` branch is release-onl
 
 Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`.
 
-For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs static package validation and adds a short read-only live smoke check when the Nexus Unity server is already reachable.
+For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs static package validation and uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
 
 Full local integration validation is explicit:
 
