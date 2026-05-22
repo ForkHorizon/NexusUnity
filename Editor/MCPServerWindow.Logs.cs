@@ -137,6 +137,7 @@ namespace UnityMCP.Editor
             {
                 MCPTestWindow.ShowWindow();
             }, "Open UI automation test window", true, "NexusOpenTestWindowButton"));
+            actions.Add(NexusEditorUi.Button("Test Codex Link", CodexLinkTester.TestLink, "Run the Codex CLI link test from the main Nexus Unity window", false, "NexusTestCodexLinkButton"));
             actions.Add(NexusEditorUi.Button("Clear All Logs", () =>
             {
                 MCPServer.ClearLogs();

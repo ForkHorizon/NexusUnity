@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -35,6 +36,14 @@ namespace UnityMCP.Editor.Tests
                 Assert.AreEqual(Wrap.NoWrap, headerStatus.style.flexWrap.value);
                 Assert.AreEqual(Wrap.Wrap, cliActions.style.flexWrap.value);
                 Assert.AreEqual(Wrap.Wrap, resources.style.flexWrap.value);
+
+                typeof(MCPServerWindow)
+                    .GetField("_selectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .SetValue(window, 1);
+                typeof(MCPServerWindow)
+                    .GetMethod("DrawSelectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Invoke(window, null);
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTestCodexLinkButton"));
             }
             finally
             {
@@ -99,6 +108,31 @@ namespace UnityMCP.Editor.Tests
             finally
             {
                 Object.DestroyImmediate(window);
+            }
+        }
+
+        [Test]
+        public void WindowMenuUsesSingleNexusUnityEntryPoint()
+        {
+            Assert.IsTrue(EditorApplication.ExecuteMenuItem("Window/Nexus Unity"));
+
+            var window = Resources.FindObjectsOfTypeAll<MCPServerWindow>().FirstOrDefault();
+            try
+            {
+                Assert.IsNotNull(window);
+                Assert.AreEqual("Nexus Unity", window.titleContent.text);
+
+                var menuPaths = typeof(MCPServerWindow).Assembly.GetTypes()
+                    .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
+                    .SelectMany(method => method.GetCustomAttributes<MenuItem>())
+                    .Select(attribute => attribute.menuItem)
+                    .Where(path => path.StartsWith("Window/Nexus Unity"))
+                    .ToArray();
+                CollectionAssert.AreEquivalent(new[] { "Window/Nexus Unity" }, menuPaths);
+            }
+            finally
+            {
+                if (window != null) window.Close();
             }
         }
     }

@@ -37,7 +37,6 @@ namespace UnityMCP.Editor
         /// <summary>
         /// Shows the MCP Test window.
         /// </summary>
-        [MenuItem("Window/Nexus Unity/Test Window")]
         public static MCPTestWindow ShowWindow()
         {
             MCPTestWindow wnd = GetWindow<MCPTestWindow>();

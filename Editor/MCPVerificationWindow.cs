@@ -16,7 +16,6 @@ namespace UnityMCP.Editor
         private Label _resultLabel;
 
         /// <summary>Shows the MCP Verification window.</summary>
-        [MenuItem("Window/Nexus Unity/API Verification")]
         public static void ShowWindow()
         {
             var window = GetWindow<MCPVerificationWindow>();

@@ -24,7 +24,7 @@ namespace UnityMCP.Editor
         private Label _footerLabel;
         private IVisualElementScheduledItem _refreshItem;
 
-        [MenuItem("Window/Nexus Unity/Server Control Panel")]
+        [MenuItem("Window/Nexus Unity", false, 2000)]
         public static void ShowWindow()
         {
             var window = GetWindow<MCPServerWindow>();
