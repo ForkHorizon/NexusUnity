@@ -9,6 +9,8 @@ namespace UnityMCP.Editor
     /// </summary>
     public class MCPTestWindow : EditorWindow
     {
+        public const string WindowTitle = "Nexus Unity Test";
+
         /// <summary>
         /// Stores the last input value for verification.
         /// </summary>
@@ -39,8 +41,14 @@ namespace UnityMCP.Editor
         public static MCPTestWindow ShowWindow()
         {
             MCPTestWindow wnd = GetWindow<MCPTestWindow>();
-            wnd.titleContent = new GUIContent("Nexus Unity Test");
+            wnd.titleContent = new GUIContent(WindowTitle);
             return wnd;
+        }
+
+        private void OnEnable()
+        {
+            titleContent = new GUIContent(WindowTitle);
+            minSize = new Vector2(360, 220);
         }
 
         /// <summary>
@@ -48,32 +56,44 @@ namespace UnityMCP.Editor
         /// </summary>
         public void CreateGUI()
         {
-            // Reset state
+            NexusEditorUi.SetupRoot(rootVisualElement);
+            rootVisualElement.name = "NexusTestWindowRoot";
+
             LastInputValue = "";
             ButtonClicked = false;
 
-            VisualElement root = rootVisualElement;
+            var header = NexusEditorUi.Panel("TestWindowHeader");
+            header.Add(NexusEditorUi.Label("UI Automation Test", 16, true));
+            header.Add(NexusEditorUi.Label("Named controls used by Nexus Unity UI automation checks.", 11, false, NexusEditorUi.Muted));
+            rootVisualElement.Add(header);
+
+            var panel = NexusEditorUi.Panel("TestWindowControls");
 
             var label = new Label("Initial State");
             label.name = "TestLabel";
-            root.Add(label);
+            label.style.marginBottom = 8;
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            panel.Add(label);
 
             var textField = new TextField("Input:");
             textField.name = "TestInput";
-            textField.value = ""; // Force it to empty for tests
+            textField.style.marginBottom = 8;
+            textField.value = "";
             LastInputValue = textField.value;
             textField.RegisterValueChangedCallback(evt => LastInputValue = evt.newValue);
-            root.Add(textField);
+            panel.Add(textField);
 
             var button = new Button();
             button.name = "TestButton";
             button.text = "Click Me";
+            button.style.height = 30;
             button.clicked += () =>
             {
                 ButtonClicked = true;
                 label.text = "Button Clicked!";
             };
-            root.Add(button);
+            panel.Add(button);
+            rootVisualElement.Add(panel);
         }
     }
 }

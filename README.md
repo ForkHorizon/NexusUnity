@@ -38,7 +38,7 @@ https://github.com/ForkHorizon/NexusUnity.git#v1.0.0
 ## Start The Server
 
 1. Open `Window > Nexus Unity > Server Control Panel`.
-2. Click `START SERVER`.
+2. Click `Start Server`.
 3. Confirm the server is listening on the configured loopback port, usually:
 
 ```text
@@ -56,6 +56,8 @@ Nexus Unity editor commands are grouped under `Window > Nexus Unity`.
 - `Run Full Project Audit`: run the project audit from the Unity menu.
 - `Test Window`: open the UI Toolkit test window.
 - `Test Codex Link`: run the Codex CLI link test.
+
+The server control panel uses compact `Server`, `Tools`, and `Verification` tabs. Action rows wrap at narrow widths, so CLI linking and documentation buttons remain usable in small Unity editor windows.
 
 ## Public APIs
 
