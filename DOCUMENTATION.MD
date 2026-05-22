@@ -113,6 +113,8 @@ Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Valida
 
 Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
 
+Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`.
+
 For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs static package validation and adds a short read-only live smoke check when the Nexus Unity server is already reachable.
 
 Full local integration validation is explicit:

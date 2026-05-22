@@ -1,3 +1,5 @@
+> Normal contributor PRs must target `development`. `main` is release-only and accepts only maintainer release PRs from `development` or `release/*`.
+
 ## Summary
 
 <!-- What changed and why? -->
