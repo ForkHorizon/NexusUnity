@@ -51,11 +51,11 @@ The server is intended for trusted local automation only. It validates loopback 
 
 Nexus Unity uses a single Unity menu entry: `Window > Nexus Unity`.
 
-- `Server`: start, stop, configure, and link MCP clients.
-- `Tools`: open the UI Toolkit test window, test the Codex link, and clear logs.
-- `Verification`: run project audit, API verification, UI verification, and log verification.
+- `Server`: start, stop, restart, copy the local URL, and deploy the MCP bridge to the project root.
+- `Integrations`: configure Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or a generic MCP JSON client.
+- `Resources`: open docs, API reference, changelog, and the package folder.
 
-The main window uses compact `Server`, `Tools`, and `Verification` tabs. Action rows wrap at narrow widths, so CLI linking and documentation buttons remain usable in small Unity editor windows.
+Diagnostic actions such as the UI test window, log verification, Codex link test, project audit, and API verification are available from the collapsed `Advanced / Diagnostics` block in `Resources`. The default tabs show only user-facing setup and server actions. Action rows and integration cards wrap at narrow widths, so the window remains usable in small Unity editor layouts.
 
 ## Public APIs
 
@@ -82,7 +82,15 @@ The Unity window can also deploy the bridge to the project root for CLIs that pr
 
 ## AI Client Setup
 
-For Claude Code, Cursor, Codex, Gemini, Antigravity, or compatible MCP clients, configure a command server that runs Python with the bridge script.
+For Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or compatible MCP clients, open `Window > Nexus Unity` and use the `Integrations` tab.
+
+Each integration card shows `Detected`, `Not found`, `Configured`, or `Error` status and provides:
+
+- `Auto Setup` when Nexus Unity can safely write or invoke the client configuration.
+- `Copy Config` for manual setup.
+- `Open Config` when the client uses a known config file path.
+
+Nexus Unity generates configs from the current `python3` path and deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
 
 Package path:
 

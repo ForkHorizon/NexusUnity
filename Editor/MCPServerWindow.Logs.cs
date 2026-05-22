@@ -10,14 +10,12 @@ namespace UnityMCP.Editor
         private void DrawServerTab()
         {
             DrawServerControl();
-            DrawCliIntegration();
-            DrawResources();
-            DrawSessionSummary();
+            DrawBridgeSummary();
         }
 
         private void DrawServerControl()
         {
-            var section = NexusEditorUi.Section("Server Control", "Local HTTP bridge status and lifecycle controls.", "NexusServerSection");
+            var section = NexusEditorUi.Section("Server", "Local HTTP bridge status and lifecycle controls.", "NexusServerSection");
             var panel = NexusEditorUi.Panel("NexusServerControl");
 
             var statusRow = NexusEditorUi.Row(true, "NexusServerStatusRow");
@@ -36,6 +34,10 @@ namespace UnityMCP.Editor
             statusRow.Add(_editorStateLabel);
             panel.Add(statusRow);
 
+            _serverHealthLabel = NexusEditorUi.Label("Health: Waiting for refresh", 11, false, NexusEditorUi.Muted, "NexusServerHealthLabel");
+            _serverHealthLabel.style.marginTop = 2;
+            panel.Add(_serverHealthLabel);
+
             _errorLabel = NexusEditorUi.Label(string.Empty, 11, true, new Color(1f, 0.45f, 0.45f), "NexusErrorLabel");
             _errorLabel.style.marginTop = 4;
             _errorLabel.style.whiteSpace = WhiteSpace.Normal;
@@ -49,140 +51,56 @@ namespace UnityMCP.Editor
             }, $"Start the local server on port {MCPServer.Port}", true, "NexusStartButton");
             actions.Add(_startButton);
 
-            _stopButton = NexusEditorUi.Button("Stop / Reset", () =>
+            _restartButton = NexusEditorUi.Button("Restart", () =>
+            {
+                MCPServer.Stop();
+                MCPServer.Start();
+                UpdateDynamicState();
+            }, "Restart the local server and refresh the active session", false, "NexusRestartButton");
+            actions.Add(_restartButton);
+
+            _stopButton = NexusEditorUi.Button("Stop", () =>
             {
                 MCPServer.Stop();
                 UpdateDynamicState();
-            }, "Stop the running server and reset the active server state", false, "NexusStopButton");
+            }, "Stop the local server", false, "NexusStopButton");
             actions.Add(_stopButton);
+
+            actions.Add(NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy the local server URL to clipboard", false, "NexusServerCopyUrlButton"));
             panel.Add(actions);
 
             section.Add(panel);
             _content.Add(section);
         }
 
-        private void DrawCliIntegration()
+        private void DrawBridgeSummary()
         {
-            var section = NexusEditorUi.Section("CLI Integrations", "Link external coding assistants to this Unity project.", "NexusCliSection");
-            var status = NexusEditorUi.Panel("NexusCliStatusPanel");
-            var statusRow = NexusEditorUi.Row(true, "NexusCliStatusRow");
-            _cliStatusLabel = NexusEditorUi.Label($"Status: {_cliStatusMessage}", 12, false, null, "NexusCliStatusLabel");
-            _cliStatusLabel.style.flexGrow = 1;
-            _cliStatusLabel.style.minWidth = 180;
-            statusRow.Add(_cliStatusLabel);
-            statusRow.Add(NexusEditorUi.Button("Refresh", () =>
-            {
-                CheckCliLinkStatus();
-                UpdateDynamicState();
-            }, "Check current CLI installation and link status", false, "NexusRefreshCliButton"));
-            status.Add(statusRow);
-            section.Add(status);
+            var section = NexusEditorUi.Section("Bridge", "Stable files used by external MCP clients.", "NexusBridgeSection");
+            var panel = NexusEditorUi.Panel("NexusBridgePanel");
 
-            var actions = NexusEditorUi.Row(true, "NexusCliActions");
-            actions.Add(NexusEditorUi.Button("Link to Gemini CLI", () =>
-            {
-                MCPCliInstaller.LinkToGemini();
-                CheckCliLinkStatus();
-                UpdateDynamicState();
-            }, "Install and link Gemini CLI tools to this Unity project", false, "NexusLinkGeminiButton"));
+            _bridgePathLabel = NexusEditorUi.Label("Bridge path: " + MCPCliInstaller.GetDefaultBridgePathForUi(), 11, false, null, "NexusBridgePathLabel");
+            _bridgePathLabel.style.whiteSpace = WhiteSpace.Normal;
+            panel.Add(_bridgePathLabel);
 
-            actions.Add(NexusEditorUi.Button("Link to Codex CLI", () =>
+            var actions = NexusEditorUi.Row(true, "NexusBridgeActions");
+            actions.Add(NexusEditorUi.Button("Deploy Bridge", () =>
             {
-                MCPCliInstaller.LinkToCodex();
-                CheckCliLinkStatus();
-                UpdateDynamicState();
-            }, "Install and link Codex CLI tools to this Unity project", false, "NexusLinkCodexButton"));
-
-            actions.Add(NexusEditorUi.Button("Link to Anthropic Claude", () =>
-            {
-                MCPCliInstaller.LinkToAnthropic();
-                CheckCliLinkStatus();
-                UpdateDynamicState();
-            }, "Install and link Anthropic Claude Desktop to this Unity project", false, "NexusLinkClaudeButton"));
-
-            actions.Add(NexusEditorUi.Button("Link to Antigravity CLI", () =>
-            {
-                MCPCliInstaller.LinkToAntigravity();
-                CheckCliLinkStatus();
-                UpdateDynamicState();
-            }, "Install and link Antigravity CLI to this Unity project", false, "NexusLinkAntigravityButton"));
-            section.Add(actions);
-            _content.Add(section);
-        }
-
-        private void DrawResources()
-        {
-            var section = NexusEditorUi.Section("Resources", "Package documentation for users and contributors.", "NexusResourcesSection");
-            var actions = NexusEditorUi.Row(true, "NexusResources");
-            actions.Add(NexusEditorUi.Button("Documentation", () => OpenDocumentation("DOCUMENTATION.MD"), "Open project documentation", false, "NexusDocumentationButton"));
-            actions.Add(NexusEditorUi.Button("API Reference", () => OpenDocumentation("API_REFERENCE.MD"), "Open API reference documentation", false, "NexusApiReferenceButton"));
-            section.Add(actions);
-            _content.Add(section);
-        }
-
-        private void DrawSessionSummary()
-        {
-            var section = NexusEditorUi.Section("Status", null, "NexusStatusSummary");
-            var panel = NexusEditorUi.Panel("NexusStatusSummaryPanel");
-            panel.Add(NexusEditorUi.Label("Use the Tools tab for diagnostics and verification helpers.", 11, false, NexusEditorUi.Muted, "NexusSummaryText"));
-            section.Add(panel);
-            _content.Add(section);
-        }
-
-        private void DrawToolsTab()
-        {
-            var section = NexusEditorUi.Section("Developer Tools", "Compact diagnostics and package utilities.", "NexusToolsSection");
-            var actions = NexusEditorUi.Row(true, "NexusToolsActions");
-            actions.Add(NexusEditorUi.Button("Open Test Window", () =>
-            {
-                MCPTestWindow.ShowWindow();
-            }, "Open UI automation test window", true, "NexusOpenTestWindowButton"));
-            actions.Add(NexusEditorUi.Button("Test Codex Link", CodexLinkTester.TestLink, "Run the Codex CLI link test from the main Nexus Unity window", false, "NexusTestCodexLinkButton"));
-            actions.Add(NexusEditorUi.Button("Clear All Logs", () =>
-            {
-                MCPServer.ClearLogs();
-                _content.Clear();
-                DrawToolsTab();
-            }, "Clear the MCP server log history", false, "NexusClearLogsButton"));
-            section.Add(actions);
-
-            var logsPanel = NexusEditorUi.Panel("NexusLogSummary");
-            var logs = MCPServer.GetLogs(6, null, null);
-            logsPanel.Add(NexusEditorUi.Label($"Captured logs: {logs.Count}", 12, true, null, "NexusLogCountLabel"));
-            if (logs.Count == 0)
-            {
-                logsPanel.Add(NexusEditorUi.Label("No captured logs.", 11, false, NexusEditorUi.Muted));
-            }
-            else
-            {
-                foreach (var log in logs)
+                if (MCPCliInstaller.DeployBridgeForUi(out string path))
                 {
-                    string message = string.IsNullOrEmpty(log.Message) ? "(empty)" : log.Message.Replace('\n', ' ');
-                    if (message.Length > 120) message = message.Substring(0, 117) + "...";
-                    var line = NexusEditorUi.Label($"{log.Timestamp} {log.Type}: {message}", 10, false, NexusEditorUi.Muted);
-                    line.style.whiteSpace = WhiteSpace.Normal;
-                    logsPanel.Add(line);
+                    ShowNotification(new GUIContent("Bridge deployed"));
+                    _bridgePathLabel.text = "Bridge path: " + path;
                 }
-            }
-            section.Add(logsPanel);
-            _content.Add(section);
-        }
+                UpdateDynamicState();
+            }, "Copy the MCP bridge script and support module to the project root", false, "NexusDeployBridgeButton"));
 
-        private void DrawVerificationTab()
-        {
-            var section = NexusEditorUi.Section("API Verification", "Run audit and verification tools without leaving the Nexus panel.", "NexusVerificationSection");
-            var actions = NexusEditorUi.Row(true, "NexusVerificationActions");
-            actions.Add(NexusEditorUi.Button("Run Full Project Audit", ProjectAuditorWrapper.RunAuditMenu, "Scan the current project for health and structure issues", false, "NexusRunProjectAuditButton"));
-            actions.Add(NexusEditorUi.Button("Run API Verification", () =>
+            actions.Add(NexusEditorUi.Button("Open Bridge Folder", () =>
             {
-                MCPVerificationWindow.ShowWindow();
-            }, "Open the API verification window", true, "NexusOpenApiVerificationButton"));
-            actions.Add(NexusEditorUi.Button("Verify UI", UIVerification.Verify, "Run UI Toolkit interaction verification", false, "NexusVerifyUiButton"));
-            actions.Add(NexusEditorUi.Button("Verify Logs", LogVerification.Verify, "Run log capture and parsing verification", false, "NexusVerifyLogsButton"));
-            section.Add(actions);
+                string path = MCPCliInstaller.GetDefaultBridgePathForUi();
+                string folder = File.Exists(path) ? Path.GetDirectoryName(path) : MCPCliInstaller.GetProjectRootForUi();
+                EditorUtility.RevealInFinder(folder);
+            }, "Open the folder that contains the deployed bridge files", false, "NexusOpenBridgeFolderButton"));
+            panel.Add(actions);
 
-            var panel = NexusEditorUi.Panel("NexusVerificationHint");
-            panel.Add(NexusEditorUi.Label("Verification runs may mutate temporary editor state. Keep long stress runs outside quick contributor hooks.", 11, false, NexusEditorUi.Muted));
             section.Add(panel);
             _content.Add(section);
         }
@@ -215,7 +133,8 @@ namespace UnityMCP.Editor
             if (_stateLabel != null) _stateLabel.text = $"State: {MCPServer.State}";
             if (_sessionLabel != null) _sessionLabel.text = $"Session: {GetShortSessionId()}";
             if (_editorStateLabel != null) _editorStateLabel.text = $"Editor: {GetEditorStateText()}";
-            if (_cliStatusLabel != null) _cliStatusLabel.text = $"Status: {_cliStatusMessage}";
+            if (_serverHealthLabel != null) _serverHealthLabel.text = GetServerHealthText();
+            if (_bridgePathLabel != null) _bridgePathLabel.text = "Bridge path: " + MCPCliInstaller.GetDefaultBridgePathForUi();
 
             bool hasError = MCPServer.State == ServerState.Error && !string.IsNullOrEmpty(MCPServer.LastError);
             if (_errorLabel != null)
@@ -227,7 +146,16 @@ namespace UnityMCP.Editor
             bool canStart = MCPServer.State == ServerState.Stopped || MCPServer.State == ServerState.Error || MCPServer.State == ServerState.Attached;
             bool canStop = MCPServer.State == ServerState.Running || MCPServer.State == ServerState.Starting || MCPServer.State == ServerState.Attached || MCPServer.State == ServerState.Error;
             _startButton?.SetEnabled(canStart);
+            _restartButton?.SetEnabled(canStop);
             _stopButton?.SetEnabled(canStop);
+        }
+
+        private static string GetServerHealthText()
+        {
+            if (MCPServer.State == ServerState.Running) return "Health: Ready for local MCP clients.";
+            if (MCPServer.State == ServerState.Starting) return "Health: Starting listener.";
+            if (MCPServer.State == ServerState.Error) return "Health: Error. Check Console logs.";
+            return "Health: Stopped. Start the server before connecting a client.";
         }
 
         private static Color GetStateColor(ServerState state)
@@ -255,11 +183,6 @@ namespace UnityMCP.Editor
             if (EditorApplication.isUpdating) return "Updating";
             if (EditorApplication.isPlayingOrWillChangePlaymode) return EditorApplication.isPlaying ? "Playing" : "Entering Play Mode";
             return "Idle";
-        }
-
-        private void CheckCliLinkStatus()
-        {
-            _cliStatusMessage = "Ready to Link";
         }
     }
 }

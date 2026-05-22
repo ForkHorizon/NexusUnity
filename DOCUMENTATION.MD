@@ -29,11 +29,17 @@ The server:
 
 Nexus Unity exposes one Unity menu entry: `Window > Nexus Unity`.
 
-- `Server`: main server lifecycle, documentation, and CLI linking UI.
-- `Tools`: UI automation test window, Codex link test, and log management.
-- `Verification`: project audit, API verification, UI verification, and log verification.
+- `Server`: local server lifecycle, URL copy, server health, and bridge deployment status.
+- `Integrations`: MCP setup cards for Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
+- `Resources`: documentation, API reference, changelog, package folder access, and collapsed maintainer diagnostics.
 
-The main server control panel is a compact UI Toolkit window with `Server`, `Tools`, and `Verification` tabs. CLI integration, resource, and verification action rows wrap responsively so the panel remains usable at narrow editor widths.
+The main control panel is a compact UI Toolkit window with `Server`, `Integrations`, and `Resources` tabs. Test-only actions are hidden by default under `Resources > Advanced / Diagnostics`, while user-facing setup actions remain visible. Integration cards wrap responsively and expose status, auto setup, copyable config, and config-location actions where supported.
+
+## MCP Client Configuration
+
+The `Integrations` tab builds all snippets from the active `python3` executable and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
+
+When Nexus Unity writes an existing user or project config, it preserves unrelated server entries and creates a timestamped backup next to the original file.
 
 ## Security Model
 
@@ -130,7 +136,7 @@ Before release, maintainers should run a public API stress audit that compares r
 ## Troubleshooting
 
 - Server does not start: change the port in project settings and restart the server window.
-- MCP client cannot import `nexus_bridge`: redeploy the bridge from `Window > Nexus Unity`, or point the client directly at the package path.
+- MCP client cannot import `nexus_bridge`: redeploy the bridge from `Window > Nexus Unity > Server`, or point the client directly at the package path.
 - Tool returns `Method not found`: compare the raw Unity catalog from `list_tools` with the MCP catalog in `API_REFERENCE.MD`.
 - File write denied: ensure the target path resolves inside the Unity project root.
 - Compile loop times out: call `get_server_status`, `read_logs`, and `unity_wait` with `editor_idle`.

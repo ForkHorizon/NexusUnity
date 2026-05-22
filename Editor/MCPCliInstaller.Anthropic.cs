@@ -57,6 +57,7 @@ namespace UnityMCP.Editor
                     ["args"] = new JArray { scriptPath }
                 };
 
+                NexusMcpConfigGenerator.BackupFileIfExists(configPath);
                 File.WriteAllText(configPath, config.ToString(Newtonsoft.Json.Formatting.Indented));
 
                 UnityEngine.Debug.Log("[MCP] Successfully linked Unity project to Anthropic Claude Desktop.");

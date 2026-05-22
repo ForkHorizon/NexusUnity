@@ -14,6 +14,8 @@ All notable public changes to Nexus Unity are documented here.
 - Contributor branch policy documentation: public pull requests target `development`; `main` is release-only.
 - Pull request target policy workflow for enforcing contributor PRs to `development` and release PRs to `main`.
 - UI Toolkit regression tests for the Nexus Unity editor windows.
+- MCP integration config generator for Codex TOML, JSON-style MCP clients, VS Code-compatible `servers` config, Cursor, Windsurf, Claude Desktop, and generic copy/paste setup.
+- Editor tests for integration config generation and responsive integration hub controls.
 
 ### Changed
 - Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.
@@ -21,12 +23,15 @@ All notable public changes to Nexus Unity are documented here.
 - The local pre-push hook now runs a sub-minute quick gate by default; full Python integration validation is opt-in with `scripts/prepush-validate.sh --integration`.
 - Validation now runs on both `main` and `development` and documents that direct pushes to protected branches are blocked for everyone.
 - Rebuilt Nexus Unity editor windows with compact UI Toolkit layouts, responsive wrapping, minimum usable bounds, and named automation elements.
+- Reworked the main Nexus Unity window around user-facing `Server`, `Integrations`, and `Resources` tabs; test/internal actions now live under collapsed `Advanced / Diagnostics`.
+- Integration setup is now card-based with status, auto setup, copy config, and config-location actions instead of a row of ambiguous CLI buttons.
 - Raw API schemas now document `update_component`'s preferred `properties` payload, keep its legacy `json_data` payload compatible, and expose `invoke_method.arguments` as a valid array schema.
 - `create_material` now accepts an optional explicit asset `path`, allowing stress tests and automation to keep generated materials isolated.
 - Public docs now identify `unity_write_and_compile` as the supported code-edit macro and treat old `unity_apply_code_change` wording as stale.
 
 ### Fixed
 - `click_object_in_game` now honors `instance_id` as documented instead of only accepting hierarchy paths.
+- Existing Codex and Claude Desktop config files are backed up before Nexus Unity updates their MCP server entries.
 
 ### Removed
 - Removed orphan `Runtime/Tests.meta` file from the public package.
