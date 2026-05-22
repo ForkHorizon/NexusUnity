@@ -18,7 +18,8 @@ Public contribution flow:
 
 - Feature branches and contributor pull requests target `development`.
 - `main` is release-only and should be protected from direct contributor pushes.
-- Maintainers promote reviewed `development` changes to `main` only as part of release preparation.
+- Direct pushes to `main` and `development` are blocked for everyone, including maintainers.
+- Maintainers promote reviewed `development` changes to `main` only through a release pull request.
 
 Use `CHANGELOG.md` as the source of truth during development:
 
@@ -71,6 +72,16 @@ git push origin vX.Y.Z
 ```
 
 Do not push tags until the public repository contents and release notes have been reviewed.
+
+## Release Pull Request
+
+Release changes flow through a final pull request into `main`.
+
+1. Create a release PR from `development` or `release/*` to `main`.
+2. Confirm the `PR target policy` and `Static validation` checks pass.
+3. Resolve all review conversations.
+4. Merge the release PR manually.
+5. Create and push the matching semantic version tag.
 
 ## Post-release Smoke Test
 

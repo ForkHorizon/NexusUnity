@@ -2,11 +2,54 @@ name: Validate package
 
 on:
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
-    branches: [main]
+    branches: [main, development]
 
 jobs:
+  pr-target-policy:
+    name: PR target policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate protected branch workflow
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "Push event: branch protection policy is enforced by GitHub."
+            exit 0
+          fi
+
+          if [ "$BASE_REF" = "development" ]; then
+            echo "Contributor PR target is development."
+            exit 0
+          fi
+
+          if [ "$BASE_REF" = "main" ]; then
+            case "$HEAD_REF" in
+              development|release/*)
+                ;;
+              *)
+                echo "Pull requests to main are release-only. Open contributor PRs against development."
+                exit 1
+                ;;
+            esac
+
+            if [ "$ACTOR" != "Daliys" ]; then
+              echo "Only Daliys may open release PRs to main."
+              exit 1
+            fi
+
+            echo "Release PR target is main."
+            exit 0
+          fi
+
+          echo "Unsupported pull request target: $BASE_REF"
+          exit 1
+
   static-validation:
     name: Static validation
     runs-on: ubuntu-latest

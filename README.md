@@ -151,6 +151,8 @@ GitHub Actions is the required validation gate for public contributions. Maintai
 
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
+Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub; external contributors can contribute through fork or feature-branch pull requests without direct protected-branch access.
+
 Contributors can also install the optional local pre-push hook for faster feedback:
 
 ```bash

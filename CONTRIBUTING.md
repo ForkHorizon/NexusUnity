@@ -22,6 +22,8 @@ Contributor pull requests must target `development`.
 - `main` is release-only. Do not open contributor pull requests against `main`.
 - Only maintainers should promote reviewed `development` changes to `main` during an intentional release.
 - Use short-lived feature branches from `development` for public changes.
+- Direct pushes to `main` and `development` are blocked for everyone, including maintainers.
+- Trusted maintainers merge approved pull requests through GitHub; external contributors do not need direct repository write access.
 
 ## Development Rules
 
@@ -82,3 +84,4 @@ The local hook is convenience only and can be bypassed with `git push --no-verif
 - [ ] `CHANGELOG.md` updated.
 - [ ] No generated caches or local-only files included.
 - [ ] No secrets or personal credentials included.
+- [ ] Pull request targets `development`, unless this is an intentional maintainer release PR to `main`.
