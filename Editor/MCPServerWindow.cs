@@ -83,7 +83,7 @@ namespace UnityMCP.Editor
 
             var titleBlock = new VisualElement { name = "NexusHeaderTitle" };
             titleBlock.style.minWidth = 0;
-            titleBlock.style.flexBasis = 220;
+            titleBlock.style.flexBasis = 150;
             titleBlock.style.flexGrow = 1;
             titleBlock.style.flexShrink = 1;
             titleBlock.style.marginBottom = 4;
@@ -96,7 +96,7 @@ namespace UnityMCP.Editor
             statusBlock.style.flexWrap = Wrap.Wrap;
             statusBlock.style.flexGrow = 0;
             statusBlock.style.flexShrink = 1;
-            statusBlock.style.minWidth = 230;
+            statusBlock.style.minWidth = 0;
 
             _statusPill = NexusEditorUi.Pill("STOPPED", Color.gray, "NexusStatusPill");
             _statusPill.style.marginRight = 6;

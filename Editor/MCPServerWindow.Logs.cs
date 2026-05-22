@@ -9,23 +9,14 @@ namespace UnityMCP.Editor
     {
         private void DrawServerTab()
         {
-            var section = new VisualElement { name = "NexusServerSection" };
-            section.style.marginBottom = 8;
-
-            var cards = NexusEditorUi.Row(true, "NexusServerCards");
-            cards.style.alignItems = Align.Stretch;
-            cards.Add(BuildServerControlCard());
-            cards.Add(BuildBridgeCard());
-            section.Add(cards);
-            _content.Add(section);
+            DrawServerControl();
+            DrawBridgeSummary();
         }
 
-        private VisualElement BuildServerControlCard()
+        private void DrawServerControl()
         {
+            var section = NexusEditorUi.Section("Server", "Local HTTP bridge status and lifecycle controls.", "NexusServerSection");
             var panel = NexusEditorUi.Panel("NexusServerControl");
-            StyleServerCard(panel, 360);
-            panel.Add(NexusEditorUi.Label("Server", 13, true));
-            panel.Add(NexusEditorUi.Label("Local HTTP bridge status and lifecycle controls.", 11, false, NexusEditorUi.Muted));
 
             var statusRow = NexusEditorUi.Row(true, "NexusServerStatusRow");
             _stateLabel = NexusEditorUi.Label("State: Unknown", 12, true, null, "NexusServerStateLabel");
@@ -76,20 +67,19 @@ namespace UnityMCP.Editor
             actions.Add(_stopButton);
 
             actions.Add(NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy the local server URL to clipboard", false, "NexusServerCopyUrlButton"));
+            StretchActionButtons(actions, 84);
             panel.Add(actions);
 
-            return panel;
+            section.Add(panel);
+            _content.Add(section);
         }
 
-        private VisualElement BuildBridgeCard()
+        private void DrawBridgeSummary()
         {
+            var section = NexusEditorUi.Section("Bridge", "Stable files used by external MCP clients.", "NexusBridgeSection");
             var panel = NexusEditorUi.Panel("NexusBridgePanel");
-            StyleServerCard(panel, 320);
-            panel.Add(NexusEditorUi.Label("Bridge", 13, true));
-            panel.Add(NexusEditorUi.Label("Stable files used by external MCP clients.", 11, false, NexusEditorUi.Muted));
 
             _bridgePathLabel = NexusEditorUi.Label("Bridge path: " + MCPCliInstaller.GetDefaultBridgePathForUi(), 11, false, null, "NexusBridgePathLabel");
-            _bridgePathLabel.style.marginTop = 8;
             _bridgePathLabel.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_bridgePathLabel);
 
@@ -110,18 +100,23 @@ namespace UnityMCP.Editor
                 string folder = File.Exists(path) ? Path.GetDirectoryName(path) : MCPCliInstaller.GetProjectRootForUi();
                 EditorUtility.RevealInFinder(folder);
             }, "Open the folder that contains the deployed bridge files", false, "NexusOpenBridgeFolderButton"));
+            StretchActionButtons(actions, 140);
             panel.Add(actions);
 
-            return panel;
+            section.Add(panel);
+            _content.Add(section);
         }
 
-        private static void StyleServerCard(VisualElement card, int flexBasis)
+        private static void StretchActionButtons(VisualElement row, int minWidth)
         {
-            card.style.flexBasis = flexBasis;
-            card.style.flexGrow = 1;
-            card.style.flexShrink = 1;
-            card.style.minWidth = 270;
-            card.style.marginRight = 6;
+            foreach (var child in row.Children())
+            {
+                if (!(child is Button button)) continue;
+                button.style.flexBasis = 0;
+                button.style.flexGrow = 1;
+                button.style.flexShrink = 1;
+                button.style.minWidth = minWidth;
+            }
         }
 
         private void CopyServerUrl()

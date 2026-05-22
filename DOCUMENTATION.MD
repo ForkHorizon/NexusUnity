@@ -33,7 +33,7 @@ Nexus Unity exposes one Unity menu entry: `Window > Nexus Unity`.
 - `Integrations`: MCP setup cards for Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
 - `Resources`: documentation, API reference, changelog, package folder access, and collapsed maintainer diagnostics.
 
-The main control panel is a compact UI Toolkit window with `Server`, `Integrations`, and `Resources` tabs. Test-only actions are hidden by default under `Resources > Advanced / Diagnostics`, while user-facing setup actions remain visible. Server and bridge controls use responsive cards on wider windows; integration cards wrap responsively and expose status, auto setup, copyable config, and config-location actions where supported.
+The main control panel is a compact UI Toolkit window with `Server`, `Integrations`, and `Resources` tabs. Test-only actions are hidden by default under `Resources > Advanced / Diagnostics`, while user-facing setup actions remain visible. Server and bridge blocks remain stacked vertically; their internal action rows stretch and wrap responsively, and integration cards expose status, auto setup, copyable config, and config-location actions where supported.
 
 ## MCP Client Configuration
 

@@ -25,7 +25,7 @@ All notable public changes to Nexus Unity are documented here.
 - Rebuilt Nexus Unity editor windows with compact UI Toolkit layouts, responsive wrapping, minimum usable bounds, and named automation elements.
 - Reworked the main Nexus Unity window around user-facing `Server`, `Integrations`, and `Resources` tabs; test/internal actions now live under collapsed `Advanced / Diagnostics`.
 - Integration setup is now card-based with status, auto setup, copy config, and config-location actions instead of a row of ambiguous CLI buttons.
-- Wide editor layouts now split server and bridge controls into responsive cards and keep the header compact when stretched horizontally.
+- Wide editor layouts now keep server and bridge blocks stacked while stretching their internal action rows cleanly.
 - Raw API schemas now document `update_component`'s preferred `properties` payload, keep its legacy `json_data` payload compatible, and expose `invoke_method.arguments` as a valid array schema.
 - `create_material` now accepts an optional explicit asset `path`, allowing stress tests and automation to keep generated materials isolated.
 - Public docs now identify `unity_write_and_compile` as the supported code-edit macro and treat old `unity_apply_code_change` wording as stale.
