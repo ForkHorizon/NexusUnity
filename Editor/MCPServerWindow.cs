@@ -8,18 +8,21 @@ namespace UnityMCP.Editor
     {
         internal static readonly Vector2 UsableMinSize = new Vector2(320, 420);
 
-        private string _cliStatusMessage = "Checking link...";
         private int _selectedTab = 0;
         private VisualElement _content;
         private Button[] _tabButtons;
         private Button _startButton;
+        private Button _restartButton;
         private Button _stopButton;
         private Label _statusPill;
         private Label _portLabel;
         private Label _stateLabel;
         private Label _sessionLabel;
         private Label _editorStateLabel;
-        private Label _cliStatusLabel;
+        private Label _bridgePathLabel;
+        private Label _serverHealthLabel;
+        private Label _integrationStatusLabel;
+        private Label _resourceStatusLabel;
         private Label _errorLabel;
         private Label _footerLabel;
         private IVisualElementScheduledItem _refreshItem;
@@ -37,7 +40,6 @@ namespace UnityMCP.Editor
             titleContent = new GUIContent("Nexus Unity");
             minSize = UsableMinSize;
             EnforceUsableMinSize();
-            CheckCliLinkStatus();
         }
 
         public void CreateGUI()
@@ -73,23 +75,27 @@ namespace UnityMCP.Editor
         private VisualElement BuildHeader()
         {
             var header = NexusEditorUi.Panel("NexusHeader");
-            header.style.flexDirection = FlexDirection.Column;
+            header.style.flexDirection = FlexDirection.Row;
             header.style.flexWrap = Wrap.Wrap;
-            header.style.alignItems = Align.Stretch;
+            header.style.alignItems = Align.Center;
+            header.style.justifyContent = Justify.SpaceBetween;
             header.style.marginBottom = 8;
 
-            var titleBlock = new VisualElement();
+            var titleBlock = new VisualElement { name = "NexusHeaderTitle" };
             titleBlock.style.minWidth = 0;
-            titleBlock.style.marginBottom = 6;
-            titleBlock.Add(NexusEditorUi.Label("Server Control Panel", 16, true));
-            titleBlock.Add(NexusEditorUi.Label($"Nexus Unity server v{MCPServer.Version}", 11, false, NexusEditorUi.Muted));
+            titleBlock.style.flexBasis = 150;
+            titleBlock.style.flexGrow = 1;
+            titleBlock.style.flexShrink = 1;
+            titleBlock.style.marginBottom = 4;
+            titleBlock.Add(NexusEditorUi.Label("Nexus Unity", 16, true));
+            titleBlock.Add(NexusEditorUi.Label($"Editor automation server v{MCPServer.Version}", 11, false, NexusEditorUi.Muted));
             header.Add(titleBlock);
 
             var statusBlock = NexusEditorUi.Row(true, "NexusHeaderStatus");
-            statusBlock.style.justifyContent = Justify.FlexStart;
-            statusBlock.style.flexWrap = Wrap.NoWrap;
+            statusBlock.style.justifyContent = Justify.FlexEnd;
+            statusBlock.style.flexWrap = Wrap.Wrap;
             statusBlock.style.flexGrow = 0;
-            statusBlock.style.flexShrink = 0;
+            statusBlock.style.flexShrink = 1;
             statusBlock.style.minWidth = 0;
 
             _statusPill = NexusEditorUi.Pill("STOPPED", Color.gray, "NexusStatusPill");
@@ -104,6 +110,7 @@ namespace UnityMCP.Editor
 
             var copyButton = NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy server URL to clipboard", false, "NexusCopyUrlButton");
             copyButton.style.minWidth = 82;
+            copyButton.style.flexShrink = 1;
             statusBlock.Add(copyButton);
             header.Add(statusBlock);
             return header;
@@ -116,8 +123,8 @@ namespace UnityMCP.Editor
             _tabButtons = new[]
             {
                 CreateTabButton("Server", 0, "NexusTabServer"),
-                CreateTabButton("Tools", 1, "NexusTabTools"),
-                CreateTabButton("Verification", 2, "NexusTabVerification")
+                CreateTabButton("Integrations", 1, "NexusTabIntegrations"),
+                CreateTabButton("Resources", 2, "NexusTabResources")
             };
 
             foreach (var tab in _tabButtons)
@@ -163,8 +170,8 @@ namespace UnityMCP.Editor
             switch (_selectedTab)
             {
                 case 0: DrawServerTab(); break;
-                case 1: DrawToolsTab(); break;
-                case 2: DrawVerificationTab(); break;
+                case 1: DrawIntegrationsTab(); break;
+                case 2: DrawResourcesTab(); break;
             }
             UpdateDynamicState();
         }

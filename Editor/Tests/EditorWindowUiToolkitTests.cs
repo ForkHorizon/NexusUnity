@@ -20,22 +20,26 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsNotNull(window.rootVisualElement.Q("NexusServerWindowRoot"));
                 Assert.IsNotNull(window.rootVisualElement.Q("NexusStatusPill"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabServer"));
-                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabTools"));
-                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabVerification"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabIntegrations"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabResources"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusStartButton"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusStopButton"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusRestartButton"));
                 Assert.AreEqual(320, MCPServerWindow.UsableMinSize.x);
                 Assert.GreaterOrEqual(MCPServerWindow.UsableMinSize.y, 420);
 
                 var headerStatus = window.rootVisualElement.Q("NexusHeaderStatus");
-                var cliActions = window.rootVisualElement.Q("NexusCliActions");
-                var resources = window.rootVisualElement.Q("NexusResources");
+                var serverActions = window.rootVisualElement.Q("NexusServerActions");
+                var bridgeActions = window.rootVisualElement.Q("NexusBridgeActions");
                 Assert.IsNotNull(headerStatus);
-                Assert.IsNotNull(cliActions);
-                Assert.IsNotNull(resources);
-                Assert.AreEqual(Wrap.NoWrap, headerStatus.style.flexWrap.value);
-                Assert.AreEqual(Wrap.Wrap, cliActions.style.flexWrap.value);
-                Assert.AreEqual(Wrap.Wrap, resources.style.flexWrap.value);
+                Assert.IsNotNull(serverActions);
+                Assert.IsNotNull(bridgeActions);
+                Assert.AreEqual(Wrap.Wrap, headerStatus.style.flexWrap.value);
+                Assert.AreEqual(Wrap.Wrap, serverActions.style.flexWrap.value);
+                Assert.AreEqual(Wrap.Wrap, bridgeActions.style.flexWrap.value);
+                Assert.AreEqual(1, window.rootVisualElement.Q<Button>("NexusRestartButton").style.flexGrow.value);
+                Assert.AreEqual(1, window.rootVisualElement.Q<Button>("NexusOpenBridgeFolderButton").style.flexGrow.value);
+                Assert.IsNull(window.rootVisualElement.Q<Button>("NexusOpenTestWindowButton"));
 
                 typeof(MCPServerWindow)
                     .GetField("_selectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -43,7 +47,22 @@ namespace UnityMCP.Editor.Tests
                 typeof(MCPServerWindow)
                     .GetMethod("DrawSelectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
                     .Invoke(window, null);
-                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTestCodexLinkButton"));
+                Assert.IsNotNull(window.rootVisualElement.Q("NexusIntegrationCards"));
+                Assert.IsNotNull(window.rootVisualElement.Q("NexusIntegrationCardCodex"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusIntegrationAutoCodex"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusIntegrationCopyGenericJson"));
+                Assert.AreEqual(Wrap.Wrap, window.rootVisualElement.Q("NexusIntegrationCards").style.flexWrap.value);
+
+                typeof(MCPServerWindow)
+                    .GetField("_selectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .SetValue(window, 2);
+                typeof(MCPServerWindow)
+                    .GetMethod("DrawSelectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Invoke(window, null);
+                Assert.IsNotNull(window.rootVisualElement.Q("NexusResources"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Foldout>("NexusAdvancedDiagnostics"));
+                Assert.IsFalse(window.rootVisualElement.Q<Foldout>("NexusAdvancedDiagnostics").value);
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusOpenTestWindowButton"));
             }
             finally
             {

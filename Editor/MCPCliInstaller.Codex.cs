@@ -116,6 +116,7 @@ namespace UnityMCP.Editor
                     lines.Add("args = [ \"" + safeScriptPath + "\" ]");
                 }
 
+                NexusMcpConfigGenerator.BackupFileIfExists(configPath);
                 File.WriteAllLines(configPath, lines);
                 UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath);
                 EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
