@@ -4,7 +4,7 @@ Version: `1.0.0`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 111 Unity Editor methods returned by `list_tools`.
+- Raw HTTP JSON-RPC: 115 Unity Editor methods returned by `list_tools`.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`.
 
 ## Raw HTTP JSON-RPC
@@ -41,6 +41,7 @@ Schema compatibility notes:
 - `get_server_status` / `unity_get_server_status`
 - `attach_existing_session` / `unity_attach_existing_session`
 - `ping_main_thread` / `unity_ping_main_thread`
+- `get_tool_usage_stats` / `unity_get_tool_usage_stats`
 - `shutdown_server` / `unity_shutdown_server`
 - `batch_execute` / `unity_batch_execute`
 - `simulate_mouse` / `unity_simulate_mouse`
@@ -122,6 +123,7 @@ Schema compatibility notes:
 - `attach_script` / `unity_attach_script`
 - `wait_for_ready` / `unity_wait_for_ready`
 - `run_tests` / `unity_run_tests`
+- `get_test_results` / `unity_get_test_results`
 - `get_game_object` / `unity_get_game_object`
 - `get_active_game_object` / `unity_get_active_game_object`
 - `get_root_game_objects` / `unity_get_root_game_objects`
@@ -137,6 +139,8 @@ Schema compatibility notes:
 - `set_selection` / `unity_set_selection`
 - `ui_list_windows` / `unity_ui_list_windows`
 - `ui_get_hierarchy` / `unity_ui_get_hierarchy`
+- `ui_get_window_rect` / `unity_ui_get_window_rect`
+- `ui_set_window_rect` / `unity_ui_set_window_rect`
 - `ui_query_elements` / `unity_ui_query_elements`
 - `ui_click` / `unity_ui_click`
 - `ui_input_text` / `unity_ui_input_text`
@@ -161,10 +165,14 @@ Strategies: `regex`, `path`, `semantic`, `references`.
 Actions: `search`, `explore`, `create_material`, `import`, `refresh`, `instantiate_prefab`, `create_prefab`, `apply_overrides`, `revert_overrides`.
 
 ### `unity_editor_controller`
-Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_logs`.
+Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_logs`, `get_state`, `get_server_status`, `refresh_assets`, `run_tests`, `get_test_results`, `run_tests_wait`.
+
+`run_tests_wait` triggers `run_tests` and polls raw `get_test_results` from the Python bridge so Unity's main thread is not blocked while the agent waits.
 
 ### `unity_ui_automation`
-Actions: `list_windows`, `get_hierarchy`, `query`, `click`, `input`.
+Actions: `list_windows`, `get_hierarchy`, `query`, `get_window_rect`, `set_window_rect`, `click`, `input`.
+
+`get_hierarchy` accepts `deep`. `query` accepts `name`, `text`, and `class_name`. Window rect actions are intended for resize/layout QA.
 
 ### `unity_wait`
 Conditions: `compilation`, `play_mode`, `import`, `editor_idle`.

@@ -2,6 +2,55 @@ import time
 from .client import call_unity, log
 from .schemas import STATIC_TOOLS
 
+
+def _compact(params):
+    return {key: value for key, value in params.items() if value is not None}
+
+
+def _run_tests_wait(args):
+    timeout = args.get("timeout_seconds", 180)
+    poll_interval = args.get("poll_interval_seconds", 1.0)
+    start_time = time.time()
+
+    before = call_unity("get_test_results")
+    before_result = before.get("result", {}) if isinstance(before, dict) else {}
+    before_timestamp = before_result.get("timestamp_utc") if before_result.get("status") == "Success" else None
+
+    run_params = _compact({
+        "mode": args.get("mode", "EditMode"),
+        "filter": args.get("filter"),
+    })
+    trigger = call_unity("run_tests", run_params)
+    if trigger and "error" in trigger:
+        return trigger
+
+    trigger_result = trigger.get("result", {}) if isinstance(trigger, dict) else {}
+    result_path = trigger_result.get("result_path")
+
+    while time.time() - start_time < timeout:
+        params = {"result_path": result_path} if result_path else {}
+        current = call_unity("get_test_results", params)
+        if current and "error" in current:
+            return current
+
+        result = current.get("result", {}) if isinstance(current, dict) else {}
+        if result.get("status") == "Success" and result.get("timestamp_utc") != before_timestamp:
+            result["time_waited_seconds"] = round(time.time() - start_time, 2)
+            return {"result": result}
+
+        time.sleep(poll_interval)
+
+    return {
+        "result": {
+            "status": "Timeout",
+            "message": "Timed out waiting for a new Unity TestResults XML file.",
+            "time_waited_seconds": round(time.time() - start_time, 2),
+            "result_path": result_path,
+            "trigger": trigger_result,
+        }
+    }
+
+
 def route_tool(name, args):
     if name in ["tools/list", "list_tools", "listTools"]:
         return {"result": {"tools": STATIC_TOOLS}}
@@ -122,13 +171,21 @@ def route_tool(name, args):
         elif action == "menu": return call_unity("execute_menu_item", {"item_path": args.get("item_path")})
         elif action == "read_logs": return call_unity("read_logs", {"count": args.get("count", 100)})
         elif action == "clear_logs": return call_unity("clear_logs")
+        elif action == "get_state": return call_unity("get_editor_state")
+        elif action == "get_server_status": return call_unity("get_server_status")
+        elif action == "refresh_assets": return call_unity("refresh_asset_database")
+        elif action == "run_tests": return call_unity("run_tests", _compact({"mode": args.get("mode", "EditMode"), "filter": args.get("filter")}))
+        elif action == "get_test_results": return call_unity("get_test_results", _compact({"result_path": args.get("result_path")}))
+        elif action == "run_tests_wait": return _run_tests_wait(args)
         else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
 
     elif name == "ui_automation":
         action = args.get("action")
         if action == "list_windows": return call_unity("ui_list_windows")
-        elif action == "get_hierarchy": return call_unity("ui_get_hierarchy", {"window_title": args.get("window_title")})
-        elif action == "query": return call_unity("ui_query_elements", {"window_title": args.get("window_title"), "name": args.get("name"), "text": args.get("text")})
+        elif action == "get_hierarchy": return call_unity("ui_get_hierarchy", _compact({"window_title": args.get("window_title"), "deep": args.get("deep")}))
+        elif action == "query": return call_unity("ui_query_elements", _compact({"window_title": args.get("window_title"), "name": args.get("name"), "text": args.get("text"), "class_name": args.get("class_name")}))
+        elif action == "get_window_rect": return call_unity("ui_get_window_rect", {"window_title": args.get("window_title")})
+        elif action == "set_window_rect": return call_unity("ui_set_window_rect", _compact({"window_title": args.get("window_title"), "x": args.get("x"), "y": args.get("y"), "width": args.get("width"), "height": args.get("height")}))
         elif action == "click": return call_unity("ui_click", {"window_title": args.get("window_title"), "element_name": args.get("element_name")})
         elif action == "input": return call_unity("ui_input_text", {"window_title": args.get("window_title"), "element_name": args.get("element_name"), "text": args.get("text")})
         else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}

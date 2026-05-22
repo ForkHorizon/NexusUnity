@@ -91,7 +91,13 @@ STATIC_TOOLS = [
                 {"properties": {"action": {"const": "step"}}, "required": ["action"]},
                 {"properties": {"action": {"const": "menu"}, "item_path": {"type": "string"}}, "required": ["action", "item_path"]},
                 {"properties": {"action": {"const": "read_logs"}, "count": {"type": "integer"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "clear_logs"}}, "required": ["action"]}
+                {"properties": {"action": {"const": "clear_logs"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "get_state"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "get_server_status"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "refresh_assets"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "run_tests"}, "mode": {"type": "string"}, "filter": {"type": "string"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "get_test_results"}, "result_path": {"type": "string"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "run_tests_wait"}, "mode": {"type": "string"}, "filter": {"type": "string"}, "timeout_seconds": {"type": "integer"}, "poll_interval_seconds": {"type": "number"}}, "required": ["action"]}
             ]
         }
     },
@@ -102,8 +108,10 @@ STATIC_TOOLS = [
             "type": "object",
             "oneOf": [
                 {"properties": {"action": {"const": "list_windows"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "get_hierarchy"}, "window_title": {"type": "string"}}, "required": ["action", "window_title"]},
-                {"properties": {"action": {"const": "query"}, "window_title": {"type": "string"}, "name": {"type": "string"}, "text": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"properties": {"action": {"const": "get_hierarchy"}, "window_title": {"type": "string"}, "deep": {"type": "boolean"}}, "required": ["action", "window_title"]},
+                {"properties": {"action": {"const": "query"}, "window_title": {"type": "string"}, "name": {"type": "string"}, "text": {"type": "string"}, "class_name": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"properties": {"action": {"const": "get_window_rect"}, "window_title": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"properties": {"action": {"const": "set_window_rect"}, "window_title": {"type": "string"}, "x": {"type": "number"}, "y": {"type": "number"}, "width": {"type": "number"}, "height": {"type": "number"}}, "required": ["action", "window_title"]},
                 {"properties": {"action": {"const": "click"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}}, "required": ["action", "window_title", "element_name"]},
                 {"properties": {"action": {"const": "input"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}, "text": {"type": "string"}}, "required": ["action", "window_title", "element_name", "text"]}
             ]

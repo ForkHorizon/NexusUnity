@@ -31,6 +31,7 @@ namespace UnityMCP.Editor
             _methods["open_prefab_stage"] = OpenPrefabStage;
             _methods["close_prefab_stage"] = ClosePrefabStage;
             _methods["run_tests"] = RunTests;
+            _methods["get_test_results"] = GetTestResults;
         }
 
         private static JToken RunTests(JToken p)
@@ -75,7 +76,15 @@ namespace UnityMCP.Editor
                 var executeMethod = apiType.GetMethod("Execute");
                 executeMethod.Invoke(api, new[] { settings });
 
-                return new JObject { ["status"] = "Success", ["message"] = $"Test run triggered for {modeStr} (filter: {filter ?? "none"})" };
+                return new JObject
+                {
+                    ["status"] = "Success",
+                    ["message"] = $"Test run triggered for {modeStr} (filter: {filter ?? "none"})",
+                    ["mode"] = modeStr,
+                    ["filter"] = filter,
+                    ["result_path"] = GetDefaultTestResultsPath(),
+                    ["started_at_utc"] = DateTime.UtcNow.ToString("o")
+                };
             }
             catch (Exception e)
             {

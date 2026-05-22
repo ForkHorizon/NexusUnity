@@ -16,6 +16,8 @@ All notable public changes to Nexus Unity are documented here.
 - UI Toolkit regression tests for the Nexus Unity editor windows.
 - MCP integration config generator for Codex TOML, JSON-style MCP clients, VS Code-compatible `servers` config, Cursor, Windsurf, Claude Desktop, and generic copy/paste setup.
 - Editor tests for integration config generation and responsive integration hub controls.
+- Raw agent diagnostics: `get_test_results`, `get_tool_usage_stats`, `ui_get_window_rect`, and `ui_set_window_rect`.
+- Bridge actions for `unity_editor_controller` test polling/server state/asset refresh and `unity_ui_automation` window rect/layout QA.
 
 ### Changed
 - Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.
@@ -26,6 +28,9 @@ All notable public changes to Nexus Unity are documented here.
 - Reworked the main Nexus Unity window around user-facing `Server`, `Integrations`, and `Resources` tabs; test/internal actions now live under collapsed `Advanced / Diagnostics`.
 - Integration setup is now card-based with status, auto setup, copy config, and config-location actions instead of a row of ambiguous CLI buttons.
 - Wide editor layouts now keep server and bridge blocks stacked while stretching their internal action rows cleanly.
+- The quick pre-push validator now supports `NEXUS_UNITY_HOOK_LIVE=auto|required|off`, retries transient live-smoke failures, and prints validation timing.
+- `unity_editor_controller` can run tests and wait for results through bridge-side polling instead of blocking the Unity main thread.
+- `unity_ui_automation` now forwards `deep` hierarchy reads and `class_name` queries through the MCP bridge.
 - Raw API schemas now document `update_component`'s preferred `properties` payload, keep its legacy `json_data` payload compatible, and expose `invoke_method.arguments` as a valid array schema.
 - `create_material` now accepts an optional explicit asset `path`, allowing stress tests and automation to keep generated materials isolated.
 - Public docs now identify `unity_write_and_compile` as the supported code-edit macro and treat old `unity_apply_code_change` wording as stale.

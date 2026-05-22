@@ -125,8 +125,8 @@ Root-deployed path:
 - `unity_hierarchy_manager`: create, destroy, duplicate, activate, and parent GameObjects.
 - `unity_component_manager`: add, inspect, update, and remove components.
 - `unity_asset_manager`: search, import, refresh, and manage prefab assets.
-- `unity_editor_controller`: play mode, menus, undo/redo, logs, and editor state.
-- `unity_ui_automation`: query and operate Unity Editor UI Toolkit windows.
+- `unity_editor_controller`: play mode, menus, undo/redo, logs, editor state, asset refresh, and test-result polling.
+- `unity_ui_automation`: query and operate Unity Editor UI Toolkit windows, including window rects for resize QA.
 
 See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 
@@ -139,6 +139,9 @@ Current development keeps the public API backward-compatible while tightening sc
 - `create_material` accepts an optional `path` so generated materials can be created inside a chosen project folder instead of the project root `Assets/` folder.
 - `invoke_method.arguments` is an optional positional JSON array.
 - `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
+- `get_test_results` reads Unity `TestResults*.xml` summaries from the project root or Unity persistent data path; `unity_editor_controller` exposes `run_tests_wait` as a bridge-side polling workflow.
+- `get_tool_usage_stats` reports in-memory raw tool counts, durations, and errors since Unity domain load without storing request payloads.
+- `ui_get_window_rect` and `ui_set_window_rect` support automated layout checks for editor windows.
 
 ## Documentation
 
@@ -167,7 +170,14 @@ Contributors can also install the optional local pre-push hook for faster feedba
 bash scripts/install-git-hooks.sh
 ```
 
-The hook runs `scripts/prepush-validate.sh --quick`, which is designed to finish in under a minute on normal contributor machines. It always runs static package validation and, when a Nexus Unity server is already reachable, adds a short read-only live smoke check for the public raw tool catalog and key schemas.
+The hook runs `scripts/prepush-validate.sh --quick`, which is designed to finish in under a minute on normal contributor machines. It always runs static package validation and uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: when the Unity server is reachable, the hook adds a short read-only live smoke check for the public raw tool catalog and key schemas; when the server is temporarily unreachable, it prints `NOTICE` and lets the push continue.
+
+Live smoke behavior can be made explicit:
+
+```bash
+NEXUS_UNITY_HOOK_LIVE=off bash scripts/prepush-validate.sh --quick
+NEXUS_UNITY_HOOK_LIVE=required bash scripts/prepush-validate.sh --quick
+```
 
 Full local integration validation is opt-in:
 
