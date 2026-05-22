@@ -55,7 +55,7 @@ Nexus Unity uses a single Unity menu entry: `Window > Nexus Unity`.
 - `Integrations`: configure Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or a generic MCP JSON client.
 - `Resources`: open docs, API reference, changelog, and the package folder.
 
-Diagnostic actions such as the UI test window, log verification, Codex link test, project audit, and API verification are available from the collapsed `Advanced / Diagnostics` block in `Resources`. The default tabs show only user-facing setup and server actions. Action rows and integration cards wrap at narrow widths, so the window remains usable in small Unity editor layouts.
+Diagnostic actions such as the UI test window, log verification, Codex link test, project audit, and API verification are available from the collapsed `Advanced / Diagnostics` block in `Resources`. The default tabs show only user-facing setup and server actions. Action rows and integration cards wrap at narrow widths, while wider windows split server and bridge controls into balanced cards instead of stretching sparse panels.
 
 ## Public APIs
 

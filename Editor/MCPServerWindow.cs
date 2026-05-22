@@ -75,24 +75,28 @@ namespace UnityMCP.Editor
         private VisualElement BuildHeader()
         {
             var header = NexusEditorUi.Panel("NexusHeader");
-            header.style.flexDirection = FlexDirection.Column;
+            header.style.flexDirection = FlexDirection.Row;
             header.style.flexWrap = Wrap.Wrap;
-            header.style.alignItems = Align.Stretch;
+            header.style.alignItems = Align.Center;
+            header.style.justifyContent = Justify.SpaceBetween;
             header.style.marginBottom = 8;
 
-            var titleBlock = new VisualElement();
+            var titleBlock = new VisualElement { name = "NexusHeaderTitle" };
             titleBlock.style.minWidth = 0;
-            titleBlock.style.marginBottom = 6;
+            titleBlock.style.flexBasis = 220;
+            titleBlock.style.flexGrow = 1;
+            titleBlock.style.flexShrink = 1;
+            titleBlock.style.marginBottom = 4;
             titleBlock.Add(NexusEditorUi.Label("Nexus Unity", 16, true));
             titleBlock.Add(NexusEditorUi.Label($"Editor automation server v{MCPServer.Version}", 11, false, NexusEditorUi.Muted));
             header.Add(titleBlock);
 
             var statusBlock = NexusEditorUi.Row(true, "NexusHeaderStatus");
-            statusBlock.style.justifyContent = Justify.FlexStart;
-            statusBlock.style.flexWrap = Wrap.NoWrap;
+            statusBlock.style.justifyContent = Justify.FlexEnd;
+            statusBlock.style.flexWrap = Wrap.Wrap;
             statusBlock.style.flexGrow = 0;
-            statusBlock.style.flexShrink = 0;
-            statusBlock.style.minWidth = 0;
+            statusBlock.style.flexShrink = 1;
+            statusBlock.style.minWidth = 230;
 
             _statusPill = NexusEditorUi.Pill("STOPPED", Color.gray, "NexusStatusPill");
             _statusPill.style.marginRight = 6;
@@ -106,6 +110,7 @@ namespace UnityMCP.Editor
 
             var copyButton = NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy server URL to clipboard", false, "NexusCopyUrlButton");
             copyButton.style.minWidth = 82;
+            copyButton.style.flexShrink = 1;
             statusBlock.Add(copyButton);
             header.Add(statusBlock);
             return header;

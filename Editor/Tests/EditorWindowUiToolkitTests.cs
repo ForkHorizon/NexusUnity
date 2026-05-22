@@ -29,14 +29,19 @@ namespace UnityMCP.Editor.Tests
                 Assert.GreaterOrEqual(MCPServerWindow.UsableMinSize.y, 420);
 
                 var headerStatus = window.rootVisualElement.Q("NexusHeaderStatus");
+                var serverCards = window.rootVisualElement.Q("NexusServerCards");
                 var serverActions = window.rootVisualElement.Q("NexusServerActions");
                 var bridgeActions = window.rootVisualElement.Q("NexusBridgeActions");
                 Assert.IsNotNull(headerStatus);
+                Assert.IsNotNull(serverCards);
                 Assert.IsNotNull(serverActions);
                 Assert.IsNotNull(bridgeActions);
-                Assert.AreEqual(Wrap.NoWrap, headerStatus.style.flexWrap.value);
+                Assert.AreEqual(Wrap.Wrap, headerStatus.style.flexWrap.value);
+                Assert.AreEqual(Wrap.Wrap, serverCards.style.flexWrap.value);
                 Assert.AreEqual(Wrap.Wrap, serverActions.style.flexWrap.value);
                 Assert.AreEqual(Wrap.Wrap, bridgeActions.style.flexWrap.value);
+                Assert.GreaterOrEqual(window.rootVisualElement.Q("NexusServerControl").style.flexBasis.value.value, 320);
+                Assert.GreaterOrEqual(window.rootVisualElement.Q("NexusBridgePanel").style.flexBasis.value.value, 300);
                 Assert.IsNull(window.rootVisualElement.Q<Button>("NexusOpenTestWindowButton"));
 
                 typeof(MCPServerWindow)
