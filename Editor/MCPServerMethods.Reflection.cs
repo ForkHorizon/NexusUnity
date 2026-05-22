@@ -55,7 +55,7 @@ namespace UnityMCP.Editor
                 ["instance_id"] = new JObject { ["type"] = "integer" },
                 ["component_name"] = new JObject { ["type"] = "string" },
                 ["method_name"] = new JObject { ["type"] = "string" },
-                ["arguments"] = new JArray { new JObject { ["type"] = "any" } }
+                ["arguments"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "any" } }
             }, "instance_id", "method_name"));
         }
 

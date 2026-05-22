@@ -185,7 +185,7 @@ namespace UnityMCP.Editor
         {
             GUILayout.Label(new GUIContent("API Verification", "Run comprehensive API tests"), EditorStyles.boldLabel);
             if (GUILayout.Button(new GUIContent("Run Full Project Audit", "Scan the current scene for project health and structure issues"))) ProjectAuditorWrapper.RunAuditMenu();
-            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the comprehensive API verification test suite window"))) GetWindow<MCPVerificationWindow>().Show();
+            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the comprehensive API verification test suite window"))) MCPVerificationWindow.ShowWindow();
             if (GUILayout.Button(new GUIContent("Verify UI", "Run automated UI toolkit interaction tests"))) UIVerification.Verify();
             if (GUILayout.Button(new GUIContent("Verify Logs", "Run automated log capture and parsing tests"))) LogVerification.Verify();
         }

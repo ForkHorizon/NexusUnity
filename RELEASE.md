@@ -10,6 +10,28 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Current public version: `1.0.0`
 - Minimum Unity version: `6000.0`
 
+## Development Versioning
+
+Between public releases, keep `package.json` at the latest shipped version unless maintainers intentionally publish a prerelease tag. Do not bump the Unity package version for every fix merged to development.
+
+Public contribution flow:
+
+- Feature branches and contributor pull requests target `development`.
+- `main` is release-only and should be protected from direct contributor pushes.
+- Maintainers promote reviewed `development` changes to `main` only as part of release preparation.
+
+Use `CHANGELOG.md` as the source of truth during development:
+
+- Add user-visible behavior, API, documentation, and validation changes under `[Unreleased]`.
+- Keep compatibility notes and migration guidance in the docs while the work is unreleased.
+- Prepare the next semantic version only when cutting a release branch or release commit.
+
+When preparing the release, choose the version by semantic versioning:
+
+- Patch: compatible bug fixes and documentation corrections only.
+- Minor: backward-compatible public API additions, new tool options, or notable workflow improvements.
+- Major: breaking public contracts or required migration work.
+
 ## Pre-release Checks
 
 1. Verify `Assets/NexusUnity/package.json`:
@@ -34,6 +56,9 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 5. Run validation:
    - Unity package compile.
    - Editor tests for path security, server port behavior, API contract, consolidated managers, and bridge contract consistency.
+   - `bash scripts/prepush-validate.sh --quick` for the contributor gate.
+   - `bash scripts/prepush-validate.sh --integration` when a local Unity project is available.
+   - Public API stress audit comparing raw `list_tools` with the MCP bridge catalog and exercising mutating tools in a disposable namespace.
    - Optional project auditor/lint pass.
 
 ## Tagging
@@ -41,8 +66,8 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 Use a semantic version tag matching `package.json`:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 Do not push tags until the public repository contents and release notes have been reviewed.

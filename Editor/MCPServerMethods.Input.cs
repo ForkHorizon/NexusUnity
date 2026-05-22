@@ -136,8 +136,16 @@ namespace UnityMCP.Editor
             if (!EditorApplication.isPlaying) throw new Exception("ClickObjectInGame requires Play Mode.");
 
             string path = p["path"]?.ToString();
-            GameObject target = GameObject.Find(path);
-            if (target == null) throw new Exception($"Object not found: {path}");
+            GameObject target = null;
+            if (p["instance_id"] != null)
+            {
+                target = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
+            }
+            if (target == null && !string.IsNullOrEmpty(path))
+            {
+                target = GameObject.Find(path);
+            }
+            if (target == null) throw new Exception($"Object not found: {path ?? p["instance_id"]?.ToString() ?? "<none>"}");
 
             Camera cam = Camera.main;
             if (cam == null) throw new Exception("No Main Camera found.");

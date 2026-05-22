@@ -90,8 +90,21 @@ namespace UnityMCP.Editor
             if (p == null || p["name"] == null) throw new Exception("name is required");
             string name = p["name"].ToString();
             string shader = p["shader"]?.ToString() ?? "Standard";
-            Material mat = new Material(Shader.Find(shader));
-            string path = ValidateAssetPath(Path.Combine("Assets", $"{name}.mat"));
+            var shaderAsset = Shader.Find(shader) ?? Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            if (shaderAsset == null) throw new Exception($"Shader '{shader}' not found and no supported fallback shader is available");
+
+            Material mat = new Material(shaderAsset);
+            string path = p["path"]?.ToString();
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Path.Combine("Assets", $"{name}.mat");
+            }
+            else if (!path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase))
+            {
+                path += ".mat";
+            }
+            path = ValidateAssetPath(path);
+            mat.name = Path.GetFileNameWithoutExtension(path);
             AssetDatabase.CreateAsset(mat, path);
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["path"] = path };
