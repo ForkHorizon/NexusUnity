@@ -7,18 +7,20 @@ All notable public changes to Nexus Unity are documented here.
 ### Added
 - GitHub issue templates, pull request template, static validation workflow, and code of conduct for public community maintenance.
 - README badges and reproducible install URL pinned to `v1.0.0`.
-- Direct `Window > Nexus Unity` menu entries for the test and API verification editor windows.
+- A single `Window > Nexus Unity` menu entry that opens the main Nexus Unity window.
 - Tracked optional fast pre-push hook and installer for contributor local validation.
 - Development versioning policy: keep unreleased development on the latest public package version and record user-visible work under `[Unreleased]` until release preparation.
 - Public API stress-audit documentation covering raw `list_tools` validation, MCP bridge catalog validation, disposable mutation namespaces, and cleanup expectations.
 - Contributor branch policy documentation: public pull requests target `development`; `main` is release-only.
 - Pull request target policy workflow for enforcing contributor PRs to `development` and release PRs to `main`.
+- UI Toolkit regression tests for the Nexus Unity editor windows.
 
 ### Changed
-- Moved the Codex link test command under `Window > Nexus Unity` so package editor commands share one menu group.
+- Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.
 - The package validation workflow now reuses the local static validator and includes an optional Unity EditMode test job when a Unity license secret is configured.
 - The local pre-push hook now runs a sub-minute quick gate by default; full Python integration validation is opt-in with `scripts/prepush-validate.sh --integration`.
 - Validation now runs on both `main` and `development` and documents that direct pushes to protected branches are blocked for everyone.
+- Rebuilt Nexus Unity editor windows with compact UI Toolkit layouts, responsive wrapping, minimum usable bounds, and named automation elements.
 - Raw API schemas now document `update_component`'s preferred `properties` payload, keep its legacy `json_data` payload compatible, and expose `invoke_method.arguments` as a valid array schema.
 - `create_material` now accepts an optional explicit asset `path`, allowing stress tests and automation to keep generated materials isolated.
 - Public docs now identify `unity_write_and_compile` as the supported code-edit macro and treat old `unity_apply_code_change` wording as stale.

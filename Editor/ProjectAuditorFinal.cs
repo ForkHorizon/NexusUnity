@@ -15,7 +15,6 @@ namespace UnityMCP.Editor
         private static readonly List<Material> _materialCache = new List<Material>();
         private static readonly Stack<string> _pathStackCache = new Stack<string>();
 
-        [MenuItem("Window/Nexus Unity/Run Full Project Audit")]
         public static void RunAuditMenu()
         {
             Debug.Log("[Nexus] Starting Full Project Audit...");

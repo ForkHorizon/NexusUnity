@@ -37,8 +37,8 @@ https://github.com/ForkHorizon/NexusUnity.git#v1.0.0
 
 ## Start The Server
 
-1. Open `Window > Nexus Unity > Server Control Panel`.
-2. Click `START SERVER`.
+1. Open `Window > Nexus Unity`.
+2. Click `Start Server`.
 3. Confirm the server is listening on the configured loopback port, usually:
 
 ```text
@@ -49,13 +49,13 @@ The server is intended for trusted local automation only. It validates loopback 
 
 ## Editor Menu
 
-Nexus Unity editor commands are grouped under `Window > Nexus Unity`.
+Nexus Unity uses a single Unity menu entry: `Window > Nexus Unity`.
 
-- `Server Control Panel`: start, stop, configure, and link MCP clients.
-- `API Verification`: open the API verification window.
-- `Run Full Project Audit`: run the project audit from the Unity menu.
-- `Test Window`: open the UI Toolkit test window.
-- `Test Codex Link`: run the Codex CLI link test.
+- `Server`: start, stop, configure, and link MCP clients.
+- `Tools`: open the UI Toolkit test window, test the Codex link, and clear logs.
+- `Verification`: run project audit, API verification, UI verification, and log verification.
+
+The main window uses compact `Server`, `Tools`, and `Verification` tabs. Action rows wrap at narrow widths, so CLI linking and documentation buttons remain usable in small Unity editor windows.
 
 ## Public APIs
 
@@ -167,7 +167,7 @@ Full local integration validation is opt-in:
 bash scripts/prepush-validate.sh --integration
 ```
 
-For integration tests, open the Unity project, start the Nexus Unity server from `Window > Nexus Unity > Server Control Panel`, and set `NEXUS_UNITY_PROJECT_ROOT` if the package is not checked out under a Unity project.
+For integration tests, open the Unity project, start the Nexus Unity server from `Window > Nexus Unity`, and set `NEXUS_UNITY_PROJECT_ROOT` if the package is not checked out under a Unity project.
 
 ## Development Versioning
 

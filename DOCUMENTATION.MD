@@ -16,7 +16,7 @@ Nexus Unity is a Unity Editor automation package with two public interfaces:
 
 ## Server Lifecycle
 
-Open `Window > Nexus Unity > Server Control Panel` and click `START SERVER`. The default port is `8081` and can be changed in `Edit > Project Settings > Nexus Unity`.
+Open `Window > Nexus Unity` and click `Start Server`. The default port is `8081` and can be changed in `Edit > Project Settings > Nexus Unity`.
 
 The server:
 
@@ -27,13 +27,13 @@ The server:
 
 ## Unity Editor Menu
 
-All Nexus Unity editor windows and menu commands live under `Window > Nexus Unity`:
+Nexus Unity exposes one Unity menu entry: `Window > Nexus Unity`.
 
-- `Server Control Panel`: main server lifecycle, logs, documentation, and CLI linking UI.
-- `API Verification`: standalone API verification editor window.
-- `Run Full Project Audit`: package and scene health audit command.
-- `Test Window`: UI Toolkit interaction test window.
-- `Test Codex Link`: Codex CLI link test command.
+- `Server`: main server lifecycle, documentation, and CLI linking UI.
+- `Tools`: UI automation test window, Codex link test, and log management.
+- `Verification`: project audit, API verification, UI verification, and log verification.
+
+The main server control panel is a compact UI Toolkit window with `Server`, `Tools`, and `Verification` tabs. CLI integration, resource, and verification action rows wrap responsively so the panel remains usable at narrow editor widths.
 
 ## Security Model
 
