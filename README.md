@@ -37,7 +37,7 @@ https://github.com/ForkHorizon/NexusUnity.git#v1.0.0
 
 ## Start The Server
 
-1. Open `Window > Nexus Unity`.
+1. Open `Window > Nexus Unity > Server Control Panel`.
 2. Click `START SERVER`.
 3. Confirm the server is listening on the configured loopback port, usually:
 
@@ -46,6 +46,16 @@ http://127.0.0.1:8081/
 ```
 
 The server is intended for trusted local automation only. It validates loopback hosts and browser origins, constrains file operations to the Unity project root, and limits request payload size.
+
+## Editor Menu
+
+Nexus Unity editor commands are grouped under `Window > Nexus Unity`.
+
+- `Server Control Panel`: start, stop, configure, and link MCP clients.
+- `API Verification`: open the API verification window.
+- `Run Full Project Audit`: run the project audit from the Unity menu.
+- `Test Window`: open the UI Toolkit test window.
+- `Test Codex Link`: run the Codex CLI link test.
 
 ## Public APIs
 
@@ -112,6 +122,16 @@ Root-deployed path:
 
 See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 
+## Compatibility Notes
+
+Current development keeps the public API backward-compatible while tightening schemas and documentation:
+
+- Use `unity_write_and_compile` for code-edit workflows. Older references to `unity_apply_code_change` are outdated and should not be used for the public MCP bridge.
+- `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
+- `create_material` accepts an optional `path` so generated materials can be created inside a chosen project folder instead of the project root `Assets/` folder.
+- `invoke_method.arguments` is an optional positional JSON array.
+- `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
+
 ## Documentation
 
 | Document | Purpose |
@@ -124,6 +144,34 @@ See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 | `RELEASE.md` | Public release checklist and smoke test |
 | `CHANGELOG.md` | Public release history |
 | `LICENSE.md` | GPL-3.0-only license text |
+
+## Contributor Validation
+
+GitHub Actions is the required validation gate for public contributions. Maintainers should configure the `Validate package` workflow as a required status check before merge.
+
+Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
+
+Contributors can also install the optional local pre-push hook for faster feedback:
+
+```bash
+bash scripts/install-git-hooks.sh
+```
+
+The hook runs `scripts/prepush-validate.sh --quick`, which is designed to finish in under a minute on normal contributor machines. It always runs static package validation and, when a Nexus Unity server is already reachable, adds a short read-only live smoke check for the public raw tool catalog and key schemas.
+
+Full local integration validation is opt-in:
+
+```bash
+bash scripts/prepush-validate.sh --integration
+```
+
+For integration tests, open the Unity project, start the Nexus Unity server from `Window > Nexus Unity > Server Control Panel`, and set `NEXUS_UNITY_PROJECT_ROOT` if the package is not checked out under a Unity project.
+
+## Development Versioning
+
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.0.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Use semantic versioning: patch for compatible fixes, minor for backward-compatible API additions or behavior improvements, and major only for breaking public contracts.
 
 ## Community
 

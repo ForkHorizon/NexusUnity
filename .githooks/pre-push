@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+set -eu
+
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(git -C "$HOOK_DIR/.." rev-parse --show-toplevel)
+
+exec "$REPO_ROOT/scripts/prepush-validate.sh" --quick

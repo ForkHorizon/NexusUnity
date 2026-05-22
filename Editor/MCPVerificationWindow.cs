@@ -11,7 +11,8 @@ namespace UnityMCP.Editor
     public class MCPVerificationWindow : EditorWindow
     {
         /// <summary>Shows the MCP Verification window.</summary>
-        public static void ShowWindow() => GetWindow<MCPVerificationWindow>("MCP Verification");
+        [MenuItem("Window/Nexus Unity/API Verification")]
+        public static void ShowWindow() => GetWindow<MCPVerificationWindow>("Nexus Unity Verification");
 
         private void OnGUI()
         {

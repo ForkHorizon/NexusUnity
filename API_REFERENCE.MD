@@ -19,6 +19,14 @@ curl -s http://127.0.0.1:8081/ \
 
 Call `list_tools` at runtime for full JSON schemas. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
 
+Schema compatibility notes:
+
+- `unity_write_and_compile` is the supported code-edit macro. Older references to `unity_apply_code_change` are stale and should be replaced.
+- `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
+- `create_material` accepts an optional `path` so callers can place generated materials outside the project root `Assets/` folder.
+- `invoke_method.arguments` is an optional JSON array of positional arguments.
+- `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
+
 ### Raw Tool Catalog
 
 - `scene_delta` / `unity_scene_delta`
@@ -167,8 +175,12 @@ Actions: `get`, `set`, `delete`, `list`.
 ### `unity_write_and_compile`
 Writes one or more files, waits for Unity compilation/import work, and returns compiler errors.
 
+This is the public MCP bridge macro for code edits. Use it instead of old internal or stale documentation references to `unity_apply_code_change`.
+
 ### `unity_invoke_method`
 Invokes a C# method on a component through reflection.
+
+`arguments` is an optional positional JSON array. Omit it for parameterless methods.
 
 ### `unity_dump_scene_graph`
 Returns a recursive tree of the active scene.

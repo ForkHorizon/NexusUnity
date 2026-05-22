@@ -16,7 +16,7 @@ Nexus Unity is a Unity Editor automation package with two public interfaces:
 
 ## Server Lifecycle
 
-Open `Window > Nexus Unity` and click `START SERVER`. The default port is `8081` and can be changed in `Edit > Project Settings > Nexus Unity`.
+Open `Window > Nexus Unity > Server Control Panel` and click `START SERVER`. The default port is `8081` and can be changed in `Edit > Project Settings > Nexus Unity`.
 
 The server:
 
@@ -24,6 +24,16 @@ The server:
 - Restarts after Unity domain reloads when the previous session was running.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
 - Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, and `wait_for_editor_idle` for robust automation loops.
+
+## Unity Editor Menu
+
+All Nexus Unity editor windows and menu commands live under `Window > Nexus Unity`:
+
+- `Server Control Panel`: main server lifecycle, logs, documentation, and CLI linking UI.
+- `API Verification`: standalone API verification editor window.
+- `Run Full Project Audit`: package and scene health audit command.
+- `Test Window`: UI Toolkit interaction test window.
+- `Test Codex Link`: Codex CLI link test command.
 
 ## Security Model
 
@@ -65,12 +75,23 @@ Raw HTTP JSON-RPC:
 - Use unprefixed method names, for example `get_server_status`, `list_tools`, `read_logs`, and `write_file`.
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
+- Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, and `create_material` accepts an optional explicit asset `path`.
 
 MCP bridge:
 
 - Uses `unity_` prefixed manager tools, for example `unity_scene_manager`, `unity_asset_manager`, and `unity_write_and_compile`.
 - Intended for AI clients and day-to-day automation.
 - Reduces schema size while preserving access to the supported raw capabilities.
+
+## Current Compatibility Decisions
+
+The current development line preserves backward compatibility while correcting public contracts found during API stress validation:
+
+- `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
+- `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
+- `create_material` accepts an optional explicit `path` so automation can isolate generated materials in a known project folder.
+- `invoke_method.arguments` is documented and exposed as a JSON array schema.
+- `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
 
 ## Recommended AI Workflow
 
@@ -85,6 +106,24 @@ For scene work, prefer manager tools:
 - `unity_asset_manager`
 - `unity_editor_controller`
 - `unity_ui_automation`
+
+## Contributor Validation
+
+Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs static package checks on every push and pull request, and includes an optional Unity EditMode job when the repository has a `UNITY_LICENSE` secret configured.
+
+Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
+
+For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs static package validation and adds a short read-only live smoke check when the Nexus Unity server is already reachable.
+
+Full local integration validation is explicit:
+
+```bash
+bash scripts/prepush-validate.sh --integration
+```
+
+Integration validation requires the Unity project to be open and the Nexus Unity server to be running on `http://127.0.0.1:8081/`.
+
+Before release, maintainers should run a public API stress audit that compares raw `list_tools` output with the MCP bridge catalog, exercises read-only and mutating tool groups in a disposable namespace, and verifies cleanup of generated assets and PlayerPrefs keys.
 
 ## Troubleshooting
 
@@ -102,3 +141,20 @@ For scene work, prefer manager tools:
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
+
+## Development Versioning Policy
+
+Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
+
+During normal development:
+
+- Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
+- Do not change `package.json` from `1.0.0` unless the change is part of a release-preparation commit.
+- Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
+
+During release preparation:
+
+- Choose the next semantic version based on accumulated changes.
+- Move `[Unreleased]` entries into the new dated release section.
+- Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
+- Tag the release with the same version, for example `v1.1.0`.
