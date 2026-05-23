@@ -1,6 +1,6 @@
 # Nexus Unity API Reference
 
-Version: `1.0.0`
+Version: `1.1.0`
 
 Nexus Unity exposes two supported public API surfaces:
 

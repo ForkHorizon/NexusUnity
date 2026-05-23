@@ -4,11 +4,13 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-23
+
 ### Added
 - Roslyn-based `NexusQualityGate` for contributor CI, covering XML documentation quality, file size limits, method size warnings/failures, and local test coverage.
 - Required self-hosted Ollama documentation review workflow using the `nexus-doc-ai` runner label and serialized GitHub Actions concurrency.
 - GitHub issue templates, pull request template, static validation workflow, and code of conduct for public community maintenance.
-- README badges and reproducible install URL pinned to `v1.0.0`.
+- README badges and reproducible install URL pinned to `v1.1.0`.
 - A single `Window > Nexus Unity` menu entry that opens the main Nexus Unity window.
 - Tracked optional fast pre-push hook and installer for contributor local validation.
 - Development versioning policy: keep unreleased development on the latest public package version and record user-visible work under `[Unreleased]` until release preparation.

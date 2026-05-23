@@ -7,7 +7,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `GPL-3.0-only`
-- Current public version: `1.0.0`
+- Current public version: `1.1.0`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning
@@ -26,6 +26,8 @@ Use `CHANGELOG.md` as the source of truth during development:
 - Add user-visible behavior, API, documentation, and validation changes under `[Unreleased]`.
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
+
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`. Use full technical versions and tags such as `1.1.0` and `v1.1.0`, while GitHub release titles and announcements may use the shorter `1.1` naming style when the patch number is zero.
 
 When preparing the release, choose the version by semantic versioning:
 
