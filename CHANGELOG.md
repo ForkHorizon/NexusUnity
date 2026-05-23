@@ -4,6 +4,16 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-05-23
+
+### Fixed
+- Fixed Unity Package Manager installs by adding an auto-referenced `UnityMCP.Runtime` assembly definition for runtime APIs used by editor code.
+- Removed Unity `.meta` files from the ignored `tools~/` validation tooling folder so immutable PackageCache imports no longer report orphan `tools~.meta` assets.
+
+### Changed
+- Package validation now ignores Unity-ignored `~` folders for `.meta` pairing and fails if `.meta` files under those folders are tracked again.
+- README release notes now tell `v1.1.0` users to update pinned installs to `#v1.1.1` and clear the stale PackageCache entry if Unity keeps old import errors.
+
 ## [1.1.0] - 2026-05-23
 
 ### Added
