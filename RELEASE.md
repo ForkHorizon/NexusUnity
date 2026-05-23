@@ -7,7 +7,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `GPL-3.0-only`
-- Current public version: `1.1.0`
+- Current public version: `1.1.1`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning
@@ -50,7 +50,7 @@ When preparing the release, choose the version by semantic versioning:
    - `SECURITY.md` and `CONTRIBUTING.md` are present.
 3. Verify package contents:
    - Include `Editor/`, `Runtime/`, `README.md`, `DOCUMENTATION.MD`, `API_REFERENCE.MD`, `CHANGELOG.md`, `LICENSE.md`, `SECURITY.md`, `CONTRIBUTING.md`, and required `.meta` files.
-   - Exclude `.soma/`, `graphify-out/`, `.jules/`, `.DS_Store`, `__pycache__/`, `*.pyc`, Unity `Library/`, temporary validation projects, and native bridge binaries without source/build instructions.
+   - Exclude `.soma/`, `graphify-out/`, `.jules/`, `.DS_Store`, `__pycache__/`, `*.pyc`, Unity `Library/`, temporary validation projects, native bridge binaries without source/build instructions, and `.meta` files under Unity-ignored folders such as `tools~/`.
 4. Verify security posture:
    - Server binds to loopback only.
    - Origin validation rejects non-loopback origins.

@@ -88,26 +88,38 @@ import sys
 root = pathlib.Path(".")
 missing_meta = []
 orphan_meta = []
+ignored_folder_meta = []
 ignore_roots = {".git", ".github", "bin", "obj"}
+
+def is_unity_ignored_folder_path(path):
+    return any(part.endswith("~") for part in path.parts)
 
 for path in root.rglob("*"):
     if any(part in ignore_roots for part in path.parts):
         continue
     if path.suffix == ".meta":
         target = pathlib.Path(str(path)[:-5])
+        if is_unity_ignored_folder_path(target):
+            ignored_folder_meta.append(str(path))
+            continue
         if not target.exists():
             orphan_meta.append(str(path))
+    elif is_unity_ignored_folder_path(path):
+        continue
     elif path.is_file() and path.name != ".gitignore":
         if not pathlib.Path(str(path) + ".meta").exists():
             missing_meta.append(str(path))
 
-if missing_meta or orphan_meta:
+if missing_meta or orphan_meta or ignored_folder_meta:
     if missing_meta:
         print("Missing .meta files:")
         print("\n".join(missing_meta))
     if orphan_meta:
         print("Orphan .meta files:")
         print("\n".join(orphan_meta))
+    if ignored_folder_meta:
+        print("Unity-ignored folder .meta files must not be tracked:")
+        print("\n".join(ignored_folder_meta))
     sys.exit(1)
 PY
 
