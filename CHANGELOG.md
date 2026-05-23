@@ -4,6 +4,17 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-05-23
+
+### Fixed
+- Fixed clean Unity Package Manager installs by moving package-internal Unity test sources into `Tests~/` so user projects do not compile NUnit-dependent test files during normal package import.
+- Added the required `com.unity.inputsystem` package dependency for input simulation tools that compile against `UnityEngine.InputSystem`.
+
+### Changed
+- Packaging docs now treat all Unity-ignored `~` folders as no-`.meta` areas, including `tools~/` and `Tests~/`.
+- Optional agent tooling smoke now validates live UI/tool routing directly instead of depending on package-internal Unity test sources.
+- README release notes now direct users from `v1.1.0` and `v1.1.1` to the superseding `#v1.1.2` install pin.
+
 ## [1.1.1] - 2026-05-23
 
 ### Fixed
