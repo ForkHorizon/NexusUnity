@@ -25,7 +25,7 @@ namespace UnityMCP.Editor
 
     public static partial class MCPServer
     {
-        private static string _version = "1.1.1";
+        private static string _version = "1.1.2";
         private static long _logCounter = 0;
         public static string Version => _version;
 
