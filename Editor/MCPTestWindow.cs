@@ -5,8 +5,12 @@ using UnityEngine.UIElements;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Simple test window with input and buttons for UI interaction testing.
+    /// EditorWindow used by Nexus Unity UI automation tests to exercise named UI Toolkit controls and mutable window state.
     /// </summary>
+    /// <remarks>
+    /// The window builds a TextField, Button, and Label with stable names. Verification helpers show the window, reset state,
+    /// send UI automation JSON-RPC calls, and assert that UI callbacks update the static test state.
+    /// </remarks>
     public class MCPTestWindow : EditorWindow
     {
         public const string WindowTitle = "Nexus Unity Test";
@@ -22,7 +26,7 @@ namespace UnityMCP.Editor
         public static bool ButtonClicked = false;
 
         /// <summary>
-        /// Resets the window state for testing.
+        /// Resets static test flags and clears the UI Toolkit input/label elements in the current visual tree.
         /// </summary>
         public void ResetState()
         {
@@ -35,7 +39,7 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Shows the MCP Test window.
+        /// Creates or focuses the MCP Test editor window and returns the instance for verification code.
         /// </summary>
         public static MCPTestWindow ShowWindow()
         {
@@ -51,8 +55,12 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Creates the UI for the test window using UI Toolkit.
+        /// Creates named UI Toolkit controls and event handlers used by Nexus Unity UI automation smoke tests.
         /// </summary>
+        /// <remarks>
+        /// This method mutates <see cref="EditorWindow.rootVisualElement"/>, resets static test state, registers a text-change
+        /// callback, and wires the button click to update the label and <see cref="ButtonClicked"/>.
+        /// </remarks>
         public void CreateGUI()
         {
             NexusEditorUi.SetupRoot(rootVisualElement);

@@ -6,12 +6,14 @@ using System.Linq;
 using System.Reflection;
 
 /// <summary>
-/// Utility class to verify the MCP log capturing and retrieval system.
+/// Runs an editor-only smoke check for Nexus Unity log capture by creating a temporary server window,
+/// invoking its private lifecycle hook through reflection, writing Unity Console messages, and querying them through JSON-RPC.
 /// </summary>
 public static class LogVerification
 {
     /// <summary>
-    /// Executes a verification sequence: hooks logs, generates test logs, queries via MCP, and validates results.
+    /// Executes the log verification sequence, including editor log output, temporary window setup and teardown,
+    /// Unity Console writes, JSON-RPC log retrieval, and response validation for duplicate/error capture.
     /// </summary>
     public static void Verify()
     {

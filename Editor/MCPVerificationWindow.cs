@@ -7,15 +7,21 @@ using UnityEngine.UIElements;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Window for verifying MCP functionality in the editor.
+    /// EditorWindow for running local Nexus Unity API smoke checks against scenes, materials, GameObjects, components, assets, and logs.
     /// </summary>
+    /// <remarks>
+    /// The window builds UI Toolkit controls and, when executed, sends JSON-RPC calls that create or modify editor objects and assets.
+    /// Verification runs can dirty scenes/assets and write diagnostic messages to the Unity Console.
+    /// </remarks>
     public class MCPVerificationWindow : EditorWindow
     {
         private Button _runButton;
         private Label _statusLabel;
         private Label _resultLabel;
 
-        /// <summary>Shows the MCP Verification window.</summary>
+        /// <summary>
+        /// Creates or focuses the MCP Verification editor window, assigns its title, and shows it in the Unity Editor.
+        /// </summary>
         public static void ShowWindow()
         {
             var window = GetWindow<MCPVerificationWindow>();
@@ -30,8 +36,12 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Builds the UI Toolkit controls used to run the local API verification smoke test.
+        /// Builds UI Toolkit status/result labels and a run button for the local API verification smoke test.
         /// </summary>
+        /// <remarks>
+        /// This method mutates the window visual tree, applies Nexus editor UI styling, and wires a button that schedules
+        /// verification work on the Unity editor loop.
+        /// </remarks>
         public void CreateGUI()
         {
             NexusEditorUi.SetupRoot(rootVisualElement);

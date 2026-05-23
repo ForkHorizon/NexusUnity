@@ -4,8 +4,12 @@ using UnityEngine;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Controls how much Nexus Unity service logging is written to the Unity Console.
+    /// Controls which Nexus Unity service messages are forwarded to Unity's Console through <see cref="Debug"/>.
     /// </summary>
+    /// <remarks>
+    /// <c>Important</c> writes warnings/errors and explicitly important messages; <c>All</c> writes every Nexus service message;
+    /// <c>Custom</c> writes warnings/errors plus info messages whose categories are enabled in <see cref="MCPSettings.EnabledLogCategories"/>.
+    /// </remarks>
     public enum NexusConsoleLogMode
     {
         Important = 0,
@@ -14,8 +18,13 @@ namespace UnityMCP.Editor
     }
 
     /// <summary>
-    /// Groups Nexus Unity service logs so custom Console filtering can include selected subsystems.
+    /// Groups Nexus Unity service logs by subsystem for custom Unity Console filtering.
     /// </summary>
+    /// <remarks>
+    /// Categories correspond to server lifecycle, CLI integrations, JSON-RPC API calls, UI automation, diagnostics,
+    /// project audit output, and runtime log bridging. The <see cref="FlagsAttribute"/> allows multiple subsystems to
+    /// be enabled together in <see cref="MCPSettings.EnabledLogCategories"/>.
+    /// </remarks>
     [Flags]
     public enum NexusLogCategory
     {

@@ -7,11 +7,17 @@ using System.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Utility class for verifying UI state in tests.
+    /// Runs editor UI automation smoke checks by creating the MCP test window and exercising it through Nexus JSON-RPC methods.
     /// </summary>
+    /// <remarks>
+    /// Verification shows and resets <see cref="MCPTestWindow"/>, queries window hierarchy, sends text input and click events,
+    /// logs diagnostics, and throws exceptions when a UI automation step fails.
+    /// </remarks>
     public static class UIVerification
     {
-        /// <summary>Performs UI state verification.</summary>
+        /// <summary>
+        /// Creates or focuses the MCP test window, resets its UI state, runs list/hierarchy/input/click checks, and logs the result.
+        /// </summary>
         public static void Verify()
         {
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "Starting UI Verification...", true);

@@ -11,8 +11,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods providing internal utilities.
+    /// Provides shared editor utilities for safe project path validation, Unity object serialization, and UI Toolkit lookup.
     /// </summary>
+    /// <remarks>
+    /// Path helpers resolve filesystem input against <see cref="Application.dataPath"/> and restrict asset paths before
+    /// calling AssetDatabase-facing code, preventing traversal outside allowed project folders.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static readonly System.Func<int, EntityId> LegacyIntToEntityId = CreateLegacyIntToEntityId();
@@ -229,13 +233,21 @@ namespace UnityMCP.Editor
     }
 
     /// <summary>
-    /// Extension methods to handle version-specific Unity Object ID changes.
+    /// Converts Unity objects between current <see cref="EntityId"/> values and legacy integer IDs used by the Nexus JSON protocol.
     /// </summary>
+    /// <remarks>
+    /// These helpers call Unity's internal object identity APIs when an object is present. Null objects return empty/zero IDs,
+    /// while non-null object behavior can differ by Unity version, editor/play mode, and object lifetime.
+    /// </remarks>
     public static class UnityObjectIdExtensions
     {
         /// <summary>
-        /// Returns the Unity EntityId for an object, or the default ID when the object is null.
+        /// Returns the Unity <see cref="EntityId"/> for an object, or an empty entity ID when the object reference is null.
         /// </summary>
+        /// <remarks>
+        /// Non-null objects delegate to <see cref="UnityEngine.Object.GetEntityId"/>, so destroyed or unsupported Unity objects can follow
+        /// Unity's version-specific identity behavior.
+        /// </remarks>
         public static EntityId GetId(this UnityEngine.Object obj)
         {
             if (obj == null) return default;
@@ -243,8 +255,12 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Returns the legacy integer-shaped ID used by the current JSON protocol.
+        /// Returns the legacy integer-shaped object ID used by the current Nexus JSON protocol.
         /// </summary>
+        /// <remarks>
+        /// Non-null objects are resolved through <see cref="UnityEngine.Object.GetEntityId"/> and converted with
+        /// <see cref="MCPServerMethods.ConvertEntityIdToLegacyInt"/>, preserving protocol compatibility with older clients.
+        /// </remarks>
         public static int GetRawId(this UnityEngine.Object obj)
         {
             if (obj == null) return 0;

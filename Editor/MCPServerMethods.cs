@@ -11,9 +11,13 @@ using Newtonsoft.Json;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Contains methods for processing and executing MCP JSON-RPC requests.
-    /// Uses a high-performance Dictionary for method dispatching.
+    /// Owns Nexus Unity JSON-RPC method registration and dispatch for Unity editor automation.
     /// </summary>
+    /// <remarks>
+    /// Initialization must occur on the Unity Editor main thread before registering scene, asset, component, UI, input,
+    /// logging, and diagnostic methods. Dispatched requests can read or mutate editor state, access validated project files,
+    /// run editor APIs, and return JSON-RPC error responses when a method fails.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static int _mainThreadId = -1;
@@ -61,8 +65,12 @@ namespace UnityMCP.Editor
             NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");        }
 
         /// <summary>
-        /// Processes a JSON-RPC request string and returns the response string.
+        /// Parses and processes a JSON-RPC request string for the local Nexus Unity server.
         /// </summary>
+        /// <remarks>
+        /// Request execution may call editor automation methods with side effects such as scene changes, asset I/O,
+        /// selection updates, UI manipulation, or server control. Invalid JSON is caught and converted into a JSON-RPC parse error.
+        /// </remarks>
         public static string ProcessJsonRpc(string json)
         {
             try
@@ -79,9 +87,12 @@ namespace UnityMCP.Editor
 
 
         /// <summary>
-        /// Processes a JSON-RPC request from a TextReader and returns the response string.
-        /// Optimized to reduce memory allocations for large payloads.
+        /// Processes a JSON-RPC request from a <see cref="TextReader"/> without taking ownership of the reader.
         /// </summary>
+        /// <remarks>
+        /// The underlying <see cref="JsonTextReader"/> uses <c>CloseInput = false</c>, so callers remain responsible for
+        /// stream lifetime. Parse and execution exceptions are returned as JSON-RPC error response strings.
+        /// </remarks>
         public static string ProcessJsonRpc(TextReader reader)
         {
             try
@@ -162,8 +173,12 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Creates a JSON-RPC error response string with an optional data payload containing a stack trace.
+        /// Creates a compact JSON-RPC error response string for Nexus Unity server failures.
         /// </summary>
+        /// <remarks>
+        /// When a stack trace is provided, it is placed in the error data payload for editor/network diagnostics.
+        /// The response is serialized without indentation because it is sent over the local JSON-RPC protocol.
+        /// </remarks>
         public static string CreateErrorResponse(JToken id, int code, string message, string stackTrace = null)
         {
             JObject errorObj = new JObject { ["code"] = code, ["message"] = message };

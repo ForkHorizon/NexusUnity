@@ -8,8 +8,13 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation for v1.5.0 file and hierarchy operations.
+    /// Registers JSON-RPC methods for Unity hierarchy editing and scoped file reads/writes inside the project.
     /// </summary>
+    /// <remarks>
+    /// Hierarchy operations can duplicate objects, create nested GameObjects, add/remove components, set active/enabled states,
+    /// reorder siblings, and register changes with Unity Undo. File operations are constrained by Nexus path validation before
+    /// reading or writing project files.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterHierarchyMethods()

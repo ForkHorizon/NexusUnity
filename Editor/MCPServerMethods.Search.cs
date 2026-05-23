@@ -7,8 +7,13 @@ using System.Collections.Generic;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling searching and discovery.
+    /// Registers JSON-RPC discovery methods that inspect Unity scenes, selection state, object paths, and object references.
     /// </summary>
+    /// <remarks>
+    /// Discovery methods read <see cref="UnityEngine.SceneManagement.SceneManager"/> active scene data, <see cref="Selection"/>,
+    /// <see cref="Resources.FindObjectsOfTypeAll{T}"/>, and hierarchy paths, then serialize matching GameObjects for MCP clients.
+    /// Calls can ping objects in the editor and may traverse serialized references during reference searches.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterDiscoveryMethods()

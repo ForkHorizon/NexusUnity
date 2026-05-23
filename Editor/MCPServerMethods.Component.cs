@@ -8,8 +8,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling Component and Transform manipulation.
+    /// Registers JSON-RPC methods for Unity component inspection, component updates, transform changes, parenting, and prefab instantiation.
     /// </summary>
+    /// <remarks>
+    /// Operations use editor APIs such as <see cref="Undo.AddComponent"/>, <see cref="SerializedObject"/>, and transform parenting.
+    /// They may modify scene objects, serialized properties, object references, the Undo stack, and hierarchy relationships.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterComponentMethods()

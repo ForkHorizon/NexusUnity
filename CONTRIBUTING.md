@@ -68,7 +68,7 @@ Static validation runs `NexusQualityGate`, a Roslyn-based .NET tool stored under
 
 It warns on files over 300 lines and methods over 50 lines. Test methods are exempt from XML documentation requirements, but production code under `Editor/` and `Runtime/` is not.
 
-Maintainers also run a required AI documentation review on a self-hosted runner labeled `nexus-doc-ai`. The runner must have Ollama available locally and `NEXUS_DOC_AI_MODEL` set to an installed model. The AI job checks whether XML documentation matches the implementation and mentions important Unity Editor, filesystem, server, process, or state side effects. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
+Maintainers also run a required AI documentation review on a self-hosted runner labeled `nexus-doc-ai`. The runner must have Ollama available locally and `NEXUS_DOC_AI_MODEL` set to an installed model. The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
 
 ### Optional Local Pre-Push Hook
 

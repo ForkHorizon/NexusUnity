@@ -7,6 +7,8 @@ namespace NexusQualityGate;
 
 public sealed class OllamaDocumentationReviewer
 {
+    private const string RubricVersion = "2026-05-23-pragmatic-doc-review-v2";
+
     private readonly QualityGateOptions _options;
     private readonly HttpClient _client = new();
     private readonly Dictionary<string, CachedVerdict> _cache;
@@ -103,13 +105,14 @@ public sealed class OllamaDocumentationReviewer
         {
             model = _options.Model,
             stream = false,
+            format = "json",
             keep_alive = _options.AiKeepAlive,
             messages = new object[]
             {
                 new
                 {
                     role = "system",
-                    content = "You review C# XML documentation for Nexus Unity. Return only strict JSON with fields pass:boolean, severity:'warning'|'error', reason:string, suggested_doc:string. Fail docs that are misleading, generic, too vague, or omit important Unity/editor/filesystem/network side effects visible in code."
+                    content = "You review C# XML documentation for Nexus Unity. Return one strict JSON object only, with fields pass:boolean, severity:'warning'|'error', reason:string, suggested_doc:string. Do not include markdown, XML comment blocks, or text outside JSON. Use suggested_doc for plain-English guidance only. Be pragmatic: PASS when the summary or remarks accurately describe the public purpose plus the major caller-visible Unity editor, filesystem, process, network, serialization, threading, or state side effects. Do NOT require exhaustive implementation details, private helper names, every possible exception, minor edge cases, or exact internal wording. Do NOT speculate about side effects that are not visible in the code. FAIL only when documentation is materially misleading, generic filler, contradicts the implementation, or omits a high-impact side effect that would cause API misuse."
                 },
                 new
                 {
@@ -232,7 +235,7 @@ public sealed class OllamaDocumentationReviewer
 
     private string BuildCacheKey(DocumentationCandidate candidate)
     {
-        string input = _options.Model + "\n" + candidate.CacheInput;
+        string input = RubricVersion + "\n" + _options.Model + "\n" + candidate.CacheInput;
         byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(hash);
     }

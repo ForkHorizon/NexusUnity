@@ -9,8 +9,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling Core system and tool listing.
+    /// Registers core Nexus Unity JSON-RPC methods for initialization, tool listing, log access, server status, batching, and primitive creation.
     /// </summary>
+    /// <remarks>
+    /// Core methods can query or reset server usage state, clear the Nexus log queue, create Unity primitives with Undo support,
+    /// attach scripts, shut down the local server, and dispatch nested batch requests through the same editor method table.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterCoreMethods()

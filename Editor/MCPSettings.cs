@@ -6,8 +6,12 @@ using System.Threading;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Manages settings for the MCP Server, exposed via Project Settings.
+    /// Manages Nexus Unity server and logging preferences stored in Unity <see cref="EditorPrefs"/> and exposed through Project Settings.
     /// </summary>
+    /// <remarks>
+    /// Preference values are cached because EditorPrefs access is only safe from the editor main thread. Changing settings affects
+    /// the local server port and which Nexus Unity service messages are written to the Unity Console.
+    /// </remarks>
     public static class MCPSettings
     {
         private const string _PORT_KEY = "UnityMCP_Server_Port";
@@ -112,7 +116,7 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Restores Nexus Unity Console logging preferences to the package defaults.
+        /// Restores Nexus Unity Console logging preferences to package defaults and updates the cached values used by log filtering.
         /// </summary>
         public static void ResetConsoleLoggingDefaults()
         {
@@ -156,7 +160,7 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Shows the main Nexus Unity window.
+        /// Creates or focuses the main Nexus Unity EditorWindow from project settings.
         /// </summary>
         public static void ShowWindow()
         {
@@ -164,8 +168,12 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Creates the SettingsProvider for the MCP Server.
+        /// Registers the project-level Nexus Unity SettingsProvider with server and Console logging GUI handlers.
         /// </summary>
+        /// <remarks>
+        /// Unity calls this method while building Project Settings. The returned provider renders IMGUI controls that write
+        /// EditorPrefs-backed port and logging settings and exposes search keywords for the settings panel.
+        /// </remarks>
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {

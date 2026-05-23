@@ -8,8 +8,12 @@ using UnityMCP.Runtime;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation handling complex SerializedProperty serialization and updates.
+    /// Registers JSON-RPC methods that inspect and modify Unity objects through <see cref="SerializedObject"/> and <see cref="SerializedProperty"/>.
     /// </summary>
+    /// <remarks>
+    /// These editor-only operations traverse Unity serialization data, serialize object references for MCP clients, enforce
+    /// <see cref="ForceDefaultAttribute"/> fields, and can apply modified properties to live objects, affecting scene or asset state.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterSerializationMethods()

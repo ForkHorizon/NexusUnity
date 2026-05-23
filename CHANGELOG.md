@@ -26,6 +26,8 @@ All notable public changes to Nexus Unity are documented here.
 - Console logging settings for Nexus Unity service messages, available in the main `Settings` tab and `Edit > Project Settings > Nexus Unity`.
 
 ### Changed
+- Public XML documentation now describes the Unity Editor, filesystem, process, serialization, and UI side effects that the AI review gate expects on editor-facing APIs.
+- The AI documentation review now uses Ollama JSON mode and a pragmatic rubric cache version so stale or over-strict model verdicts are not reused after rubric updates.
 - AI documentation validation now passes a short Ollama keep-alive and explicitly unloads the local model after each review to avoid leaving large models resident between CI jobs.
 - Static package validation now runs the deterministic Nexus quality gate and its local test harness.
 - Contributor docs now define useful XML documentation expectations and local commands for deterministic and AI-backed documentation review.

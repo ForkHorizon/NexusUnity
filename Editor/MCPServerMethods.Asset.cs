@@ -8,9 +8,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling Asset manipulation.
-    /// Handles the autonomous background compilation by waiting for OS focus.
+    /// Registers JSON-RPC methods that manipulate Unity assets and project files through <see cref="AssetDatabase"/>.
     /// </summary>
+    /// <remarks>
+    /// These methods move, copy, delete, import, and refresh assets; create folders, materials, and prefabs; and inspect prefab
+    /// overrides/dependencies. They can write to the project filesystem, dirty assets, trigger AssetDatabase imports, and affect prefab state.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterAssetMethods()

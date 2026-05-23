@@ -11,8 +11,12 @@ namespace UnityMCP.Editor
     public static partial class MCPCliInstaller
     {
         /// <summary>
-        /// Attempts to link the current Unity project to the Anthropic Claude Desktop app.
+        /// Links the current Unity project to Anthropic Claude Desktop by deploying the bridge script and rewriting the local Claude MCP config.
         /// </summary>
+        /// <remarks>
+        /// This editor action copies bridge files into the project root, resolves a Python executable, backs up any existing
+        /// Claude Desktop config, writes the <c>nexus-unity</c> server entry, logs progress, and shows success/error dialogs.
+        /// </remarks>
         public static void LinkToAnthropic()
         {
             if (DeployBridgeScript(out string destinationPath))
