@@ -161,15 +161,17 @@ Current development keeps the public API backward-compatible while tightening sc
 
 ## Contributor Validation
 
-GitHub Actions is the required validation gate for public contributions. Maintainers should configure the `Validate package` workflow as a required status check before merge.
+GitHub Actions is the required validation gate for public contributions. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner instead of GitHub-hosted runners. Maintainers should configure the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` jobs as required status checks before merge.
 
 Static validation includes `NexusQualityGate`, a Roslyn-based checker for production C# source under `Editor/` and `Runtime/`. It blocks missing XML documentation on public/protected types and methods, generic filler summaries, files over 450 lines, and methods over 150 lines. Files over 300 lines and methods over 50 lines are reported as warnings so contributors can split code before it becomes hard to review.
 
-The workflow also includes a required `Documentation quality AI` job for maintainers who run the `nexus-doc-ai` self-hosted runner. That job sends documentation/code excerpts to local Ollama at `http://127.0.0.1:11434` and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs, not comments that omit every private implementation detail. The job serializes PR reviews, sets a short Ollama `keep_alive`, and unloads the model after every run so large local models do not remain in memory between checks.
+The runner must have the labels `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`; the AI review job also requires `nexus-doc-ai`. The local toolchain must provide `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama on `http://127.0.0.1:11434`. The workflow uses GitHub Actions `concurrency` group `nexus-unity-ci` with `queue: max`, so multiple trusted runs wait in order instead of competing for the MacBook.
+
+The workflow also includes a required `Documentation quality AI` job. That job sends documentation/code excerpts to local Ollama and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs, not comments that omit every private implementation detail. The job sets a short Ollama `keep_alive` and unloads the model after every run so large local models do not remain in memory between checks.
 
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
-Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub; external contributors can contribute through fork or feature-branch pull requests without direct protected-branch access.
+Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub. Because self-hosted runners in public repositories must not execute untrusted fork code, external fork pull requests fail the local CI policy check with a clear message; a maintainer reviews the patch and replays it through a trusted branch before full CI runs on the Mac runner.
 
 Contributors can also install the optional local pre-push hook for faster feedback:
 

@@ -68,7 +68,11 @@ Static validation runs `NexusQualityGate`, a Roslyn-based .NET tool stored under
 
 It warns on files over 300 lines and methods over 50 lines. Test methods are exempt from XML documentation requirements, but production code under `Editor/` and `Runtime/` is not.
 
-Maintainers also run a required AI documentation review on a self-hosted runner labeled `nexus-doc-ai`. The runner must have Ollama available locally and `NEXUS_DOC_AI_MODEL` set to an installed model. The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
+Maintainers run the required GitHub Actions gate on a self-hosted Mac runner labeled `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`. The AI documentation review additionally requires the `nexus-doc-ai` label. The runner must have `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama available locally with `NEXUS_DOC_AI_MODEL` set to an installed model. The workflow uses `concurrency.queue: max`, so trusted runs wait in the `nexus-unity-ci` queue instead of running in parallel on the MacBook.
+
+The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
+
+External fork pull requests are welcome for review, but the full local CI does not execute fork code directly. A maintainer reviews the patch and replays it through a trusted branch before `Static validation`, `Documentation quality AI`, and `Unity package smoke` run on the self-hosted Mac runner.
 
 ### Optional Local Pre-Push Hook
 
