@@ -11,6 +11,7 @@ public sealed class OllamaDocumentationReviewer
     private readonly HttpClient _client = new();
     private readonly Dictionary<string, CachedVerdict> _cache;
     private readonly string _cachePath;
+    private bool _contactedOllama;
 
     public OllamaDocumentationReviewer(QualityGateOptions options)
     {
@@ -102,6 +103,7 @@ public sealed class OllamaDocumentationReviewer
         {
             model = _options.Model,
             stream = false,
+            keep_alive = _options.AiKeepAlive,
             messages = new object[]
             {
                 new
@@ -118,6 +120,7 @@ public sealed class OllamaDocumentationReviewer
         };
 
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        _contactedOllama = true;
         using HttpResponseMessage response = await _client.PostAsync(BuildOllamaEndpoint(), content);
         string responseBody = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
@@ -127,10 +130,45 @@ public sealed class OllamaDocumentationReviewer
         return ParseModelVerdict(modelContent);
     }
 
+    public async Task<string?> TryUnloadModelAsync()
+    {
+        if (!_contactedOllama || !_options.UnloadAiModelOnExit || string.IsNullOrWhiteSpace(_options.Model))
+            return null;
+
+        try
+        {
+            var payload = new
+            {
+                model = _options.Model,
+                prompt = string.Empty,
+                stream = false,
+                keep_alive = 0,
+            };
+
+            using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            using HttpResponseMessage response = await _client.PostAsync(BuildOllamaGenerateEndpoint(), content);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+                return $"{(int)response.StatusCode} {response.ReasonPhrase}: {TrimForLog(responseBody)}";
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+    }
+
     private Uri BuildOllamaEndpoint()
     {
         string baseUrl = _options.OllamaUrl.TrimEnd('/');
         return new Uri(baseUrl + "/api/chat");
+    }
+
+    private Uri BuildOllamaGenerateEndpoint()
+    {
+        string baseUrl = _options.OllamaUrl.TrimEnd('/');
+        return new Uri(baseUrl + "/api/generate");
     }
 
     private static string BuildPrompt(DocumentationCandidate candidate)
@@ -220,6 +258,13 @@ public sealed class OllamaDocumentationReviewer
         string tempPath = path + ".tmp";
         File.WriteAllText(tempPath, JsonSerializer.Serialize(cache, new JsonSerializerOptions { WriteIndented = true }));
         File.Move(tempPath, path, true);
+    }
+
+    private static string TrimForLog(string value)
+    {
+        const int maxLength = 500;
+        value = value.ReplaceLineEndings(" ").Trim();
+        return value.Length <= maxLength ? value : value[..maxLength] + "...";
     }
 
     private sealed record CachedVerdict(bool Pass, string Severity, string Reason, string SuggestedDoc);

@@ -26,6 +26,7 @@ All notable public changes to Nexus Unity are documented here.
 - Console logging settings for Nexus Unity service messages, available in the main `Settings` tab and `Edit > Project Settings > Nexus Unity`.
 
 ### Changed
+- AI documentation validation now passes a short Ollama keep-alive and explicitly unloads the local model after each review to avoid leaving large models resident between CI jobs.
 - Static package validation now runs the deterministic Nexus quality gate and its local test harness.
 - Contributor docs now define useful XML documentation expectations and local commands for deterministic and AI-backed documentation review.
 - Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.

@@ -10,7 +10,16 @@ public static class QualityGateRunner
         if (options.Ai != AiMode.Off && result.DocumentationCandidates.Count > 0)
         {
             var reviewer = new OllamaDocumentationReviewer(options);
-            result.AddRange(await reviewer.ReviewAsync(result.DocumentationCandidates));
+            try
+            {
+                result.AddRange(await reviewer.ReviewAsync(result.DocumentationCandidates));
+            }
+            finally
+            {
+                string? unloadError = await reviewer.TryUnloadModelAsync();
+                if (!string.IsNullOrWhiteSpace(unloadError))
+                    Console.Error.WriteLine("WARNING: Failed to unload Ollama model after documentation review: " + unloadError);
+            }
         }
 
         return result;

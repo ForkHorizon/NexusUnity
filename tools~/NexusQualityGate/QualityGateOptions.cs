@@ -18,13 +18,15 @@ public enum OutputFormat
 public sealed class QualityGateOptions
 {
     public const string Usage =
-        "Usage: NexusQualityGate --root <package-root> [--ai off|advisory|required] [--format text|github|json|none]";
+        "Usage: NexusQualityGate --root <package-root> [--ai off|advisory|required] [--format text|github|json|none] [--ai-keep-alive <duration>] [--no-ai-unload]";
 
     public string Root { get; set; } = Directory.GetCurrentDirectory();
     public AiMode Ai { get; set; } = AiMode.Off;
     public OutputFormat Format { get; set; } = OutputFormat.Text;
     public string OllamaUrl { get; set; } = Environment.GetEnvironmentVariable("NEXUS_OLLAMA_URL") ?? "http://127.0.0.1:11434";
     public string? Model { get; set; } = Environment.GetEnvironmentVariable("NEXUS_DOC_AI_MODEL");
+    public string AiKeepAlive { get; set; } = Environment.GetEnvironmentVariable("NEXUS_DOC_AI_KEEP_ALIVE") ?? "30s";
+    public bool UnloadAiModelOnExit { get; set; } = ParseBool(Environment.GetEnvironmentVariable("NEXUS_DOC_AI_UNLOAD_ON_EXIT"), true);
     public string CacheDirectory { get; set; } = Environment.GetEnvironmentVariable("NEXUS_DOC_AI_CACHE")
         ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "nexus-unity-quality-gate");
     public int MaxAiParallelism { get; set; } = ParsePositiveInt(Environment.GetEnvironmentVariable("NEXUS_DOC_AI_MAX_PARALLEL"), 1);
@@ -64,6 +66,12 @@ public sealed class QualityGateOptions
                     break;
                 case "--model":
                     options.Model = Next();
+                    break;
+                case "--ai-keep-alive":
+                    options.AiKeepAlive = Next();
+                    break;
+                case "--no-ai-unload":
+                    options.UnloadAiModelOnExit = false;
                     break;
                 case "--cache-dir":
                     options.CacheDirectory = Next();
@@ -114,5 +122,18 @@ public sealed class QualityGateOptions
     private static int ParsePositiveInt(string? value, int fallback)
     {
         return int.TryParse(value, out int parsed) && parsed > 0 ? parsed : fallback;
+    }
+
+    private static bool ParseBool(string? value, bool fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return fallback;
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "1" or "true" or "yes" or "on" => true,
+            "0" or "false" or "no" or "off" => false,
+            _ => fallback,
+        };
     }
 }

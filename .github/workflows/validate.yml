@@ -81,6 +81,8 @@ jobs:
       NEXUS_DOC_AI_MAX_PARALLEL: "1"
       NEXUS_OLLAMA_URL: http://127.0.0.1:11434
       NEXUS_DOC_AI_MODEL: qwen3-coder:30b-a3b-q4_K_M
+      NEXUS_DOC_AI_KEEP_ALIVE: "30s"
+      NEXUS_DOC_AI_UNLOAD_ON_EXIT: "true"
       NEXUS_DOC_AI_TIMEOUT_SECONDS: "300"
     steps:
       - name: Check out trusted validator
@@ -111,6 +113,49 @@ jobs:
             --root "$GITHUB_WORKSPACE/candidate" \
             --ai required \
             --format github
+
+      - name: Unload Ollama documentation model
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [ -z "${NEXUS_DOC_AI_MODEL:-}" ]; then
+            echo "No NEXUS_DOC_AI_MODEL configured; nothing to unload."
+            exit 0
+          fi
+
+          ps_output="$(mktemp)"
+          if command -v ollama >/dev/null 2>&1 && ollama ps >"$ps_output" 2>/dev/null; then
+            if awk 'NR > 1 { print $1 }' "$ps_output" | grep -Fx "$NEXUS_DOC_AI_MODEL" >/dev/null; then
+              if ollama stop "$NEXUS_DOC_AI_MODEL"; then
+                echo "Stopped loaded Ollama model: $NEXUS_DOC_AI_MODEL"
+                rm -f "$ps_output"
+                exit 0
+              else
+                echo "::warning::ollama stop failed for loaded model: $NEXUS_DOC_AI_MODEL"
+              fi
+            else
+              echo "Ollama model is not loaded: $NEXUS_DOC_AI_MODEL"
+              rm -f "$ps_output"
+              exit 0
+            fi
+            rm -f "$ps_output"
+          fi
+          rm -f "$ps_output"
+
+          escaped_model=${NEXUS_DOC_AI_MODEL//\\/\\\\}
+          escaped_model=${escaped_model//\"/\\\"}
+          payload="{\"model\":\"$escaped_model\",\"prompt\":\"\",\"stream\":false,\"keep_alive\":0}"
+
+          if curl -fsS \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "$NEXUS_OLLAMA_URL/api/generate" >/dev/null; then
+            echo "Unloaded Ollama model through API: $NEXUS_DOC_AI_MODEL"
+            exit 0
+          fi
+
+          echo "::warning::Ollama API unload failed; trying 'ollama stop'."
+          ollama stop "$NEXUS_DOC_AI_MODEL" || true
 
   unity-editmode-tests:
     name: Unity EditMode tests
