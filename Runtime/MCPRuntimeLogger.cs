@@ -15,7 +15,6 @@ namespace UnityMCP.Runtime
 
         private static void HandleLog(string condition, string stackTrace, LogType type)
         {
-            try { System.IO.File.AppendAllText("runtime_trace.txt", $"[RUNTIME_LOG] {type}: {condition}\n"); } catch {}
             OnLogReceived?.Invoke(condition, stackTrace, type);
         }
     }

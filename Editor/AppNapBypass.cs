@@ -113,12 +113,12 @@ namespace UnityMCP.Editor
                 {
                     _activity = CFRetain(activity);
                     if (_isMainThread) SessionState.SetString(SessionKey, _activity.ToInt64().ToString());
-                    Debug.Log("[MCP] App Nap bypass ENABLED.");
+                    NexusEditorLog.Log(NexusLogCategory.Server, "[MCP] App Nap bypass ENABLED.");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[MCP] AppNapBypass.Enable failed: {e.Message}");
+                NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] AppNapBypass.Enable failed: {e.Message}");
             }
         }
 
@@ -137,11 +137,11 @@ namespace UnityMCP.Editor
                 CFRelease(_activity);
                 _activity = IntPtr.Zero;
                 if (_isMainThread) SessionState.SetString(SessionKey, "0");
-                Debug.Log("[MCP] App Nap bypass DISABLED.");
+                NexusEditorLog.Log(NexusLogCategory.Server, "[MCP] App Nap bypass DISABLED.");
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[MCP] AppNapBypass.Disable failed: {e.Message}");
+                NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] AppNapBypass.Disable failed: {e.Message}");
                 _activity = IntPtr.Zero;
                 if (_isMainThread) SessionState.SetString(SessionKey, "0");
             }
@@ -156,7 +156,7 @@ namespace UnityMCP.Editor
                     System.Threading.Thread.Sleep(500);
                     ActivateEditor();
                 } catch (Exception e) {
-                    Debug.LogWarning($"[MCP] Focus-steal background thread error: {e.Message}");
+                    NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] Focus-steal background thread error: {e.Message}");
                 }
             });
             t.IsBackground = true;
@@ -193,11 +193,11 @@ namespace UnityMCP.Editor
                 actProc.StartInfo.CreateNoWindow = true;
                 actProc.Start();
                 
-                Debug.Log($"[MCP] Focus bypass: Sent 'open -a' for {_cachedApplicationPath}");
+                NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Focus bypass: Sent 'open -a' for {_cachedApplicationPath}");
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[MCP] ActivateEditor failed: {e.Message}");
+                NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] ActivateEditor failed: {e.Message}");
             }
         }
 

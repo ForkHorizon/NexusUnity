@@ -70,7 +70,7 @@ namespace UnityMCP.Editor
             if (string.IsNullOrEmpty(path))
             {
                 path = "Assets/AutoSavedScene.unity";
-                Debug.Log($"[MCP] Saving new scene to default path: {path}");
+                NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] Saving new scene to default path: {path}", true);
             }
 
             path = ValidateAssetPath(path);

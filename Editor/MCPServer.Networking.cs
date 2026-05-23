@@ -37,19 +37,19 @@ namespace UnityMCP.Editor
                         {
                             if (remotePid == localPid)
                             {
-                                Debug.LogWarning($"[MCP] Detected zombie listener from previous domain (PID: {localPid}). Disconnecting stale entity...");
+                                NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] Detected zombie listener from previous domain (PID: {localPid}). Disconnecting stale entity...");
                                 var shutdownContent = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"shutdown_server\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
                                 try { await client.PostAsync($"http://127.0.0.1:{_port}/", shutdownContent); } catch { }
                                 await Task.Delay(200); // Give it time to close
                                 return false; // Allow Start() to try binding its own listener
                             }
 
-                            Debug.Log($"[MCP] Existing MCP server found on port {_port}. Project matches current workspace. Action taken: attached to existing session.");
+                            NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Existing MCP server found on port {_port}. Project matches current workspace. Action taken: attached to existing session.", true);
                             return true;
                         }
                         else
                         {
-                            Debug.LogError($"[MCP] Existing MCP server found on port {_port}. Project does NOT match current workspace. Action required: choose another port or stop the other session. Remote project: {remoteProjectPath} (PID: {remotePid})");
+                            NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Existing MCP server found on port {_port}. Project does NOT match current workspace. Action required: choose another port or stop the other session. Remote project: {remoteProjectPath} (PID: {remotePid})");
                             return true; // We consider it "running" to prevent attempting to start our own and throwing a cryptic error
                         }
                     }
@@ -60,7 +60,7 @@ namespace UnityMCP.Editor
                 var initResponse = await client.PostAsync($"http://127.0.0.1:{_port}/", initContent);
                 string initBody = await initResponse.Content.ReadAsStringAsync();
                 if (initBody.Contains("Unity MCP Server")) {
-                    Debug.Log($"[MCP] Connected to an older existing session on port {_port}");
+                    NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Connected to an older existing session on port {_port}", true);
                     return true;
                 }
 
@@ -81,7 +81,7 @@ namespace UnityMCP.Editor
                 _listener.Start();
                 _state = ServerState.Running;
                 _ = Task.Run(() => ServerLoop(_cts.Token));
-                Debug.Log($"[MCP] Server started on port {_port}");
+                NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Server started on port {_port}", true);
             }
             catch (Exception e)
             {
@@ -89,7 +89,7 @@ namespace UnityMCP.Editor
                 _state = ServerState.Error;
                 string owner = GetPortOwner(_port);
                 LastError = $"{e.Message} (Port {_port} owner: {owner})";
-                Debug.LogError($"[MCP] Server failed to start: {LastError}");
+                NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Server failed to start: {LastError}");
             }
         }
 
@@ -107,7 +107,7 @@ namespace UnityMCP.Editor
             catch (Exception e)
             {
                 if (!token.IsCancellationRequested)
-                    Debug.LogError($"[MCP] Fatal server loop error: {e.Message}");
+                    NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Fatal server loop error: {e.Message}");
             }
             finally { if (_state == ServerState.Running) _state = ServerState.Stopped; }
         }
@@ -201,7 +201,7 @@ namespace UnityMCP.Editor
             catch (ThreadAbortException) { }
             catch (Exception e)
             {
-                Debug.LogError($"[MCP] Error handling HTTP request: {e.Message}");
+                NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Error handling HTTP request: {e.Message}");
             }
         }
 
@@ -226,7 +226,7 @@ namespace UnityMCP.Editor
 
                     if (ms.Length + result.Count > maxPayloadSize)
                     {
-                        Debug.LogError("[MCP] WebSocket payload exceeded maximum size. Disconnecting.");
+                        NexusEditorLog.Error(NexusLogCategory.Server, "[MCP] WebSocket payload exceeded maximum size. Disconnecting.");
                         await _webSocket.CloseAsync(WebSocketCloseStatus.MessageTooBig, "Payload too large", CancellationToken.None);
                         return;
                     }

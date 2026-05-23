@@ -47,7 +47,7 @@ namespace UnityMCP.Editor
         {
             // Immediate press
             InputSystem.QueueStateEvent(mouse, state.WithButton(button, true));
-            Debug.Log($"[MCP] Queued mouse {button} PRESS at {state.position}");
+            NexusEditorLog.Log(NexusLogCategory.UiAutomation, $"[MCP] Queued mouse {button} PRESS at {state.position}");
 
             // Use a simple timer to release after 100ms
             double releaseTime = EditorApplication.timeSinceStartup + 0.1;
@@ -60,7 +60,7 @@ namespace UnityMCP.Editor
                 if (!EditorApplication.isPlaying) return;
 
                 InputSystem.QueueStateEvent(mouse, state.WithButton(button, false));
-                Debug.Log($"[MCP] Queued mouse {button} RELEASE at {state.position}");
+                NexusEditorLog.Log(NexusLogCategory.UiAutomation, $"[MCP] Queued mouse {button} RELEASE at {state.position}");
             };
 
             EditorApplication.update += releaseAction;

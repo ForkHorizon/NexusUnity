@@ -124,7 +124,8 @@ namespace UnityMCP.Editor
             {
                 CreateTabButton("Server", 0, "NexusTabServer"),
                 CreateTabButton("Integrations", 1, "NexusTabIntegrations"),
-                CreateTabButton("Resources", 2, "NexusTabResources")
+                CreateTabButton("Resources", 2, "NexusTabResources"),
+                CreateTabButton("Settings", 3, "NexusTabSettings")
             };
 
             foreach (var tab in _tabButtons)
@@ -132,7 +133,7 @@ namespace UnityMCP.Editor
                 tab.style.flexBasis = 0;
                 tab.style.flexGrow = 1;
                 tab.style.flexShrink = 1;
-                tab.style.minWidth = 72;
+                tab.style.minWidth = 64;
                 tab.style.marginBottom = 0;
                 tabs.Add(tab);
             }
@@ -172,6 +173,7 @@ namespace UnityMCP.Editor
                 case 0: DrawServerTab(); break;
                 case 1: DrawIntegrationsTab(); break;
                 case 2: DrawResourcesTab(); break;
+                case 3: DrawSettingsTab(); break;
             }
             UpdateDynamicState();
         }

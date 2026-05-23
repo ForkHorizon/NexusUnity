@@ -32,8 +32,11 @@ Nexus Unity exposes one Unity menu entry: `Window > Nexus Unity`.
 - `Server`: local server lifecycle, URL copy, server health, and bridge deployment status.
 - `Integrations`: MCP setup cards for Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
 - `Resources`: documentation, API reference, changelog, package folder access, and collapsed maintainer diagnostics.
+- `Settings`: Nexus Unity editor preferences, including Console logging verbosity.
 
-The main control panel is a compact UI Toolkit window with `Server`, `Integrations`, and `Resources` tabs. Test-only actions are hidden by default under `Resources > Advanced / Diagnostics`, while user-facing setup actions remain visible. Server and bridge blocks remain stacked vertically; their internal action rows stretch and wrap responsively, and integration cards expose status, auto setup, copyable config, and config-location actions where supported.
+The main control panel is a compact UI Toolkit window with `Server`, `Integrations`, `Resources`, and `Settings` tabs. Test-only actions are hidden by default under `Resources > Advanced / Diagnostics`, while user-facing setup actions remain visible. Server and bridge blocks remain stacked vertically; their internal action rows stretch and wrap responsively, and integration cards expose status, auto setup, copyable config, and config-location actions where supported.
+
+Console logging defaults to `Important`, which keeps the Unity Console focused on server lifecycle, setup results, warnings, and errors. `All` shows verbose Nexus Unity diagnostics, and `Custom` shows info logs only for selected categories: Server, Integrations, API, UI Automation, Diagnostics, Audit, and Runtime. These settings affect Nexus Unity service messages only; user project logs and Unity errors are not suppressed.
 
 ## MCP Client Configuration
 

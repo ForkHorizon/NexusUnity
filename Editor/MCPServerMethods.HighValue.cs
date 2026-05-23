@@ -38,7 +38,7 @@ namespace UnityMCP.Editor
             int h = (int)pos.height;
 
             string tempPath = Path.Combine(Path.GetTempPath(), $"unity_gameview_{DateTime.Now.Ticks}.png");
-            Debug.Log($"[MCP_SCREENSHOT] Capturing GameView at {x},{y},{w},{h} to {tempPath}");
+            NexusEditorLog.Log(NexusLogCategory.UiAutomation, $"[MCP_SCREENSHOT] Capturing GameView at {x},{y},{w},{h} to {tempPath}");
 
             #if UNITY_EDITOR_OSX
             var startInfo = new System.Diagnostics.ProcessStartInfo
@@ -56,7 +56,7 @@ namespace UnityMCP.Editor
                 process.WaitForExit();
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
-                if (process.ExitCode != 0) Debug.LogError($"[MCP_SCREENSHOT] screencapture failed with exit code {process.ExitCode}. Error: {error}");
+                if (process.ExitCode != 0) NexusEditorLog.Error(NexusLogCategory.UiAutomation, $"[MCP_SCREENSHOT] screencapture failed with exit code {process.ExitCode}. Error: {error}");
             }
             #else
             ScreenCapture.CaptureScreenshot(tempPath);

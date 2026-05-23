@@ -17,9 +17,9 @@ namespace UnityMCP.Editor
 
         public static void RunAuditMenu()
         {
-            Debug.Log("[Nexus] Starting Full Project Audit...");
+            NexusEditorLog.Log(NexusLogCategory.Audit, "[Nexus] Starting Full Project Audit...", true);
             string report = RunAudit(false);
-            Debug.Log(report);
+            NexusEditorLog.Log(NexusLogCategory.Audit, report);
         }
 
         public static string RunAudit(bool silent)
@@ -48,7 +48,7 @@ namespace UnityMCP.Editor
                                 // Determine if we are in the Nexus sandbox or a user project
                                 bool isSandbox = System.IO.Directory.Exists("Assets/NexusUnity");
                                 string targetPath = isSandbox ? "Assets/NexusUnity" : "Assets";
-                                Debug.Log($"[Nexus Audit] START - isSandbox: {isSandbox}, targetPath: {targetPath}");
+                                NexusEditorLog.Log(NexusLogCategory.Audit, $"[Nexus Audit] START - isSandbox: {isSandbox}, targetPath: {targetPath}");
                                 
                                 var getAllIssuesMethod = report.GetType().GetMethod("GetAllIssues");
                                 var allIssues = (System.Collections.IEnumerable)getAllIssuesMethod.Invoke(report, null);
@@ -125,7 +125,7 @@ namespace UnityMCP.Editor
                                 }
                                 result["code_issues"] = codeIssues;
                                 result["num_total_issues"] = codeIssues.Count;
-                                Debug.Log($"[Nexus Audit] END - Total Filtered: {codeIssues.Count}");
+                                NexusEditorLog.Log(NexusLogCategory.Audit, $"[Nexus Audit] END - Total Filtered: {codeIssues.Count}", true);
                             }
                         }
                     }
@@ -134,7 +134,7 @@ namespace UnityMCP.Editor
                 // --- Custom Nexus Style Audit ---
                 string customTargetPath = System.IO.Directory.Exists("Assets/NexusUnity") ? "Assets/NexusUnity" : "Assets";
                 var codeIssuesList = result["code_issues"] as JArray ?? new JArray();
-                Debug.Log($"[Nexus Style Audit] Scanning path: {customTargetPath}, current issues: {codeIssuesList.Count}");
+                NexusEditorLog.Log(NexusLogCategory.Audit, $"[Nexus Style Audit] Scanning path: {customTargetPath}, current issues: {codeIssuesList.Count}");
                 
                 string[] files = System.IO.Directory.GetFiles(customTargetPath, "*.cs", System.IO.SearchOption.AllDirectories);
                 int styleIssuesAdded = 0;
@@ -157,7 +157,7 @@ namespace UnityMCP.Editor
                 }
                 result["code_issues"] = codeIssuesList;
                 result["num_total_issues"] = codeIssuesList.Count;
-                Debug.Log($"[Nexus Style Audit] Added {styleIssuesAdded} style issues. Total: {codeIssuesList.Count}");
+                NexusEditorLog.Log(NexusLogCategory.Audit, $"[Nexus Style Audit] Added {styleIssuesAdded} style issues. Total: {codeIssuesList.Count}", true);
             }
             catch (Exception e)
             {

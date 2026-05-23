@@ -21,7 +21,7 @@ namespace UnityMCP.Editor
 
             if (string.IsNullOrEmpty(sourcePath))
             {
-                UnityEngine.Debug.LogError("[MCP] Could not find 'nexus_unity_bridge.py' in the project.");
+                NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Could not find 'nexus_unity_bridge.py' in the project.");
                 EditorUtility.DisplayDialog("MCP Error", "Could not find 'nexus_unity_bridge.py'.\n\nEnsure the library is correctly imported.", "OK");
                 return false;
             }
@@ -33,13 +33,13 @@ namespace UnityMCP.Editor
             {
                 File.Copy(sourcePath, destinationPath, true);
                 DeployBridgeModule(projectRoot, sourcePath);
-                UnityEngine.Debug.Log("[MCP] Bridge script deployed to stable location: " + destinationPath);
+                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Bridge script deployed to stable location: " + destinationPath, true);
                 DeployDocumentationPointer(projectRoot, sourcePath);
                 return true;
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[MCP] Failed to deploy bridge or docs: " + e.Message);
+                NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Failed to deploy bridge or docs: " + e.Message);
                 EditorUtility.DisplayDialog("MCP Error", "Failed to deploy integration files to project root.\n\n" + e.Message, "OK");
                 return false;
             }
@@ -56,7 +56,7 @@ namespace UnityMCP.Editor
 
             string destinationModuleDir = Path.Combine(projectRoot, "nexus_bridge");
             CopyDirectory(sourceModuleDir, destinationModuleDir);
-            UnityEngine.Debug.Log("[MCP] Bridge module deployed to stable location: " + destinationModuleDir);
+            NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Bridge module deployed to stable location: " + destinationModuleDir);
         }
 
         private static void CopyDirectory(string sourceDir, string destinationDir)
@@ -115,11 +115,11 @@ namespace UnityMCP.Editor
                     {
                         string dst = Path.Combine(projectRoot, file);
                         File.Copy(src, dst, true);
-                        UnityEngine.Debug.Log("[MCP] Copied documentation to root: " + dst);
+                        NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Copied documentation to root: " + dst);
                     }
                     catch (Exception e)
                     {
-                        UnityEngine.Debug.LogWarning("[MCP] Failed to copy " + file + " to root: " + e.Message);
+                        NexusEditorLog.Warning(NexusLogCategory.Integrations, "[MCP] Failed to copy " + file + " to root: " + e.Message);
                     }
                 }
             }
@@ -134,7 +134,7 @@ namespace UnityMCP.Editor
                                "Before performing any Unity tasks, ALWAYS read `API_REFERENCE.MD` to understand the available tools, their parameters, and the surgical editing patterns required for this project.";
 
             File.WriteAllText(docPointerPath, docContent);
-            UnityEngine.Debug.Log("[MCP] Documentation pointer deployed: " + docPointerPath);
+            NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Documentation pointer deployed: " + docPointerPath);
         }
 
 
@@ -277,7 +277,7 @@ namespace UnityMCP.Editor
                     else
                     {
                         string msg = "CLI command failed at " + cliPath + ".\n\nExit Code: " + p.ExitCode + "\nError: " + error;
-                        UnityEngine.Debug.LogWarning("[MCP] " + msg);
+                        NexusEditorLog.Warning(NexusLogCategory.Integrations, "[MCP] " + msg);
                         
                         if (showSuccessDialog) // If this was supposed to be the final step
                         {
@@ -288,7 +288,7 @@ namespace UnityMCP.Editor
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[MCP] Process start failed: " + e.Message);
+                NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Process start failed: " + e.Message);
             }
             return false;
         }

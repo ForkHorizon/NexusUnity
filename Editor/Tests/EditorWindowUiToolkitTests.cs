@@ -22,6 +22,7 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabServer"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabIntegrations"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabResources"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusTabSettings"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusStartButton"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusStopButton"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusRestartButton"));
@@ -63,6 +64,19 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsNotNull(window.rootVisualElement.Q<Foldout>("NexusAdvancedDiagnostics"));
                 Assert.IsFalse(window.rootVisualElement.Q<Foldout>("NexusAdvancedDiagnostics").value);
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusOpenTestWindowButton"));
+
+                typeof(MCPServerWindow)
+                    .GetField("_selectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .SetValue(window, 3);
+                typeof(MCPServerWindow)
+                    .GetMethod("DrawSelectedTab", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Invoke(window, null);
+                Assert.IsNotNull(window.rootVisualElement.Q("NexusSettingsSection"));
+                Assert.IsNotNull(window.rootVisualElement.Q<EnumField>("NexusConsoleLogModeField"));
+                Assert.IsNotNull(window.rootVisualElement.Q("NexusConsoleLogCategories"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Label>("NexusConsoleLoggingSummary"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Button>("NexusResetConsoleLoggingButton"));
+                Assert.IsNotNull(window.rootVisualElement.Q<Toggle>("NexusLogCategoryServerToggle"));
             }
             finally
             {

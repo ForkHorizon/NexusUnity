@@ -15,13 +15,13 @@ public static class LogVerification
     /// </summary>
     public static void Verify()
     {
-        Debug.Log("Starting Verification...");
+        NexusEditorLog.Log(NexusLogCategory.Diagnostics, "Starting Verification...", true);
         var window = SetupVerificationWindow();
         string dupMsg = GenerateTestLogs();
         
         string json = "{\"jsonrpc\": \"2.0\", \"method\": \"read_logs\", \"params\": {\"count\": 10}, \"id\": 1}";
         string response = MCPServerMethods.ProcessJsonRpc(json);
-        Debug.Log("MCP Response: " + response);
+        NexusEditorLog.Log(NexusLogCategory.Diagnostics, "MCP Response: " + response);
 
         ValidateResponse(response, dupMsg);
         CleanupVerificationWindow(window);
@@ -43,6 +43,7 @@ public static class LogVerification
     /// </summary>
     private static string GenerateTestLogs()
     {
+        // Intentionally writes direct Unity Console entries; this diagnostic verifies log capture itself.
         Debug.Log("Test Log Unique " + System.Guid.NewGuid());
         Debug.LogError("Test Error Unique " + System.Guid.NewGuid());
         string dupMsg = "Test Duplicate " + System.Guid.NewGuid();
@@ -59,7 +60,7 @@ public static class LogVerification
         JObject resp = JObject.Parse(response);
         if (resp["error"] != null)
         {
-            Debug.LogError("MCP Error: " + resp["error"]);
+            NexusEditorLog.Error(NexusLogCategory.Diagnostics, "MCP Error: " + resp["error"]);
             return;
         }
 
@@ -68,9 +69,9 @@ public static class LogVerification
         bool foundDup = result.Any(x => x["message"].ToString() == dupMsg && (int)x["count"] >= 2);
 
         if (foundError && foundDup)
-            Debug.Log("VERIFICATION SUCCESS: Logs retrieved, types correct, deduplication working.");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "VERIFICATION SUCCESS: Logs retrieved, types correct, deduplication working.", true);
         else
-            Debug.LogError($"VERIFICATION FAILED: ErrorFound={foundError}, DupFound={foundDup}");
+            NexusEditorLog.Error(NexusLogCategory.Diagnostics, $"VERIFICATION FAILED: ErrorFound={foundError}, DupFound={foundDup}");
     }
 
     /// <summary>

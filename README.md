@@ -54,8 +54,11 @@ Nexus Unity uses a single Unity menu entry: `Window > Nexus Unity`.
 - `Server`: start, stop, restart, copy the local URL, and deploy the MCP bridge to the project root.
 - `Integrations`: configure Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or a generic MCP JSON client.
 - `Resources`: open docs, API reference, changelog, and the package folder.
+- `Settings`: choose how much Nexus Unity service logging is written to the Unity Console.
 
 Diagnostic actions such as the UI test window, log verification, Codex link test, project audit, and API verification are available from the collapsed `Advanced / Diagnostics` block in `Resources`. The default tabs show only user-facing setup and server actions. Server and bridge blocks stay stacked vertically, while their action rows and the integration cards stretch and wrap cleanly across narrow and wide editor windows.
+
+Console logging defaults to `Important`, which shows key lifecycle/setup messages plus warnings and errors. Use `Settings` or `Edit > Project Settings > Nexus Unity` to switch to `All` for full diagnostics or `Custom` to show info logs only for selected Nexus Unity categories.
 
 ## Public APIs
 

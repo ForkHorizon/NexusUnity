@@ -100,7 +100,7 @@ namespace UnityMCP.Editor
             while (_mainThreadQueue.TryDequeue(out var action))
             {
                 try { action?.Invoke(); }
-                catch (Exception e) { Debug.LogError($"[MCP] Error executing enqueued action: {e.Message}"); }
+                catch (Exception e) { NexusEditorLog.Error(NexusLogCategory.Api, $"[MCP] Error executing enqueued action: {e.Message}"); }
             }
         }
 
