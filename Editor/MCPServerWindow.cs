@@ -1,195 +1,210 @@
-using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// EditorWindow that hosts the main Nexus Unity UI Toolkit control surface for server control, integrations, resources, and settings.
+    /// </summary>
+    /// <remarks>
+    /// Opening this window creates or retrieves a persistent Unity editor window, builds named UI Toolkit elements for automation,
+    /// and schedules a repeating live refresh of server status, bridge paths, integration state, and footer/status labels.
+    /// </remarks>
     public partial class MCPServerWindow : EditorWindow
     {
-        private string _cliStatusMessage = "Checking link...";
-        private int _selectedTab = 0;
-        private GUIContent[] _tabs;
+        internal static readonly Vector2 UsableMinSize = new Vector2(320, 420);
 
-        [MenuItem("Window/Nexus Unity/Server Control Panel")]
-        public static void ShowWindow() => GetWindow<MCPServerWindow>("Nexus Unity");
+        private int _selectedTab = 0;
+        private VisualElement _content;
+        private Button[] _tabButtons;
+        private Button _startButton;
+        private Button _restartButton;
+        private Button _stopButton;
+        private Label _statusPill;
+        private Label _portLabel;
+        private Label _stateLabel;
+        private Label _sessionLabel;
+        private Label _editorStateLabel;
+        private Label _bridgePathLabel;
+        private Label _serverHealthLabel;
+        private Label _integrationStatusLabel;
+        private Label _resourceStatusLabel;
+        private Label _errorLabel;
+        private Label _footerLabel;
+        private IVisualElementScheduledItem _refreshItem;
+
+        /// <summary>
+        /// Creates or retrieves the main Nexus Unity Editor window from the Unity menu and makes it visible.
+        /// </summary>
+        [MenuItem("Window/Nexus Unity", false, 2000)]
+        public static void ShowWindow()
+        {
+            var window = GetWindow<MCPServerWindow>();
+            window.titleContent = new GUIContent("Nexus Unity");
+            window.Show();
+        }
 
         private void OnEnable()
         {
-            _tabs = new[] {
-                new GUIContent("Server", "Server Control Panel"),
-                new GUIContent("Tools", "Developer Tools"),
-                new GUIContent("Verification", "API Verification")
-            };
-            titleContent = new GUIContent($"Nexus Unity v{MCPServer.Version}");
-            CheckCliLinkStatus();
+            titleContent = new GUIContent("Nexus Unity");
+            minSize = UsableMinSize;
+            EnforceUsableMinSize();
         }
 
-        private void OnGUI()
+        /// <summary>
+        /// Builds the UI Toolkit visual tree, draws the selected tab, and schedules live server state refreshes.
+        /// </summary>
+        /// <remarks>
+        /// This method clears and populates <see cref="EditorWindow.rootVisualElement"/>, creates scrollable tab content and a footer,
+        /// initializes dynamic labels, pauses any previous refresh item, and schedules <see cref="UpdateDynamicState"/> every second.
+        /// </remarks>
+        public void CreateGUI()
         {
-            _selectedTab = GUILayout.Toolbar(_selectedTab, _tabs);
-            EditorGUILayout.Space();
+            NexusEditorUi.SetupRoot(rootVisualElement);
+            rootVisualElement.name = "NexusServerWindowRoot";
+            rootVisualElement.Add(BuildHeader());
+            rootVisualElement.Add(BuildTabs());
+
+            var scroll = new ScrollView(ScrollViewMode.Vertical) { name = "NexusContentScroll" };
+            scroll.style.flexGrow = 1;
+            _content = new VisualElement { name = "NexusContent" };
+            _content.style.flexGrow = 1;
+            scroll.Add(_content);
+            rootVisualElement.Add(scroll);
+
+            _footerLabel = NexusEditorUi.Label($"v{MCPServer.Version}", 10, false, NexusEditorUi.Muted, "NexusFooterVersion");
+            _footerLabel.style.alignSelf = Align.FlexEnd;
+            rootVisualElement.Add(_footerLabel);
+
+            DrawSelectedTab();
+            UpdateDynamicState();
+            _refreshItem?.Pause();
+            _refreshItem = rootVisualElement.schedule.Execute(UpdateDynamicState).Every(1000);
+        }
+
+        private void OnDisable()
+        {
+            _refreshItem?.Pause();
+            _refreshItem = null;
+        }
+
+        private VisualElement BuildHeader()
+        {
+            var header = NexusEditorUi.Panel("NexusHeader");
+            header.style.flexDirection = FlexDirection.Row;
+            header.style.flexWrap = Wrap.Wrap;
+            header.style.alignItems = Align.Center;
+            header.style.justifyContent = Justify.SpaceBetween;
+            header.style.marginBottom = 8;
+
+            var titleBlock = new VisualElement { name = "NexusHeaderTitle" };
+            titleBlock.style.minWidth = 0;
+            titleBlock.style.flexBasis = 150;
+            titleBlock.style.flexGrow = 1;
+            titleBlock.style.flexShrink = 1;
+            titleBlock.style.marginBottom = 4;
+            titleBlock.Add(NexusEditorUi.Label("Nexus Unity", 16, true));
+            titleBlock.Add(NexusEditorUi.Label($"Editor automation server v{MCPServer.Version}", 11, false, NexusEditorUi.Muted));
+            header.Add(titleBlock);
+
+            var statusBlock = NexusEditorUi.Row(true, "NexusHeaderStatus");
+            statusBlock.style.justifyContent = Justify.FlexEnd;
+            statusBlock.style.flexWrap = Wrap.Wrap;
+            statusBlock.style.flexGrow = 0;
+            statusBlock.style.flexShrink = 1;
+            statusBlock.style.minWidth = 0;
+
+            _statusPill = NexusEditorUi.Pill("STOPPED", Color.gray, "NexusStatusPill");
+            _statusPill.style.marginRight = 6;
+            _statusPill.style.marginBottom = 6;
+            statusBlock.Add(_statusPill);
+
+            _portLabel = NexusEditorUi.Label("Port: 8081", 12, true, null, "NexusPortLabel");
+            _portLabel.style.marginRight = 8;
+            _portLabel.style.marginBottom = 6;
+            statusBlock.Add(_portLabel);
+
+            var copyButton = NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy server URL to clipboard", false, "NexusCopyUrlButton");
+            copyButton.style.minWidth = 82;
+            copyButton.style.flexShrink = 1;
+            statusBlock.Add(copyButton);
+            header.Add(statusBlock);
+            return header;
+        }
+
+        private VisualElement BuildTabs()
+        {
+            var tabs = NexusEditorUi.Row(false, "NexusTabs");
+            tabs.style.marginBottom = 8;
+            _tabButtons = new[]
+            {
+                CreateTabButton("Server", 0, "NexusTabServer"),
+                CreateTabButton("Integrations", 1, "NexusTabIntegrations"),
+                CreateTabButton("Resources", 2, "NexusTabResources"),
+                CreateTabButton("Settings", 3, "NexusTabSettings")
+            };
+
+            foreach (var tab in _tabButtons)
+            {
+                tab.style.flexBasis = 0;
+                tab.style.flexGrow = 1;
+                tab.style.flexShrink = 1;
+                tab.style.minWidth = 64;
+                tab.style.marginBottom = 0;
+                tabs.Add(tab);
+            }
+
+            UpdateTabStyles();
+            return tabs;
+        }
+
+        private Button CreateTabButton(string text, int index, string name)
+        {
+            return NexusEditorUi.Button(text, () =>
+            {
+                _selectedTab = index;
+                UpdateTabStyles();
+                DrawSelectedTab();
+            }, $"{text} tab", false, name);
+        }
+
+        private void UpdateTabStyles()
+        {
+            if (_tabButtons == null) return;
+            for (int i = 0; i < _tabButtons.Length; i++)
+            {
+                bool selected = i == _selectedTab;
+                _tabButtons[i].style.backgroundColor = selected ? NexusEditorUi.Primary : new Color(0.30f, 0.30f, 0.30f);
+                _tabButtons[i].style.color = selected ? Color.white : new Color(0.86f, 0.86f, 0.86f);
+                _tabButtons[i].style.unityFontStyleAndWeight = selected ? FontStyle.Bold : FontStyle.Normal;
+            }
+        }
+
+        private void DrawSelectedTab()
+        {
+            if (_content == null) return;
+            _content.Clear();
             switch (_selectedTab)
             {
                 case 0: DrawServerTab(); break;
-                case 1: DrawToolsTab(); break;
-                case 2: DrawVerificationTab(); break;
+                case 1: DrawIntegrationsTab(); break;
+                case 2: DrawResourcesTab(); break;
+                case 3: DrawSettingsTab(); break;
             }
-            GUILayout.FlexibleSpace();
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-                GUI.enabled = false;
-                GUILayout.Label(new GUIContent($"v{MCPServer.Version}", "Current Server Version"), EditorStyles.miniLabel);
-                GUI.enabled = true;
-            }
+            UpdateDynamicState();
         }
 
-        private void DrawServerTab()
+        private void EnforceUsableMinSize()
         {
-            GUILayout.Label(new GUIContent("Server Control", "Controls for starting and stopping the local server"), EditorStyles.boldLabel);
-            DrawServerStatusBar();
-            EditorGUILayout.Space();
-            
-            bool canStart = MCPServer.State == ServerState.Stopped || MCPServer.State == ServerState.Error || MCPServer.State == ServerState.Attached;
-            bool canStop = MCPServer.State == ServerState.Running || MCPServer.State == ServerState.Starting || MCPServer.State == ServerState.Attached || MCPServer.State == ServerState.Error;
+            if (position.width <= 0 || position.height <= 0) return;
+            if (position.width >= minSize.x && position.height >= minSize.y) return;
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (canStart)
-                {
-                    string label = MCPServer.State == ServerState.Error ? "RETRY START" : "START SERVER";
-                    if (GUILayout.Button(new GUIContent(label, $"Start the local MCP server on port {MCPServer.Port}"), GUILayout.Height(40))) MCPServer.Start();
-                }
-
-                if (canStop)
-                {
-                    if (GUILayout.Button(new GUIContent("STOP / RESET", "Stop the running server or reset the state"), GUILayout.Height(40))) MCPServer.Stop();
-                }
-            }
-            EditorGUILayout.Space();
-            DrawCliIntegration();
-            DrawResources();
+            position = new Rect(
+                position.x,
+                position.y,
+                Mathf.Max(position.width, minSize.x),
+                Mathf.Max(position.height, minSize.y));
         }
-
-        private void DrawServerStatusBar()
-        {
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-            {
-                string status = MCPServer.State.ToString().ToUpper();
-                Color statusColor = Color.white;
-                switch (MCPServer.State)
-                {
-                    case ServerState.Running: statusColor = Color.green; break;
-                    case ServerState.Starting: statusColor = Color.yellow; break;
-                    case ServerState.Attached: statusColor = Color.cyan; break;
-                    case ServerState.Error: statusColor = Color.red; break;
-                    default: statusColor = Color.gray; status = "STOPPED"; break;
-                }
-
-                GUI.color = statusColor;
-                GUILayout.Label(new GUIContent($"● {status}"), EditorStyles.boldLabel);
-                GUI.color = Color.white;
-                GUILayout.FlexibleSpace();
-                GUILayout.Label(new GUIContent($"Port: {MCPServer.Port}"));
-                GUILayout.Space(10);
-                if (GUILayout.Button(new GUIContent("Copy URL", "Copy Server URL to clipboard"), EditorStyles.miniButton))
-                {
-                    EditorGUIUtility.systemCopyBuffer = $"http://localhost:{MCPServer.Port}";
-                    ShowNotification(new GUIContent("URL Copied to Clipboard"));
-                }
-            }
-
-            if (MCPServer.State == ServerState.Error && !string.IsNullOrEmpty(MCPServer.LastError))
-            {
-                EditorGUILayout.HelpBox(MCPServer.LastError, MessageType.Error);
-            }
-            else if (MCPServer.State == ServerState.Attached)
-            {
-                EditorGUILayout.HelpBox("This instance is attached to an existing session from another Unity editor instance. Remote server is active.", MessageType.Info);
-            }
-        }
-
-        private void DrawCliIntegration()
-        {
-            GUILayout.Label(new GUIContent("CLI Integrations", "Setup CLI tools for external systems"), EditorStyles.boldLabel);
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-            {
-                GUILayout.Label(new GUIContent($"Status: {_cliStatusMessage}", "Current linking status of CLI tools"));
-                if (GUILayout.Button(new GUIContent("Refresh", "Check the current CLI installation and link status"), GUILayout.Width(60))) CheckCliLinkStatus();
-            }
-
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button(new GUIContent("Link to Gemini CLI", "Install and link the Gemini CLI tools to this Unity project"), GUILayout.Height(30)))
-                {
-                    MCPCliInstaller.LinkToGemini();
-                    CheckCliLinkStatus();
-                }
-
-                if (GUILayout.Button(new GUIContent("Link to Codex CLI", "Install and link the Codex CLI tools to this Unity project"), GUILayout.Height(30)))
-                {
-                    MCPCliInstaller.LinkToCodex();
-                    CheckCliLinkStatus();
-                }
-
-                if (GUILayout.Button(new GUIContent("Link to Anthropic Claude", "Install and link Anthropic Claude Desktop to this Unity project"), GUILayout.Height(30)))
-                {
-                    MCPCliInstaller.LinkToAnthropic();
-                }
-
-                if (GUILayout.Button(new GUIContent("Link to Antigravity CLI", "Install and link the Antigravity CLI to this Unity project"), GUILayout.Height(30)))
-                {
-                    MCPCliInstaller.LinkToAntigravity();
-                }
-            }
-        }
-
-        private void DrawResources()
-        {
-            EditorGUILayout.Space();
-            GUILayout.Label(new GUIContent("Resources", "Helpful project resources and documentation"), EditorStyles.boldLabel);
-            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-            {
-                GUIContent docContent = EditorGUIUtility.IconContent("_Help");
-                docContent.text = " Documentation";
-                docContent.tooltip = "Open project documentation";
-
-                GUIContent apiContent = EditorGUIUtility.IconContent("TextAsset Icon");
-                apiContent.text = " API Reference";
-                apiContent.tooltip = "Open API reference documentation";
-
-                if (GUILayout.Button(docContent, EditorStyles.miniButton)) OpenDocumentation("DOCUMENTATION.MD");
-                if (GUILayout.Button(apiContent, EditorStyles.miniButton)) OpenDocumentation("API_REFERENCE.MD");
-            }
-        }
-
-        private void OpenDocumentation(string filename)
-        {
-            var script = MonoScript.FromScriptableObject(this);
-            var path = AssetDatabase.GetAssetPath(script);
-            if (string.IsNullOrEmpty(path)) return;
-            var root = Path.GetDirectoryName(Path.GetDirectoryName(path));
-            var docPath = Path.Combine(root, filename);
-            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(docPath);
-            if (obj != null) AssetDatabase.OpenAsset(obj);
-        }
-
-        private void DrawToolsTab()
-        {
-            GUILayout.Label(new GUIContent("Developer Tools", "Additional utilities for server management and testing"), EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Open Test Window", "Open a test window with UI elements for verification testing"))) MCPTestWindow.ShowWindow();
-            if (GUILayout.Button(new GUIContent("Clear All Logs", "Clear the MCP server log history"))) MCPServer.ClearLogs();
-        }
-
-        private void DrawVerificationTab()
-        {
-            GUILayout.Label(new GUIContent("API Verification", "Run comprehensive API tests"), EditorStyles.boldLabel);
-            if (GUILayout.Button(new GUIContent("Run Full Project Audit", "Scan the current scene for project health and structure issues"))) ProjectAuditorWrapper.RunAuditMenu();
-            if (GUILayout.Button(new GUIContent("Run Full API Verification", "Open the comprehensive API verification test suite window"))) GetWindow<MCPVerificationWindow>().Show();
-            if (GUILayout.Button(new GUIContent("Verify UI", "Run automated UI toolkit interaction tests"))) UIVerification.Verify();
-            if (GUILayout.Button(new GUIContent("Verify Logs", "Run automated log capture and parsing tests"))) LogVerification.Verify();
-        }
-
-        private void CheckCliLinkStatus() { _cliStatusMessage = "Ready to Link"; }
     }
 }

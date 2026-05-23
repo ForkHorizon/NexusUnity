@@ -8,9 +8,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling Asset manipulation.
-    /// Handles the autonomous background compilation by waiting for OS focus.
+    /// Registers JSON-RPC methods that manipulate Unity assets and project files through <see cref="AssetDatabase"/>.
     /// </summary>
+    /// <remarks>
+    /// These methods move, copy, delete, import, and refresh assets; create folders, materials, and prefabs; and inspect prefab
+    /// overrides/dependencies. They can write to the project filesystem, dirty assets, trigger AssetDatabase imports, and affect prefab state.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterAssetMethods()
@@ -90,8 +93,21 @@ namespace UnityMCP.Editor
             if (p == null || p["name"] == null) throw new Exception("name is required");
             string name = p["name"].ToString();
             string shader = p["shader"]?.ToString() ?? "Standard";
-            Material mat = new Material(Shader.Find(shader));
-            string path = ValidateAssetPath(Path.Combine("Assets", $"{name}.mat"));
+            var shaderAsset = Shader.Find(shader) ?? Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            if (shaderAsset == null) throw new Exception($"Shader '{shader}' not found and no supported fallback shader is available");
+
+            Material mat = new Material(shaderAsset);
+            string path = p["path"]?.ToString();
+            if (string.IsNullOrEmpty(path))
+            {
+                path = Path.Combine("Assets", $"{name}.mat");
+            }
+            else if (!path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase))
+            {
+                path += ".mat";
+            }
+            path = ValidateAssetPath(path);
+            mat.name = Path.GetFileNameWithoutExtension(path);
             AssetDatabase.CreateAsset(mat, path);
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["path"] = path };

@@ -9,8 +9,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling UI interaction.
+    /// Registers JSON-RPC methods for inspecting and manipulating Unity Editor windows and UI Toolkit visual elements.
     /// </summary>
+    /// <remarks>
+    /// UI automation methods enumerate <see cref="EditorWindow"/> instances, traverse visual trees, click or input text into
+    /// named controls, move/resize editor windows, capture snapshots, and repaint affected windows for automation diagnostics.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterUIMethods()
@@ -20,6 +24,9 @@ namespace UnityMCP.Editor
             _methods["ui_click"] = UIClick;
             _methods["ui_input_text"] = UIInputText;
             _methods["ui_query_elements"] = UIQueryElements;
+            _methods["ui_get_window_rect"] = UIGetWindowRect;
+            _methods["ui_set_window_rect"] = UISetWindowRect;
+            _methods["ui_capture_window_snapshot"] = UICaptureWindowSnapshot;
         }
 
         private static JToken UIListWindows(JToken p)
@@ -51,6 +58,64 @@ namespace UnityMCP.Editor
             var results = new JArray();
             QueryVisualElementRecursive(w.rootVisualElement, textMatch, nameMatch, classMatch, results);
             return results;
+        }
+
+        private static JToken UIGetWindowRect(JToken p)
+        {
+            if (p == null || p["window_title"] == null) throw new Exception("window_title is required");
+            var w = FindWindow(p["window_title"].ToString());
+            if (w == null) throw new Exception("Window not found");
+
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["window_title"] = w.titleContent.text,
+                ["rect"] = SerializeWindowRect(w)
+            };
+        }
+
+        private static JToken UISetWindowRect(JToken p)
+        {
+            if (p == null || p["window_title"] == null) throw new Exception("window_title is required");
+            var w = FindWindow(p["window_title"].ToString());
+            if (w == null) throw new Exception("Window not found");
+
+            Rect rect = w.position;
+            if (HasNonNullParam(p, "x")) rect.x = p["x"].Value<float>();
+            if (HasNonNullParam(p, "y")) rect.y = p["y"].Value<float>();
+            if (HasNonNullParam(p, "width")) rect.width = Mathf.Max(p["width"].Value<float>(), w.minSize.x);
+            if (HasNonNullParam(p, "height")) rect.height = Mathf.Max(p["height"].Value<float>(), w.minSize.y);
+
+            w.position = rect;
+            w.Repaint();
+
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["window_title"] = w.titleContent.text,
+                ["rect"] = SerializeWindowRect(w)
+            };
+        }
+
+        private static JObject SerializeWindowRect(EditorWindow window)
+        {
+            Rect rect = window.position;
+            return new JObject
+            {
+                ["x"] = rect.x,
+                ["y"] = rect.y,
+                ["width"] = rect.width,
+                ["height"] = rect.height,
+                ["min_width"] = window.minSize.x,
+                ["min_height"] = window.minSize.y,
+                ["max_width"] = window.maxSize.x,
+                ["max_height"] = window.maxSize.y
+            };
+        }
+
+        private static bool HasNonNullParam(JToken p, string name)
+        {
+            return p?[name] != null && p[name].Type != JTokenType.Null;
         }
 
         private static void QueryVisualElementRecursive(VisualElement el, string textMatch, string nameMatch, string classMatch, JArray results)

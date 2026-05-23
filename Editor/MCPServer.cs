@@ -13,11 +13,19 @@ using UnityEngine;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Describes the current lifecycle state of the local Nexus Unity server.
+    /// </summary>
+    /// <remarks>
+    /// <c>Stopped</c> means no local listener is active; <c>Starting</c> means startup work has been queued or is binding a port;
+    /// <c>Running</c> means the loopback HTTP/WebSocket server is accepting requests; <c>Attached</c> means another Nexus Unity
+    /// instance already owns the configured port; <c>Error</c> means startup failed and <see cref="MCPServer.LastError"/> contains details.
+    /// </remarks>
     public enum ServerState { Stopped, Starting, Running, Attached, Error }
 
     public static partial class MCPServer
     {
-        private static string _version = "1.0.0";
+        private static string _version = "1.1.0";
         private static long _logCounter = 0;
         public static string Version => _version;
 
@@ -143,6 +151,14 @@ namespace UnityMCP.Editor
         public static int Port => _port;
         public static bool IsRunning => _state == ServerState.Running;
 
+        /// <summary>
+        /// Starts the loopback-only Nexus Unity HTTP/WebSocket server and persists restart intent in Unity <see cref="EditorPrefs"/>.
+        /// </summary>
+        /// <remarks>
+        /// Startup must run from the Unity Editor main thread; background calls are marshaled through <see cref="EditorApplication.delayCall"/>.
+        /// The method initializes tool dispatch, resolves or allocates the configured port, records restart intent, may attach to an
+        /// existing Nexus Unity instance on the same port, and enables the macOS App Nap bypass before binding the listener.
+        /// </remarks>
         public static void Start()
         {
             if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
@@ -179,7 +195,7 @@ namespace UnityMCP.Editor
             }
             
             EditorPrefs.SetBool(StablePrefsKey, true);
-            Debug.Log($"[MCP] Attempting to start server on port {_port}...");
+            NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Attempting to start server on port {_port}...", true);
 
             var token = _cts.Token;
             Task.Run(async () => {
@@ -196,10 +212,10 @@ namespace UnityMCP.Editor
                         {
                             _state = ServerState.Error;
                             LastError = $"Port {_port} is being used by another application: {owner}.";
-                            Debug.LogError($"[MCP] {LastError}");
+                            NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] {LastError}");
                             return;
                         }
-                        Debug.LogWarning($"[MCP] Port {_port} reported busy by Unknown Process. Proceeding with force-bind attempt...");
+                        NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] Port {_port} reported busy by Unknown Process. Proceeding with force-bind attempt...");
                     }
 
                     if (token.IsCancellationRequested) return;
@@ -210,11 +226,18 @@ namespace UnityMCP.Editor
                 } catch (Exception e) {
                     _state = ServerState.Error;
                     LastError = e.Message;
-                    Debug.LogError($"[MCP] Server start error: {e.Message}");
+                    NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Server start error: {e.Message}");
                 }
             });
         }
 
+        /// <summary>
+        /// Stops the Nexus Unity server on the editor main thread, clears restart intent, disables macOS App Nap bypass, and closes listeners.
+        /// </summary>
+        /// <remarks>
+        /// Calls from background threads are marshaled through <see cref="Enqueue"/> before mutating Unity editor state.
+        /// Cleanup cancels pending server work and closes the HTTP listener/WebSocket state used by the local automation server.
+        /// </remarks>
         public static void Stop()
         {
             if (Thread.CurrentThread.ManagedThreadId != _mainThreadId)

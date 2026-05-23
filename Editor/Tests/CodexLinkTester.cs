@@ -1,14 +1,11 @@
-using UnityEditor;
 using UnityEngine;
-using UnityMCP.Editor;
 
 namespace UnityMCP.Editor {
     public static class CodexLinkTester {
-        [MenuItem("Nexus/Test Codex Link")]
         public static void TestLink() {
-            Debug.Log("[Test] Starting Codex link test...");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[Test] Starting Codex link test...", true);
             MCPCliInstaller.LinkToCodex();
-            Debug.Log("[Test] Codex link test finished.");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[Test] Codex link test finished.", true);
         }
     }
 }

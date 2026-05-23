@@ -53,7 +53,7 @@ namespace UnityMCP.Editor.Tests
 
             CollectionAssert.IsEmpty(listed.Except(registered).OrderBy(x => x).ToArray(), "Every raw listed tool must be dispatchable.");
             CollectionAssert.IsEmpty(registered.Except(InternalRegisteredMethods).Except(listed).OrderBy(x => x).ToArray(), "Every public registered raw method must be listed.");
-            Assert.AreEqual(111, listed.Count, "Open source API docs assume 111 raw tools.");
+            Assert.AreEqual(117, listed.Count, "Open source API docs assume 117 raw tools.");
         }
 
         [Test]
@@ -115,6 +115,25 @@ namespace UnityMCP.Editor.Tests
             }
         }
 
+        [Test]
+        public void RawSchemasDocumentFlexibleComponentAndReflectionInputs()
+        {
+            JObject updateComponent = GetRawTool("update_component");
+            JObject updateProps = (JObject)updateComponent["inputSchema"]["properties"];
+            Assert.IsTrue(updateProps.ContainsKey("properties"), "update_component must document the preferred properties object input.");
+            Assert.IsTrue(updateProps.ContainsKey("json_data"), "update_component must retain the legacy json_data input.");
+            CollectionAssert.AreEquivalent(
+                new[] { "instance_id", "component_name" },
+                updateComponent["inputSchema"]["required"].Select(t => t.ToString()).ToArray(),
+                "update_component should not require only one of its two supported data shapes."
+            );
+
+            JObject invokeMethod = GetRawTool("invoke_method");
+            JToken argumentsSchema = invokeMethod["inputSchema"]["properties"]["arguments"];
+            Assert.AreEqual(JTokenType.Object, argumentsSchema.Type, "invoke_method.arguments must be a schema object, not a raw array.");
+            Assert.AreEqual("array", argumentsSchema["type"]?.ToString());
+        }
+
         private static HashSet<string> GetRawToolNames()
         {
             string response = MCPServerMethods.ProcessJsonRpc("{\"jsonrpc\":\"2.0\",\"method\":\"list_tools\",\"params\":{},\"id\":1}");
@@ -123,6 +142,15 @@ namespace UnityMCP.Editor.Tests
                 .Select(t => t["name"]?.ToString())
                 .Where(n => !string.IsNullOrEmpty(n))
                 .ToHashSet();
+        }
+
+        private static JObject GetRawTool(string name)
+        {
+            string response = MCPServerMethods.ProcessJsonRpc("{\"jsonrpc\":\"2.0\",\"method\":\"list_tools\",\"params\":{},\"id\":1}");
+            JObject parsed = JObject.Parse(response);
+            var tool = parsed["result"].FirstOrDefault(t => t["name"]?.ToString() == name) as JObject;
+            Assert.IsNotNull(tool, $"Could not find raw tool {name}.");
+            return tool;
         }
 
         private static HashSet<string> GetRegisteredMethodNames()

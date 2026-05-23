@@ -8,9 +8,13 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling Scene Delta tracking.
-    /// Tracks GameObject creation, destruction, reparenting, and property changes.
+    /// Registers scene delta tracking methods and listens to Unity editor object-change events for incremental hierarchy updates.
     /// </summary>
+    /// <remarks>
+    /// Registration subscribes to <see cref="ObjectChangeEvents.changesPublished"/> and stores GameObject creation, destruction,
+    /// reparenting, and property changes in a lock-protected buffer. Results include Nexus session generation data so clients can
+    /// detect stale cursors or buffer overruns between editor changes.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static long _deltaCounter = 0;

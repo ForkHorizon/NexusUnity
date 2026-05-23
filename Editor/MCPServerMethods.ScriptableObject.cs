@@ -13,7 +13,7 @@ namespace UnityMCP.Editor
     {
         private static void RegisterScriptableObjectMethods()
         {
-            Debug.Log("[MCP] Registering ScriptableObject Methods...");
+            NexusEditorLog.Log(NexusLogCategory.Api, "[MCP] Registering ScriptableObject Methods...");
             _methods["read_scriptable_object"] = ReadScriptableObject;
             _methods["update_scriptable_object"] = UpdateScriptableObject;
             _methods["patch_scriptable_object"] = UpdateScriptableObject;

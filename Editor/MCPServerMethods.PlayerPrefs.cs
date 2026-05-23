@@ -134,7 +134,7 @@ namespace UnityMCP.Editor
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogWarning($"[MCP] Failed to list PlayerPrefs: {ex.Message}");
+                NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Failed to list PlayerPrefs: {ex.Message}");
             }
 
             // Now populate the result with values using the standard Unity API

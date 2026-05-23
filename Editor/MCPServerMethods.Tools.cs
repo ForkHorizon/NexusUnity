@@ -86,6 +86,8 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_server_status", "Get explicit health and state of the MCP server and Unity editor", new JObject { }));
             tools.Add(CreateTool("attach_existing_session", "Attach to an existing healthy session", new JObject { }));
             tools.Add(CreateTool("ping_main_thread", "Explicit liveness check for Unity API execution on main thread", new JObject { }));
+            tools.Add(CreateTool("get_tool_usage_stats", "Return in-memory raw tool call counts, durations, and errors since domain load", new JObject { }));
+            tools.Add(CreateTool("reset_tool_usage_stats", "Clear in-memory raw tool call counts for scoped diagnostics", new JObject { }));
             tools.Add(CreateTool("shutdown_server", "Safely stop the MCP server for this Unity instance", new JObject { }));
             tools.Add(CreateTool("batch_execute", "Execute multiple JSON-RPC calls in a single HTTP request", new JObject
             {
@@ -201,7 +203,7 @@ namespace UnityMCP.Editor
         private static void AddHierarchyTools(JArray tools)
         {
             tools.Add(CreateTool("create_game_object", "Create empty GameObject", new JObject { ["name"] = new JObject { ["type"] = "string" }, ["parent_id"] = new JObject { ["type"] = "integer" } }, "name"));
-            tools.Add(CreateTool("create_primitive", "Create primitive (Cube, Sphere...)", GetPrimitiveSchema()));
+            tools.Add(CreateTool("create_primitive", "Create primitive (Cube, Sphere...)", GetPrimitiveSchema(), "primitive_type"));
             tools.Add(CreateTool("destroy_game_object", "Delete GameObject", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
             tools.Add(CreateTool("duplicate_object", "Copy GameObject", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }, "instance_id"));
             tools.Add(CreateTool("set_active", "Enable/Disable GameObject", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["active"] = new JObject { ["type"] = "boolean" } }, "instance_id", "active"));
@@ -228,8 +230,8 @@ namespace UnityMCP.Editor
                 ["fields"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "string" }, ["description"] = "Array of field names to read" }
             }, "instance_id", "component_name", "fields"));
             tools.Add(CreateTool("get_component_schema", "Get serializable fields names/types", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name"));
-            tools.Add(CreateTool("update_component", "Update component with detailed result", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" }, ["json_data"] = new JObject { ["type"] = "string" } }, "instance_id", "component_name", "json_data"));
-            tools.Add(CreateTool("set_transform", "Move/Rotate", GetTransformSchema()));
+            tools.Add(CreateTool("update_component", "Update component with detailed result", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" }, ["properties"] = new JObject { ["type"] = "object", ["description"] = "Preferred object form for property updates" }, ["json_data"] = new JObject { ["type"] = "string", ["description"] = "Legacy JSON string form" } }, "instance_id", "component_name"));
+            tools.Add(CreateTool("set_transform", "Move/Rotate", GetTransformSchema(), "instance_id"));
             tools.Add(CreateTool("set_property", "Surgical field edit", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["property_name"] = new JObject { ["type"] = "string" }, ["value"] = new JObject { ["type"] = "string" } }, "instance_id", "property_name", "value"));
             tools.Add(CreateTool("set_enabled", "Enable/Disable Component", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["component_name"] = new JObject { ["type"] = "string" }, ["enabled"] = new JObject { ["type"] = "boolean" } }, "instance_id", "component_name", "enabled"));
         }
@@ -238,7 +240,7 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("list_assets", "List assets", new JObject { ["filter"] = new JObject { ["type"] = "string" } }));
             tools.Add(CreateTool("explore_asset", "List all internal sub-assets (e.g., sliced sprites) and their fileIDs within a single file.", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
-            tools.Add(CreateTool("create_material", "Create material", new JObject { ["name"] = new JObject { ["type"] = "string" }, ["shader"] = new JObject { ["type"] = "string" } }, "name"));
+            tools.Add(CreateTool("create_material", "Create material", new JObject { ["name"] = new JObject { ["type"] = "string" }, ["path"] = new JObject { ["type"] = "string", ["description"] = "Optional explicit asset path, for example Assets/Folder/Material.mat" }, ["shader"] = new JObject { ["type"] = "string" } }, "name"));
             tools.Add(CreateTool("refresh_asset_database", "Refresh Assets", new JObject { }));
             tools.Add(CreateTool("import_asset", "Import file", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("instantiate_prefab", "Create from Prefab", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
@@ -290,6 +292,10 @@ namespace UnityMCP.Editor
                 ["filter"] = new JObject { ["type"] = "string", ["description"] = "Optional: name of test or class" },
                 ["mode"] = new JObject { ["type"] = "string", ["description"] = "EditMode or PlayMode" }
             }));
+            tools.Add(CreateTool("get_test_results", "Read the latest Unity TestResults XML summary", new JObject
+            {
+                ["result_path"] = new JObject { ["type"] = "string", ["description"] = "Optional TestResults XML path inside the project or Unity persistent data path" }
+            }));
         }
 
         private static void AddDiscoveryTools(JArray tools)
@@ -317,6 +323,21 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("ui_list_windows", "List Editor Windows", new JObject { }));
             tools.Add(CreateTool("ui_get_hierarchy", "Inspect Window UI", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
+            tools.Add(CreateTool("ui_get_window_rect", "Get an EditorWindow position and size for layout QA", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
+            tools.Add(CreateTool("ui_set_window_rect", "Set an EditorWindow position and size for layout QA", new JObject
+            {
+                ["window_title"] = new JObject { ["type"] = "string" },
+                ["x"] = new JObject { ["type"] = "number" },
+                ["y"] = new JObject { ["type"] = "number" },
+                ["width"] = new JObject { ["type"] = "number" },
+                ["height"] = new JObject { ["type"] = "number" }
+            }, "window_title"));
+            tools.Add(CreateTool("ui_capture_window_snapshot", "Capture an EditorWindow rect, UI hierarchy, and optional PNG image", new JObject
+            {
+                ["window_title"] = new JObject { ["type"] = "string" },
+                ["include_image"] = new JObject { ["type"] = "boolean" },
+                ["include_hierarchy"] = new JObject { ["type"] = "boolean" }
+            }, "window_title"));
             tools.Add(CreateTool("ui_query_elements", "Find UI Toolkit elements by text, name, or USS class", new JObject
             {
                 ["window_title"] = new JObject { ["type"] = "string" },

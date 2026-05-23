@@ -7,8 +7,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling Scene and GameObject lifecycle.
+    /// Registers JSON-RPC methods for Unity scene lifecycle operations and GameObject creation/destruction.
     /// </summary>
+    /// <remarks>
+    /// Scene operations can save dirty scenes, open or create scenes, write scene assets, call <see cref="AssetDatabase.SaveAssets"/>,
+    /// dirty editor state, and register GameObject changes with Unity Undo. Invalid asset paths are rejected before scene I/O.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterSceneMethods()
@@ -70,7 +74,7 @@ namespace UnityMCP.Editor
             if (string.IsNullOrEmpty(path))
             {
                 path = "Assets/AutoSavedScene.unity";
-                Debug.Log($"[MCP] Saving new scene to default path: {path}");
+                NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] Saving new scene to default path: {path}", true);
             }
 
             path = ValidateAssetPath(path);

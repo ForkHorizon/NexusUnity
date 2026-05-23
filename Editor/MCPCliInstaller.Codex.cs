@@ -10,8 +10,12 @@ namespace UnityMCP.Editor
     public static partial class MCPCliInstaller
     {
         /// <summary>
-        /// Attempts to link the current Unity project to the local Codex CLI instance.
+        /// Links the current Unity project to Codex by deploying the bridge script, running the Codex MCP command, or editing Codex TOML fallback config.
         /// </summary>
+        /// <remarks>
+        /// This editor action copies bridge files into the project root, resolves <c>python3</c> and <c>codex</c>, may launch local
+        /// CLI processes, and can create or update the user's <c>~/.codex/config.toml</c> when the CLI registration path is unavailable.
+        /// </remarks>
         public static void LinkToCodex()
         {
             if (DeployBridgeScript(out string destinationPath))
@@ -38,13 +42,13 @@ namespace UnityMCP.Editor
                 // If it succeeds, we are done
                 if (RunInstallerProcess(CreateProcessStartInfo(addCommand), codexPath, false, "Codex"))
                 {
-                    UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via '" + codexPath + "'");
+                    NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via '" + codexPath + "'", true);
                     EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
                     return;
                 }
 
                 // If it failed (likely version issue), we proceed to fallback
-                UnityEngine.Debug.LogWarning("[MCP] Codex CLI command failed at '" + codexPath + "'. Falling back to manual TOML configuration.");
+                NexusEditorLog.Warning(NexusLogCategory.Integrations, "[MCP] Codex CLI command failed at '" + codexPath + "'. Falling back to manual TOML configuration.");
             }
 
             // Fallback: Manual TOML edit
@@ -116,13 +120,14 @@ namespace UnityMCP.Editor
                     lines.Add("args = [ \"" + safeScriptPath + "\" ]");
                 }
 
+                NexusMcpConfigGenerator.BackupFileIfExists(configPath);
                 File.WriteAllLines(configPath, lines);
-                UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath);
+                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath, true);
                 EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[MCP] Failed to link to Codex CLI via fallback: " + e.Message);
+                NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Failed to link to Codex CLI via fallback: " + e.Message);
                 EditorUtility.DisplayDialog("MCP Error", "Failed to update Codex configuration.\n\n" + e.Message, "OK");
             }
         }

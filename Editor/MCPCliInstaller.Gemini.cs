@@ -10,8 +10,12 @@ namespace UnityMCP.Editor
     public static partial class MCPCliInstaller
     {
         /// <summary>
-        /// Attempts to link the current Unity project to the local Gemini CLI instance.
+        /// Links the current Unity project to Gemini CLI by deploying the bridge script and replacing the local <c>nexus-unity</c> MCP registration.
         /// </summary>
+        /// <remarks>
+        /// This editor action modifies project-root bridge files, resolves local Gemini and Python executables, launches Gemini MCP
+        /// remove/add commands, and reports setup failures through Nexus editor logging or Unity dialogs.
+        /// </remarks>
         public static void LinkToGemini()
         {
             if (DeployBridgeScript(out string destinationPath))

@@ -4,8 +4,12 @@ using UnityEngine;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Represents a single log entry captured from the Unity console.
+    /// Represents one Unity Console entry captured by Nexus Unity for editor diagnostics and JSON-RPC log queries.
     /// </summary>
+    /// <remarks>
+    /// Entries are populated from Unity editor and runtime log callbacks, then serialized through Newtonsoft.Json for MCP clients.
+    /// Message and StackTrace mirror Unity's console payloads and may be empty or null depending on the callback source.
+    /// </remarks>
     [Serializable]
     public class LogEntry
     {
@@ -23,12 +27,12 @@ namespace UnityMCP.Editor
         public int Count;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogEntry"/> class.
+        /// Initializes a captured Unity log entry, stamps it with the current editor-local time, and starts its duplicate count at one.
         /// </summary>
-        /// <param name="id">The unique ID.</param>
-        /// <param name="message">The log message.</param>
-        /// <param name="stackTrace">The stack trace.</param>
-        /// <param name="type">The type of log.</param>
+        /// <param name="id">Monotonic Nexus Unity log identifier assigned by the editor log queue.</param>
+        /// <param name="message">Unity log condition/message captured from the Console callback.</param>
+        /// <param name="stackTrace">Unity stack trace associated with the message; this can be null or empty.</param>
+        /// <param name="type">Unity severity reported by the Console callback.</param>
         public LogEntry(long id, string message, string stackTrace, LogType type)
         {
             this.Id = id;
@@ -40,15 +44,14 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogEntry"/> class.
-        /// Required for serialization.
+        /// Initializes an empty log entry for Unity and JSON serialization paths that populate public fields after construction.
         /// </summary>
         public LogEntry() { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LogEntry"/> class by copying another instance.
+        /// Copies an existing captured log entry without creating a new timestamp or changing the duplicate count.
         /// </summary>
-        /// <param name="other">The entry to copy.</param>
+        /// <param name="other">The captured Unity log entry whose serialized fields should be cloned.</param>
         public LogEntry(LogEntry other)
         {
             this.Id = other.Id;

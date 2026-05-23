@@ -89,12 +89,20 @@ namespace UnityMCP.Editor.Tests {
                 else if (action == "menu") { mappedMethod = "execute_menu_item"; mappedParams = new JObject { ["item_path"] = args["item_path"] }; }
                 else if (action == "read_logs") { mappedMethod = "read_logs"; mappedParams = new JObject { ["count"] = args["count"] ?? 100 }; }
                 else if (action == "clear_logs") { mappedMethod = "clear_logs"; mappedParams = new JObject(); }
+                else if (action == "get_state") { mappedMethod = "get_editor_state"; mappedParams = new JObject(); }
+                else if (action == "get_server_status") { mappedMethod = "get_server_status"; mappedParams = new JObject(); }
+                else if (action == "refresh_assets") { mappedMethod = "refresh_asset_database"; mappedParams = new JObject(); }
+                else if (action == "run_tests") { mappedMethod = "run_tests"; mappedParams = new JObject { ["mode"] = args["mode"] ?? "EditMode", ["filter"] = args["filter"] }; }
+                else if (action == "get_test_results") { mappedMethod = "get_test_results"; mappedParams = new JObject { ["result_path"] = args["result_path"] }; }
             }
             else if (managerName == "unity_ui_automation") {
                 string action = args["action"]?.ToString();
                 if (action == "list_windows") { mappedMethod = "ui_list_windows"; mappedParams = new JObject(); }
-                else if (action == "get_hierarchy") { mappedMethod = "ui_get_hierarchy"; mappedParams = new JObject { ["window_title"] = args["window_title"] }; }
-                else if (action == "query") { mappedMethod = "ui_query_elements"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["name"] = args["name"], ["text"] = args["text"] }; }
+                else if (action == "get_hierarchy") { mappedMethod = "ui_get_hierarchy"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["deep"] = args["deep"] }; }
+                else if (action == "query") { mappedMethod = "ui_query_elements"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["name"] = args["name"], ["text"] = args["text"], ["class_name"] = args["class_name"] }; }
+                else if (action == "get_window_rect") { mappedMethod = "ui_get_window_rect"; mappedParams = new JObject { ["window_title"] = args["window_title"] }; }
+                else if (action == "set_window_rect") { mappedMethod = "ui_set_window_rect"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["x"] = args["x"], ["y"] = args["y"], ["width"] = args["width"], ["height"] = args["height"] }; }
+                else if (action == "capture_window_snapshot") { mappedMethod = "ui_capture_window_snapshot"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["include_image"] = args["include_image"], ["include_hierarchy"] = args["include_hierarchy"] }; }
                 else if (action == "click") { mappedMethod = "ui_click"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["element_name"] = args["element_name"] }; }
                 else if (action == "input") { mappedMethod = "ui_input_text"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["element_name"] = args["element_name"], ["text"] = args["text"] }; }
             }
@@ -206,9 +214,38 @@ namespace UnityMCP.Editor.Tests {
         }
 
         [Test]
+        public void UnityEditorController_GetStateAndStatus_ReturnSuccess() {
+            var state = SimulateBridgeRouting("unity_editor_controller", new JObject { ["action"] = "get_state" });
+            var status = SimulateBridgeRouting("unity_editor_controller", new JObject { ["action"] = "get_server_status" });
+            var results = SimulateBridgeRouting("unity_editor_controller", new JObject { ["action"] = "get_test_results" });
+
+            Assert.IsNotNull(state["result"]);
+            Assert.IsNotNull(status["result"]);
+            Assert.IsNotNull(results["result"]);
+        }
+
+        [Test]
         public void UnityUIAutomation_ListWindows_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_ui_automation", new JObject { ["action"] = "list_windows" });
             Assert.IsNotNull(res["result"]);
+        }
+
+        [Test]
+        public void UnityUIAutomation_CaptureWindowSnapshot_ReturnsSuccess() {
+            var window = MCPTestWindow.ShowWindow();
+            try {
+                var res = SimulateBridgeRouting("unity_ui_automation", new JObject {
+                    ["action"] = "capture_window_snapshot",
+                    ["window_title"] = MCPTestWindow.WindowTitle,
+                    ["include_image"] = false,
+                    ["include_hierarchy"] = true
+                });
+                Assert.IsNotNull(res["result"]);
+                Assert.AreEqual("Success", res["result"]["status"]?.ToString());
+            }
+            finally {
+                window.Close();
+            }
         }
 
         [Test]

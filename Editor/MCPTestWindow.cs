@@ -5,10 +5,16 @@ using UnityEngine.UIElements;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Simple test window with input and buttons for UI interaction testing.
+    /// EditorWindow used by Nexus Unity UI automation tests to exercise named UI Toolkit controls and mutable window state.
     /// </summary>
+    /// <remarks>
+    /// The window builds a TextField, Button, and Label with stable names. Verification helpers show the window, reset state,
+    /// send UI automation JSON-RPC calls, and assert that UI callbacks update the static test state.
+    /// </remarks>
     public class MCPTestWindow : EditorWindow
     {
+        public const string WindowTitle = "Nexus Unity Test";
+
         /// <summary>
         /// Stores the last input value for verification.
         /// </summary>
@@ -20,7 +26,7 @@ namespace UnityMCP.Editor
         public static bool ButtonClicked = false;
 
         /// <summary>
-        /// Resets the window state for testing.
+        /// Resets static test flags and clears the UI Toolkit input/label elements in the current visual tree.
         /// </summary>
         public void ResetState()
         {
@@ -33,46 +39,68 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Shows the MCP Test window.
+        /// Creates or focuses the MCP Test editor window and returns the instance for verification code.
         /// </summary>
         public static MCPTestWindow ShowWindow()
         {
             MCPTestWindow wnd = GetWindow<MCPTestWindow>();
-            wnd.titleContent = new GUIContent("MCPTestWindow");
+            wnd.titleContent = new GUIContent(WindowTitle);
             return wnd;
         }
 
+        private void OnEnable()
+        {
+            titleContent = new GUIContent(WindowTitle);
+            minSize = new Vector2(360, 220);
+        }
+
         /// <summary>
-        /// Creates the UI for the test window using UI Toolkit.
+        /// Creates named UI Toolkit controls and event handlers used by Nexus Unity UI automation smoke tests.
         /// </summary>
+        /// <remarks>
+        /// This method mutates <see cref="EditorWindow.rootVisualElement"/>, resets static test state, registers a text-change
+        /// callback, and wires the button click to update the label and <see cref="ButtonClicked"/>.
+        /// </remarks>
         public void CreateGUI()
         {
-            // Reset state
+            NexusEditorUi.SetupRoot(rootVisualElement);
+            rootVisualElement.name = "NexusTestWindowRoot";
+
             LastInputValue = "";
             ButtonClicked = false;
 
-            VisualElement root = rootVisualElement;
+            var header = NexusEditorUi.Panel("TestWindowHeader");
+            header.Add(NexusEditorUi.Label("UI Automation Test", 16, true));
+            header.Add(NexusEditorUi.Label("Named controls used by Nexus Unity UI automation checks.", 11, false, NexusEditorUi.Muted));
+            rootVisualElement.Add(header);
+
+            var panel = NexusEditorUi.Panel("TestWindowControls");
 
             var label = new Label("Initial State");
             label.name = "TestLabel";
-            root.Add(label);
+            label.style.marginBottom = 8;
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            panel.Add(label);
 
             var textField = new TextField("Input:");
             textField.name = "TestInput";
-            textField.value = ""; // Force it to empty for tests
+            textField.style.marginBottom = 8;
+            textField.value = "";
             LastInputValue = textField.value;
             textField.RegisterValueChangedCallback(evt => LastInputValue = evt.newValue);
-            root.Add(textField);
+            panel.Add(textField);
 
             var button = new Button();
             button.name = "TestButton";
             button.text = "Click Me";
+            button.style.height = 30;
             button.clicked += () =>
             {
                 ButtonClicked = true;
                 label.text = "Button Clicked!";
             };
-            root.Add(button);
+            panel.Add(button);
+            rootVisualElement.Add(panel);
         }
     }
 }
