@@ -4,7 +4,7 @@ Version: `1.0.0`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 115 Unity Editor methods returned by `list_tools`.
+- Raw HTTP JSON-RPC: 117 Unity Editor methods returned by `list_tools`.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`.
 
 ## Raw HTTP JSON-RPC
@@ -42,6 +42,7 @@ Schema compatibility notes:
 - `attach_existing_session` / `unity_attach_existing_session`
 - `ping_main_thread` / `unity_ping_main_thread`
 - `get_tool_usage_stats` / `unity_get_tool_usage_stats`
+- `reset_tool_usage_stats` / `unity_reset_tool_usage_stats`
 - `shutdown_server` / `unity_shutdown_server`
 - `batch_execute` / `unity_batch_execute`
 - `simulate_mouse` / `unity_simulate_mouse`
@@ -141,6 +142,7 @@ Schema compatibility notes:
 - `ui_get_hierarchy` / `unity_ui_get_hierarchy`
 - `ui_get_window_rect` / `unity_ui_get_window_rect`
 - `ui_set_window_rect` / `unity_ui_set_window_rect`
+- `ui_capture_window_snapshot` / `unity_ui_capture_window_snapshot`
 - `ui_query_elements` / `unity_ui_query_elements`
 - `ui_click` / `unity_ui_click`
 - `ui_input_text` / `unity_ui_input_text`
@@ -170,9 +172,9 @@ Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_lo
 `run_tests_wait` triggers `run_tests` and polls raw `get_test_results` from the Python bridge so Unity's main thread is not blocked while the agent waits.
 
 ### `unity_ui_automation`
-Actions: `list_windows`, `get_hierarchy`, `query`, `get_window_rect`, `set_window_rect`, `click`, `input`.
+Actions: `list_windows`, `get_hierarchy`, `query`, `get_window_rect`, `set_window_rect`, `capture_window_snapshot`, `click`, `input`.
 
-`get_hierarchy` accepts `deep`. `query` accepts `name`, `text`, and `class_name`. Window rect actions are intended for resize/layout QA.
+`get_hierarchy` accepts `deep`. `query` accepts `name`, `text`, and `class_name`. Window rect and snapshot actions are intended for resize/layout QA; window snapshots include rect and hierarchy, with best-effort PNG image capture on macOS.
 
 ### `unity_wait`
 Conditions: `compilation`, `play_mode`, `import`, `editor_idle`.

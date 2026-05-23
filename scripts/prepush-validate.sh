@@ -41,6 +41,7 @@ from pathlib import Path
 
 paths = [Path("Editor/nexus_unity_bridge.py")]
 paths.extend(sorted(Path("Editor/nexus_bridge").glob("*.py")))
+paths.append(Path("scripts/agent-tooling-smoke.py"))
 
 for path in paths:
     source = path.read_text(encoding="utf-8")

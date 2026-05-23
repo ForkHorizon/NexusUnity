@@ -25,6 +25,7 @@ namespace UnityMCP.Editor
             _methods["attach_script"] = AttachScript;
             _methods["get_server_status"] = GetServerStatus;
             _methods["get_tool_usage_stats"] = GetToolUsageStats;
+            _methods["reset_tool_usage_stats"] = ResetToolUsageStats;
             _methods["attach_existing_session"] = AttachExistingSession;
             _methods["ping_main_thread"] = PingMainThread;
             _methods["shutdown_server"] = ShutdownServer;

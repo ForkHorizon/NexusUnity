@@ -222,7 +222,8 @@ namespace UnityMCP.Editor
             finally
             {
                 stopwatch.Stop();
-                RecordToolUsage(method, stopwatch.Elapsed.TotalMilliseconds, failure);
+                if (method != "reset_tool_usage_stats")
+                    RecordToolUsage(method, stopwatch.Elapsed.TotalMilliseconds, failure);
             }
         }
 

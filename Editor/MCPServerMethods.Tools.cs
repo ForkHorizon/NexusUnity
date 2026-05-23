@@ -87,6 +87,7 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("attach_existing_session", "Attach to an existing healthy session", new JObject { }));
             tools.Add(CreateTool("ping_main_thread", "Explicit liveness check for Unity API execution on main thread", new JObject { }));
             tools.Add(CreateTool("get_tool_usage_stats", "Return in-memory raw tool call counts, durations, and errors since domain load", new JObject { }));
+            tools.Add(CreateTool("reset_tool_usage_stats", "Clear in-memory raw tool call counts for scoped diagnostics", new JObject { }));
             tools.Add(CreateTool("shutdown_server", "Safely stop the MCP server for this Unity instance", new JObject { }));
             tools.Add(CreateTool("batch_execute", "Execute multiple JSON-RPC calls in a single HTTP request", new JObject
             {
@@ -330,6 +331,12 @@ namespace UnityMCP.Editor
                 ["y"] = new JObject { ["type"] = "number" },
                 ["width"] = new JObject { ["type"] = "number" },
                 ["height"] = new JObject { ["type"] = "number" }
+            }, "window_title"));
+            tools.Add(CreateTool("ui_capture_window_snapshot", "Capture an EditorWindow rect, UI hierarchy, and optional PNG image", new JObject
+            {
+                ["window_title"] = new JObject { ["type"] = "string" },
+                ["include_image"] = new JObject { ["type"] = "boolean" },
+                ["include_hierarchy"] = new JObject { ["type"] = "boolean" }
             }, "window_title"));
             tools.Add(CreateTool("ui_query_elements", "Find UI Toolkit elements by text, name, or USS class", new JObject
             {

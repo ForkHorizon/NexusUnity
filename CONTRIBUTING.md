@@ -72,6 +72,12 @@ Run full local integration validation explicitly when changing server behavior, 
 bash scripts/prepush-validate.sh --integration
 ```
 
+For a faster maintainer or agent check of bridge/UI observability, run:
+
+```bash
+python3 scripts/agent-tooling-smoke.py
+```
+
 Integration tests require the Unity project to be open with the Nexus Unity server running. If this package is not checked out under a Unity project, set `NEXUS_UNITY_PROJECT_ROOT` before running integration validation.
 
 The local hook is convenience only and can be bypassed with `git push --no-verify`; GitHub branch protection should require the `Validate package` workflow for merge enforcement.

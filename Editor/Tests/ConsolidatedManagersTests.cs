@@ -102,6 +102,7 @@ namespace UnityMCP.Editor.Tests {
                 else if (action == "query") { mappedMethod = "ui_query_elements"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["name"] = args["name"], ["text"] = args["text"], ["class_name"] = args["class_name"] }; }
                 else if (action == "get_window_rect") { mappedMethod = "ui_get_window_rect"; mappedParams = new JObject { ["window_title"] = args["window_title"] }; }
                 else if (action == "set_window_rect") { mappedMethod = "ui_set_window_rect"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["x"] = args["x"], ["y"] = args["y"], ["width"] = args["width"], ["height"] = args["height"] }; }
+                else if (action == "capture_window_snapshot") { mappedMethod = "ui_capture_window_snapshot"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["include_image"] = args["include_image"], ["include_hierarchy"] = args["include_hierarchy"] }; }
                 else if (action == "click") { mappedMethod = "ui_click"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["element_name"] = args["element_name"] }; }
                 else if (action == "input") { mappedMethod = "ui_input_text"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["element_name"] = args["element_name"], ["text"] = args["text"] }; }
             }
@@ -227,6 +228,24 @@ namespace UnityMCP.Editor.Tests {
         public void UnityUIAutomation_ListWindows_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_ui_automation", new JObject { ["action"] = "list_windows" });
             Assert.IsNotNull(res["result"]);
+        }
+
+        [Test]
+        public void UnityUIAutomation_CaptureWindowSnapshot_ReturnsSuccess() {
+            var window = MCPTestWindow.ShowWindow();
+            try {
+                var res = SimulateBridgeRouting("unity_ui_automation", new JObject {
+                    ["action"] = "capture_window_snapshot",
+                    ["window_title"] = MCPTestWindow.WindowTitle,
+                    ["include_image"] = false,
+                    ["include_hierarchy"] = true
+                });
+                Assert.IsNotNull(res["result"]);
+                Assert.AreEqual("Success", res["result"]["status"]?.ToString());
+            }
+            finally {
+                window.Close();
+            }
         }
 
         [Test]
