@@ -11,8 +11,8 @@ body:
     id: nexus-version
     attributes:
       label: Nexus Unity version
-      description: Example: 1.0.0 or commit SHA/tag
-      placeholder: "1.0.0"
+      description: Example: 1.1.0 or commit SHA/tag
+      placeholder: "1.1.0"
     validations:
       required: true
   - type: input

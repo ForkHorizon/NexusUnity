@@ -100,29 +100,19 @@ def main():
         "include_image": True,
         "include_hierarchy": True,
     })
-    tests = bridge_result("editor_controller", {
-        "action": "run_tests_wait",
-        "filter": "UnityMCP.Editor.Tests.AgentToolingTests",
-        "timeout_seconds": 60,
-        "poll_interval_seconds": 1,
-    })
+    editor_state = bridge_result("editor_controller", {"action": "get_state"})
     stats = rpc("get_tool_usage_stats")
+    success = bool(tools) and server.get("state") and snapshot.get("status") in {None, "Success", "success"}
 
     summary.update({
-        "success": tests.get("result") == "Passed",
+        "success": bool(success),
         "elapsed_seconds": round(time.time() - started, 2),
         "server_state": server.get("state"),
+        "editor_state": editor_state,
         "tool_count": len(tools),
         "window_query_count": len(query) if isinstance(query, list) else 0,
         "rect": rect.get("rect"),
         "snapshot": summarize_snapshot(snapshot),
-        "tests": {
-            "status": tests.get("status"),
-            "result": tests.get("result"),
-            "total": tests.get("total"),
-            "failed": tests.get("failed"),
-            "time_waited_seconds": tests.get("time_waited_seconds"),
-        },
         "usage_method_count": len(stats.get("tools", [])),
     })
 

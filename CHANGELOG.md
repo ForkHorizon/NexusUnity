@@ -4,11 +4,40 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Changed
+- `Validate package` now runs entirely on the maintainer self-hosted Mac runner with the `nexus-unity-ci` label instead of GitHub-hosted runners.
+- CI now uses workflow-level `concurrency.queue: max` so trusted runs queue on the local runner instead of being canceled or running in parallel.
+- Public contribution docs now describe the trusted-branch replay policy for external fork pull requests before full local CI can execute candidate code.
+- Unity package validation now performs a local package smoke import with Unity `6000.4.3f1` instead of the previous optional GitHub-hosted EditMode test job.
+
+## [1.1.2] - 2026-05-23
+
+### Fixed
+- Fixed clean Unity Package Manager installs by moving package-internal Unity test sources into `Tests~/` so user projects do not compile NUnit-dependent test files during normal package import.
+- Added the required `com.unity.inputsystem` package dependency for input simulation tools that compile against `UnityEngine.InputSystem`.
+
+### Changed
+- Packaging docs now treat all Unity-ignored `~` folders as no-`.meta` areas, including `tools~/` and `Tests~/`.
+- Optional agent tooling smoke now validates live UI/tool routing directly instead of depending on package-internal Unity test sources.
+- README release notes now direct users from `v1.1.0` and `v1.1.1` to the superseding `#v1.1.2` install pin.
+
+## [1.1.1] - 2026-05-23
+
+### Fixed
+- Fixed Unity Package Manager installs by adding an auto-referenced `UnityMCP.Runtime` assembly definition for runtime APIs used by editor code.
+- Removed Unity `.meta` files from the ignored `tools~/` validation tooling folder so immutable PackageCache imports no longer report orphan `tools~.meta` assets.
+
+### Changed
+- Package validation now ignores Unity-ignored `~` folders for `.meta` pairing and fails if `.meta` files under those folders are tracked again.
+- README release notes now tell `v1.1.0` users to update pinned installs to `#v1.1.1` and clear the stale PackageCache entry if Unity keeps old import errors.
+
+## [1.1.0] - 2026-05-23
+
 ### Added
 - Roslyn-based `NexusQualityGate` for contributor CI, covering XML documentation quality, file size limits, method size warnings/failures, and local test coverage.
 - Required self-hosted Ollama documentation review workflow using the `nexus-doc-ai` runner label and serialized GitHub Actions concurrency.
 - GitHub issue templates, pull request template, static validation workflow, and code of conduct for public community maintenance.
-- README badges and reproducible install URL pinned to `v1.0.0`.
+- README badges and reproducible install URL pinned to `v1.1.0`.
 - A single `Window > Nexus Unity` menu entry that opens the main Nexus Unity window.
 - Tracked optional fast pre-push hook and installer for contributor local validation.
 - Development versioning policy: keep unreleased development on the latest public package version and record user-visible work under `[Unreleased]` until release preparation.

@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.0.0)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.1.2)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,7 +8,7 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.0.0`
+- Version: `1.1.2`
 - License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
@@ -32,7 +32,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.0.0
+https://github.com/ForkHorizon/NexusUnity.git#v1.1.2
 ```
 
 ## Start The Server
@@ -161,15 +161,17 @@ Current development keeps the public API backward-compatible while tightening sc
 
 ## Contributor Validation
 
-GitHub Actions is the required validation gate for public contributions. Maintainers should configure the `Validate package` workflow as a required status check before merge.
+GitHub Actions is the required validation gate for public contributions. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner instead of GitHub-hosted runners. Maintainers should configure the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` jobs as required status checks before merge.
 
 Static validation includes `NexusQualityGate`, a Roslyn-based checker for production C# source under `Editor/` and `Runtime/`. It blocks missing XML documentation on public/protected types and methods, generic filler summaries, files over 450 lines, and methods over 150 lines. Files over 300 lines and methods over 50 lines are reported as warnings so contributors can split code before it becomes hard to review.
 
-The workflow also includes a required `Documentation quality AI` job for maintainers who run the `nexus-doc-ai` self-hosted runner. That job sends documentation/code excerpts to local Ollama at `http://127.0.0.1:11434` and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs, not comments that omit every private implementation detail. The job serializes PR reviews, sets a short Ollama `keep_alive`, and unloads the model after every run so large local models do not remain in memory between checks.
+The runner must have the labels `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`; the AI review job also requires `nexus-doc-ai`. The local toolchain must provide `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama on `http://127.0.0.1:11434`. The workflow uses GitHub Actions `concurrency` group `nexus-unity-ci` with `queue: max`, so multiple trusted runs wait in order instead of competing for the MacBook.
+
+The workflow also includes a required `Documentation quality AI` job. That job sends documentation/code excerpts to local Ollama and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs, not comments that omit every private implementation detail. The job sets a short Ollama `keep_alive` and unloads the model after every run so large local models do not remain in memory between checks.
 
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
-Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub; external contributors can contribute through fork or feature-branch pull requests without direct protected-branch access.
+Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub. Because self-hosted runners in public repositories must not execute untrusted fork code, external fork pull requests fail the local CI policy check with a clear message; a maintainer reviews the patch and replays it through a trusted branch before full CI runs on the Mac runner.
 
 Contributors can also install the optional local pre-push hook for faster feedback:
 
@@ -210,9 +212,9 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.0.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.1.2`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Use semantic versioning: patch for compatible fixes, minor for backward-compatible API additions or behavior improvements, and major only for breaking public contracts.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager requires semantic `MAJOR.MINOR.PATCH` versions, so release tags remain `v1.1.0`, `v1.2.0`, and so on even when the human-facing release name is shortened to `1.1` or `1.2`. Use patch versions only for urgent compatible hotfixes.
 
 ## Community
 
@@ -220,4 +222,10 @@ Please use GitHub Issues for reproducible bugs and focused feature requests. Sec
 
 ## Release Notes
 
-The `1.0.0` open source release ships the Python bridge as the supported MCP bridge. Experimental native bridge artifacts are not included.
+The `1.1.2` hotfix repairs clean Unity Package Manager installs by keeping package-internal tests out of normal user compilation and declaring the required Input System dependency. If you installed `v1.1.0` or `v1.1.1`, update the pinned Git URL to `#v1.1.2` and let Unity refresh PackageCache. If Unity keeps stale errors, close Unity, delete the old `Library/PackageCache/com.forkhorizon.nexus.unity@...` folder from the affected project, and reopen the project.
+
+The `1.1.1` hotfix added a runtime assembly definition and removed Unity `.meta` files from the ignored `tools~/` folder.
+
+The `1.1.0` release adds the public contribution validation gate, self-hosted AI documentation review, compact Nexus Unity editor UI, integration setup improvements, raw agent diagnostics, bridge polling actions, UI automation diagnostics, and console logging controls.
+
+The original `1.0.0` open source release ships the Python bridge as the supported MCP bridge. Experimental native bridge artifacts are not included.

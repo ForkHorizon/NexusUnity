@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.0.0`
+Version: `1.1.2`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -124,17 +124,21 @@ For scene work, prefer manager tools:
 
 ## Contributor Validation
 
-Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs static package checks on every push and pull request, a required self-hosted AI documentation review, and an optional Unity EditMode job when the repository has a `UNITY_LICENSE` secret configured.
+Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner, not GitHub-hosted runners. It runs the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` jobs on every trusted push and pull request.
 
 Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
 
-Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`.
+Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`. External fork pull requests are intentionally stopped by `PR target policy` before checkout because the full CI runs on a local maintainer MacBook. A maintainer must review an external patch and replay it through a trusted branch before full CI can execute candidate code.
+
+The local runner must have `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci` labels. The AI documentation job additionally requires `nexus-doc-ai`. The runner environment must provide `python3`, `dotnet`, Unity `6000.4.3f1` at `/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app/Contents/MacOS/Unity`, and Ollama on `http://127.0.0.1:11434`. Workflow-level `concurrency` uses group `nexus-unity-ci` with `queue: max`, so trusted CI runs are processed one at a time and up to 100 pending runs can wait instead of being canceled.
 
 For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs package metadata validation, Python bridge compilation, Unity `.meta` pairing checks, `NexusQualityGate` tests, and the deterministic Roslyn quality gate. It uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
 
 `NexusQualityGate` lives under `tools~/` so Unity ignores the .NET/Roslyn source while GitHub Actions and local scripts can build it. The deterministic gate scans production C# source under `Editor/` and `Runtime/`, fails public/protected types and methods without meaningful XML documentation, fails files over 450 lines, and fails methods over 150 lines. It warns for files over 300 lines and methods over 50 lines.
 
-The required AI documentation review runs on a maintainer-owned self-hosted GitHub Actions runner with the label `nexus-doc-ai`. The job uses GitHub Actions concurrency group `nexus-doc-ai` with `cancel-in-progress: false`, so multiple pull requests queue instead of running Ollama in parallel. The runner must expose Ollama locally through `http://127.0.0.1:11434`; the workflow defaults to the local `qwen3-coder:30b-a3b-q4_K_M` model. The AI rubric is pragmatic: it fails misleading, filler, or materially incomplete docs, but it does not require every private helper, minor edge case, or implementation detail. The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping the first quality-gate pull request, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet.
+The required AI documentation review runs on the same maintainer-owned runner and requires the additional `nexus-doc-ai` label. The workflow defaults to the local `qwen3-coder:30b-a3b-q4_K_M` model. The AI rubric is pragmatic: it fails misleading, filler, or materially incomplete docs, but it does not require every private helper, minor edge case, or implementation detail. The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping the first quality-gate pull request, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet.
+
+The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that package dependencies resolved in `packages-lock.json`.
 
 Full local integration validation is explicit:
 
@@ -160,19 +164,22 @@ Before release, maintainers should run a public API stress audit that compares r
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.0.0`.
+- Public release version: `1.1.2`.
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
+- Keep contributor tooling and package-internal tests under Unity-ignored folders such as `tools~/` and `Tests~/` without `.meta` files; Unity will not import those folders, and root `~.meta` entries break immutable PackageCache installs.
 
 ## Development Versioning Policy
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, so the technical package version and git tag use forms like `1.1.0` and `v1.1.0`. Release titles and user-facing copy can use the shorter `1.1`, `1.2`, `1.3` naming style when the patch component is zero.
+
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.0.0` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.1.2` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:

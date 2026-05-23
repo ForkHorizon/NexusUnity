@@ -6,21 +6,41 @@ on:
   pull_request:
     branches: [main, development]
 
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: nexus-unity-ci
+  queue: max
+
+env:
+  UNITY_EDITOR_PATH: /Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app/Contents/MacOS/Unity
+
 jobs:
   pr-target-policy:
     name: PR target policy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
     steps:
       - name: Validate protected branch workflow
         env:
           EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           BASE_REF: ${{ github.base_ref }}
           HEAD_REF: ${{ github.head_ref }}
           ACTOR: ${{ github.actor }}
         run: |
+          set -euo pipefail
+
           if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "Push event: branch protection policy is enforced by GitHub."
             exit 0
+          fi
+
+          if [ -n "${HEAD_REPOSITORY:-}" ] && [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
+            echo "::error::external PR must be reviewed and replayed through a trusted branch before local CI can run"
+            exit 1
           fi
 
           if [ "$BASE_REF" = "development" ]; then
@@ -52,31 +72,25 @@ jobs:
 
   static-validation:
     name: Static validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
+    needs: pr-target-policy
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
+      - name: Verify local toolchain
+        run: |
+          set -euo pipefail
+          python3 --version
+          dotnet --version
 
       - name: Run static package validation
         run: bash scripts/prepush-validate.sh --static-only
 
   documentation-quality-ai:
     name: Documentation quality AI
-    runs-on: [self-hosted, nexus-doc-ai]
+    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci, nexus-doc-ai]
     needs: static-validation
-    concurrency:
-      group: nexus-doc-ai
-      cancel-in-progress: false
     env:
       NEXUS_DOC_AI_MAX_PARALLEL: "1"
       NEXUS_OLLAMA_URL: http://127.0.0.1:11434
@@ -96,13 +110,11 @@ jobs:
         with:
           path: candidate
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
       - name: Run required Ollama documentation review
         run: |
+          set -euo pipefail
+          dotnet --version
+
           QUALITY_GATE_PROJECT="trusted/tools~/NexusQualityGate/NexusQualityGate.csproj"
           if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
             echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
@@ -157,56 +169,100 @@ jobs:
           echo "::warning::Ollama API unload failed; trying 'ollama stop'."
           ollama stop "$NEXUS_DOC_AI_MODEL" || true
 
-  unity-editmode-tests:
-    name: Unity EditMode tests
-    runs-on: ubuntu-latest
+  unity-package-smoke:
+    name: Unity package smoke
+    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
     needs: static-validation
-    env:
-      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      UNITY_VERSION: 6000.0.23f1
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Skip Unity tests when license is unavailable
-        if: ${{ env.UNITY_LICENSE == '' }}
-        run: echo "::notice::UNITY_LICENSE is not configured; skipping Unity EditMode tests."
+      - name: Verify Unity editor
+        run: |
+          set -euo pipefail
+          test -x "$UNITY_EDITOR_PATH"
+          "$UNITY_EDITOR_PATH" -version
 
       - name: Create temporary Unity project
-        if: ${{ env.UNITY_LICENSE != '' }}
         run: |
-          mkdir -p .ci/unity-project/Packages .ci/unity-project/ProjectSettings
-          cat > .ci/unity-project/Packages/manifest.json <<'JSON'
-          {
-            "dependencies": {
-              "com.forkhorizon.nexus.unity": "file:../..",
-              "com.unity.test-framework": "1.4.6"
-            },
-            "testables": [
-              "com.forkhorizon.nexus.unity"
-            ]
-          }
-          JSON
-          cat > .ci/unity-project/ProjectSettings/ProjectVersion.txt <<EOF
-          m_EditorVersion: ${UNITY_VERSION}
-          m_EditorVersionWithRevision: ${UNITY_VERSION}
-          EOF
+          set -euo pipefail
+          SMOKE_ROOT="$RUNNER_TEMP/nexus-unity-package-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          SMOKE_CREATE_LOG="$RUNNER_TEMP/nexus-unity-package-smoke-create.log"
+          SMOKE_IMPORT_LOG="$RUNNER_TEMP/nexus-unity-package-smoke-import.log"
 
-      - name: Run Unity EditMode tests
-        if: ${{ env.UNITY_LICENSE != '' }}
-        uses: game-ci/unity-test-runner@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        with:
-          projectPath: .ci/unity-project
-          testMode: EditMode
-          unityVersion: ${{ env.UNITY_VERSION }}
-          artifactsPath: unity-test-results
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          rm -rf "$SMOKE_ROOT"
+          "$UNITY_EDITOR_PATH" \
+            -batchmode \
+            -quit \
+            -createProject "$SMOKE_ROOT" \
+            -logFile "$SMOKE_CREATE_LOG"
 
-      - name: Upload Unity test results
-        if: ${{ always() && env.UNITY_LICENSE != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: unity-editmode-results
-          path: unity-test-results
+          echo "SMOKE_ROOT=$SMOKE_ROOT" >> "$GITHUB_ENV"
+          echo "SMOKE_IMPORT_LOG=$SMOKE_IMPORT_LOG" >> "$GITHUB_ENV"
+
+      - name: Install candidate package
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          project_root = Path(os.environ["SMOKE_ROOT"])
+          manifest_path = project_root / "Packages" / "manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          dependencies = manifest.setdefault("dependencies", {})
+          dependencies["com.forkhorizon.nexus.unity"] = f"file:{os.environ['GITHUB_WORKSPACE']}"
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Import and compile candidate package
+        run: |
+          set -euo pipefail
+          if ! "$UNITY_EDITOR_PATH" \
+            -batchmode \
+            -quit \
+            -projectPath "$SMOKE_ROOT" \
+            -logFile "$SMOKE_IMPORT_LOG"; then
+            echo "::error::Unity package smoke import failed."
+            tail -n 200 "$SMOKE_IMPORT_LOG" || true
+            exit 1
+          fi
+
+      - name: Validate Unity smoke output
+        run: |
+          set -euo pipefail
+          failure_pattern='error CS|Scripts have compiler errors|A meta data file \(.meta\) exists but its asset|Couldn.t delete .*immutable folder|CS0234|CS0246|Assembly has reference errors|Package Manager error'
+
+          if grep -E "$failure_pattern" "$SMOKE_IMPORT_LOG"; then
+            echo "::error::Unity package smoke found package import or compile errors."
+            tail -n 200 "$SMOKE_IMPORT_LOG" || true
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          lock_path = Path(os.environ["SMOKE_ROOT"]) / "Packages" / "packages-lock.json"
+          if not lock_path.exists():
+              print(f"::error::Missing Unity package lock file: {lock_path}")
+              sys.exit(1)
+
+          dependencies = json.loads(lock_path.read_text(encoding="utf-8")).get("dependencies", {})
+          required = [
+              "com.forkhorizon.nexus.unity",
+              "com.unity.inputsystem",
+              "com.unity.nuget.newtonsoft-json",
+              "com.unity.project-auditor",
+              "com.unity.project-auditor-rules",
+          ]
+          missing = [package for package in required if package not in dependencies]
+          if missing:
+              print(f"::error::Unity package smoke did not resolve dependencies: {', '.join(missing)}")
+              sys.exit(1)
+
+          print("Unity package smoke resolved Nexus Unity and required dependencies.")
+          PY
