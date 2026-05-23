@@ -14,14 +14,14 @@ namespace UnityMCP.Editor
         /// <summary>Performs UI state verification.</summary>
         public static void Verify()
         {
-            Debug.Log("Starting UI Verification...");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "Starting UI Verification...", true);
             
             var wnd = MCPTestWindow.ShowWindow();
             wnd.ResetState();
             
             TestListAndHierarchy();
             TestInputAndClick();
-            Debug.Log("VERIFICATION SUCCESS");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "VERIFICATION SUCCESS", true);
         }
 
         private static void TestListAndHierarchy()

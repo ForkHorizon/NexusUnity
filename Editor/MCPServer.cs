@@ -179,7 +179,7 @@ namespace UnityMCP.Editor
             }
             
             EditorPrefs.SetBool(StablePrefsKey, true);
-            Debug.Log($"[MCP] Attempting to start server on port {_port}...");
+            NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Attempting to start server on port {_port}...", true);
 
             var token = _cts.Token;
             Task.Run(async () => {
@@ -196,10 +196,10 @@ namespace UnityMCP.Editor
                         {
                             _state = ServerState.Error;
                             LastError = $"Port {_port} is being used by another application: {owner}.";
-                            Debug.LogError($"[MCP] {LastError}");
+                            NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] {LastError}");
                             return;
                         }
-                        Debug.LogWarning($"[MCP] Port {_port} reported busy by Unknown Process. Proceeding with force-bind attempt...");
+                        NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] Port {_port} reported busy by Unknown Process. Proceeding with force-bind attempt...");
                     }
 
                     if (token.IsCancellationRequested) return;
@@ -210,7 +210,7 @@ namespace UnityMCP.Editor
                 } catch (Exception e) {
                     _state = ServerState.Error;
                     LastError = e.Message;
-                    Debug.LogError($"[MCP] Server start error: {e.Message}");
+                    NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Server start error: {e.Message}");
                 }
             });
         }

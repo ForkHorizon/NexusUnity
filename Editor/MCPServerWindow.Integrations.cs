@@ -166,7 +166,7 @@ namespace UnityMCP.Editor
         private void SetIntegrationMessage(string message)
         {
             if (_integrationStatusLabel != null) _integrationStatusLabel.text = message;
-            Debug.Log("[Nexus Unity] " + message);
+            NexusEditorLog.Log(NexusLogCategory.Integrations, "[Nexus Unity] " + message, true);
         }
 
         private static bool IsFileBackedConfig(NexusMcpClientInfo client)

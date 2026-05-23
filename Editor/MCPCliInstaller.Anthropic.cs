@@ -34,7 +34,7 @@ namespace UnityMCP.Editor
 #endif
 
                 if (string.IsNullOrEmpty(configPath)) {
-                    UnityEngine.Debug.LogError("[MCP] Unsupported platform for automatic Anthropic config linkage.");
+                    NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Unsupported platform for automatic Anthropic config linkage.");
                     return;
                 }
 
@@ -60,12 +60,12 @@ namespace UnityMCP.Editor
                 NexusMcpConfigGenerator.BackupFileIfExists(configPath);
                 File.WriteAllText(configPath, config.ToString(Newtonsoft.Json.Formatting.Indented));
 
-                UnityEngine.Debug.Log("[MCP] Successfully linked Unity project to Anthropic Claude Desktop.");
+                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Unity project to Anthropic Claude Desktop.", true);
                 EditorUtility.DisplayDialog("Success", "Successfully configured Claude Desktop to use the Unity MCP Server.\n\nPlease restart Claude Desktop for the changes to take effect.", "OK");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[MCP] Failed to link Anthropic: {e.Message}");
+                NexusEditorLog.Error(NexusLogCategory.Integrations, $"[MCP] Failed to link Anthropic: {e.Message}");
                 EditorUtility.DisplayDialog("Error", $"Failed to link to Anthropic Claude Desktop:\n{e.Message}", "OK");
             }
         }

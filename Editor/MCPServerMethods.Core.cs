@@ -115,8 +115,8 @@ namespace UnityMCP.Editor
 
         private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return new JObject { ["status"] = "Success", ["message"] = "Logs cleared" }; }
         private static JToken TestCoroutine(JToken p) { 
-            UnityEngine.Debug.Log("[MCP_EXECUTE] test_coroutine");
-            EditorApplication.delayCall += () => Debug.Log("[MCP] Delay call complete"); 
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[MCP_EXECUTE] test_coroutine");
+            EditorApplication.delayCall += () => NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[MCP] Delay call complete");
             return new JObject { ["status"] = "Success", ["message"] = "Started" }; 
         }
 

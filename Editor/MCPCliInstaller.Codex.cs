@@ -38,13 +38,13 @@ namespace UnityMCP.Editor
                 // If it succeeds, we are done
                 if (RunInstallerProcess(CreateProcessStartInfo(addCommand), codexPath, false, "Codex"))
                 {
-                    UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via '" + codexPath + "'");
+                    NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via '" + codexPath + "'", true);
                     EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
                     return;
                 }
 
                 // If it failed (likely version issue), we proceed to fallback
-                UnityEngine.Debug.LogWarning("[MCP] Codex CLI command failed at '" + codexPath + "'. Falling back to manual TOML configuration.");
+                NexusEditorLog.Warning(NexusLogCategory.Integrations, "[MCP] Codex CLI command failed at '" + codexPath + "'. Falling back to manual TOML configuration.");
             }
 
             // Fallback: Manual TOML edit
@@ -118,12 +118,12 @@ namespace UnityMCP.Editor
 
                 NexusMcpConfigGenerator.BackupFileIfExists(configPath);
                 File.WriteAllLines(configPath, lines);
-                UnityEngine.Debug.Log("[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath);
+                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath, true);
                 EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[MCP] Failed to link to Codex CLI via fallback: " + e.Message);
+                NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Failed to link to Codex CLI via fallback: " + e.Message);
                 EditorUtility.DisplayDialog("MCP Error", "Failed to update Codex configuration.\n\n" + e.Message, "OK");
             }
         }

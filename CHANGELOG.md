@@ -21,6 +21,7 @@ All notable public changes to Nexus Unity are documented here.
 - Window snapshot diagnostics through raw `ui_capture_window_snapshot` and `unity_ui_automation` `capture_window_snapshot`.
 - Scoped tool usage reset via raw `reset_tool_usage_stats`.
 - Optional `scripts/agent-tooling-smoke.py` for focused local agent tooling verification.
+- Console logging settings for Nexus Unity service messages, available in the main `Settings` tab and `Edit > Project Settings > Nexus Unity`.
 
 ### Changed
 - Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.
@@ -31,6 +32,7 @@ All notable public changes to Nexus Unity are documented here.
 - Reworked the main Nexus Unity window around user-facing `Server`, `Integrations`, and `Resources` tabs; test/internal actions now live under collapsed `Advanced / Diagnostics`.
 - Integration setup is now card-based with status, auto setup, copy config, and config-location actions instead of a row of ambiguous CLI buttons.
 - Wide editor layouts now keep server and bridge blocks stacked while stretching their internal action rows cleanly.
+- Nexus Unity internal logs now default to important Console messages only, with `All` and `Custom` modes for verbose diagnostics.
 - The quick pre-push validator now supports `NEXUS_UNITY_HOOK_LIVE=auto|required|off`, retries transient live-smoke failures, and prints validation timing.
 - `unity_editor_controller` can run tests and wait for results through bridge-side polling instead of blocking the Unity main thread.
 - `unity_ui_automation` now forwards `deep` hierarchy reads and `class_name` queries through the MCP bridge.
@@ -45,6 +47,7 @@ All notable public changes to Nexus Unity are documented here.
 
 ### Removed
 - Removed orphan `Runtime/Tests.meta` file from the public package.
+- Removed the default `runtime_trace.txt` diagnostic write from runtime log capture.
 
 ## [1.0.0] - 2026-05-18
 

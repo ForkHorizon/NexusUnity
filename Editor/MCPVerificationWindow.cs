@@ -67,11 +67,11 @@ namespace UnityMCP.Editor
                 {
                     RunVerification();
                     if (_statusLabel != null) _statusLabel.text = "Status: Complete";
-                    if (_resultLabel != null) _resultLabel.text = "Verification complete. Check the Console for detailed RPC output.";
+                    if (_resultLabel != null) _resultLabel.text = "Verification complete.";
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Verification failed: {e.Message}");
+                    NexusEditorLog.Error(NexusLogCategory.Diagnostics, $"Verification failed: {e.Message}");
                     if (_statusLabel != null) _statusLabel.text = "Status: Failed";
                     if (_resultLabel != null) _resultLabel.text = e.Message;
                 }
@@ -84,11 +84,11 @@ namespace UnityMCP.Editor
 
         private void RunVerification()
         {
-            Debug.Log("Starting Verification...");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "Starting Verification...", true);
             VerifyScenesAndMaterials();
             VerifyGameObjectsAndComponents();
             VerifyAssetsAndLogs();
-            Debug.Log("Verification Complete.");
+            NexusEditorLog.Log(NexusLogCategory.Diagnostics, "Verification Complete.", true);
         }
 
         private void VerifyScenesAndMaterials()
@@ -105,14 +105,14 @@ namespace UnityMCP.Editor
 
             if (string.IsNullOrEmpty(resultJson) || resultJson == "{}")
             {
-                Debug.LogError("Failed to create GameObject for verification.");
+                NexusEditorLog.Error(NexusLogCategory.Diagnostics, "Failed to create GameObject for verification.");
                 return;
             }
 
             var goRes = JObject.Parse(resultJson);
             if (goRes["instance_id"] == null)
             {
-                Debug.LogError("GameObject creation failed: missing instance_id");
+                NexusEditorLog.Error(NexusLogCategory.Diagnostics, "GameObject creation failed: missing instance_id");
                 return;
             }
 
@@ -140,14 +140,14 @@ namespace UnityMCP.Editor
                 var obj = JObject.Parse(resp);
                 if (obj["error"] != null)
                 {
-                    Debug.LogError($"RPC Error: {obj["error"]["message"]}");
+                    NexusEditorLog.Error(NexusLogCategory.Diagnostics, $"RPC Error: {obj["error"]["message"]}");
                     return "{}";
                 }
                 return obj["result"]?.ToString() ?? "{}";
             }
             catch (Exception e)
             {
-                Debug.LogError($"JSON Parse Error in ExtractResult: {e.Message}");
+                NexusEditorLog.Error(NexusLogCategory.Diagnostics, $"JSON Parse Error in ExtractResult: {e.Message}");
                 return "{}";
             }
         }

@@ -27,16 +27,16 @@ namespace UnityMCP.Editor
             if (_mainThreadId == -1) 
             {
                 _mainThreadId = Thread.CurrentThread.ManagedThreadId;
-                Debug.Log($"[MCP] Main Thread ID captured: {_mainThreadId}");
+                NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] Main Thread ID captured: {_mainThreadId}");
             }
             
             if (!_isMainThread)
             {
-                Debug.LogWarning("[MCP] MCPServerMethods.Init called from non-main thread. Registration skipped to avoid state corruption.");
+                NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init called from non-main thread. Registration skipped to avoid state corruption.");
                 return;
             }
 
-            Debug.Log("[MCP] MCPServerMethods.Init starting...");
+            NexusEditorLog.Log(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init starting...");
             _methods.Clear();
             ClearCache();
             RegisterCoreMethods();
@@ -58,7 +58,7 @@ namespace UnityMCP.Editor
             RegisterTimelineMethods();
             RegisterContextMethods();
             RegisterDeltaMethods();
-            Debug.Log($"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");        }
+            NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");        }
 
         /// <summary>
         /// Processes a JSON-RPC request string and returns the response string.
@@ -202,7 +202,7 @@ namespace UnityMCP.Editor
 
         private static JToken ExecuteMethod(string method, JToken p)
         {
-            UnityEngine.Debug.Log($"[MCP_EXECUTE] {method}");
+            NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP_EXECUTE] {method}");
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             Exception failure = null;
             try
