@@ -10,8 +10,12 @@ namespace UnityMCP.Editor
     public static partial class MCPCliInstaller
     {
         /// <summary>
-        /// Attempts to link the current Unity project to the local Codex CLI instance.
+        /// Links the current Unity project to Codex by deploying the bridge script, running the Codex MCP command, or editing Codex TOML fallback config.
         /// </summary>
+        /// <remarks>
+        /// This editor action copies bridge files into the project root, resolves <c>python3</c> and <c>codex</c>, may launch local
+        /// CLI processes, and can create or update the user's <c>~/.codex/config.toml</c> when the CLI registration path is unavailable.
+        /// </remarks>
         public static void LinkToCodex()
         {
             if (DeployBridgeScript(out string destinationPath))

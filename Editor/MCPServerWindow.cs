@@ -4,6 +4,13 @@ using UnityEngine.UIElements;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// EditorWindow that hosts the main Nexus Unity UI Toolkit control surface for server control, integrations, resources, and settings.
+    /// </summary>
+    /// <remarks>
+    /// Opening this window creates or retrieves a persistent Unity editor window, builds named UI Toolkit elements for automation,
+    /// and schedules a repeating live refresh of server status, bridge paths, integration state, and footer/status labels.
+    /// </remarks>
     public partial class MCPServerWindow : EditorWindow
     {
         internal static readonly Vector2 UsableMinSize = new Vector2(320, 420);
@@ -27,6 +34,9 @@ namespace UnityMCP.Editor
         private Label _footerLabel;
         private IVisualElementScheduledItem _refreshItem;
 
+        /// <summary>
+        /// Creates or retrieves the main Nexus Unity Editor window from the Unity menu and makes it visible.
+        /// </summary>
         [MenuItem("Window/Nexus Unity", false, 2000)]
         public static void ShowWindow()
         {
@@ -42,6 +52,13 @@ namespace UnityMCP.Editor
             EnforceUsableMinSize();
         }
 
+        /// <summary>
+        /// Builds the UI Toolkit visual tree, draws the selected tab, and schedules live server state refreshes.
+        /// </summary>
+        /// <remarks>
+        /// This method clears and populates <see cref="EditorWindow.rootVisualElement"/>, creates scrollable tab content and a footer,
+        /// initializes dynamic labels, pauses any previous refresh item, and schedules <see cref="UpdateDynamicState"/> every second.
+        /// </remarks>
         public void CreateGUI()
         {
             NexusEditorUi.SetupRoot(rootVisualElement);

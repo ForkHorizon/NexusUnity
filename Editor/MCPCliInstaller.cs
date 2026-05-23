@@ -8,8 +8,12 @@ using System;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Handles the integration of the Unity MCP server with external CLIs like Gemini and Codex.
+    /// Deploys Nexus Unity bridge files from the package into the Unity project root and registers them with external MCP clients.
     /// </summary>
+    /// <remarks>
+    /// Installer methods copy Python bridge files and documentation pointers, create project-root directories, run local CLI processes,
+    /// update client configuration files, write Nexus editor logs, and display Unity editor dialogs when setup fails.
+    /// </remarks>
     public static partial class MCPCliInstaller
     {
 

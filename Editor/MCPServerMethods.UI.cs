@@ -9,8 +9,12 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCP.Editor
 {
     /// <summary>
-    /// Partial implementation of MCPServerMethods handling UI interaction.
+    /// Registers JSON-RPC methods for inspecting and manipulating Unity Editor windows and UI Toolkit visual elements.
     /// </summary>
+    /// <remarks>
+    /// UI automation methods enumerate <see cref="EditorWindow"/> instances, traverse visual trees, click or input text into
+    /// named controls, move/resize editor windows, capture snapshots, and repaint affected windows for automation diagnostics.
+    /// </remarks>
     public static partial class MCPServerMethods
     {
         private static void RegisterUIMethods()

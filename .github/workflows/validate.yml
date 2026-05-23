@@ -62,8 +62,100 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
       - name: Run static package validation
         run: bash scripts/prepush-validate.sh --static-only
+
+  documentation-quality-ai:
+    name: Documentation quality AI
+    runs-on: [self-hosted, nexus-doc-ai]
+    needs: static-validation
+    concurrency:
+      group: nexus-doc-ai
+      cancel-in-progress: false
+    env:
+      NEXUS_DOC_AI_MAX_PARALLEL: "1"
+      NEXUS_OLLAMA_URL: http://127.0.0.1:11434
+      NEXUS_DOC_AI_MODEL: qwen3-coder:30b-a3b-q4_K_M
+      NEXUS_DOC_AI_KEEP_ALIVE: "30s"
+      NEXUS_DOC_AI_UNLOAD_ON_EXIT: "true"
+      NEXUS_DOC_AI_TIMEOUT_SECONDS: "300"
+    steps:
+      - name: Check out trusted validator
+        uses: actions/checkout@v4
+        with:
+          path: trusted
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+
+      - name: Check out candidate package
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run required Ollama documentation review
+        run: |
+          QUALITY_GATE_PROJECT="trusted/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
+            echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
+            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          fi
+
+          dotnet run --project "$QUALITY_GATE_PROJECT" -- \
+            --root "$GITHUB_WORKSPACE/candidate" \
+            --ai required \
+            --format github
+
+      - name: Unload Ollama documentation model
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [ -z "${NEXUS_DOC_AI_MODEL:-}" ]; then
+            echo "No NEXUS_DOC_AI_MODEL configured; nothing to unload."
+            exit 0
+          fi
+
+          ps_output="$(mktemp)"
+          if command -v ollama >/dev/null 2>&1 && ollama ps >"$ps_output" 2>/dev/null; then
+            if awk 'NR > 1 { print $1 }' "$ps_output" | grep -Fx "$NEXUS_DOC_AI_MODEL" >/dev/null; then
+              if ollama stop "$NEXUS_DOC_AI_MODEL"; then
+                echo "Stopped loaded Ollama model: $NEXUS_DOC_AI_MODEL"
+                rm -f "$ps_output"
+                exit 0
+              else
+                echo "::warning::ollama stop failed for loaded model: $NEXUS_DOC_AI_MODEL"
+              fi
+            else
+              echo "Ollama model is not loaded: $NEXUS_DOC_AI_MODEL"
+              rm -f "$ps_output"
+              exit 0
+            fi
+            rm -f "$ps_output"
+          fi
+          rm -f "$ps_output"
+
+          escaped_model=${NEXUS_DOC_AI_MODEL//\\/\\\\}
+          escaped_model=${escaped_model//\"/\\\"}
+          payload="{\"model\":\"$escaped_model\",\"prompt\":\"\",\"stream\":false,\"keep_alive\":0}"
+
+          if curl -fsS \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "$NEXUS_OLLAMA_URL/api/generate" >/dev/null; then
+            echo "Unloaded Ollama model through API: $NEXUS_DOC_AI_MODEL"
+            exit 0
+          fi
+
+          echo "::warning::Ollama API unload failed; trying 'ollama stop'."
+          ollama stop "$NEXUS_DOC_AI_MODEL" || true
 
   unity-editmode-tests:
     name: Unity EditMode tests

@@ -32,6 +32,7 @@ Contributor pull requests must target `development`.
 - Prefer consolidated MCP manager tools for new AI workflows instead of expanding schemas unnecessarily.
 - Keep raw JSON-RPC tool names and MCP bridge schemas synchronized.
 - Update `CHANGELOG.md`, `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD` when public behavior changes.
+- Document public and protected C# types and methods with useful XML comments that explain contract, side effects, and Unity Editor constraints. Do not add line-by-line comments or filler summaries.
 - Do not commit generated caches, local agent folders, Unity `Library/`, Python bytecode, `.DS_Store`, or private validation artifacts.
 - Do not commit API keys, tokens, private project source, or proprietary assets.
 
@@ -56,6 +57,19 @@ Run the Unity Editor tests for the package before submitting changes. At minimum
 
 If Unity is not available in your environment, document what you could not run and include any static checks you did run.
 
+### Documentation Quality Gate
+
+Static validation runs `NexusQualityGate`, a Roslyn-based .NET tool stored under `tools~/` so Unity does not compile it. The gate fails:
+
+- public/protected production C# types or methods without XML documentation;
+- XML summaries that are empty, too short, generic, or only repeat the symbol name;
+- production C# files over 450 lines;
+- production methods over 150 lines.
+
+It warns on files over 300 lines and methods over 50 lines. Test methods are exempt from XML documentation requirements, but production code under `Editor/` and `Runtime/` is not.
+
+Maintainers also run a required AI documentation review on a self-hosted runner labeled `nexus-doc-ai`. The runner must have Ollama available locally and `NEXUS_DOC_AI_MODEL` set to an installed model. The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
+
 ### Optional Local Pre-Push Hook
 
 The repository includes a tracked pre-push hook for local feedback. Git does not enable tracked hooks automatically after clone, so install it once per checkout:
@@ -70,6 +84,12 @@ Run full local integration validation explicitly when changing server behavior, 
 
 ```bash
 bash scripts/prepush-validate.sh --integration
+```
+
+Run the required local AI documentation gate explicitly when operating the maintainer self-hosted runner:
+
+```bash
+NEXUS_DOC_AI_MODEL=<ollama-model> bash scripts/prepush-validate.sh --quality-ai
 ```
 
 For a faster maintainer or agent check of bridge/UI observability, run:

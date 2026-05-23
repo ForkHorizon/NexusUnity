@@ -5,6 +5,8 @@ All notable public changes to Nexus Unity are documented here.
 ## [Unreleased]
 
 ### Added
+- Roslyn-based `NexusQualityGate` for contributor CI, covering XML documentation quality, file size limits, method size warnings/failures, and local test coverage.
+- Required self-hosted Ollama documentation review workflow using the `nexus-doc-ai` runner label and serialized GitHub Actions concurrency.
 - GitHub issue templates, pull request template, static validation workflow, and code of conduct for public community maintenance.
 - README badges and reproducible install URL pinned to `v1.0.0`.
 - A single `Window > Nexus Unity` menu entry that opens the main Nexus Unity window.
@@ -24,6 +26,11 @@ All notable public changes to Nexus Unity are documented here.
 - Console logging settings for Nexus Unity service messages, available in the main `Settings` tab and `Edit > Project Settings > Nexus Unity`.
 
 ### Changed
+- Public XML documentation now describes the Unity Editor, filesystem, process, serialization, and UI side effects that the AI review gate expects on editor-facing APIs.
+- The AI documentation review now uses Ollama JSON mode and a pragmatic rubric cache version so stale or over-strict model verdicts are not reused after rubric updates.
+- AI documentation validation now passes a short Ollama keep-alive and explicitly unloads the local model after each review to avoid leaving large models resident between CI jobs.
+- Static package validation now runs the deterministic Nexus quality gate and its local test harness.
+- Contributor docs now define useful XML documentation expectations and local commands for deterministic and AI-backed documentation review.
 - Consolidated API verification, project audit, test window, and Codex link test actions into the main Nexus Unity window instead of exposing separate Unity submenu entries.
 - The package validation workflow now reuses the local static validator and includes an optional Unity EditMode test job when a Unity license secret is configured.
 - The local pre-push hook now runs a sub-minute quick gate by default; full Python integration validation is opt-in with `scripts/prepush-validate.sh --integration`.

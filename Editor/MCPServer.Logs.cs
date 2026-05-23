@@ -15,6 +15,13 @@ namespace UnityMCP.Editor
             while (_logs.Count > _MAX_LOGS) _logs.TryDequeue(out _);
         }
 
+        /// <summary>
+        /// Synchronizes with the Unity Console and returns the newest captured entries after optional severity and text filtering.
+        /// </summary>
+        /// <remarks>
+        /// This method reflects Unity's internal Console buffer on the editor thread, may inspect recent stack trace strings,
+        /// and returns results newest-first from the Nexus Unity in-memory log queue.
+        /// </remarks>
         public static List<LogEntry> GetLogs(int count, string filterType, string searchText)
         {
             SyncWithUnityConsole();
@@ -24,6 +31,13 @@ namespace UnityMCP.Editor
             return query.Reverse().Take(count).ToList();
         }
 
+        /// <summary>
+        /// Synchronizes with the Unity Console and returns captured entries with Nexus log IDs newer than the supplied cursor.
+        /// </summary>
+        /// <remarks>
+        /// Search text is matched against both messages and stack traces. The cursor is scoped to the current Nexus Unity
+        /// in-memory queue, so stale cursors from previous editor sessions may not map to retained entries.
+        /// </remarks>
         public static List<LogEntry> GetLogsSince(long cursor, string[] severities, string searchText)
         {
             SyncWithUnityConsole();
@@ -84,6 +98,12 @@ namespace UnityMCP.Editor
             catch { }
         }
 
+        /// <summary>
+        /// Clears every entry from the Nexus Unity in-memory log queue without clearing Unity's Console window.
+        /// </summary>
+        /// <remarks>
+        /// Downstream MCP log readers lose access to previously queued entries, while the original Unity Console output remains visible.
+        /// </remarks>
         public static void ClearLogs() { while (_logs.TryDequeue(out _)) { } }
 
         internal static void HandleMainThreadQueue()
@@ -120,6 +140,13 @@ namespace UnityMCP.Editor
             AddLog(new LogEntry(id, condition, stackTrace, type));
         }
 
+        /// <summary>
+        /// Queues editor work for execution by Nexus Unity on the Unity Editor main thread during a later update tick.
+        /// </summary>
+        /// <remarks>
+        /// Use this only for editor operations that must run on Unity's main thread. Background callers should avoid waiting
+        /// synchronously on queued work in ways that could deadlock the editor update loop.
+        /// </remarks>
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);

@@ -10,8 +10,12 @@ namespace UnityMCP.Editor
     public static partial class MCPCliInstaller
     {
         /// <summary>
-        /// Attempts to link the current Unity project to the Antigravity CLI.
+        /// Links the current Unity project to the local Antigravity CLI by deploying the bridge script and executing MCP remove/add commands.
         /// </summary>
+        /// <remarks>
+        /// This editor action modifies project-root bridge files, resolves <c>python3</c> and Antigravity executables,
+        /// launches local CLI processes, and reports failures through Nexus editor logs or dialogs.
+        /// </remarks>
         public static void LinkToAntigravity()
         {
             if (DeployBridgeScript(out string destinationPath))
