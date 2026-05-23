@@ -29,6 +29,9 @@ namespace UnityMCP.Editor
             minSize = new Vector2(480, 280);
         }
 
+        /// <summary>
+        /// Builds the UI Toolkit controls used to run the local API verification smoke test.
+        /// </summary>
         public void CreateGUI()
         {
             NexusEditorUi.SetupRoot(rootVisualElement);

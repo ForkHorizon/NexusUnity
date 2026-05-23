@@ -4,6 +4,9 @@ using UnityEngine.UIElements;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Hosts the main Nexus Unity Editor window for server control, integrations, resources, and settings.
+    /// </summary>
     public partial class MCPServerWindow : EditorWindow
     {
         internal static readonly Vector2 UsableMinSize = new Vector2(320, 420);
@@ -27,6 +30,9 @@ namespace UnityMCP.Editor
         private Label _footerLabel;
         private IVisualElementScheduledItem _refreshItem;
 
+        /// <summary>
+        /// Opens the main Nexus Unity Editor window from the Unity menu.
+        /// </summary>
         [MenuItem("Window/Nexus Unity", false, 2000)]
         public static void ShowWindow()
         {
@@ -42,6 +48,9 @@ namespace UnityMCP.Editor
             EnforceUsableMinSize();
         }
 
+        /// <summary>
+        /// Builds the UI Toolkit visual tree and schedules live server state refreshes.
+        /// </summary>
         public void CreateGUI()
         {
             NexusEditorUi.SetupRoot(rootVisualElement);

@@ -13,6 +13,9 @@ using UnityEngine;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Describes the current lifecycle state of the local Nexus Unity server.
+    /// </summary>
     public enum ServerState { Stopped, Starting, Running, Attached, Error }
 
     public static partial class MCPServer
@@ -143,6 +146,9 @@ namespace UnityMCP.Editor
         public static int Port => _port;
         public static bool IsRunning => _state == ServerState.Running;
 
+        /// <summary>
+        /// Starts the loopback-only Nexus Unity HTTP server and persists restart intent in EditorPrefs.
+        /// </summary>
         public static void Start()
         {
             if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
@@ -215,6 +221,9 @@ namespace UnityMCP.Editor
             });
         }
 
+        /// <summary>
+        /// Stops the Nexus Unity server, disables macOS App Nap bypass, and clears restart intent.
+        /// </summary>
         public static void Stop()
         {
             if (Thread.CurrentThread.ManagedThreadId != _mainThreadId)

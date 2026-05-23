@@ -163,6 +163,10 @@ Current development keeps the public API backward-compatible while tightening sc
 
 GitHub Actions is the required validation gate for public contributions. Maintainers should configure the `Validate package` workflow as a required status check before merge.
 
+Static validation includes `NexusQualityGate`, a Roslyn-based checker for production C# source under `Editor/` and `Runtime/`. It blocks missing XML documentation on public/protected types and methods, generic filler summaries, files over 450 lines, and methods over 150 lines. Files over 300 lines and methods over 50 lines are reported as warnings so contributors can split code before it becomes hard to review.
+
+The workflow also includes a required `Documentation quality AI` job for maintainers who run the `nexus-doc-ai` self-hosted runner. That job sends documentation/code excerpts to local Ollama at `http://127.0.0.1:11434` and verifies that XML comments match the implementation intent, side effects, and Unity Editor behavior.
+
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
 Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub; external contributors can contribute through fork or feature-branch pull requests without direct protected-branch access.
@@ -186,6 +190,12 @@ Full local integration validation is opt-in:
 
 ```bash
 bash scripts/prepush-validate.sh --integration
+```
+
+Maintainers can run the required local AI documentation gate with:
+
+```bash
+NEXUS_DOC_AI_MODEL=<ollama-model> bash scripts/prepush-validate.sh --quality-ai
 ```
 
 Maintainers and agents can also run the optional focused tooling smoke:

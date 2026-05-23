@@ -8,6 +8,8 @@
 
 - [ ] Package compiles in Unity.
 - [ ] Relevant Editor tests pass.
+- [ ] `NexusQualityGate` passes or remaining warnings are intentional.
+- [ ] Public/protected C# types and methods have useful XML documentation.
 - [ ] Python bridge still compiles (`python3 -m py_compile Editor/nexus_unity_bridge.py Editor/nexus_bridge/*.py`).
 - [ ] Public docs updated for behavior/API changes.
 - [ ] `CHANGELOG.md` updated for public changes.

@@ -3,6 +3,9 @@ using System;
 
 namespace UnityMCP.Runtime
 {
+    /// <summary>
+    /// Bridges runtime Unity log messages back to the Editor-side Nexus Unity log collector.
+    /// </summary>
     public static class MCPRuntimeLogger
     {
         public static Action<string, string, LogType> OnLogReceived;

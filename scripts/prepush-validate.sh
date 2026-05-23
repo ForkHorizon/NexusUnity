@@ -6,6 +6,7 @@ PACKAGE_ROOT=$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)
 MODE="${1:---quick}"
 NEXUS_UNITY_URL="${NEXUS_UNITY_URL:-http://127.0.0.1:8081/}"
 NEXUS_UNITY_HOOK_LIVE="${NEXUS_UNITY_HOOK_LIVE:-auto}"
+NEXUS_QUALITY_ROOT="${NEXUS_QUALITY_ROOT:-$PACKAGE_ROOT}"
 VALIDATION_STARTED=$SECONDS
 
 cd "$PACKAGE_ROOT"
@@ -87,7 +88,7 @@ import sys
 root = pathlib.Path(".")
 missing_meta = []
 orphan_meta = []
-ignore_roots = {".git", ".github"}
+ignore_roots = {".git", ".github", "bin", "obj"}
 
 for path in root.rglob("*"):
     if any(part in ignore_roots for part in path.parts):
@@ -110,7 +111,26 @@ if missing_meta or orphan_meta:
     sys.exit(1)
 PY
 
+  log "Running Nexus quality gate tests"
+  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate.Tests/NexusQualityGate.Tests.csproj"
+
+  log "Running deterministic Nexus quality gate"
+  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
+    --root "$NEXUS_QUALITY_ROOT" \
+    --ai off \
+    --format github
+
   printf 'Static validation completed in %ss.\n' "$((SECONDS - started))"
+}
+
+run_ai_quality_validation() {
+  local started=$SECONDS
+  log "Running required Ollama documentation quality gate"
+  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
+    --root "$NEXUS_QUALITY_ROOT" \
+    --ai required \
+    --format github
+  printf 'AI quality validation completed in %ss.\n' "$((SECONDS - started))"
 }
 
 run_quick_live_smoke() {
@@ -320,6 +340,9 @@ run_local_integration_validation() {
 case "$MODE" in
   --static-only)
     run_static_validation
+    ;;
+  --quality-ai)
+    run_ai_quality_validation
     ;;
   --quick|--local)
     run_static_validation

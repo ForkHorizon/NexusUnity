@@ -111,6 +111,9 @@ namespace UnityMCP.Editor
             return _settingsMainThreadId != -1 && Thread.CurrentThread.ManagedThreadId == _settingsMainThreadId;
         }
 
+        /// <summary>
+        /// Restores Nexus Unity Console logging preferences to the package defaults.
+        /// </summary>
         public static void ResetConsoleLoggingDefaults()
         {
             ConsoleLogMode = _DEFAULT_CONSOLE_LOG_MODE;

@@ -62,8 +62,47 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
       - name: Run static package validation
         run: bash scripts/prepush-validate.sh --static-only
+
+  documentation-quality-ai:
+    name: Documentation quality AI
+    runs-on: [self-hosted, nexus-doc-ai]
+    needs: static-validation
+    concurrency:
+      group: nexus-doc-ai
+      cancel-in-progress: false
+    env:
+      NEXUS_DOC_AI_MAX_PARALLEL: "1"
+      NEXUS_OLLAMA_URL: http://127.0.0.1:11434
+    steps:
+      - name: Check out trusted validator
+        uses: actions/checkout@v4
+        with:
+          path: trusted
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+
+      - name: Check out candidate package
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run required Ollama documentation review
+        run: |
+          dotnet run --project trusted/tools~/NexusQualityGate/NexusQualityGate.csproj -- \
+            --root "$GITHUB_WORKSPACE/candidate" \
+            --ai required \
+            --format github
 
   unity-editmode-tests:
     name: Unity EditMode tests

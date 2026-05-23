@@ -15,6 +15,9 @@ namespace UnityMCP.Editor
             while (_logs.Count > _MAX_LOGS) _logs.TryDequeue(out _);
         }
 
+        /// <summary>
+        /// Returns the newest captured Unity Console entries after optional severity and text filtering.
+        /// </summary>
         public static List<LogEntry> GetLogs(int count, string filterType, string searchText)
         {
             SyncWithUnityConsole();
@@ -24,6 +27,9 @@ namespace UnityMCP.Editor
             return query.Reverse().Take(count).ToList();
         }
 
+        /// <summary>
+        /// Returns captured Unity Console entries with IDs newer than the supplied cursor.
+        /// </summary>
         public static List<LogEntry> GetLogsSince(long cursor, string[] severities, string searchText)
         {
             SyncWithUnityConsole();
@@ -84,6 +90,9 @@ namespace UnityMCP.Editor
             catch { }
         }
 
+        /// <summary>
+        /// Clears the in-memory Nexus Unity log buffer without modifying the Unity Console.
+        /// </summary>
         public static void ClearLogs() { while (_logs.TryDequeue(out _)) { } }
 
         internal static void HandleMainThreadQueue()
@@ -120,6 +129,9 @@ namespace UnityMCP.Editor
             AddLog(new LogEntry(id, condition, stackTrace, type));
         }
 
+        /// <summary>
+        /// Queues work for execution on the Unity Editor main thread during the next update tick.
+        /// </summary>
         public static void Enqueue(Action action)
         {
             _mainThreadQueue.Enqueue(action);

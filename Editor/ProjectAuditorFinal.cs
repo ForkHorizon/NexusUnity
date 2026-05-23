@@ -8,6 +8,9 @@ using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Runs Unity Project Auditor and Nexus-specific scene health checks for local diagnostics.
+    /// </summary>
     public static class ProjectAuditorWrapper
     {
         private static readonly List<Component> _componentCache = new List<Component>();
@@ -15,6 +18,9 @@ namespace UnityMCP.Editor
         private static readonly List<Material> _materialCache = new List<Material>();
         private static readonly Stack<string> _pathStackCache = new Stack<string>();
 
+        /// <summary>
+        /// Runs the full audit from the Unity menu and writes the report to the Nexus log channel.
+        /// </summary>
         public static void RunAuditMenu()
         {
             NexusEditorLog.Log(NexusLogCategory.Audit, "[Nexus] Starting Full Project Audit...", true);
@@ -22,6 +28,9 @@ namespace UnityMCP.Editor
             NexusEditorLog.Log(NexusLogCategory.Audit, report);
         }
 
+        /// <summary>
+        /// Builds a JSON audit report from Unity Project Auditor and active-scene health checks.
+        /// </summary>
         public static string RunAudit(bool silent)
         {
             var result = new JObject();

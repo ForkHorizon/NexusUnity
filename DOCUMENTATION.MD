@@ -124,13 +124,17 @@ For scene work, prefer manager tools:
 
 ## Contributor Validation
 
-Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs static package checks on every push and pull request, and includes an optional Unity EditMode job when the repository has a `UNITY_LICENSE` secret configured.
+Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs static package checks on every push and pull request, a required self-hosted AI documentation review, and an optional Unity EditMode job when the repository has a `UNITY_LICENSE` secret configured.
 
 Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
 
 Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`.
 
-For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs static package validation and uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
+For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs package metadata validation, Python bridge compilation, Unity `.meta` pairing checks, `NexusQualityGate` tests, and the deterministic Roslyn quality gate. It uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
+
+`NexusQualityGate` lives under `tools~/` so Unity ignores the .NET/Roslyn source while GitHub Actions and local scripts can build it. The deterministic gate scans production C# source under `Editor/` and `Runtime/`, fails public/protected types and methods without meaningful XML documentation, fails files over 450 lines, and fails methods over 150 lines. It warns for files over 300 lines and methods over 50 lines.
+
+The required AI documentation review runs on a maintainer-owned self-hosted GitHub Actions runner with the label `nexus-doc-ai`. The job uses GitHub Actions concurrency group `nexus-doc-ai` with `cancel-in-progress: false`, so multiple pull requests queue instead of running Ollama in parallel. The runner must expose Ollama locally through `NEXUS_OLLAMA_URL` or `http://127.0.0.1:11434`, and must set `NEXUS_DOC_AI_MODEL` to the installed model name. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data.
 
 Full local integration validation is explicit:
 

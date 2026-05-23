@@ -45,6 +45,14 @@ ExportedObj/
 *.sln
 *.suo
 *.tmp
+
+# Tracked .NET validation tools live in Unity-ignored folders.
+!tools~/
+!tools~/**/
+!tools~/**/*.csproj
+!tools~/**/*.sln
+/tools~/**/[Bb]in/
+/tools~/**/[Oo]bj/
 *.user
 *.userprefs
 *.pidb

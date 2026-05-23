@@ -233,6 +233,9 @@ namespace UnityMCP.Editor
     /// </summary>
     public static class UnityObjectIdExtensions
     {
+        /// <summary>
+        /// Returns the Unity EntityId for an object, or the default ID when the object is null.
+        /// </summary>
         public static EntityId GetId(this UnityEngine.Object obj)
         {
             if (obj == null) return default;

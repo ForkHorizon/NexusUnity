@@ -18,8 +18,14 @@ namespace UnityMCP.Editor
         private static bool _isIndexing = false;
         private static object _indexLock = new object();
 
+        /// <summary>
+        /// Identifies the reflected C# symbol kind returned by the symbol index tool.
+        /// </summary>
         public enum SymbolType { Class, Method, Field }
 
+        /// <summary>
+        /// Carries reflected C# symbol metadata used by search and method invocation tools.
+        /// </summary>
         public struct SymbolInfo
         {
             public string Name;

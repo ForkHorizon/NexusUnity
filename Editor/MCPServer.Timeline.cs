@@ -19,6 +19,9 @@ namespace UnityMCP.Editor
         private const string TimelineKey = "MCP_EditorTimeline";
         private const int MaxTimelineEvents = 50;
 
+        /// <summary>
+        /// Represents a persisted Unity Editor timeline event exposed through diagnostics.
+        /// </summary>
         [Serializable]
         public struct EditorEvent
         {
@@ -26,6 +29,9 @@ namespace UnityMCP.Editor
             public string type;
             public string details;
 
+            /// <summary>
+            /// Creates a timeline event stamped with the current UTC time.
+            /// </summary>
             public EditorEvent(string type, string details)
             {
                 this.timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -50,6 +56,9 @@ namespace UnityMCP.Editor
             RecordEvent("domain_reload", "Domain reload finished");
         }
 
+        /// <summary>
+        /// Records a Unity Editor lifecycle event and trims the persisted timeline buffer.
+        /// </summary>
         public static void RecordEvent(string type, string details)
         {
             var timeline = GetTimelineInternal();
@@ -63,6 +72,9 @@ namespace UnityMCP.Editor
             SaveTimelineInternal(timeline);
         }
 
+        /// <summary>
+        /// Returns recent Unity Editor lifecycle events persisted across domain reloads.
+        /// </summary>
         public static List<EditorEvent> GetTimeline()
         {
             return GetTimelineInternal();

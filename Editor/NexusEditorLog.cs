@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace UnityMCP.Editor
 {
+    /// <summary>
+    /// Controls how much Nexus Unity service logging is written to the Unity Console.
+    /// </summary>
     public enum NexusConsoleLogMode
     {
         Important = 0,
@@ -10,6 +13,9 @@ namespace UnityMCP.Editor
         Custom = 2
     }
 
+    /// <summary>
+    /// Groups Nexus Unity service logs so custom Console filtering can include selected subsystems.
+    /// </summary>
     [Flags]
     public enum NexusLogCategory
     {
