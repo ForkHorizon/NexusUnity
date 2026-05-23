@@ -57,6 +57,8 @@ When preparing the release, choose the version by semantic versioning:
    - Request payload limits are enforced for HTTP and WebSocket paths.
    - File writes remain inside the Unity project root.
 5. Run validation:
+   - Confirm the self-hosted runner is online with `self-hosted`, `macOS`, `ARM64`, `nexus-unity-ci`, and `nexus-doc-ai` labels.
+   - Confirm the runner has `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama available locally.
    - Unity package compile.
    - Editor tests for path security, server port behavior, API contract, consolidated managers, and bridge contract consistency.
    - `bash scripts/prepush-validate.sh --quick` for the contributor gate.
@@ -80,7 +82,7 @@ Do not push tags until the public repository contents and release notes have bee
 Release changes flow through a final pull request into `main`.
 
 1. Create a release PR from `development` or `release/*` to `main`.
-2. Confirm the `PR target policy` and `Static validation` checks pass.
+2. Confirm the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` checks pass on the self-hosted Mac runner.
 3. Resolve all review conversations.
 4. Merge the release PR manually.
 5. Create and push the matching semantic version tag.

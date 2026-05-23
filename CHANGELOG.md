@@ -4,6 +4,12 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Changed
+- `Validate package` now runs entirely on the maintainer self-hosted Mac runner with the `nexus-unity-ci` label instead of GitHub-hosted runners.
+- CI now uses workflow-level `concurrency.queue: max` so trusted runs queue on the local runner instead of being canceled or running in parallel.
+- Public contribution docs now describe the trusted-branch replay policy for external fork pull requests before full local CI can execute candidate code.
+- Unity package validation now performs a local package smoke import with Unity `6000.4.3f1` instead of the previous optional GitHub-hosted EditMode test job.
+
 ## [1.1.2] - 2026-05-23
 
 ### Fixed
