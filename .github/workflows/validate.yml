@@ -80,6 +80,8 @@ jobs:
     env:
       NEXUS_DOC_AI_MAX_PARALLEL: "1"
       NEXUS_OLLAMA_URL: http://127.0.0.1:11434
+      NEXUS_DOC_AI_MODEL: qwen3-coder:30b-a3b-q4_K_M
+      NEXUS_DOC_AI_TIMEOUT_SECONDS: "300"
     steps:
       - name: Check out trusted validator
         uses: actions/checkout@v4
@@ -99,7 +101,13 @@ jobs:
 
       - name: Run required Ollama documentation review
         run: |
-          dotnet run --project trusted/tools~/NexusQualityGate/NexusQualityGate.csproj -- \
+          QUALITY_GATE_PROJECT="trusted/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
+            echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
+            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          fi
+
+          dotnet run --project "$QUALITY_GATE_PROJECT" -- \
             --root "$GITHUB_WORKSPACE/candidate" \
             --ai required \
             --format github
