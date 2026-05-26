@@ -4,6 +4,9 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Added
+- GitHub funding metadata now configures the repository Sponsor button for `Daliys`.
+
 ### Changed
 - `Validate package` now runs entirely on the maintainer self-hosted Mac runner with the `nexus-unity-ci` label instead of GitHub-hosted runners.
 - CI now uses workflow-level `concurrency.queue: max` so trusted runs queue on the local runner instead of being canceled or running in parallel.

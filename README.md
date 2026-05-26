@@ -220,6 +220,8 @@ When maintainers prepare a release, move the accumulated `[Unreleased]` entries 
 
 Please use GitHub Issues for reproducible bugs and focused feature requests. Security reports should follow `SECURITY.md` and use GitHub Security Advisories rather than public issues.
 
+To support ongoing development, use the repository Sponsor button configured through GitHub Sponsors.
+
 ## Release Notes
 
 The `1.1.2` hotfix repairs clean Unity Package Manager installs by keeping package-internal tests out of normal user compilation and declaring the required Input System dependency. If you installed `v1.1.0` or `v1.1.1`, update the pinned Git URL to `#v1.1.2` and let Unity refresh PackageCache. If Unity keeps stale errors, close Unity, delete the old `Library/PackageCache/com.forkhorizon.nexus.unity@...` folder from the affected project, and reopen the project.
