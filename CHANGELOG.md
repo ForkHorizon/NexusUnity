@@ -16,10 +16,11 @@ All notable public changes to Nexus Unity are documented here.
 - CI now uses workflow-level `concurrency.queue: max` so trusted runs queue on the local runner instead of being canceled or running in parallel.
 - Public contribution docs now describe the trusted-branch replay policy for external fork pull requests before full local CI can execute candidate code.
 - Unity package validation now performs a local package smoke import with Unity `6000.4.3f1` instead of the previous optional GitHub-hosted EditMode test job.
+- Unity package smoke now generates a dedicated EditMode smoke test assembly in the temporary project so package resolution and editor bridge compilation are verified during CI.
 - Manager invalid-action errors now include valid action names to make AI recovery deterministic.
 - `create_scene` can create or reopen a scene directly at a provided asset path.
 - `set_transform` now updates rotation and scale as well as position.
-- The required AI CI job now validates both XML documentation quality and pull request checklist evidence.
+- The required `Documentation quality AI` CI job now validates both XML documentation quality and pull request checklist evidence while preserving the existing required status-check name.
 
 ### Fixed
 - `write_file` and `write_files_batch` now create missing parent directories after path validation.

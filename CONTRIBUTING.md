@@ -72,7 +72,7 @@ Maintainers run the required GitHub Actions gate on a self-hosted Mac runner lab
 
 The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
 
-External fork pull requests are welcome for review, but the full local CI does not execute fork code directly. A maintainer reviews the patch and replays it through a trusted branch before `Static validation`, `Documentation and checklist quality AI`, and `Unity package smoke` run on the self-hosted Mac runner.
+External fork pull requests are welcome for review, but the full local CI does not execute fork code directly. A maintainer reviews the patch and replays it through a trusted branch before `Static validation`, `Documentation quality AI`, and `Unity package smoke` run on the self-hosted Mac runner.
 
 ### Optional Local Pre-Push Hook
 

@@ -88,7 +88,7 @@ jobs:
         run: bash scripts/prepush-validate.sh --static-only
 
   documentation-quality-ai:
-    name: Documentation and checklist quality AI
+    name: Documentation quality AI
     runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci, nexus-doc-ai]
     needs: static-validation
     env:
@@ -118,6 +118,9 @@ jobs:
           QUALITY_GATE_PROJECT="trusted/tools~/NexusQualityGate/NexusQualityGate.csproj"
           if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
             echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
+            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          elif ! grep -q -- "--checklist-ai" trusted/tools~/NexusQualityGate/QualityGateOptions.cs; then
+            echo "::notice::Trusted NexusQualityGate does not support checklist AI yet; using candidate tool for this bootstrap validation."
             QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
           fi
 
@@ -201,7 +204,7 @@ jobs:
           echo "SMOKE_ROOT=$SMOKE_ROOT" >> "$GITHUB_ENV"
           echo "SMOKE_IMPORT_LOG=$SMOKE_IMPORT_LOG" >> "$GITHUB_ENV"
           echo "SMOKE_TEST_LOG=$RUNNER_TEMP/nexus-unity-package-smoke-tests.log" >> "$GITHUB_ENV"
-          echo "SMOKE_TEST_RESULTS=$RUNNER_TEMP/nexus-unity-package-smoke-tests.xml" >> "$GITHUB_ENV"
+          echo "SMOKE_TEST_RESULTS=$SMOKE_ROOT/nexus-unity-package-smoke-tests.xml" >> "$GITHUB_ENV"
 
       - name: Install candidate package
         run: |
@@ -220,11 +223,57 @@ jobs:
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           PY
 
-      - name: Install package editor tests
+      - name: Install package Editor smoke tests
         run: |
           set -euo pipefail
-          mkdir -p "$SMOKE_ROOT/Assets/Editor/NexusUnityPackageTests"
-          rsync -a Tests~/Editor/ "$SMOKE_ROOT/Assets/Editor/NexusUnityPackageTests/"
+          TEST_DIR="$SMOKE_ROOT/Assets/Tests/Editor/NexusUnityPackageSmoke"
+          mkdir -p "$TEST_DIR"
+
+          cat > "$TEST_DIR/NexusUnity.PackageSmoke.EditorTests.asmdef" <<'JSON'
+          {
+            "name": "NexusUnity.PackageSmoke.EditorTests",
+            "references": [],
+            "includePlatforms": [
+              "Editor"
+            ],
+            "optionalUnityReferences": [
+              "TestAssemblies"
+            ]
+          }
+          JSON
+
+          cat > "$TEST_DIR/NexusUnityPackageSmokeTests.cs" <<'CS'
+          using System;
+          using System.Linq;
+          using System.Reflection;
+          using NUnit.Framework;
+          using UnityEditor.PackageManager;
+
+          public sealed class NexusUnityPackageSmokeTests
+          {
+              [Test]
+              public void PackageManifestIsResolvedByUnity()
+              {
+                  var package = PackageInfo.FindForAssetPath("Packages/com.forkhorizon.nexus.unity/package.json");
+
+                  Assert.That(package, Is.Not.Null);
+                  Assert.That(package.name, Is.EqualTo("com.forkhorizon.nexus.unity"));
+              }
+
+              [Test]
+              public void EditorBridgeAssemblyIsCompiled()
+              {
+                  var methodsType = AppDomain.CurrentDomain.GetAssemblies()
+                      .Select(assembly => assembly.GetType("UnityMCP.Editor.MCPServerMethods", false))
+                      .FirstOrDefault(type => type != null);
+
+                  Assert.That(methodsType, Is.Not.Null);
+                  Assert.That(
+                      methodsType.GetMethods(BindingFlags.Public | BindingFlags.Static).Any(method => method.Name == "ProcessJsonRpc"),
+                      Is.True);
+              }
+          }
+          CS
 
       - name: Import and compile candidate package
         run: |
@@ -283,10 +332,10 @@ jobs:
           set -euo pipefail
           if ! "$UNITY_EDITOR_PATH" \
             -batchmode \
-            -quit \
             -projectPath "$SMOKE_ROOT" \
             -runTests \
-            -testPlatform EditMode \
+            -testPlatform editmode \
+            -assemblyNames NexusUnity.PackageSmoke.EditorTests \
             -testResults "$SMOKE_TEST_RESULTS" \
             -logFile "$SMOKE_TEST_LOG"; then
             echo "::error::Unity package Editor tests failed."
@@ -303,6 +352,10 @@ jobs:
           result_path = Path(os.environ["SMOKE_TEST_RESULTS"])
           if not result_path.exists():
               print(f"::error::Missing Unity test results file: {result_path}")
+              log_path = Path(os.environ["SMOKE_TEST_LOG"])
+              if log_path.exists():
+                  print("Last Unity test log lines:")
+                  print("\n".join(log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-200:]))
               sys.exit(1)
 
           root = ET.parse(result_path).getroot()
