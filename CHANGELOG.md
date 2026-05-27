@@ -6,12 +6,23 @@ All notable public changes to Nexus Unity are documented here.
 
 ### Added
 - GitHub funding metadata now configures the repository Sponsor button for `Daliys`.
+- MCP manager aliases for common raw-style action names such as `list_scenes`, `create_scene`, `create_gameobject`, `rename`, and tool-usage diagnostics.
+- Scene-building manager support for primitive name, parent, transform, material path, object rename, transform updates, and `create_hierarchy` passthrough.
+- Material creation support for visible base color and emission color fields.
+- Local-Ollama pull request checklist review through `NexusQualityGate --checklist-ai`, with one AI verdict per checklist item and explicit next-action output for failures.
 
 ### Changed
 - `Validate package` now runs entirely on the maintainer self-hosted Mac runner with the `nexus-unity-ci` label instead of GitHub-hosted runners.
 - CI now uses workflow-level `concurrency.queue: max` so trusted runs queue on the local runner instead of being canceled or running in parallel.
 - Public contribution docs now describe the trusted-branch replay policy for external fork pull requests before full local CI can execute candidate code.
 - Unity package validation now performs a local package smoke import with Unity `6000.4.3f1` instead of the previous optional GitHub-hosted EditMode test job.
+- Manager invalid-action errors now include valid action names to make AI recovery deterministic.
+- `create_scene` can create or reopen a scene directly at a provided asset path.
+- `set_transform` now updates rotation and scale as well as position.
+- The required AI CI job now validates both XML documentation quality and pull request checklist evidence.
+
+### Fixed
+- `write_file` and `write_files_batch` now create missing parent directories after path validation.
 
 ## [1.1.2] - 2026-05-23
 

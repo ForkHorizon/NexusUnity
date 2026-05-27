@@ -59,11 +59,39 @@ namespace UnityMCP.Editor
             return new JObject { ["results"] = results };
         }
 
-                private static JToken CreatePrimitive(JToken p)
+        private static JToken CreatePrimitive(JToken p)
         {
+            if (p == null || p["primitive_type"] == null) throw new Exception("primitive_type is required");
             if (!Enum.TryParse(typeof(PrimitiveType), p["primitive_type"].ToString(), true, out var type)) throw new Exception("Invalid primitive");
             var go = GameObject.CreatePrimitive((PrimitiveType)type);
             Undo.RegisterCreatedObjectUndo(go, "Create Primitive");
+
+            string name = p["name"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(name)) go.name = name;
+
+            if (p["parent_id"] != null)
+            {
+                var parent = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p, "parent_id")) as GameObject;
+                if (parent == null) throw new Exception("parent_id does not resolve to a GameObject");
+                go.transform.SetParent(parent.transform, false);
+            }
+
+            if (p["position"] != null) go.transform.position = ParseVector3(p["position"], go.transform.position);
+            JToken rotation = p["rotation"] ?? p["eulerAngles"];
+            if (rotation != null) go.transform.eulerAngles = ParseVector3(rotation, go.transform.eulerAngles);
+            JToken scale = p["scale"] ?? p["localScale"];
+            if (scale != null) go.transform.localScale = ParseVector3(scale, go.transform.localScale);
+
+            string materialPath = p["material_path"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(materialPath))
+            {
+                materialPath = ValidateAssetPath(materialPath);
+                var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+                if (material == null) throw new Exception($"Material not found at {materialPath}");
+                var renderer = go.GetComponent<Renderer>();
+                if (renderer != null) renderer.sharedMaterial = material;
+            }
+
             Selection.activeGameObject = go;
             return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
         }

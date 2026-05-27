@@ -22,6 +22,21 @@ public static class QualityGateRunner
             }
         }
 
+        if (options.ChecklistAi != AiMode.Off)
+        {
+            var reviewer = new OllamaChecklistReviewer(options);
+            try
+            {
+                result.AddRange(await reviewer.ReviewAsync());
+            }
+            finally
+            {
+                string? unloadError = await reviewer.TryUnloadModelAsync();
+                if (!string.IsNullOrWhiteSpace(unloadError))
+                    Console.Error.WriteLine("WARNING: Failed to unload Ollama model after checklist review: " + unloadError);
+            }
+        }
+
         return result;
     }
 }

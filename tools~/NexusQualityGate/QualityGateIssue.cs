@@ -29,6 +29,14 @@ public sealed record DocumentationCandidate(
     public string CacheInput => string.Join("\n---\n", File, Line.ToString(), Symbol, Kind, Signature, Documentation, CodeExcerpt);
 }
 
+public sealed record ChecklistItem(
+    string File,
+    int Line,
+    string Text)
+{
+    public string Symbol => "Checklist: " + Text;
+}
+
 public sealed class QualityGateResult
 {
     public List<QualityGateIssue> Issues { get; } = new();

@@ -35,15 +35,38 @@ namespace UnityMCP.Editor.Tests {
 
             if (managerName == "unity_scene_manager") {
                 string action = args["action"]?.ToString();
-                if (action == "create") { mappedMethod = "create_scene"; mappedParams = new JObject { ["name"] = args["name"] }; }
+                if (action == "create_scene") action = "create";
+                else if (action == "open_scene") action = "open";
+                else if (action == "save_scene") action = "save";
+                else if (action == "list_scenes") action = "list";
+
+                if (action == "create") {
+                    mappedMethod = "create_scene";
+                    mappedParams = new JObject();
+                    CopyIfPresent(args, mappedParams, "name", "path", "open_if_exists");
+                }
                 else if (action == "open") { mappedMethod = "open_scene"; mappedParams = new JObject { ["path"] = args["path"] }; }
                 else if (action == "save") { mappedMethod = "save_scene"; mappedParams = new JObject { ["path"] = args["path"] }; }
                 else if (action == "list") { mappedMethod = "list_scenes"; mappedParams = new JObject(); }
             }
             else if (managerName == "unity_hierarchy_manager") {
                 string action = args["action"]?.ToString();
+                if (action == "create" || action == "create_gameobject" || action == "create_game_object") action = "create_empty";
+                else if (action == "rename") action = "set_name";
+
                 if (action == "create_empty") { mappedMethod = "create_game_object"; mappedParams = new JObject { ["name"] = args["name"], ["parent_id"] = args["parent_id"] }; }
-                else if (action == "create_primitive") { mappedMethod = "create_primitive"; mappedParams = new JObject { ["primitive_type"] = args["primitive_type"] }; }
+                else if (action == "create_primitive") {
+                    mappedMethod = "create_primitive";
+                    mappedParams = new JObject();
+                    CopyIfPresent(args, mappedParams, "primitive_type", "name", "parent_id", "position", "rotation", "scale", "material_path");
+                }
+                else if (action == "create_hierarchy") { mappedMethod = "create_hierarchy"; mappedParams = new JObject { ["tree"] = args["tree"], ["parent_id"] = args["parent_id"] }; }
+                else if (action == "set_name") { mappedMethod = "set_property"; mappedParams = new JObject { ["instance_id"] = args["instance_id"], ["property_name"] = "m_Name", ["value"] = args["name"] ?? args["new_name"] }; }
+                else if (action == "set_transform") {
+                    mappedMethod = "set_transform";
+                    mappedParams = new JObject { ["instance_id"] = args["instance_id"] };
+                    CopyIfPresent(args, mappedParams, "position", "rotation", "scale", "eulerAngles", "localScale");
+                }
                 else if (action == "destroy") { mappedMethod = "destroy_game_object"; mappedParams = new JObject { ["instance_id"] = args["instance_id"] }; }
                 else if (action == "duplicate") { mappedMethod = "duplicate_object"; mappedParams = new JObject { ["instance_id"] = args["instance_id"] }; }
                 else if (action == "set_active") { mappedMethod = "set_active"; mappedParams = new JObject { ["instance_id"] = args["instance_id"], ["active"] = args["active"] }; }
@@ -71,7 +94,11 @@ namespace UnityMCP.Editor.Tests {
                 string action = args["action"]?.ToString();
                 if (action == "search") { mappedMethod = "list_assets"; mappedParams = new JObject { ["filter"] = args["filter"] }; }
                 else if (action == "explore") { mappedMethod = "explore_asset"; mappedParams = new JObject { ["path"] = args["path"] }; }
-                else if (action == "create_material") { mappedMethod = "create_material"; mappedParams = new JObject { ["name"] = args["name"], ["shader"] = args["shader"] }; }
+                else if (action == "create_material") {
+                    mappedMethod = "create_material";
+                    mappedParams = new JObject();
+                    CopyIfPresent(args, mappedParams, "name", "shader", "path", "base_color", "color", "emission_color", "emission");
+                }
                 else if (action == "import") { mappedMethod = "import_asset"; mappedParams = new JObject { ["path"] = args["path"] }; }
                 else if (action == "refresh") { mappedMethod = "refresh_asset_database"; mappedParams = new JObject(); }
                 else if (action == "instantiate_prefab") { mappedMethod = "instantiate_prefab"; mappedParams = new JObject { ["path"] = args["path"] }; }
@@ -94,6 +121,8 @@ namespace UnityMCP.Editor.Tests {
                 else if (action == "refresh_assets") { mappedMethod = "refresh_asset_database"; mappedParams = new JObject(); }
                 else if (action == "run_tests") { mappedMethod = "run_tests"; mappedParams = new JObject { ["mode"] = args["mode"] ?? "EditMode", ["filter"] = args["filter"] }; }
                 else if (action == "get_test_results") { mappedMethod = "get_test_results"; mappedParams = new JObject { ["result_path"] = args["result_path"] }; }
+                else if (action == "get_tool_usage_stats") { mappedMethod = "get_tool_usage_stats"; mappedParams = new JObject(); }
+                else if (action == "reset_tool_usage_stats") { mappedMethod = "reset_tool_usage_stats"; mappedParams = new JObject(); }
             }
             else if (managerName == "unity_ui_automation") {
                 string action = args["action"]?.ToString();
@@ -142,15 +171,51 @@ namespace UnityMCP.Editor.Tests {
             return JObject.Parse(responseJson);
         }
 
+        private static void CopyIfPresent(JObject source, JObject destination, params string[] keys) {
+            foreach (string key in keys) {
+                if (source[key] != null) destination[key] = source[key];
+            }
+        }
+
+        private static JToken CallRaw(string method, JObject parameters) {
+            JObject request = new JObject {
+                ["jsonrpc"] = "2.0",
+                ["method"] = method,
+                ["params"] = parameters,
+                ["id"] = 1
+            };
+
+            string responseJson = MCPServerMethods.ProcessJsonRpc(request.ToString(Newtonsoft.Json.Formatting.None));
+            return JObject.Parse(responseJson);
+        }
+
         private GameObject CreateTestGameObject() {
             var go = new GameObject("TestGo");
             _createdObjects.Add(go);
             return go;
         }
 
+        private static void CleanupGeneratedAssetRoot(string root) {
+            AssetDatabase.DeleteAsset(root);
+
+            string absoluteRoot = MCPServerMethods.ValidatePath(root);
+            if (Directory.Exists(absoluteRoot)) Directory.Delete(absoluteRoot, true);
+
+            string meta = absoluteRoot + ".meta";
+            if (File.Exists(meta)) File.Delete(meta);
+
+            AssetDatabase.Refresh();
+        }
+
         [Test]
         public void UnitySceneManager_ListScenes_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_scene_manager", new JObject { ["action"] = "list" });
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+        }
+
+        [Test]
+        public void UnitySceneManager_ListScenesAlias_ReturnsSuccess() {
+            var res = SimulateBridgeRouting("unity_scene_manager", new JObject { ["action"] = "list_scenes" });
             Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
         }
 
@@ -183,6 +248,83 @@ namespace UnityMCP.Editor.Tests {
         }
 
         [Test]
+        public void UnityHierarchyManager_CreateAlias_ReturnsSuccess() {
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject { ["action"] = "create_gameobject", ["name"] = "AliasCreatedManager" });
+            Assert.IsNotNull(res["result"]);
+            var id = res["result"]["data"]?["instance_id"]?.Value<int>();
+            if (id.HasValue && id.Value != 0) {
+                var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
+                Assert.IsNotNull(go);
+                Assert.AreEqual("AliasCreatedManager", go.name);
+                _createdObjects.Add(go);
+            }
+        }
+
+        [Test]
+        public void UnityHierarchyManager_CreatePrimitiveWithNameAndTransform_ReturnsPlacedObject() {
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "create_primitive",
+                ["primitive_type"] = "Cube",
+                ["name"] = "PlacedManagerCube",
+                ["position"] = new JObject { ["x"] = 2, ["y"] = 1, ["z"] = -3 },
+                ["rotation"] = new JObject { ["x"] = 0, ["y"] = 25, ["z"] = 0 },
+                ["scale"] = new JObject { ["x"] = 1.5, ["y"] = 0.5, ["z"] = 2 }
+            });
+
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+            var id = res["result"]["data"]?["instance_id"]?.Value<int>();
+            Assert.IsTrue(id.HasValue && id.Value != 0);
+
+            var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
+            Assert.IsNotNull(go);
+            _createdObjects.Add(go);
+            Assert.AreEqual("PlacedManagerCube", go.name);
+            Assert.AreEqual(2f, go.transform.position.x, 0.001f);
+            Assert.AreEqual(1f, go.transform.position.y, 0.001f);
+            Assert.AreEqual(-3f, go.transform.position.z, 0.001f);
+            Assert.AreEqual(25f, go.transform.eulerAngles.y, 0.001f);
+            Assert.AreEqual(1.5f, go.transform.localScale.x, 0.001f);
+            Assert.AreEqual(0.5f, go.transform.localScale.y, 0.001f);
+            Assert.AreEqual(2f, go.transform.localScale.z, 0.001f);
+        }
+
+        [Test]
+        public void UnityHierarchyManager_RenameAlias_UpdatesGameObjectName() {
+            var go = CreateTestGameObject();
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "rename",
+                ["instance_id"] = go.GetInstanceID(),
+                ["name"] = "RenamedByManager"
+            });
+
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+            Assert.AreEqual("RenamedByManager", go.name);
+        }
+
+        [Test]
+        public void UnityHierarchyManager_SetTransform_UpdatesPositionRotationAndScale() {
+            var go = CreateTestGameObject();
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "set_transform",
+                ["instance_id"] = go.GetInstanceID(),
+                ["position"] = new JObject { ["x"] = -1, ["y"] = 2, ["z"] = 3 },
+                ["rotation"] = new JObject { ["x"] = 10, ["y"] = 20, ["z"] = 30 },
+                ["scale"] = new JObject { ["x"] = 2, ["y"] = 3, ["z"] = 4 }
+            });
+
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+            Assert.AreEqual(-1f, go.transform.position.x, 0.001f);
+            Assert.AreEqual(2f, go.transform.position.y, 0.001f);
+            Assert.AreEqual(3f, go.transform.position.z, 0.001f);
+            Assert.AreEqual(10f, go.transform.eulerAngles.x, 0.001f);
+            Assert.AreEqual(20f, go.transform.eulerAngles.y, 0.001f);
+            Assert.AreEqual(30f, go.transform.eulerAngles.z, 0.001f);
+            Assert.AreEqual(2f, go.transform.localScale.x, 0.001f);
+            Assert.AreEqual(3f, go.transform.localScale.y, 0.001f);
+            Assert.AreEqual(4f, go.transform.localScale.z, 0.001f);
+        }
+
+        [Test]
         public void UnityComponentManager_Inspect_ReturnsSuccess() {
             var go = CreateTestGameObject();
             var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetInstanceID(), ["component_name"] = "Transform" });
@@ -193,6 +335,35 @@ namespace UnityMCP.Editor.Tests {
         public void UnityAssetManager_Search_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_asset_manager", new JObject { ["action"] = "search", ["filter"] = "t:Material" });
             Assert.IsNotNull(res["result"]);
+        }
+
+        [Test]
+        public void UnityAssetManager_CreateMaterialWithPathAndColor_ReturnsSuccess() {
+            string root = "Assets/NexusUnityGeneratedTests";
+            string path = $"{root}/Materials/BridgeMaterial.mat";
+            CleanupGeneratedAssetRoot(root);
+
+            try {
+                var res = SimulateBridgeRouting("unity_asset_manager", new JObject {
+                    ["action"] = "create_material",
+                    ["name"] = "BridgeMaterial",
+                    ["path"] = path,
+                    ["base_color"] = "#00CCFFFF",
+                    ["emission_color"] = "#112233FF"
+                });
+
+                Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+                var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                Assert.IsNotNull(material);
+
+                Color baseColor = material.HasProperty("_BaseColor") ? material.GetColor("_BaseColor") : material.GetColor("_Color");
+                Assert.AreEqual(0f, baseColor.r, 0.01f);
+                Assert.AreEqual(0.8f, baseColor.g, 0.01f);
+                Assert.AreEqual(1f, baseColor.b, 0.01f);
+            }
+            finally {
+                CleanupGeneratedAssetRoot(root);
+            }
         }
 
         [Test]
@@ -222,6 +393,12 @@ namespace UnityMCP.Editor.Tests {
             Assert.IsNotNull(state["result"]);
             Assert.IsNotNull(status["result"]);
             Assert.IsNotNull(results["result"]);
+        }
+
+        [Test]
+        public void UnityEditorController_GetToolUsageStats_ReturnsSuccess() {
+            var res = SimulateBridgeRouting("unity_editor_controller", new JObject { ["action"] = "get_tool_usage_stats" });
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
         }
 
         [Test]
@@ -259,6 +436,22 @@ namespace UnityMCP.Editor.Tests {
             var res = SimulateBridgeRouting("unity_write_and_compile", new JObject { ["files"] = new JArray() });
             Assert.IsNotNull(res["error"]);
             Assert.IsTrue(res["error"]["message"].ToString().Contains("Method missing") || res["error"]["message"].ToString().Contains("not found"), "Should correctly try to call write_and_compile");
+        }
+
+        [Test]
+        public void RawWriteFileCreatesMissingParentFolder() {
+            string root = "Assets/NexusUnityGeneratedTests";
+            string path = $"{root}/Nested/TestFile.txt";
+            CleanupGeneratedAssetRoot(root);
+
+            try {
+                var res = CallRaw("write_file", new JObject { ["path"] = path, ["content"] = "Nexus Unity generated test file" });
+                Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+                Assert.IsTrue(File.Exists(MCPServerMethods.ValidatePath(path)), "write_file should create missing parent folders before writing.");
+            }
+            finally {
+                CleanupGeneratedAssetRoot(root);
+            }
         }
 
         [Test]

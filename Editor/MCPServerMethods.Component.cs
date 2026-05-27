@@ -162,10 +162,27 @@ namespace UnityMCP.Editor
 
         private static JToken SetTransform(JToken p)
         {
+            if (p == null || p["instance_id"] == null) throw new Exception("instance_id is required");
             var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
+            if (go == null) throw new Exception("GameObject not found");
+
             Undo.RecordObject(go.transform, "Set Transform");
             if (p["position"] != null) go.transform.position = ParseVector3(p["position"], go.transform.position);
-            return new JObject { ["status"] = "Success", ["message"] = "Transform updated" };
+
+            JToken rotation = p["rotation"] ?? p["eulerAngles"];
+            if (rotation != null) go.transform.eulerAngles = ParseVector3(rotation, go.transform.eulerAngles);
+
+            JToken scale = p["scale"] ?? p["localScale"];
+            if (scale != null) go.transform.localScale = ParseVector3(scale, go.transform.localScale);
+
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["message"] = "Transform updated",
+                ["position"] = SerializeVector3(go.transform.position),
+                ["rotation"] = SerializeVector3(go.transform.eulerAngles),
+                ["scale"] = SerializeVector3(go.transform.localScale)
+            };
         }
 
         private static JToken SetParent(JToken p)

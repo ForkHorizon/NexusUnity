@@ -194,7 +194,12 @@ namespace UnityMCP.Editor
 
         private static void AddSceneTools(JArray tools)
         {
-            tools.Add(CreateTool("create_scene", "Create new scene", new JObject { ["name"] = new JObject { ["type"] = "string" } }));
+            tools.Add(CreateTool("create_scene", "Create new scene", new JObject
+            {
+                ["name"] = new JObject { ["type"] = "string" },
+                ["path"] = new JObject { ["type"] = "string", ["description"] = "Optional scene asset path, for example Assets/Scenes/Showcase.unity" },
+                ["open_if_exists"] = new JObject { ["type"] = "boolean", ["description"] = "Open path instead of creating if the scene already exists" }
+            }));
             tools.Add(CreateTool("open_scene", "Open scene file", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("save_scene", "Save active scene", new JObject { ["path"] = new JObject { ["type"] = "string" } }));
             tools.Add(CreateTool("list_scenes", "List all scene files", new JObject { }));
@@ -240,7 +245,15 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("list_assets", "List assets", new JObject { ["filter"] = new JObject { ["type"] = "string" } }));
             tools.Add(CreateTool("explore_asset", "List all internal sub-assets (e.g., sliced sprites) and their fileIDs within a single file.", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
-            tools.Add(CreateTool("create_material", "Create material", new JObject { ["name"] = new JObject { ["type"] = "string" }, ["path"] = new JObject { ["type"] = "string", ["description"] = "Optional explicit asset path, for example Assets/Folder/Material.mat" }, ["shader"] = new JObject { ["type"] = "string" } }, "name"));
+            tools.Add(CreateTool("create_material", "Create material", new JObject
+            {
+                ["name"] = new JObject { ["type"] = "string" },
+                ["path"] = new JObject { ["type"] = "string", ["description"] = "Optional explicit asset path, for example Assets/Folder/Material.mat" },
+                ["shader"] = new JObject { ["type"] = "string" },
+                ["base_color"] = new JObject { ["type"] = "string", ["description"] = "Optional hex color, for example #00CCFFFF" },
+                ["color"] = new JObject { ["type"] = "string", ["description"] = "Alias for base_color" },
+                ["emission_color"] = new JObject { ["type"] = "string", ["description"] = "Optional emission hex color" }
+            }, "name"));
             tools.Add(CreateTool("refresh_asset_database", "Refresh Assets", new JObject { }));
             tools.Add(CreateTool("import_asset", "Import file", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("instantiate_prefab", "Create from Prefab", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
@@ -363,10 +376,35 @@ namespace UnityMCP.Editor
             var schema = new JObject();
             var types = new JArray("Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad");
             schema["primitive_type"] = new JObject { ["type"] = "string", ["enum"] = types };
+            schema["name"] = new JObject { ["type"] = "string" };
+            schema["parent_id"] = new JObject { ["type"] = "integer" };
+            schema["position"] = GetVector3Schema();
+            schema["rotation"] = GetVector3Schema();
+            schema["scale"] = GetVector3Schema();
+            schema["material_path"] = new JObject { ["type"] = "string" };
             return schema;
         }
         private static JObject GetSearchSchema() => new JObject { ["name"] = new JObject { ["type"] = "string" }, ["tag"] = new JObject { ["type"] = "string" }, ["type"] = new JObject { ["type"] = "string" } };
-        private static JObject GetTransformSchema() => new JObject { ["instance_id"] = new JObject { ["type"] = "integer" }, ["position"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["x"] = new JObject { ["type"] = "number" }, ["y"] = new JObject { ["type"] = "number" }, ["z"] = new JObject { ["type"] = "number" } } } };
+        private static JObject GetTransformSchema() => new JObject
+        {
+            ["instance_id"] = new JObject { ["type"] = "integer" },
+            ["position"] = GetVector3Schema(),
+            ["rotation"] = GetVector3Schema(),
+            ["scale"] = GetVector3Schema(),
+            ["eulerAngles"] = GetVector3Schema(),
+            ["localScale"] = GetVector3Schema()
+        };
+
+        private static JObject GetVector3Schema() => new JObject
+        {
+            ["type"] = "object",
+            ["properties"] = new JObject
+            {
+                ["x"] = new JObject { ["type"] = "number" },
+                ["y"] = new JObject { ["type"] = "number" },
+                ["z"] = new JObject { ["type"] = "number" }
+            }
+        };
 
         private static string SanitizeScriptName(string n) => System.Text.RegularExpressions.Regex.Replace(n, @"[^a-zA-Z0-9_]", "_");
         private static string GetDefaultScript(string n) => $"using UnityEngine;\npublic class {n} : MonoBehaviour {{ void Start() {{ Debug.Log(\"Hello from {n}\"); }} }}";

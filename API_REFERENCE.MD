@@ -23,7 +23,11 @@ Schema compatibility notes:
 
 - `unity_write_and_compile` is the supported code-edit macro. Older references to `unity_apply_code_change` are stale and should be replaced.
 - `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
-- `create_material` accepts an optional `path` so callers can place generated materials outside the project root `Assets/` folder.
+- `create_scene` accepts optional `path` and `open_if_exists`, so agents can create or reopen a deterministic scene asset in one call.
+- `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path` for visible non-origin object creation.
+- `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
+- `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so callers can create visible materials in a chosen folder.
+- `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is an optional JSON array of positional arguments.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
 
@@ -152,10 +156,14 @@ Schema compatibility notes:
 The MCP bridge is the recommended AI-client surface. It exposes 14 tools.
 
 ### `unity_scene_manager`
-Actions: `create`, `open`, `save`, `list`.
+Actions: `create`, `open`, `save`, `list`. Aliases: `create_scene`, `open_scene`, `save_scene`, `list_scenes`.
+
+`create` accepts optional `path` and `open_if_exists` for deterministic scene assets.
 
 ### `unity_hierarchy_manager`
-Actions: `create_empty`, `create_primitive`, `destroy`, `duplicate`, `set_active`, `set_parent`, `set_sibling_index`.
+Actions: `create_empty`, `create_primitive`, `create_hierarchy`, `destroy`, `duplicate`, `rename`, `set_name`, `set_transform`, `set_active`, `set_parent`, `set_sibling_index`.
+
+Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_empty`. `create_primitive` accepts `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
 
 ### `unity_component_manager`
 Actions: `add`, `remove`, `inspect`, `get_schema`, `update_properties`, `set_property`, `set_enabled`.
@@ -166,8 +174,10 @@ Strategies: `regex`, `path`, `semantic`, `references`.
 ### `unity_asset_manager`
 Actions: `search`, `explore`, `create_material`, `import`, `refresh`, `instantiate_prefab`, `create_prefab`, `apply_overrides`, `revert_overrides`.
 
+`create_material` passes through `path`, `base_color` / `color`, and `emission_color`.
+
 ### `unity_editor_controller`
-Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_logs`, `get_state`, `get_server_status`, `refresh_assets`, `run_tests`, `get_test_results`, `run_tests_wait`.
+Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_logs`, `get_state`, `get_server_status`, `refresh_assets`, `run_tests`, `get_test_results`, `run_tests_wait`, `get_tool_usage_stats`, `reset_tool_usage_stats`.
 
 `run_tests_wait` triggers `run_tests` and polls raw `get_test_results` from the Python bridge so Unity's main thread is not blocked while the agent waits.
 

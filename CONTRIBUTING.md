@@ -72,7 +72,7 @@ Maintainers run the required GitHub Actions gate on a self-hosted Mac runner lab
 
 The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
 
-External fork pull requests are welcome for review, but the full local CI does not execute fork code directly. A maintainer reviews the patch and replays it through a trusted branch before `Static validation`, `Documentation quality AI`, and `Unity package smoke` run on the self-hosted Mac runner.
+External fork pull requests are welcome for review, but the full local CI does not execute fork code directly. A maintainer reviews the patch and replays it through a trusted branch before `Static validation`, `Documentation and checklist quality AI`, and `Unity package smoke` run on the self-hosted Mac runner.
 
 ### Optional Local Pre-Push Hook
 
@@ -105,6 +105,18 @@ python3 scripts/agent-tooling-smoke.py
 Integration tests require the Unity project to be open with the Nexus Unity server running. If this package is not checked out under a Unity project, set `NEXUS_UNITY_PROJECT_ROOT` before running integration validation.
 
 The local hook is convenience only and can be bypassed with `git push --no-verify`; GitHub branch protection should require the `Validate package` workflow for merge enforcement.
+
+Run the slower local Ollama review before risky API, security, or release-readiness changes:
+
+```bash
+NEXUS_DOC_AI_MODEL=qwen3-coder:30b-a3b-q4_K_M scripts/prepush-validate.sh --quality-ai
+```
+
+That mode runs `NexusQualityGate --ai required --checklist-ai required`, so XML documentation and each pull request checklist item are reviewed separately with local AI evidence. To run only the checklist review during local iteration, use:
+
+```bash
+NEXUS_DOC_AI_MODEL=qwen3-coder:30b-a3b-q4_K_M scripts/prepush-validate.sh --checklist-ai
+```
 
 ## Pull Request Checklist
 
