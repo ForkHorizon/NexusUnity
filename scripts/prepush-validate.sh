@@ -137,12 +137,24 @@ PY
 
 run_ai_quality_validation() {
   local started=$SECONDS
-  log "Running required Ollama documentation quality gate"
+  log "Running required Ollama documentation and checklist quality gate"
   dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
     --root "$NEXUS_QUALITY_ROOT" \
     --ai required \
+    --checklist-ai required \
     --format github
   printf 'AI quality validation completed in %ss.\n' "$((SECONDS - started))"
+}
+
+run_checklist_ai_validation() {
+  local started=$SECONDS
+  log "Running required Ollama pull request checklist quality gate"
+  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
+    --root "$NEXUS_QUALITY_ROOT" \
+    --ai off \
+    --checklist-ai required \
+    --format github
+  printf 'Checklist AI validation completed in %ss.\n' "$((SECONDS - started))"
 }
 
 run_quick_live_smoke() {
@@ -356,6 +368,9 @@ case "$MODE" in
   --quality-ai)
     run_ai_quality_validation
     ;;
+  --checklist-ai)
+    run_checklist_ai_validation
+    ;;
   --quick|--local)
     run_static_validation
     run_quick_live_smoke
@@ -366,7 +381,7 @@ case "$MODE" in
     run_local_integration_validation
     ;;
   *)
-    fail "Unknown mode: $MODE. Use --quick, --static-only, or --integration."
+    fail "Unknown mode: $MODE. Use --quick, --static-only, --quality-ai, --checklist-ai, or --integration."
     ;;
 esac
 

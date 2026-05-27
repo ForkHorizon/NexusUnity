@@ -18,10 +18,11 @@ public enum OutputFormat
 public sealed class QualityGateOptions
 {
     public const string Usage =
-        "Usage: NexusQualityGate --root <package-root> [--ai off|advisory|required] [--format text|github|json|none] [--ai-keep-alive <duration>] [--no-ai-unload]";
+        "Usage: NexusQualityGate --root <package-root> [--ai off|advisory|required] [--checklist-ai off|advisory|required] [--format text|github|json|none] [--ai-keep-alive <duration>] [--no-ai-unload]";
 
     public string Root { get; set; } = Directory.GetCurrentDirectory();
     public AiMode Ai { get; set; } = AiMode.Off;
+    public AiMode ChecklistAi { get; set; } = ParseAiMode(Environment.GetEnvironmentVariable("NEXUS_CHECKLIST_AI_MODE") ?? "off");
     public OutputFormat Format { get; set; } = OutputFormat.Text;
     public string OllamaUrl { get; set; } = Environment.GetEnvironmentVariable("NEXUS_OLLAMA_URL") ?? "http://127.0.0.1:11434";
     public string? Model { get; set; } = Environment.GetEnvironmentVariable("NEXUS_DOC_AI_MODEL");
@@ -57,6 +58,9 @@ public sealed class QualityGateOptions
                     break;
                 case "--ai":
                     options.Ai = ParseAiMode(Next());
+                    break;
+                case "--checklist-ai":
+                    options.ChecklistAi = ParseAiMode(Next());
                     break;
                 case "--format":
                     options.Format = ParseOutputFormat(Next());

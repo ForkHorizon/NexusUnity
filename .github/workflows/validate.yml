@@ -110,7 +110,7 @@ jobs:
         with:
           path: candidate
 
-      - name: Run required Ollama documentation review
+      - name: Run required Ollama documentation and checklist review
         run: |
           set -euo pipefail
           dotnet --version
@@ -119,14 +119,18 @@ jobs:
           if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
             echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
             QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          elif ! grep -q -- "--checklist-ai" trusted/tools~/NexusQualityGate/QualityGateOptions.cs; then
+            echo "::notice::Trusted NexusQualityGate does not support checklist AI yet; using candidate tool for this bootstrap validation."
+            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
           fi
 
           dotnet run --project "$QUALITY_GATE_PROJECT" -- \
             --root "$GITHUB_WORKSPACE/candidate" \
             --ai required \
+            --checklist-ai required \
             --format github
 
-      - name: Unload Ollama documentation model
+      - name: Unload Ollama quality model
         if: ${{ always() }}
         shell: bash
         run: |
@@ -199,6 +203,8 @@ jobs:
 
           echo "SMOKE_ROOT=$SMOKE_ROOT" >> "$GITHUB_ENV"
           echo "SMOKE_IMPORT_LOG=$SMOKE_IMPORT_LOG" >> "$GITHUB_ENV"
+          echo "SMOKE_TEST_LOG=$RUNNER_TEMP/nexus-unity-package-smoke-tests.log" >> "$GITHUB_ENV"
+          echo "SMOKE_TEST_RESULTS=$SMOKE_ROOT/nexus-unity-package-smoke-tests.xml" >> "$GITHUB_ENV"
 
       - name: Install candidate package
         run: |
@@ -213,8 +219,61 @@ jobs:
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           dependencies = manifest.setdefault("dependencies", {})
           dependencies["com.forkhorizon.nexus.unity"] = f"file:{os.environ['GITHUB_WORKSPACE']}"
+          dependencies["com.unity.test-framework"] = "1.5.1"
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           PY
+
+      - name: Install package Editor smoke tests
+        run: |
+          set -euo pipefail
+          TEST_DIR="$SMOKE_ROOT/Assets/Tests/Editor/NexusUnityPackageSmoke"
+          mkdir -p "$TEST_DIR"
+
+          cat > "$TEST_DIR/NexusUnity.PackageSmoke.EditorTests.asmdef" <<'JSON'
+          {
+            "name": "NexusUnity.PackageSmoke.EditorTests",
+            "references": [],
+            "includePlatforms": [
+              "Editor"
+            ],
+            "optionalUnityReferences": [
+              "TestAssemblies"
+            ]
+          }
+          JSON
+
+          cat > "$TEST_DIR/NexusUnityPackageSmokeTests.cs" <<'CS'
+          using System;
+          using System.Linq;
+          using System.Reflection;
+          using NUnit.Framework;
+          using UnityEditor.PackageManager;
+
+          public sealed class NexusUnityPackageSmokeTests
+          {
+              [Test]
+              public void PackageManifestIsResolvedByUnity()
+              {
+                  var package = PackageInfo.FindForAssetPath("Packages/com.forkhorizon.nexus.unity/package.json");
+
+                  Assert.That(package, Is.Not.Null);
+                  Assert.That(package.name, Is.EqualTo("com.forkhorizon.nexus.unity"));
+              }
+
+              [Test]
+              public void EditorBridgeAssemblyIsCompiled()
+              {
+                  var methodsType = AppDomain.CurrentDomain.GetAssemblies()
+                      .Select(assembly => assembly.GetType("UnityMCP.Editor.MCPServerMethods", false))
+                      .FirstOrDefault(type => type != null);
+
+                  Assert.That(methodsType, Is.Not.Null);
+                  Assert.That(
+                      methodsType.GetMethods(BindingFlags.Public | BindingFlags.Static).Any(method => method.Name == "ProcessJsonRpc"),
+                      Is.True);
+              }
+          }
+          CS
 
       - name: Import and compile candidate package
         run: |
@@ -258,6 +317,7 @@ jobs:
               "com.unity.nuget.newtonsoft-json",
               "com.unity.project-auditor",
               "com.unity.project-auditor-rules",
+              "com.unity.test-framework",
           ]
           missing = [package for package in required if package not in dependencies]
           if missing:
@@ -265,4 +325,48 @@ jobs:
               sys.exit(1)
 
           print("Unity package smoke resolved Nexus Unity and required dependencies.")
+          PY
+
+      - name: Run package Editor tests
+        run: |
+          set -euo pipefail
+          if ! "$UNITY_EDITOR_PATH" \
+            -batchmode \
+            -projectPath "$SMOKE_ROOT" \
+            -runTests \
+            -testPlatform editmode \
+            -assemblyNames NexusUnity.PackageSmoke.EditorTests \
+            -testResults "$SMOKE_TEST_RESULTS" \
+            -logFile "$SMOKE_TEST_LOG"; then
+            echo "::error::Unity package Editor tests failed."
+            tail -n 200 "$SMOKE_TEST_LOG" || true
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          result_path = Path(os.environ["SMOKE_TEST_RESULTS"])
+          if not result_path.exists():
+              print(f"::error::Missing Unity test results file: {result_path}")
+              log_path = Path(os.environ["SMOKE_TEST_LOG"])
+              if log_path.exists():
+                  print("Last Unity test log lines:")
+                  print("\n".join(log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-200:]))
+              sys.exit(1)
+
+          root = ET.parse(result_path).getroot()
+          total = int(root.attrib.get("total", "0"))
+          failed = int(root.attrib.get("failed", "0"))
+          if total <= 0:
+              print("::error::Unity package Editor test run reported zero tests.")
+              sys.exit(1)
+          if failed:
+              print(f"::error::Unity package Editor tests reported {failed} failure(s).")
+              sys.exit(1)
+
+          print(f"Unity package Editor tests passed: {total} test(s).")
           PY

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -39,12 +40,41 @@ namespace UnityMCP.Editor
 
         private static JToken CreateScene(JToken p)
         {
-            string name = p?["name"]?.ToString() ?? "New Scene";
-            
+            string path = p?["path"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                path = ValidateAssetPath(path);
+            }
+
+            if (!string.IsNullOrWhiteSpace(path) && p?["open_if_exists"]?.Value<bool>() == true)
+            {
+                string fullPath = ValidatePath(path);
+                if (File.Exists(fullPath))
+                {
+                    EnsureCurrentSceneSaved();
+                    var existing = EditorSceneManager.OpenScene(path);
+                    return new JObject { ["status"] = "Success", ["message"] = $"Opened existing scene {existing.name}", ["path"] = path };
+                }
+            }
+
+            string name = p?["name"]?.ToString();
+            if (string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(path))
+            {
+                name = Path.GetFileNameWithoutExtension(path);
+            }
+            if (string.IsNullOrWhiteSpace(name)) name = "New Scene";
+
             EnsureCurrentSceneSaved();
             
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
             scene.name = name;
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                var saved = InternalSaveScene(scene, path) as JObject;
+                saved["scene_name"] = name;
+                return saved;
+            }
+
             return new JObject { ["status"] = "Success", ["message"] = $"Created scene {name}" };
         }
 
@@ -78,6 +108,13 @@ namespace UnityMCP.Editor
             }
 
             path = ValidateAssetPath(path);
+            string fullPath = ValidatePath(path);
+            string directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                AssetDatabase.Refresh();
+            }
 
             bool result = EditorSceneManager.SaveScene(scene, path);
             AssetDatabase.SaveAssets();

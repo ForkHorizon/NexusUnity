@@ -222,6 +222,7 @@ namespace UnityMCP.Editor
         {
             if (p?["path"] == null || p["content"] == null) throw new System.Exception("path and content required");
             string fullPath = ValidatePath(p["path"].ToString());
+            EnsureParentDirectory(fullPath);
             System.IO.File.WriteAllText(fullPath, p["content"].ToString());
 
             // Convert to relative path for AssetDatabase
@@ -256,6 +257,7 @@ namespace UnityMCP.Editor
             {
                 if (f["path"] == null || f["content"] == null) continue;
                 string fullPath = ValidatePath(f["path"].ToString());
+                EnsureParentDirectory(fullPath);
                 System.IO.File.WriteAllText(fullPath, f["content"].ToString());
 
                 string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
@@ -276,6 +278,12 @@ namespace UnityMCP.Editor
             }
 
             return new JObject { ["status"] = "Success", ["message"] = $"Wrote {files.Count} files." };
+        }
+
+        private static void EnsureParentDirectory(string fullPath)
+        {
+            string directory = System.IO.Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory)) System.IO.Directory.CreateDirectory(directory);
         }
 
         private static void TriggerSafeAssetRefresh()

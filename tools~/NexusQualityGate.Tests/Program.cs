@@ -88,6 +88,38 @@ await Run("large method fails", async () =>
     AssertHasError(result, "NQG011");
 });
 
+await Run("pull request checklist items are parsed individually", async () =>
+{
+    using TempPackage package = TempPackage.Create("""
+        namespace Demo;
+        /// <summary>
+        /// Provides documented code so the checklist parser test can focus on Markdown input.
+        /// </summary>
+        public class DocumentedChecklistHost
+        {
+        }
+        """);
+
+    package.WriteFile(".github/pull_request_template.md", """
+        ## Validation
+
+        - [ ] Package compiles in Unity.
+        - [ ] `CHANGELOG.md` updated for public changes.
+
+        ## Safety checklist
+
+        - [ ] Server remains loopback/local-only.
+        """);
+
+    IReadOnlyList<ChecklistItem> items = OllamaChecklistReviewer.ReadChecklistItems(package.Root);
+
+    if (items.Count != 3)
+        throw new InvalidOperationException($"Expected 3 checklist items, got {items.Count}.");
+
+    if (items[0].Text != "Package compiles in Unity.")
+        throw new InvalidOperationException("First checklist item was parsed incorrectly: " + items[0].Text);
+});
+
 static void AssertHasError(QualityGateResult result, string code)
 {
     if (!result.Issues.Any(issue => issue.IsError && issue.Code == code))
@@ -118,6 +150,15 @@ internal sealed class TempPackage : IDisposable
         Directory.CreateDirectory(editor);
         File.WriteAllText(Path.Combine(editor, "Sample.cs"), csharp);
         return new TempPackage(root);
+    }
+
+    public void WriteFile(string relativePath, string content)
+    {
+        string path = Path.Combine(Root, relativePath);
+        string? directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
+        File.WriteAllText(path, content);
     }
 
     public void Dispose()
