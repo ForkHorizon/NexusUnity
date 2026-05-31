@@ -80,14 +80,82 @@ namespace UnityMCP.Editor.Tests
             {
                 string projectRoot = Path.Combine(root, "Project");
                 string homeRoot = Path.Combine(root, "Home");
-                var client = NexusMcpConfigGenerator.BuildAll("/bridge.py", "/python3", projectRoot, homeRoot)
+                string sourceBridge = Path.Combine(root, "Package", "nexus_unity_bridge.py");
+                string deployedBridge = Path.Combine(projectRoot, "nexus_unity_bridge.py");
+                WriteBridge(sourceBridge, "1.2.0");
+                WriteBridge(deployedBridge, "1.2.0");
+
+                var client = NexusMcpConfigGenerator.BuildAll(deployedBridge, "/python3", projectRoot, homeRoot, sourceBridge)
                     .First(item => item.Kind == NexusMcpClientKind.Cursor);
                 NexusMcpConfigGenerator.WriteConfig(client);
 
-                var configured = NexusMcpConfigGenerator.BuildAll("/bridge.py", "/python3", projectRoot, homeRoot)
+                var configured = NexusMcpConfigGenerator.BuildAll(deployedBridge, "/python3", projectRoot, homeRoot, sourceBridge)
                     .First(item => item.Kind == NexusMcpClientKind.Cursor);
 
                 Assert.AreEqual(NexusMcpClientStatus.Configured, configured.Status);
+            }
+            finally
+            {
+                DeleteTempRoot(root);
+            }
+        }
+
+        [Test]
+        public void DetectsOutdatedDeployedBridgeVersion()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string projectRoot = Path.Combine(root, "Project");
+                string homeRoot = Path.Combine(root, "Home");
+                string sourceBridge = Path.Combine(root, "Package", "nexus_unity_bridge.py");
+                string deployedBridge = Path.Combine(projectRoot, "nexus_unity_bridge.py");
+                WriteBridge(sourceBridge, "1.2.0");
+                WriteBridge(deployedBridge, "1.1.2");
+
+                var client = NexusMcpConfigGenerator.BuildAll(deployedBridge, "/python3", projectRoot, homeRoot, sourceBridge)
+                    .First(item => item.Kind == NexusMcpClientKind.Cursor);
+                NexusMcpConfigGenerator.WriteConfig(client);
+
+                var configured = NexusMcpConfigGenerator.BuildAll(deployedBridge, "/python3", projectRoot, homeRoot, sourceBridge)
+                    .First(item => item.Kind == NexusMcpClientKind.Cursor);
+
+                Assert.AreEqual(NexusMcpClientStatus.Outdated, configured.Status);
+                StringAssert.Contains("1.1.2", configured.StatusDetail);
+                StringAssert.Contains("1.2.0", configured.StatusDetail);
+            }
+            finally
+            {
+                DeleteTempRoot(root);
+            }
+        }
+
+        [Test]
+        public void DetectsCodexConfigPointingAtDifferentProject()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string projectRoot = Path.Combine(root, "Project");
+                string otherProject = Path.Combine(root, "OtherProject");
+                string homeRoot = Path.Combine(root, "Home");
+                string sourceBridge = Path.Combine(root, "Package", "nexus_unity_bridge.py");
+                string deployedBridge = Path.Combine(projectRoot, "nexus_unity_bridge.py");
+                string wrongBridge = Path.Combine(otherProject, "nexus_unity_bridge.py");
+                WriteBridge(sourceBridge, "1.2.0");
+                WriteBridge(deployedBridge, "1.2.0");
+                WriteBridge(wrongBridge, "1.0.0");
+
+                string configPath = Path.Combine(homeRoot, ".codex", "config.toml");
+                Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+                File.WriteAllText(configPath, NexusMcpConfigGenerator.BuildCodexToml(wrongBridge, "/python3"));
+
+                var codex = NexusMcpConfigGenerator.BuildAll(deployedBridge, "/python3", projectRoot, homeRoot, sourceBridge)
+                    .First(item => item.Kind == NexusMcpClientKind.Codex);
+
+                Assert.AreEqual(NexusMcpClientStatus.Outdated, codex.Status);
+                Assert.AreEqual(wrongBridge.Replace("\\", "/"), codex.ConfiguredBridgePath);
+                StringAssert.Contains("Current project bridge", codex.StatusDetail);
             }
             finally
             {
@@ -100,6 +168,12 @@ namespace UnityMCP.Editor.Tests
             string root = Path.Combine(Path.GetTempPath(), "NexusMcpConfigGeneratorTests_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
             return root;
+        }
+
+        private static void WriteBridge(string path, string version)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, "\"serverInfo\": {\"name\": \"NexusUnity-Bridge\", \"version\": \"" + version + "\"}");
         }
 
         private static void DeleteTempRoot(string root)

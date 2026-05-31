@@ -17,6 +17,7 @@ namespace UnityMCP.Editor
         Detected,
         NotFound,
         Configured,
+        Outdated,
         NeedsRestart,
         Error
     }
@@ -42,6 +43,10 @@ namespace UnityMCP.Editor
         internal string ConfigPath { get; set; }
         internal string ConfigText { get; set; }
         internal string BridgePath { get; set; }
+        internal string SourceBridgePath { get; set; }
+        internal string SourceBridgeVersion { get; set; }
+        internal string DeployedBridgeVersion { get; set; }
+        internal string ConfiguredBridgePath { get; set; }
         internal string PythonPath { get; set; }
         internal bool SupportsAutoSetup { get; set; }
         internal string AutoSetupDisabledReason { get; set; }
