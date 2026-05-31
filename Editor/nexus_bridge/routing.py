@@ -7,6 +7,43 @@ def _compact(params):
     return {key: value for key, value in params.items() if value is not None}
 
 
+def _alias(action, aliases):
+    return aliases.get(action, action)
+
+
+def _invalid_action(action, valid_actions):
+    valid = ", ".join(valid_actions)
+    return {"error": {"code": -32602, "message": f"Invalid action: {action}. Valid actions: {valid}"}}
+
+
+def _transform_params(args, instance_id=None):
+    params = {"instance_id": instance_id if instance_id is not None else args.get("instance_id")}
+    for key in ["position", "rotation", "scale", "eulerAngles", "localScale"]:
+        params[key] = args.get(key)
+    return _compact(params)
+
+
+def _extract_created_instance_id(response):
+    if not isinstance(response, dict) or "error" in response:
+        return None
+    result = response.get("result", {})
+    data = result.get("data", {}) if isinstance(result, dict) else {}
+    return data.get("instance_id") if isinstance(data, dict) else None
+
+
+def _apply_created_transform(response, args):
+    instance_id = _extract_created_instance_id(response)
+    if not instance_id:
+        return response
+    params = _transform_params(args, instance_id)
+    if len(params) <= 1:
+        return response
+    transform = call_unity("set_transform", params)
+    if transform and "error" in transform:
+        return transform
+    return response
+
+
 def _run_tests_wait(args):
     timeout = args.get("timeout_seconds", 180)
     poll_interval = args.get("poll_interval_seconds", 1.0)
@@ -111,23 +148,54 @@ def route_tool(name, args):
             }
 
     elif name == "scene_manager":
-        action = args.get("action")
-        if action == "create": return call_unity("create_scene", {"name": args.get("name")})
-        elif action == "open": return call_unity("open_scene", {"path": args.get("path")})
-        elif action == "save": return call_unity("save_scene", {"path": args.get("path")})
-        elif action == "list": return call_unity("list_scenes")
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        aliases = {"create_scene": "create", "open_scene": "open", "save_scene": "save", "list_scenes": "list"}
+        action = _alias(args.get("action"), aliases)
+        if action == "create":
+            return call_unity("create_scene", _compact({"name": args.get("name"), "path": args.get("path"), "open_if_exists": args.get("open_if_exists")}))
+        elif action == "open":
+            return call_unity("open_scene", {"path": args.get("path")})
+        elif action == "save":
+            return call_unity("save_scene", {"path": args.get("path")})
+        elif action == "list":
+            return call_unity("list_scenes")
+        else:
+            return _invalid_action(args.get("action"), ["create", "create_scene", "open", "open_scene", "save", "save_scene", "list", "list_scenes"])
 
     elif name == "hierarchy_manager":
-        action = args.get("action")
-        if action == "create_empty": return call_unity("create_game_object", {"name": args.get("name"), "parent_id": args.get("parent_id")})
-        elif action == "create_primitive": return call_unity("create_primitive", {"primitive_type": args.get("primitive_type")})
+        aliases = {
+            "create": "create_empty",
+            "create_gameobject": "create_empty",
+            "create_game_object": "create_empty",
+            "rename": "set_name",
+            "transform": "set_transform",
+        }
+        action = _alias(args.get("action"), aliases)
+        if action == "create_empty":
+            res = call_unity("create_game_object", _compact({"name": args.get("name"), "parent_id": args.get("parent_id")}))
+            return _apply_created_transform(res, args)
+        elif action == "create_primitive":
+            return call_unity("create_primitive", _compact({
+                "primitive_type": args.get("primitive_type"),
+                "name": args.get("name"),
+                "parent_id": args.get("parent_id"),
+                "position": args.get("position"),
+                "rotation": args.get("rotation"),
+                "scale": args.get("scale"),
+                "material_path": args.get("material_path"),
+            }))
+        elif action == "create_hierarchy":
+            return call_unity("create_hierarchy", _compact({"tree": args.get("tree"), "parent_id": args.get("parent_id")}))
+        elif action == "set_name":
+            return call_unity("set_property", {"instance_id": args.get("instance_id"), "property_name": "m_Name", "value": args.get("name") or args.get("new_name")})
+        elif action == "set_transform":
+            return call_unity("set_transform", _transform_params(args))
         elif action == "destroy": return call_unity("destroy_game_object", {"instance_id": args.get("instance_id")})
         elif action == "duplicate": return call_unity("duplicate_object", {"instance_id": args.get("instance_id")})
         elif action == "set_active": return call_unity("set_active", {"instance_id": args.get("instance_id"), "active": args.get("active")})
         elif action == "set_parent": return call_unity("set_parent", {"instance_id": args.get("instance_id"), "parent_id": args.get("parent_id")})
         elif action == "set_sibling_index": return call_unity("set_sibling_index", {"instance_id": args.get("instance_id"), "index": args.get("index")})
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        else:
+            return _invalid_action(args.get("action"), ["create_empty", "create", "create_gameobject", "create_game_object", "create_primitive", "create_hierarchy", "destroy", "duplicate", "rename", "set_name", "set_transform", "set_active", "set_parent", "set_sibling_index"])
 
     elif name == "component_manager":
         action = args.get("action")
@@ -138,7 +206,7 @@ def route_tool(name, args):
         elif action == "update_properties": return call_unity("update_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name"), "properties": args.get("properties")})
         elif action == "set_property": return call_unity("set_property", {"instance_id": args.get("instance_id"), "property_name": args.get("property_name"), "value": args.get("value")})
         elif action == "set_enabled": return call_unity("set_enabled", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name"), "enabled": args.get("enabled")})
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        else: return _invalid_action(action, ["add", "remove", "inspect", "get_schema", "update_properties", "set_property", "set_enabled"])
 
     elif name == "search_manager":
         strategy = args.get("strategy")
@@ -146,20 +214,27 @@ def route_tool(name, args):
         elif strategy == "path": return call_unity("find_by_path", {"path": args.get("query")})
         elif strategy == "semantic": return call_unity("semantic_find", {"query": args.get("query")})
         elif strategy == "references": return call_unity("find_references", {"target_id": args.get("target_id"), "target_guid": args.get("target_guid")})
-        else: return {"error": {"code": -32602, "message": f"Invalid strategy: {strategy}"}}
+        else: return {"error": {"code": -32602, "message": f"Invalid strategy: {strategy}. Valid strategies: regex, path, semantic, references"}}
 
     elif name == "asset_manager":
         action = args.get("action")
         if action == "search": return call_unity("list_assets", {"filter": args.get("filter")})
         elif action == "explore": return call_unity("explore_asset", {"path": args.get("path")})
-        elif action == "create_material": return call_unity("create_material", {"name": args.get("name"), "shader": args.get("shader")})
+        elif action == "create_material":
+            return call_unity("create_material", _compact({
+                "name": args.get("name"),
+                "shader": args.get("shader"),
+                "path": args.get("path"),
+                "base_color": args.get("base_color") or args.get("color"),
+                "emission_color": args.get("emission_color") or args.get("emission"),
+            }))
         elif action == "import": return call_unity("import_asset", {"path": args.get("path")})
         elif action == "refresh": return call_unity("refresh_asset_database")
         elif action == "instantiate_prefab": return call_unity("instantiate_prefab", {"path": args.get("path")})
         elif action == "create_prefab": return call_unity("create_prefab", {"instance_id": args.get("instance_id"), "path": args.get("path")})
         elif action == "apply_overrides": return call_unity("apply_prefab_overrides", {"instance_id": args.get("instance_id")})
         elif action == "revert_overrides": return call_unity("revert_prefab_overrides", {"instance_id": args.get("instance_id")})
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        else: return _invalid_action(action, ["search", "explore", "create_material", "import", "refresh", "instantiate_prefab", "create_prefab", "apply_overrides", "revert_overrides"])
 
     elif name == "editor_controller":
         action = args.get("action")
@@ -177,7 +252,9 @@ def route_tool(name, args):
         elif action == "run_tests": return call_unity("run_tests", _compact({"mode": args.get("mode", "EditMode"), "filter": args.get("filter")}))
         elif action == "get_test_results": return call_unity("get_test_results", _compact({"result_path": args.get("result_path")}))
         elif action == "run_tests_wait": return _run_tests_wait(args)
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        elif action == "get_tool_usage_stats": return call_unity("get_tool_usage_stats")
+        elif action == "reset_tool_usage_stats": return call_unity("reset_tool_usage_stats")
+        else: return _invalid_action(action, ["undo", "redo", "play", "pause", "step", "menu", "read_logs", "clear_logs", "get_state", "get_server_status", "refresh_assets", "run_tests", "get_test_results", "run_tests_wait", "get_tool_usage_stats", "reset_tool_usage_stats"])
 
     elif name == "ui_automation":
         action = args.get("action")
@@ -189,7 +266,7 @@ def route_tool(name, args):
         elif action == "capture_window_snapshot": return call_unity("ui_capture_window_snapshot", _compact({"window_title": args.get("window_title"), "include_image": args.get("include_image"), "include_hierarchy": args.get("include_hierarchy")}))
         elif action == "click": return call_unity("ui_click", {"window_title": args.get("window_title"), "element_name": args.get("element_name")})
         elif action == "input": return call_unity("ui_input_text", {"window_title": args.get("window_title"), "element_name": args.get("element_name"), "text": args.get("text")})
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        else: return _invalid_action(action, ["list_windows", "get_hierarchy", "query", "get_window_rect", "set_window_rect", "capture_window_snapshot", "click", "input"])
 
     elif name == "playerprefs_manager":
         action = args.get("action")
@@ -197,7 +274,7 @@ def route_tool(name, args):
         elif action == "set": return call_unity("set_player_pref", {"key": args.get("key"), "value": args.get("value"), "type": args.get("type", "string")})
         elif action == "delete": return call_unity("delete_player_pref", {"key": args.get("key")})
         elif action == "list": return call_unity("list_player_prefs")
-        else: return {"error": {"code": -32602, "message": f"Invalid action: {action}"}}
+        else: return _invalid_action(action, ["get", "set", "delete", "list"])
 
     elif name == "wait":
         cond = args.get("condition")

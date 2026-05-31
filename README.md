@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.1.2)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.2.0)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,7 +8,7 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.1.2`
+- Version: `1.2.0`
 - License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
@@ -32,7 +32,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.1.2
+https://github.com/ForkHorizon/NexusUnity.git#v1.2.0
 ```
 
 ## Start The Server
@@ -124,8 +124,8 @@ Root-deployed path:
 ## Key Tools
 
 - `unity_write_and_compile`: write files, wait for Unity reload, and return compiler errors.
-- `unity_scene_manager`: create, open, save, and list scenes.
-- `unity_hierarchy_manager`: create, destroy, duplicate, activate, and parent GameObjects.
+- `unity_scene_manager`: create, open, save, and list scenes, including raw-action aliases like `list_scenes`.
+- `unity_hierarchy_manager`: create, rename, transform, destroy, duplicate, activate, parent, and batch-build GameObjects.
 - `unity_component_manager`: add, inspect, update, and remove components.
 - `unity_asset_manager`: search, import, refresh, and manage prefab assets.
 - `unity_editor_controller`: play mode, menus, undo/redo, logs, editor state, asset refresh, and test-result polling.
@@ -139,11 +139,16 @@ Current development keeps the public API backward-compatible while tightening sc
 
 - Use `unity_write_and_compile` for code-edit workflows. Older references to `unity_apply_code_change` are outdated and should not be used for the public MCP bridge.
 - `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
-- `create_material` accepts an optional `path` so generated materials can be created inside a chosen project folder instead of the project root `Assets/` folder.
+- `unity_scene_manager` accepts obvious aliases such as `list_scenes`, `create_scene`, `open_scene`, and `save_scene`; invalid manager actions now report the valid action names.
+- `create_scene` accepts optional `path` and `open_if_exists` so agents can create or reopen a deterministic scene asset in one call.
+- `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`, which lets agents build visible non-origin objects without fragile follow-up calls.
+- `set_transform` updates position, rotation, and scale.
+- `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so generated materials can be created inside a chosen project folder and made visibly distinct.
+- `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is an optional positional JSON array.
 - `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
 - `get_test_results` reads Unity `TestResults*.xml` summaries from the project root or Unity persistent data path; `unity_editor_controller` exposes `run_tests_wait` as a bridge-side polling workflow.
-- `get_tool_usage_stats` reports in-memory raw tool counts, durations, and errors since Unity domain load without storing request payloads; `reset_tool_usage_stats` clears that state for scoped diagnostics.
+- `get_tool_usage_stats` reports in-memory raw tool counts, durations, and errors since Unity domain load without storing request payloads; `reset_tool_usage_stats` clears that state for scoped diagnostics. Both are also available through `unity_editor_controller`.
 - `ui_get_window_rect`, `ui_set_window_rect`, and `ui_capture_window_snapshot` support automated layout checks for editor windows.
 
 ## Documentation
@@ -167,7 +172,7 @@ Static validation includes `NexusQualityGate`, a Roslyn-based checker for produc
 
 The runner must have the labels `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`; the AI review job also requires `nexus-doc-ai`. The local toolchain must provide `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama on `http://127.0.0.1:11434`. The workflow uses GitHub Actions `concurrency` group `nexus-unity-ci` with `queue: max`, so multiple trusted runs wait in order instead of competing for the MacBook.
 
-The workflow also includes a required `Documentation quality AI` job. That job sends documentation/code excerpts to local Ollama and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs, not comments that omit every private implementation detail. The job sets a short Ollama `keep_alive` and unloads the model after every run so large local models do not remain in memory between checks.
+The required `Documentation quality AI` job also runs checklist quality review. It sends documentation/code excerpts to local Ollama and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. It reviews each pull request checklist item individually against repository evidence, CI wiring, safety policies, and tracked files, then emits a specific next action when a checklist item is not satisfied. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs and clear checklist violations, not comments that omit every private implementation detail or runtime evidence that is supplied by another CI job. The job sets a short Ollama `keep_alive` and unloads the model after every run so large local models do not remain in memory between checks.
 
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
@@ -212,7 +217,7 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.1.2`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.2.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
 When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager requires semantic `MAJOR.MINOR.PATCH` versions, so release tags remain `v1.1.0`, `v1.2.0`, and so on even when the human-facing release name is shortened to `1.1` or `1.2`. Use patch versions only for urgent compatible hotfixes.
 
@@ -224,7 +229,9 @@ To support ongoing development, use the repository Sponsor button configured thr
 
 ## Release Notes
 
-The `1.1.2` hotfix repairs clean Unity Package Manager installs by keeping package-internal tests out of normal user compilation and declaring the required Input System dependency. If you installed `v1.1.0` or `v1.1.1`, update the pinned Git URL to `#v1.1.2` and let Unity refresh PackageCache. If Unity keeps stale errors, close Unity, delete the old `Library/PackageCache/com.forkhorizon.nexus.unity@...` folder from the affected project, and reopen the project.
+The `1.2.0` release improves AI-driven scene building through manager aliases, richer primitive/material/transform actions, clearer invalid-action recovery, and stricter local/CI validation including checklist AI review and Unity package smoke tests.
+
+The `1.1.2` hotfix repairs clean Unity Package Manager installs by keeping package-internal tests out of normal user compilation and declaring the required Input System dependency. If you installed `v1.1.0` or `v1.1.1`, update the pinned Git URL to `#v1.1.2` or newer and let Unity refresh PackageCache. If Unity keeps stale errors, close Unity, delete the old `Library/PackageCache/com.forkhorizon.nexus.unity@...` folder from the affected project, and reopen the project.
 
 The `1.1.1` hotfix added a runtime assembly definition and removed Unity `.meta` files from the ignored `tools~/` folder.
 

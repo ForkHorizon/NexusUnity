@@ -1,5 +1,14 @@
 # --- Static Tool Definitions (Hybrid Bridge Strategy) ---
 # Optimized for 100% integrated AI development with strict parameter validation.
+VECTOR3_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "z": {"type": "number"},
+    },
+}
+
 STATIC_TOOLS = [
     # --- Consolidated Core Managers ---
     {
@@ -7,12 +16,13 @@ STATIC_TOOLS = [
         "description": "Unified scene management (create, open, save, list)",
         "inputSchema": {
             "type": "object",
-            "oneOf": [
-                {"properties": {"action": {"const": "create"}, "name": {"type": "string"}}, "required": ["action", "name"]},
-                {"properties": {"action": {"const": "open"}, "path": {"type": "string"}}, "required": ["action", "path"]},
-                {"properties": {"action": {"const": "save"}, "path": {"type": "string"}}, "required": ["action", "path"]},
-                {"properties": {"action": {"const": "list"}}, "required": ["action"]}
-            ]
+            "properties": {
+                "action": {"type": "string", "enum": ["create", "create_scene", "open", "open_scene", "save", "save_scene", "list", "list_scenes"]},
+                "name": {"type": "string"},
+                "path": {"type": "string"},
+                "open_if_exists": {"type": "boolean"}
+            },
+            "required": ["action"]
         }
     },
     {
@@ -20,15 +30,24 @@ STATIC_TOOLS = [
         "description": "Unified GameObject hierarchy and lifecycle management",
         "inputSchema": {
             "type": "object",
-            "oneOf": [
-                {"properties": {"action": {"const": "create_empty"}, "name": {"type": "string"}, "parent_id": {"type": "integer"}}, "required": ["action", "name"]},
-                {"properties": {"action": {"const": "create_primitive"}, "primitive_type": {"type": "string", "enum": ["Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad"]}}, "required": ["action", "primitive_type"]},
-                {"properties": {"action": {"const": "destroy"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
-                {"properties": {"action": {"const": "duplicate"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
-                {"properties": {"action": {"const": "set_active"}, "instance_id": {"type": "integer"}, "active": {"type": "boolean"}}, "required": ["action", "instance_id", "active"]},
-                {"properties": {"action": {"const": "set_parent"}, "instance_id": {"type": "integer"}, "parent_id": {"type": "integer"}}, "required": ["action", "instance_id", "parent_id"]},
-                {"properties": {"action": {"const": "set_sibling_index"}, "instance_id": {"type": "integer"}, "index": {"type": "string"}}, "required": ["action", "instance_id", "index"]}
-            ]
+            "properties": {
+                "action": {"type": "string", "enum": ["create_empty", "create", "create_gameobject", "create_game_object", "create_primitive", "create_hierarchy", "destroy", "duplicate", "rename", "set_name", "set_transform", "set_active", "set_parent", "set_sibling_index"]},
+                "instance_id": {"type": "integer"},
+                "name": {"type": "string"},
+                "new_name": {"type": "string"},
+                "parent_id": {"type": "integer"},
+                "primitive_type": {"type": "string", "enum": ["Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad"]},
+                "position": VECTOR3_SCHEMA,
+                "rotation": VECTOR3_SCHEMA,
+                "scale": VECTOR3_SCHEMA,
+                "eulerAngles": VECTOR3_SCHEMA,
+                "localScale": VECTOR3_SCHEMA,
+                "material_path": {"type": "string"},
+                "tree": {"type": "object"},
+                "active": {"type": "boolean"},
+                "index": {"type": "string"}
+            },
+            "required": ["action"]
         }
     },
     {
@@ -68,7 +87,7 @@ STATIC_TOOLS = [
             "oneOf": [
                 {"properties": {"action": {"const": "search"}, "filter": {"type": "string"}}, "required": ["action"]},
                 {"properties": {"action": {"const": "explore"}, "path": {"type": "string"}}, "required": ["action", "path"]},
-                {"properties": {"action": {"const": "create_material"}, "name": {"type": "string"}, "shader": {"type": "string"}}, "required": ["action", "name"]},
+                {"properties": {"action": {"const": "create_material"}, "name": {"type": "string"}, "shader": {"type": "string"}, "path": {"type": "string"}, "base_color": {"type": "string"}, "color": {"type": "string"}, "emission_color": {"type": "string"}, "emission": {"type": "string"}}, "required": ["action", "name"]},
                 {"properties": {"action": {"const": "import"}, "path": {"type": "string"}}, "required": ["action", "path"]},
                 {"properties": {"action": {"const": "refresh"}}, "required": ["action"]},
                 {"properties": {"action": {"const": "instantiate_prefab"}, "path": {"type": "string"}}, "required": ["action", "path"]},
@@ -97,7 +116,9 @@ STATIC_TOOLS = [
                 {"properties": {"action": {"const": "refresh_assets"}}, "required": ["action"]},
                 {"properties": {"action": {"const": "run_tests"}, "mode": {"type": "string"}, "filter": {"type": "string"}}, "required": ["action"]},
                 {"properties": {"action": {"const": "get_test_results"}, "result_path": {"type": "string"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "run_tests_wait"}, "mode": {"type": "string"}, "filter": {"type": "string"}, "timeout_seconds": {"type": "integer"}, "poll_interval_seconds": {"type": "number"}}, "required": ["action"]}
+                {"properties": {"action": {"const": "run_tests_wait"}, "mode": {"type": "string"}, "filter": {"type": "string"}, "timeout_seconds": {"type": "integer"}, "poll_interval_seconds": {"type": "number"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "get_tool_usage_stats"}}, "required": ["action"]},
+                {"properties": {"action": {"const": "reset_tool_usage_stats"}}, "required": ["action"]}
             ]
         }
     },

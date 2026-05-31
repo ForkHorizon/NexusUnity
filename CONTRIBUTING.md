@@ -106,6 +106,18 @@ Integration tests require the Unity project to be open with the Nexus Unity serv
 
 The local hook is convenience only and can be bypassed with `git push --no-verify`; GitHub branch protection should require the `Validate package` workflow for merge enforcement.
 
+Run the slower local Ollama review before risky API, security, or release-readiness changes:
+
+```bash
+NEXUS_DOC_AI_MODEL=qwen3-coder:30b-a3b-q4_K_M scripts/prepush-validate.sh --quality-ai
+```
+
+That mode runs `NexusQualityGate --ai required --checklist-ai required`, so XML documentation and each pull request checklist item are reviewed separately with local AI evidence. To run only the checklist review during local iteration, use:
+
+```bash
+NEXUS_DOC_AI_MODEL=qwen3-coder:30b-a3b-q4_K_M scripts/prepush-validate.sh --checklist-ai
+```
+
 ## Pull Request Checklist
 
 - [ ] Package compiles in Unity.

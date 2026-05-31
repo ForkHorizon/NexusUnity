@@ -97,6 +97,9 @@ namespace UnityMCP.Editor
             if (shaderAsset == null) throw new Exception($"Shader '{shader}' not found and no supported fallback shader is available");
 
             Material mat = new Material(shaderAsset);
+            ApplyOptionalMaterialColor(mat, p["base_color"] ?? p["color"], false);
+            ApplyOptionalMaterialColor(mat, p["emission_color"] ?? (p["emission"]?.Type == JTokenType.Boolean ? null : p["emission"]), true);
+
             string path = p["path"]?.ToString();
             if (string.IsNullOrEmpty(path))
             {
@@ -107,10 +110,56 @@ namespace UnityMCP.Editor
                 path += ".mat";
             }
             path = ValidateAssetPath(path);
+            string fullPath = ValidatePath(path);
+            string directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                AssetDatabase.Refresh();
+            }
+
             mat.name = Path.GetFileNameWithoutExtension(path);
             AssetDatabase.CreateAsset(mat, path);
             AssetDatabase.SaveAssets();
             return new JObject { ["status"] = "Success", ["path"] = path };
+        }
+
+        private static void ApplyOptionalMaterialColor(Material mat, JToken token, bool emission)
+        {
+            if (token == null) return;
+
+            Color color = ParseColorToken(token);
+            string property = emission ? "_EmissionColor" : (mat.HasProperty("_BaseColor") ? "_BaseColor" : "_Color");
+            if (!mat.HasProperty(property)) return;
+
+            mat.SetColor(property, color);
+            if (emission)
+            {
+                mat.EnableKeyword("_EMISSION");
+                mat.globalIlluminationFlags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
+        }
+
+        private static Color ParseColorToken(JToken token)
+        {
+            if (token.Type == JTokenType.String)
+            {
+                string value = token.ToString();
+                if (!value.StartsWith("#", StringComparison.Ordinal)) value = "#" + value;
+                if (ColorUtility.TryParseHtmlString(value, out Color parsed)) return parsed;
+                throw new Exception($"Invalid color string: {token}");
+            }
+
+            if (token.Type == JTokenType.Object)
+            {
+                float r = token["r"]?.Value<float>() ?? 1f;
+                float g = token["g"]?.Value<float>() ?? 1f;
+                float b = token["b"]?.Value<float>() ?? 1f;
+                float a = token["a"]?.Value<float>() ?? 1f;
+                return new Color(r, g, b, a);
+            }
+
+            throw new Exception("Color must be a hex string or object with r/g/b/a fields");
         }
 
         private static JToken RefreshAssetDatabase(JToken p)

@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.1.2`
+Version: `1.2.0`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -86,7 +86,7 @@ Raw HTTP JSON-RPC:
 - Use unprefixed method names, for example `get_server_status`, `list_tools`, `read_logs`, and `write_file`.
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
-- Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, and `create_material` accepts an optional explicit asset `path`.
+- Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, `create_scene` accepts `path` / `open_if_exists`, `create_primitive` accepts transform/material fields, and `create_material` accepts an optional explicit asset `path` plus visible color fields.
 - Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
 
 MCP bridge:
@@ -94,7 +94,11 @@ MCP bridge:
 - Uses `unity_` prefixed manager tools, for example `unity_scene_manager`, `unity_asset_manager`, and `unity_write_and_compile`.
 - Intended for AI clients and day-to-day automation.
 - Reduces schema size while preserving access to the supported raw capabilities.
+- Manager tools accept common raw-action aliases where agents naturally try them, for example `unity_scene_manager action=list_scenes` and `unity_hierarchy_manager action=create_gameobject`.
+- Invalid manager actions include the valid action names in the error message.
+- `unity_hierarchy_manager` can create primitives with name, parent, transform, and material path; it can also rename, set transforms, and pass through `create_hierarchy`.
 - `unity_editor_controller` includes `run_tests_wait`, which waits in the Python bridge by polling raw `get_test_results` instead of blocking the Unity main thread.
+- `unity_editor_controller` also exposes `get_tool_usage_stats` and `reset_tool_usage_stats` so diagnostics are not split between raw and manager workflows.
 - `unity_ui_automation` passes through `deep` for UI hierarchy reads, `class_name` for queries, and window rect/snapshot actions for layout checks.
 
 ## Current Compatibility Decisions
@@ -103,7 +107,11 @@ The current development line preserves backward compatibility while correcting p
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
-- `create_material` accepts an optional explicit `path` so automation can isolate generated materials in a known project folder.
+- `create_scene` accepts optional `path` and `open_if_exists` for deterministic scene assets.
+- `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
+- `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
+- `create_material` accepts an optional explicit `path` plus `base_color` / `color` and `emission_color`, so automation can isolate generated materials in a known project folder and make them visibly distinct.
+- `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
 - `get_test_results`, scoped tool usage stats, and editor-window rect/snapshot automation are public raw diagnostics for agent-driven development.
@@ -136,7 +144,11 @@ For local feedback, contributors can run `bash scripts/install-git-hooks.sh` onc
 
 `NexusQualityGate` lives under `tools~/` so Unity ignores the .NET/Roslyn source while GitHub Actions and local scripts can build it. The deterministic gate scans production C# source under `Editor/` and `Runtime/`, fails public/protected types and methods without meaningful XML documentation, fails files over 450 lines, and fails methods over 150 lines. It warns for files over 300 lines and methods over 50 lines.
 
-The required AI documentation review runs on the same maintainer-owned runner and requires the additional `nexus-doc-ai` label. The workflow defaults to the local `qwen3-coder:30b-a3b-q4_K_M` model. The AI rubric is pragmatic: it fails misleading, filler, or materially incomplete docs, but it does not require every private helper, minor edge case, or implementation detail. The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping the first quality-gate pull request, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet.
+The required AI quality review runs on the same maintainer-owned runner and requires the additional `nexus-doc-ai` label. The workflow defaults to the local `qwen3-coder:30b-a3b-q4_K_M` model. The AI rubric is pragmatic: it fails misleading, filler, or materially incomplete docs, but it does not require every private helper, minor edge case, or implementation detail.
+
+The same job also runs `NexusQualityGate --checklist-ai required`. That mode reads `.github/pull_request_template.md`, reviews every checkbox item as an independent local-Ollama prompt, and emits a separate `NQG310` annotation with a next action when the repository evidence, CI wiring, docs, or tracked-file inventory clearly contradicts the checklist item. It is intentionally evidence-based: runtime results such as Unity package compilation can be supplied by separate CI jobs, while clear safety issues like tracked generated caches, missing public-doc updates, or unsafe local-only changes are blocked by the checklist AI review.
+
+The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping quality-gate changes, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet or has not learned the `--checklist-ai` option.
 
 The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that package dependencies resolved in `packages-lock.json`.
 
@@ -164,7 +176,7 @@ Before release, maintainers should run a public API stress audit that compares r
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.1.2`.
+- Public release version: `1.2.0`.
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -180,7 +192,7 @@ Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, so 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.1.2` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.2.0` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
