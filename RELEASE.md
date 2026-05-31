@@ -7,7 +7,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `GPL-3.0-only`
-- Current public version: `1.1.2`
+- Current public version: `1.2.0`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning

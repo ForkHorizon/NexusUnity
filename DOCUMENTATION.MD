@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.1.2`
+Version: `1.2.0`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -176,7 +176,7 @@ Before release, maintainers should run a public API stress audit that compares r
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.1.2`.
+- Public release version: `1.2.0`.
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -192,7 +192,7 @@ Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, so 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.1.2` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.2.0` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
