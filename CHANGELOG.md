@@ -4,6 +4,13 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Added
+- Integration cards now detect stale project-root MCP bridge deployments and client configs that point at a different Unity project.
+
+### Changed
+- The Server tab bridge summary now shows the deployed bridge version and flags package/deployed bridge mismatches.
+- Integration setup success messages now explicitly tell users to restart the affected MCP client session after redeploying the bridge.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added

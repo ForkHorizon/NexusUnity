@@ -42,6 +42,8 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 
 The `Integrations` tab builds all snippets from the active `python3` executable and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
 
+Integration status checks compare the package bridge with the project-root deployed bridge and the client config path. A card reports `Outdated` when the config points at another Unity project, the deployed bridge is missing, or the deployed bridge version differs from the package bridge version. Running `Auto Setup` redeploys `nexus_unity_bridge.py` plus `nexus_bridge/`, rewrites the client entry, and requires restarting the external MCP client session.
+
 When Nexus Unity writes an existing user or project config, it preserves unrelated server entries and creates a timestamped backup next to the original file.
 
 ## Security Model

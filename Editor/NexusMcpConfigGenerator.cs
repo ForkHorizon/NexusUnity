@@ -1,39 +1,56 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
-    internal static class NexusMcpConfigGenerator
+    internal static partial class NexusMcpConfigGenerator
     {
         internal const string ServerName = "nexus-unity";
+        private static readonly Regex TomlArgsBridgeRegex = new Regex("^\\s*args\\s*=\\s*\\[\\s*\"([^\"]+)\"");
 
         internal static List<NexusMcpClientInfo> BuildAllForCurrentProject()
         {
             string pythonPath = MCPCliInstaller.ResolveExecutablePathForUi("python3");
             return BuildAll(MCPCliInstaller.GetDefaultBridgePathForUi(), pythonPath,
-                MCPCliInstaller.GetProjectRootForUi(), GetHomeDirectory());
+                MCPCliInstaller.GetProjectRootForUi(), GetHomeDirectory(), MCPCliInstaller.GetSourceBridgePathForUi());
         }
 
-        internal static List<NexusMcpClientInfo> BuildAll(string bridgePath, string pythonPath, string projectRoot, string homeDir)
+        internal static List<NexusMcpClientInfo> BuildAll(string bridgePath, string pythonPath, string projectRoot, string homeDir, string sourceBridgePath = null)
         {
+            string normalizedBridgePath = NormalizePath(bridgePath);
+            string normalizedSourceBridgePath = NormalizePath(sourceBridgePath);
+            string sourceBridgeVersion = ReadBridgeVersion(normalizedSourceBridgePath);
+            string deployedBridgeVersion = ReadBridgeVersion(normalizedBridgePath);
+
             var clients = new List<NexusMcpClientInfo>
             {
-                CreateCodex(bridgePath, pythonPath, homeDir),
-                CreateClaude(bridgePath, pythonPath),
+                CreateCodex(normalizedBridgePath, pythonPath, homeDir),
+                CreateClaude(normalizedBridgePath, pythonPath),
                 CreateCliClient(NexusMcpClientKind.Gemini, "Gemini", "gemini",
-                    "Run Auto Setup, then restart or reopen Gemini CLI sessions.", bridgePath, pythonPath),
+                    "Run Auto Setup, then restart or reopen Gemini CLI sessions.", normalizedBridgePath, pythonPath),
                 CreateCliClient(NexusMcpClientKind.Antigravity, "Antigravity", "ag",
-                    "Run Auto Setup, then restart Antigravity sessions that use MCP.", bridgePath, pythonPath),
+                    "Run Auto Setup, then restart Antigravity sessions that use MCP.", normalizedBridgePath, pythonPath),
                 CreateJsonClient(NexusMcpClientKind.Cursor, "Cursor", Path.Combine(projectRoot, ".cursor", "mcp.json"),
-                    "Paste into .cursor/mcp.json or use Auto Setup for this Unity project.", bridgePath, pythonPath, "mcpServers"),
+                    "Paste into .cursor/mcp.json or use Auto Setup for this Unity project.", normalizedBridgePath, pythonPath, "mcpServers"),
                 CreateJsonClient(NexusMcpClientKind.VsCodeClineRoo, "VS Code / Cline / Roo", Path.Combine(projectRoot, ".vscode", "mcp.json"),
-                    "Paste into .vscode/mcp.json, then restart the MCP client extension.", bridgePath, pythonPath, "servers"),
+                    "Paste into .vscode/mcp.json, then restart the MCP client extension.", normalizedBridgePath, pythonPath, "servers"),
                 CreateJsonClient(NexusMcpClientKind.Windsurf, "Windsurf", Path.Combine(homeDir, ".codeium", "windsurf", "mcp_config.json"),
-                    "Paste into the Windsurf MCP config, then restart Windsurf.", bridgePath, pythonPath, "mcpServers"),
-                CreateManual(bridgePath, pythonPath)
+                    "Paste into the Windsurf MCP config, then restart Windsurf.", normalizedBridgePath, pythonPath, "mcpServers"),
+                CreateManual(normalizedBridgePath, pythonPath)
             };
+
+            foreach (var client in clients)
+            {
+                ApplyBridgeVersions(client, normalizedSourceBridgePath, sourceBridgeVersion, deployedBridgeVersion);
+            }
+
+            foreach (var client in clients)
+            {
+                ApplyDeploymentDriftStatus(client);
+            }
 
             return clients;
         }
@@ -173,16 +190,50 @@ namespace UnityMCP.Editor
 
         private static void ApplyTomlStatus(NexusMcpClientInfo info, string executable)
         {
-            if (File.Exists(info.ConfigPath) && File.ReadAllText(info.ConfigPath).Contains("[mcp_servers.nexus-unity]"))
+            if (File.Exists(info.ConfigPath))
             {
-                info.Status = NexusMcpClientStatus.Configured;
-                info.StatusDetail = "nexus-unity is present in the config.";
-                return;
+                var lines = new List<string>(File.ReadAllLines(info.ConfigPath));
+                if (HasTomlSection(lines))
+                {
+                    info.ConfiguredBridgePath = NormalizePath(ReadTomlBridgePath(lines));
+                    if (string.IsNullOrEmpty(info.ConfiguredBridgePath))
+                    {
+                        info.Status = NexusMcpClientStatus.Error;
+                        info.StatusDetail = "nexus-unity is present, but its args do not include a bridge path.";
+                        return;
+                    }
+
+                    info.Status = NexusMcpClientStatus.Configured;
+                    info.StatusDetail = "nexus-unity is present in the config.";
+                    return;
+                }
             }
 
             bool found = IsExecutableResolved(executable);
             info.Status = found ? NexusMcpClientStatus.Detected : NexusMcpClientStatus.NotFound;
             info.StatusDetail = found ? executable + " CLI detected." : executable + " CLI was not found on PATH.";
+        }
+
+        private static bool HasTomlSection(List<string> lines)
+        {
+            return lines.Exists(line => line.Trim() == "[mcp_servers.nexus-unity]");
+        }
+
+        private static string ReadTomlBridgePath(List<string> lines)
+        {
+            int start = lines.FindIndex(line => line.Trim() == "[mcp_servers.nexus-unity]");
+            if (start < 0) return null;
+
+            for (int i = start + 1; i < lines.Count; i++)
+            {
+                string trimmed = lines[i].TrimStart();
+                if (trimmed.StartsWith("[")) break;
+
+                var match = TomlArgsBridgeRegex.Match(lines[i]);
+                if (match.Success) return match.Groups[1].Value;
+            }
+
+            return null;
         }
 
         private static void ApplyJsonStatus(NexusMcpClientInfo info)
@@ -198,8 +249,17 @@ namespace UnityMCP.Editor
             {
                 var json = JObject.Parse(File.ReadAllText(info.ConfigPath));
                 var servers = json[info.RootKey] as JObject;
-                if (servers != null && servers[ServerName] != null)
+                var server = servers?[ServerName] as JObject;
+                if (server != null)
                 {
+                    info.ConfiguredBridgePath = NormalizePath(ReadJsonBridgePath(server));
+                    if (string.IsNullOrEmpty(info.ConfiguredBridgePath))
+                    {
+                        info.Status = NexusMcpClientStatus.Error;
+                        info.StatusDetail = "nexus-unity is present, but its args do not include a bridge path.";
+                        return;
+                    }
+
                     info.Status = NexusMcpClientStatus.Configured;
                     info.StatusDetail = "nexus-unity is present in the config.";
                 }
@@ -214,6 +274,13 @@ namespace UnityMCP.Editor
                 info.Status = NexusMcpClientStatus.Error;
                 info.StatusDetail = "Config exists but could not be parsed: " + e.Message;
             }
+        }
+
+        private static string ReadJsonBridgePath(JObject server)
+        {
+            var args = server["args"] as JArray;
+            if (args != null && args.Count > 0) return (string)args[0];
+            return null;
         }
 
         private static NexusMcpSetupResult WriteJsonConfig(string path, string rootKey, string bridgePath, string pythonPath)

@@ -87,13 +87,15 @@ The Unity window can also deploy the bridge to the project root for CLIs that pr
 
 For Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or compatible MCP clients, open `Window > Nexus Unity` and use the `Integrations` tab.
 
-Each integration card shows `Detected`, `Not found`, `Configured`, or `Error` status and provides:
+Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, or `Error` status and provides:
 
 - `Auto Setup` when Nexus Unity can safely write or invoke the client configuration.
 - `Copy Config` for manual setup.
 - `Open Config` when the client uses a known config file path.
 
 Nexus Unity generates configs from the current `python3` path and deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
+
+`Outdated` means the client config points at a different Unity project, the project-root bridge has not been deployed, or the deployed bridge version differs from the package bridge version. Run `Auto Setup`, then restart the affected MCP client session so it loads the current bridge.
 
 Package path:
 
