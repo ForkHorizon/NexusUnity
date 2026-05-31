@@ -4,6 +4,8 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-31
+
 ### Added
 - GitHub funding metadata now configures the repository Sponsor button for `Daliys`.
 - MCP manager aliases for common raw-style action names such as `list_scenes`, `create_scene`, `create_gameobject`, `rename`, and tool-usage diagnostics.
