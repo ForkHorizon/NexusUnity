@@ -190,7 +190,7 @@ Before release, maintainers should run a public API stress audit that compares r
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, so the technical package version uses forms like `1.3.0`. GitHub release tags and titles use the shorter `v1.3` / `1.3` naming style when the patch component is zero.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.3.0` for the package version, `v1.3.0` for tags, and `1.3.0` for release titles.
 
 During normal development:
 
@@ -203,4 +203,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching short GitHub version, for example `v1.3` for package version `1.3.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.3.0` for package version `1.3.0`.

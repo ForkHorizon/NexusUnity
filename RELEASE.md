@@ -27,7 +27,7 @@ Use `CHANGELOG.md` as the source of truth during development:
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.3.0`. GitHub release tags, titles, and announcements use the shorter `v1.3` / `1.3` naming style when the patch number is zero.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.3.0`. GitHub release tags, titles, and announcements use the same semantic version: `v1.3.0` for tags and `1.3.0` for release titles.
 
 When preparing the release, choose the version by semantic versioning:
 
@@ -68,14 +68,14 @@ When preparing the release, choose the version by semantic versioning:
 
 ## Tagging
 
-Use a short GitHub release tag for zero-patch package releases:
+Use a semantic GitHub release tag matching the package version:
 
 ```bash
-git tag vX.Y
-git push origin vX.Y
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
-For non-zero patch releases, include the patch in the GitHub tag. Do not push tags until the public repository contents and release notes have been reviewed.
+The patch component is always included in public tags. Reserve patch bumps for urgent compatible fixes, and do not push tags until the public repository contents and release notes have been reviewed.
 
 ## Release Pull Request
 

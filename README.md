@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.3)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.3.0)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -32,7 +32,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.3
+https://github.com/ForkHorizon/NexusUnity.git#v1.3.0
 ```
 
 ## Start The Server
@@ -222,7 +222,7 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.3.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager requires semantic `MAJOR.MINOR.PATCH` versions such as `1.3.0`, while GitHub release tags use the shorter `v1.3` form when the patch component is zero. Use patch versions only for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.3.0` and `v1.3.0`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 
@@ -232,7 +232,7 @@ To support ongoing development, use the repository Sponsor button configured thr
 
 ## Release Notes
 
-The `1.3` release improves integration drift detection, clarifies bridge redeploy restart guidance, and restores Unity 6.3 editor compilation while keeping Unity 6.4 object identity support.
+The `1.3.0` release improves integration drift detection, clarifies bridge redeploy restart guidance, and restores Unity 6.3 editor compilation while keeping Unity 6.4 object identity support.
 
 The `1.2.0` release improves AI-driven scene building through manager aliases, richer primitive/material/transform actions, clearer invalid-action recovery, and stricter local/CI validation including checklist AI review and Unity package smoke tests.
 
