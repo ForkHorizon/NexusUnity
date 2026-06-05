@@ -116,6 +116,7 @@ The current development line preserves backward compatibility while correcting p
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
+- Unity 6.x compatibility is maintained across editor object identity API changes. External JSON payloads continue to use integer-shaped `instance_id` values, while Nexus maps them to `EntityId` internally and falls back to Unity 6.3-compatible hierarchy event and object-reference instance ID APIs when Unity 6.4+ members are unavailable.
 - `get_test_results`, scoped tool usage stats, and editor-window rect/snapshot automation are public raw diagnostics for agent-driven development.
 
 ## Recommended AI Workflow

@@ -32,6 +32,7 @@ All notable public changes to Nexus Unity are documented here.
 - The required `Documentation quality AI` CI job now validates both XML documentation quality and pull request checklist evidence while preserving the existing required status-check name.
 
 ### Fixed
+- Unity 6.3 editor compilation now works again by guarding Unity 6.4-only `EntityId` hierarchy event and serialized object-reference APIs behind 6.4+ fallbacks.
 - `write_file` and `write_files_batch` now create missing parent directories after path validation.
 
 ## [1.1.2] - 2026-05-23

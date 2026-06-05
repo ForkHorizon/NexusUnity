@@ -122,7 +122,7 @@ namespace UnityMCP.Editor
                                 {
                                     // If instance ID is non-zero, it means a reference WAS here.
                                     // If the objectReferenceValue is null, the target is missing/destroyed.
-                                    if (prop.objectReferenceEntityIdValue != default && prop.objectReferenceValue == null)
+                                    if (GetObjectReferenceId(prop) != default && prop.objectReferenceValue == null)
                                     {
                                         goIssues.Add(new JObject 
                                         { 
