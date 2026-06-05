@@ -7,7 +7,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `GPL-3.0-only`
-- Current public version: `1.2.0`
+- Current public version: `1.3.0`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning
@@ -27,7 +27,7 @@ Use `CHANGELOG.md` as the source of truth during development:
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`. Use full technical versions and tags such as `1.1.0` and `v1.1.0`, while GitHub release titles and announcements may use the shorter `1.1` naming style when the patch number is zero.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.3.0`. GitHub release tags, titles, and announcements use the shorter `v1.3` / `1.3` naming style when the patch number is zero.
 
 When preparing the release, choose the version by semantic versioning:
 
@@ -39,7 +39,7 @@ When preparing the release, choose the version by semantic versioning:
 
 1. Verify `Assets/NexusUnity/package.json`:
    - `name` is `com.forkhorizon.nexus.unity`.
-   - `version` matches the release tag.
+   - `version` matches the Unity package version, such as `1.3.0`.
    - `license` is `GPL-3.0-only`.
    - Repository, documentation, changelog, and license URLs point to the public repository.
 2. Verify docs:
@@ -68,14 +68,14 @@ When preparing the release, choose the version by semantic versioning:
 
 ## Tagging
 
-Use a semantic version tag matching `package.json`:
+Use a short GitHub release tag for zero-patch package releases:
 
 ```bash
-git tag vX.Y.Z
-git push origin vX.Y.Z
+git tag vX.Y
+git push origin vX.Y
 ```
 
-Do not push tags until the public repository contents and release notes have been reviewed.
+For non-zero patch releases, include the patch in the GitHub tag. Do not push tags until the public repository contents and release notes have been reviewed.
 
 ## Release Pull Request
 
@@ -85,7 +85,7 @@ Release changes flow through a final pull request into `main`.
 2. Confirm the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` checks pass on the self-hosted Mac runner.
 3. Resolve all review conversations.
 4. Merge the release PR manually.
-5. Create and push the matching semantic version tag.
+5. Create and push the matching GitHub release tag.
 
 ## Post-release Smoke Test
 
