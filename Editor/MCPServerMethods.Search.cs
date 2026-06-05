@@ -210,7 +210,7 @@ namespace UnityMCP.Editor
                                 enterChildren = false;
                                 if (prop.propertyType == SerializedPropertyType.ObjectReference)
                                 {
-                                    var propId = prop.objectReferenceEntityIdValue;
+                                    var propId = MCPServerMethods.GetObjectReferenceId(prop);
                                     var objRef = prop.objectReferenceValue;
                                     
                                     bool directMatch = targetInstanceIds.Contains(propId);

@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.2.0)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.3.0)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,7 +8,7 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.2.0`
+- Version: `1.3.0`
 - License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
@@ -32,7 +32,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.2.0
+https://github.com/ForkHorizon/NexusUnity.git#v1.3.0
 ```
 
 ## Start The Server
@@ -87,13 +87,15 @@ The Unity window can also deploy the bridge to the project root for CLIs that pr
 
 For Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or compatible MCP clients, open `Window > Nexus Unity` and use the `Integrations` tab.
 
-Each integration card shows `Detected`, `Not found`, `Configured`, or `Error` status and provides:
+Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, or `Error` status and provides:
 
 - `Auto Setup` when Nexus Unity can safely write or invoke the client configuration.
 - `Copy Config` for manual setup.
 - `Open Config` when the client uses a known config file path.
 
 Nexus Unity generates configs from the current `python3` path and deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
+
+`Outdated` means the client config points at a different Unity project, the project-root bridge has not been deployed, or the deployed bridge version differs from the package bridge version. Run `Auto Setup`, then restart the affected MCP client session so it loads the current bridge.
 
 Package path:
 
@@ -147,6 +149,7 @@ Current development keeps the public API backward-compatible while tightening sc
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is an optional positional JSON array.
 - `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
+- Unity 6.x editor identity differences are handled internally: Nexus keeps JSON `instance_id` values stable while using Unity 6.4+ `EntityId` APIs when available and Unity 6.3-compatible instance ID APIs otherwise.
 - `get_test_results` reads Unity `TestResults*.xml` summaries from the project root or Unity persistent data path; `unity_editor_controller` exposes `run_tests_wait` as a bridge-side polling workflow.
 - `get_tool_usage_stats` reports in-memory raw tool counts, durations, and errors since Unity domain load without storing request payloads; `reset_tool_usage_stats` clears that state for scoped diagnostics. Both are also available through `unity_editor_controller`.
 - `ui_get_window_rect`, `ui_set_window_rect`, and `ui_capture_window_snapshot` support automated layout checks for editor windows.
@@ -217,9 +220,9 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.2.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.3.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager requires semantic `MAJOR.MINOR.PATCH` versions, so release tags remain `v1.1.0`, `v1.2.0`, and so on even when the human-facing release name is shortened to `1.1` or `1.2`. Use patch versions only for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.3.0` and `v1.3.0`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 
@@ -228,6 +231,8 @@ Please use GitHub Issues for reproducible bugs and focused feature requests. Sec
 To support ongoing development, use the repository Sponsor button configured through GitHub Sponsors.
 
 ## Release Notes
+
+The `1.3.0` release improves integration drift detection, clarifies bridge redeploy restart guidance, and restores Unity 6.3 editor compilation while keeping Unity 6.4 object identity support.
 
 The `1.2.0` release improves AI-driven scene building through manager aliases, richer primitive/material/transform actions, clearer invalid-action recovery, and stricter local/CI validation including checklist AI review and Unity package smoke tests.
 

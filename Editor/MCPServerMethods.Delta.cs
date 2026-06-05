@@ -90,12 +90,18 @@ namespace UnityMCP.Editor
                     {
                         case ObjectChangeKind.CreateGameObjectHierarchy:
                             stream.GetCreateGameObjectHierarchyEvent(i, out var createEvt);
+#if UNITY_6000_4_OR_NEWER
                             var go = EditorUtility.EntityIdToObject(createEvt.entityId) as GameObject;
+                            int createdId = ConvertEntityIdToLegacyInt(createEvt.entityId);
+#else
+                            var go = IdToObject(ConvertLegacyIntToEntityId(createEvt.instanceId)) as GameObject;
+                            int createdId = createEvt.instanceId;
+#endif
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "CreateGameObject",
-                                instanceId = ConvertEntityIdToLegacyInt(createEvt.entityId),
+                                instanceId = createdId,
                                 name = go != null ? go.name : "Unknown",
                                 timestamp = timestamp
                             };
@@ -103,11 +109,16 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.DestroyGameObjectHierarchy:
                             stream.GetDestroyGameObjectHierarchyEvent(i, out var destroyEvt);
+#if UNITY_6000_4_OR_NEWER
+                            int destroyedId = ConvertEntityIdToLegacyInt(destroyEvt.entityId);
+#else
+                            int destroyedId = destroyEvt.instanceId;
+#endif
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "DestroyGameObject",
-                                instanceId = ConvertEntityIdToLegacyInt(destroyEvt.entityId),
+                                instanceId = destroyedId,
                                 name = "DestroyedObject", // Name not available in event args
                                 timestamp = timestamp
                             };
@@ -115,13 +126,21 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.ChangeGameObjectParent:
                             stream.GetChangeGameObjectParentEvent(i, out var parentEvt);
+#if UNITY_6000_4_OR_NEWER
                             var movedGo = EditorUtility.EntityIdToObject(parentEvt.entityId) as GameObject;
+                            int movedId = ConvertEntityIdToLegacyInt(parentEvt.entityId);
+                            int newParentId = ConvertEntityIdToLegacyInt(parentEvt.newParentEntityId);
+#else
+                            var movedGo = IdToObject(ConvertLegacyIntToEntityId(parentEvt.instanceId)) as GameObject;
+                            int movedId = parentEvt.instanceId;
+                            int newParentId = parentEvt.newParentInstanceId;
+#endif
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "ReparentGameObject",
-                                instanceId = ConvertEntityIdToLegacyInt(parentEvt.entityId),
-                                parentId = ConvertEntityIdToLegacyInt(parentEvt.newParentEntityId),
+                                instanceId = movedId,
+                                parentId = newParentId,
                                 name = movedGo != null ? movedGo.name : "Unknown",
                                 timestamp = timestamp
                             };
@@ -129,12 +148,18 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.ChangeGameObjectOrComponentProperties:
                             stream.GetChangeGameObjectOrComponentPropertiesEvent(i, out var changePropEvt);
+#if UNITY_6000_4_OR_NEWER
                             var changedObj = EditorUtility.EntityIdToObject(changePropEvt.entityId);
+                            int changedId = ConvertEntityIdToLegacyInt(changePropEvt.entityId);
+#else
+                            var changedObj = IdToObject(ConvertLegacyIntToEntityId(changePropEvt.instanceId));
+                            int changedId = changePropEvt.instanceId;
+#endif
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "PropertiesChanged",
-                                instanceId = ConvertEntityIdToLegacyInt(changePropEvt.entityId),
+                                instanceId = changedId,
                                 name = changedObj != null ? changedObj.name : "Unknown",
                                 timestamp = timestamp
                             };
@@ -142,12 +167,18 @@ namespace UnityMCP.Editor
 
                         case ObjectChangeKind.ChangeChildrenOrder:
                             stream.GetChangeChildrenOrderEvent(i, out var orderEvt);
+#if UNITY_6000_4_OR_NEWER
                             var parentObj = EditorUtility.EntityIdToObject(orderEvt.entityId);
+                            int orderId = ConvertEntityIdToLegacyInt(orderEvt.entityId);
+#else
+                            var parentObj = IdToObject(ConvertLegacyIntToEntityId(orderEvt.instanceId));
+                            int orderId = orderEvt.instanceId;
+#endif
                             evt = new SceneChangeEvent
                             {
                                 id = ++_deltaCounter,
                                 type = "ChildrenOrderChanged",
-                                instanceId = ConvertEntityIdToLegacyInt(orderEvt.entityId),
+                                instanceId = orderId,
                                 name = parentObj != null ? parentObj.name : "Unknown",
                                 timestamp = timestamp
                             };

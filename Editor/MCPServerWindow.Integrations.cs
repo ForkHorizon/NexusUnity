@@ -132,6 +132,10 @@ namespace UnityMCP.Editor
             {
                 message += " Backup: " + result.BackupPath;
             }
+            if (result.Success)
+            {
+                message += " Restart " + refreshed.DisplayName + " sessions to use the redeployed bridge.";
+            }
 
             ShowNotification(new GUIContent(result.Success ? "Integration updated" : "Integration failed"));
             DrawIntegrationsTabRefresh();
@@ -190,6 +194,7 @@ namespace UnityMCP.Editor
             {
                 case NexusMcpClientStatus.Configured: return new Color(0.12f, 0.62f, 0.22f);
                 case NexusMcpClientStatus.Detected: return new Color(0.12f, 0.50f, 0.72f);
+                case NexusMcpClientStatus.Outdated: return new Color(0.92f, 0.45f, 0.12f);
                 case NexusMcpClientStatus.NeedsRestart: return new Color(0.92f, 0.66f, 0.12f);
                 case NexusMcpClientStatus.Error: return new Color(0.78f, 0.18f, 0.18f);
                 default: return new Color(0.46f, 0.46f, 0.46f);
@@ -201,6 +206,7 @@ namespace UnityMCP.Editor
             switch (status)
             {
                 case NexusMcpClientStatus.NotFound: return "Not found";
+                case NexusMcpClientStatus.Outdated: return "Outdated";
                 case NexusMcpClientStatus.NeedsRestart: return "Needs restart";
                 default: return status.ToString();
             }

@@ -24,5 +24,10 @@ namespace UnityMCP.Editor
         {
             return Path.Combine(GetProjectRootForUi(), "nexus_unity_bridge.py");
         }
+
+        internal static string GetSourceBridgePathForUi()
+        {
+            return FindBridgeScript();
+        }
     }
 }

@@ -79,17 +79,17 @@ namespace UnityMCP.Editor
             var section = NexusEditorUi.Section("Bridge", "Stable files used by external MCP clients.", "NexusBridgeSection");
             var panel = NexusEditorUi.Panel("NexusBridgePanel");
 
-            _bridgePathLabel = NexusEditorUi.Label("Bridge path: " + MCPCliInstaller.GetDefaultBridgePathForUi(), 11, false, null, "NexusBridgePathLabel");
+            _bridgePathLabel = NexusEditorUi.Label(GetBridgePathSummary(), 11, false, null, "NexusBridgePathLabel");
             _bridgePathLabel.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_bridgePathLabel);
 
             var actions = NexusEditorUi.Row(true, "NexusBridgeActions");
             actions.Add(NexusEditorUi.Button("Deploy Bridge", () =>
             {
-                if (MCPCliInstaller.DeployBridgeForUi(out string path))
+                if (MCPCliInstaller.DeployBridgeForUi(out string _))
                 {
                     ShowNotification(new GUIContent("Bridge deployed"));
-                    _bridgePathLabel.text = "Bridge path: " + path;
+                    _bridgePathLabel.text = GetBridgePathSummary();
                 }
                 UpdateDynamicState();
             }, "Copy the MCP bridge script and support module to the project root", false, "NexusDeployBridgeButton"));
@@ -148,7 +148,7 @@ namespace UnityMCP.Editor
             if (_sessionLabel != null) _sessionLabel.text = $"Session: {GetShortSessionId()}";
             if (_editorStateLabel != null) _editorStateLabel.text = $"Editor: {GetEditorStateText()}";
             if (_serverHealthLabel != null) _serverHealthLabel.text = GetServerHealthText();
-            if (_bridgePathLabel != null) _bridgePathLabel.text = "Bridge path: " + MCPCliInstaller.GetDefaultBridgePathForUi();
+            if (_bridgePathLabel != null) _bridgePathLabel.text = GetBridgePathSummary();
 
             bool hasError = MCPServer.State == ServerState.Error && !string.IsNullOrEmpty(MCPServer.LastError);
             if (_errorLabel != null)
@@ -170,6 +170,13 @@ namespace UnityMCP.Editor
             if (MCPServer.State == ServerState.Starting) return "Health: Starting listener.";
             if (MCPServer.State == ServerState.Error) return "Health: Error. Check Console logs.";
             return "Health: Stopped. Start the server before connecting a client.";
+        }
+
+        private static string GetBridgePathSummary()
+        {
+            return NexusMcpConfigGenerator.GetBridgeDeploymentSummary(
+                MCPCliInstaller.GetDefaultBridgePathForUi(),
+                MCPCliInstaller.GetSourceBridgePathForUi());
         }
 
         private static Color GetStateColor(ServerState state)

@@ -4,6 +4,18 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-05
+
+### Added
+- Integration cards now detect stale project-root MCP bridge deployments and client configs that point at a different Unity project.
+
+### Changed
+- The Server tab bridge summary now shows the deployed bridge version and flags package/deployed bridge mismatches.
+- Integration setup success messages now explicitly tell users to restart the affected MCP client session after redeploying the bridge.
+
+### Fixed
+- Unity 6.3 editor compilation now works again by guarding Unity 6.4-only `EntityId` hierarchy event and serialized object-reference APIs behind 6.4+ fallbacks.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added

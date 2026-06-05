@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.2.0`
+Version: `1.3.0`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -41,6 +41,8 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 ## MCP Client Configuration
 
 The `Integrations` tab builds all snippets from the active `python3` executable and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
+
+Integration status checks compare the package bridge with the project-root deployed bridge and the client config path. A card reports `Outdated` when the config points at another Unity project, the deployed bridge is missing, or the deployed bridge version differs from the package bridge version. Running `Auto Setup` redeploys `nexus_unity_bridge.py` plus `nexus_bridge/`, rewrites the client entry, and requires restarting the external MCP client session.
 
 When Nexus Unity writes an existing user or project config, it preserves unrelated server entries and creates a timestamped backup next to the original file.
 
@@ -114,6 +116,7 @@ The current development line preserves backward compatibility while correcting p
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
+- Unity 6.x compatibility is maintained across editor object identity API changes. External JSON payloads continue to use integer-shaped `instance_id` values, while Nexus maps them to `EntityId` internally and falls back to Unity 6.3-compatible hierarchy event and object-reference instance ID APIs when Unity 6.4+ members are unavailable.
 - `get_test_results`, scoped tool usage stats, and editor-window rect/snapshot automation are public raw diagnostics for agent-driven development.
 
 ## Recommended AI Workflow
@@ -176,7 +179,7 @@ Before release, maintainers should run a public API stress audit that compares r
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.2.0`.
+- Public release version: `1.3.0`.
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -187,12 +190,12 @@ Before release, maintainers should run a public API stress audit that compares r
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, so the technical package version and git tag use forms like `1.1.0` and `v1.1.0`. Release titles and user-facing copy can use the shorter `1.1`, `1.2`, `1.3` naming style when the patch component is zero.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.3.0` for the package version, `v1.3.0` for tags, and `1.3.0` for release titles.
 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.2.0` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.3.0` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
@@ -200,4 +203,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the same version, for example `v1.1.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.3.0` for package version `1.3.0`.
