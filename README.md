@@ -12,6 +12,16 @@ Nexus Unity is an open source Unity Editor automation package. It runs a local J
 - License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
+## Status
+
+Active public release. Current version: `1.3.0`.
+
+The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
+
+## Screenshot / Demo
+
+Open `Window > Nexus Unity` in the Unity Editor to use the server, integrations, resources, and settings tabs. Public UI screenshots are not committed yet; the current workflow is documented in this README, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
+
 ## Requirements
 
 - Unity `6000.0` or newer.
