@@ -1,29 +1,39 @@
+"""Tool-call routing for the NexusUnity Python bridge.
+
+:func:`route_tool` is the single dispatch entry point: given a tool name (with
+the ``unity_`` prefix already stripped) and an arguments dict, it forwards the
+call to the appropriate Unity JSON-RPC method via :func:`.client.call_unity`.
+"""
+from __future__ import annotations
+
 import time
-from .client import call_unity, log
+from typing import Any
+
+from .client import call_unity, logger
 from .schemas import STATIC_TOOLS
 
 
-def _compact(params):
+def _compact(params: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in params.items() if value is not None}
 
 
-def _alias(action, aliases):
-    return aliases.get(action, action)
+def _alias(action: str | None, aliases: dict[str, str]) -> str | None:
+    return aliases.get(action, action) if action is not None else None
 
 
-def _invalid_action(action, valid_actions):
+def _invalid_action(action: str | None, valid_actions: list[str]) -> dict[str, Any]:
     valid = ", ".join(valid_actions)
     return {"error": {"code": -32602, "message": f"Invalid action: {action}. Valid actions: {valid}"}}
 
 
-def _transform_params(args, instance_id=None):
-    params = {"instance_id": instance_id if instance_id is not None else args.get("instance_id")}
+def _transform_params(args: dict[str, Any], instance_id: int | None = None) -> dict[str, Any]:
+    params: dict[str, Any] = {"instance_id": instance_id if instance_id is not None else args.get("instance_id")}
     for key in ["position", "rotation", "scale", "eulerAngles", "localScale"]:
         params[key] = args.get(key)
     return _compact(params)
 
 
-def _extract_created_instance_id(response):
+def _extract_created_instance_id(response: dict[str, Any]) -> int | None:
     if not isinstance(response, dict) or "error" in response:
         return None
     result = response.get("result", {})
@@ -31,7 +41,7 @@ def _extract_created_instance_id(response):
     return data.get("instance_id") if isinstance(data, dict) else None
 
 
-def _apply_created_transform(response, args):
+def _apply_created_transform(response: dict[str, Any], args: dict[str, Any]) -> dict[str, Any]:
     instance_id = _extract_created_instance_id(response)
     if not instance_id:
         return response
@@ -44,7 +54,7 @@ def _apply_created_transform(response, args):
     return response
 
 
-def _run_tests_wait(args):
+def _run_tests_wait(args: dict[str, Any]) -> dict[str, Any]:
     timeout = args.get("timeout_seconds", 180)
     poll_interval = args.get("poll_interval_seconds", 1.0)
     start_time = time.time()
@@ -88,7 +98,7 @@ def _run_tests_wait(args):
     }
 
 
-def route_tool(name, args):
+def route_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
     if name in ["tools/list", "list_tools", "listTools"]:
         return {"result": {"tools": STATIC_TOOLS}}
 
