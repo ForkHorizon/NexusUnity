@@ -20,24 +20,11 @@ The public API is maintained for local Unity Editor automation workflows, while 
 
 ## Screenshot / Demo
 
-<table>
-  <tr>
-    <td width="50%">
-      <a href="https://www.youtube.com/watch?v=zapydBzRzkE">
-        <img src="docs/assets/nexus-unity-demo-8s.gif" alt="Nexus Unity demo: AI agent building and iterating in the Unity Editor">
-      </a>
-      <br>
-      <sub>8-second README preview</sub>
-    </td>
-    <td width="50%">
-      <a href="https://www.youtube.com/watch?v=zapydBzRzkE">
-        <img src="https://img.youtube.com/vi/zapydBzRzkE/maxresdefault.jpg" alt="Watch the full Nexus Unity demo on YouTube">
-      </a>
-      <br>
-      <sub>Watch the full Nexus Unity demo on YouTube</sub>
-    </td>
-  </tr>
-</table>
+Click the preview below to watch the full 98-second Nexus Unity demo on YouTube.
+
+[![Nexus Unity demo: AI agent building and iterating in the Unity Editor](docs/assets/nexus-unity-demo-8s.gif)](https://www.youtube.com/watch?v=zapydBzRzkE)
+
+**[Watch the full 98-second Nexus Unity demo on YouTube](https://www.youtube.com/watch?v=zapydBzRzkE)**
 
 Open `Window > Nexus Unity` in the Unity Editor to use the server, integrations, resources, and settings tabs. The demo shows an AI agent using Nexus Unity to create a scene, inspect editor feedback, generate code, and iterate inside the Unity Editor.
 
