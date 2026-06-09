@@ -18,7 +18,7 @@ def _compact(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def _alias(action: str | None, aliases: dict[str, str]) -> str | None:
-    return aliases.get(action, action) if action is not None else None
+    return aliases.get(action, action)  # type: ignore[arg-type]
 
 
 def _invalid_action(action: str | None, valid_actions: list[str]) -> dict[str, Any]:

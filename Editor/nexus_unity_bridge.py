@@ -36,7 +36,12 @@ def consume_positional_port_arg() -> None:
 
 consume_positional_port_arg()
 
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format="DEBUG: %(message)s")
+_log_level = os.environ.get("NEXUS_UNITY_LOG_LEVEL", "DEBUG").upper()
+logging.basicConfig(
+    stream=sys.stderr,
+    level=getattr(logging, _log_level, logging.DEBUG),
+    format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+)
 
 from nexus_bridge.schemas import STATIC_TOOLS, STATIC_RESOURCES
 from nexus_bridge.routing import route_tool
