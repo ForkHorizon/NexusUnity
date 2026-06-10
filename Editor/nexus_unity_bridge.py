@@ -1,18 +1,28 @@
 #!/usr/bin/env python3
+"""Entry point for the NexusUnity MCP/CLI bridge.
+
+Supports two modes:
+
+* **CLI mode** — invoked as ``nexus_unity_bridge.py <tool_name> [key=value …]``;
+  calls the tool and prints the JSON result to stdout.
+* **MCP mode** — reads newline-delimited JSON-RPC 2.0 requests from stdin and
+  writes responses to stdout, acting as a stdio MCP server.
+"""
 import sys
 sys.dont_write_bytecode = True
 
 import json
+import logging
 import os
-import time
 import threading
+import time
 
 # Ensure the Editor directory is in sys.path so we can import the module locally
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
-def consume_positional_port_arg():
+def consume_positional_port_arg() -> None:
     if len(sys.argv) <= 1:
         return
 
@@ -26,25 +36,32 @@ def consume_positional_port_arg():
 
 consume_positional_port_arg()
 
-from nexus_bridge.schemas import STATIC_TOOLS
+_log_level = os.environ.get("NEXUS_UNITY_LOG_LEVEL", "DEBUG").upper()
+logging.basicConfig(
+    stream=sys.stderr,
+    level=getattr(logging, _log_level, logging.DEBUG),
+    format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+)
+
+from nexus_bridge.schemas import STATIC_TOOLS, STATIC_RESOURCES
 from nexus_bridge.routing import route_tool
-from nexus_bridge.client import log
+from nexus_bridge.client import logger
 
 PARENT_PID = os.getppid()
 
-def orphan_monitor():
+def orphan_monitor() -> None:
     """Monitor if the parent process (AI CLI) is still alive."""
     while True:
         try:
             # os.getppid() returns 1 if the parent has died (on Unix)
             if os.getppid() != PARENT_PID or os.getppid() == 1:
-                log("Parent process died. Shutting down bridge.")
+                logger.info("Parent process died. Shutting down bridge.")
                 os._exit(0)
-        except:
+        except OSError:
             os._exit(0)
         time.sleep(5)
 
-def main():
+def main() -> None:
     # Start orphan monitor thread
     threading.Thread(target=orphan_monitor, daemon=True).start()
 
@@ -56,20 +73,22 @@ def main():
             if "=" in arg:
                 key, val = arg.split("=", 1)
                 # Try to parse as JSON if it looks like it, otherwise keep as string
-                try: args[key] = json.loads(val)
-                except: args[key] = val
+                try:
+                    args[key] = json.loads(val)
+                except (json.JSONDecodeError, ValueError):
+                    args[key] = val
         
-        log(f"CLI Mode: Calling {method} with {args}")
+        logger.debug("CLI Mode: Calling %s with %s", method, args)
         print(json.dumps(route_tool(method, args), indent=2))
         return
 
     # MCP Mode: JSON-RPC 2.0 over Stdin/Stdout
-    log(f"NexusUnity Bridge started (Parent PID: {PARENT_PID})")
+    logger.info("NexusUnity Bridge started (Parent PID: %s)", PARENT_PID)
     
     while True:
         line = sys.stdin.readline()
         if not line:
-            log("Stdin closed. Shutting down bridge.")
+            logger.info("Stdin closed. Shutting down bridge.")
             break
 
         try:
@@ -87,11 +106,7 @@ def main():
             elif method in ["tools/list", "listTools", "list_tools"]:
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
             elif method in ["resources/list", "listResources"]:
-                resources = [
-                    {"uri": "unity://docs/api-reference", "name": "API Reference", "mimeType": "text/markdown"},
-                    {"uri": "unity://docs/setup", "name": "Setup Guide", "mimeType": "text/markdown"}
-                ]
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": resources}}
+                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": STATIC_RESOURCES}}
             elif method in ["tools/call", "callTool"]:
                 params = request.get("params", {})
                 name = params.get("name", "").replace("unity_", "")
@@ -118,7 +133,7 @@ def main():
             sys.stdout.write(json.dumps(response) + "\n")
             sys.stdout.flush()
         except Exception as e:
-            log(f"Error in bridge loop: {str(e)}")
+            logger.error("Error in bridge loop: %s", e)
 
 if __name__ == "__main__":
     main()
