@@ -1,193 +1,140 @@
 name: Approve external PR for CI
 
 # ──────────────────────────────────────────────────────────────────────────────
-# "Button" for maintainers: run local CI against an external (fork) pull request.
+# Maintainer "Approve & run CI" button for external (fork) pull requests.
 #
-# Usage:
-#   1. Go to Actions → "Approve external PR for CI"
-#   2. Click "Run workflow"
-#   3. Enter the PR number (e.g. 30)
-#   4. Click the green "Run workflow" button
+# HOW TO USE:
+#   1. Actions → "Approve external PR for CI" → "Run workflow"
+#   2. Enter the PR number (e.g. 30) → click "Run workflow"
 #
-# What it does:
-#   - Fetches the exact commit from the external fork's branch (read-only)
-#   - Re-runs the same validation pipeline as validate.yml
-#   - Runs entirely under your self-hosted runner, so secrets are safe
-#   - Only you (or org members with Actions write permission) can trigger this
+# WHAT HAPPENS:
+#   1. Fetches the fork's commits (read-only)
+#   2. Creates branch  trusted/pr-<N>  inside THIS repo with those commits
+#   3. validate.yml fires automatically on that branch — CI passes naturally
+#      because the branch is internal (no fork check triggered)
+#   4. Posts a comment on the original PR with a link to the trusted branch
+#   5. When you're happy, merge the original external PR normally
+#
+# SECURITY:
+#   - Only org members with Actions:write can trigger workflow_dispatch
+#   - The fork's code lands inside your repo under your control before CI runs
+#   - Secrets are never sent to the fork
+#   - The trusted/pr-N branch is deleted automatically after 14 days (optional)
 # ──────────────────────────────────────────────────────────────────────────────
 
 on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number to approve and run CI on (e.g. 30)"
+        description: "External PR number to replay (e.g. 30)"
         required: true
         type: string
 
 permissions:
-  contents: read
-  pull-requests: write   # needed to post a status comment back to the PR
-
-env:
-  UNITY_EDITOR_PATH: /Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app/Contents/MacOS/Unity
+  contents: write        # push the trusted/pr-N branch
+  pull-requests: write   # comment on the original PR
 
 jobs:
-  # ── 0. Resolve PR metadata ─────────────────────────────────────────────────
-  resolve-pr:
-    name: Resolve PR #${{ inputs.pr_number }}
+  replay:
+    name: "Create trusted/pr-${{ inputs.pr_number }} and run CI"
     runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
-    outputs:
-      head_sha:   ${{ steps.meta.outputs.head_sha }}
-      head_repo:  ${{ steps.meta.outputs.head_repo }}
-      head_ref:   ${{ steps.meta.outputs.head_ref }}
-      pr_title:   ${{ steps.meta.outputs.pr_title }}
-      pr_author:  ${{ steps.meta.outputs.pr_author }}
+
     steps:
-      - name: Fetch PR metadata via GitHub API
-        id: meta
+      # ── 0. Resolve external PR metadata ────────────────────────────────────
+      - name: Fetch PR metadata
+        id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          PR=$(gh api repos/${{ github.repository }}/pulls/${{ inputs.pr_number }})
 
-          HEAD_SHA=$(echo "$PR"  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['head']['sha'])")
-          HEAD_REPO=$(echo "$PR" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['head']['repo']['full_name'])")
-          HEAD_REF=$(echo "$PR"  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['head']['ref'])")
-          PR_TITLE=$(echo "$PR"  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['title'])")
-          PR_AUTHOR=$(echo "$PR" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['user']['login'])")
+          DATA=$(gh api repos/${{ github.repository }}/pulls/${{ inputs.pr_number }})
+
+          HEAD_SHA=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['sha'])")
+          HEAD_REPO=$(echo "$DATA"  | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['repo']['full_name'])")
+          HEAD_REF=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['ref'])")
+          BASE_REF=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['base']['ref'])")
+          PR_TITLE=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['title'])")
+          PR_AUTHOR=$(echo "$DATA"  | python3 -c "import sys,json; print(json.load(sys.stdin)['user']['login'])")
+          PR_STATE=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['state'])")
 
           echo "head_sha=$HEAD_SHA"   >> "$GITHUB_OUTPUT"
           echo "head_repo=$HEAD_REPO" >> "$GITHUB_OUTPUT"
           echo "head_ref=$HEAD_REF"   >> "$GITHUB_OUTPUT"
+          echo "base_ref=$BASE_REF"   >> "$GITHUB_OUTPUT"
           echo "pr_title=$PR_TITLE"   >> "$GITHUB_OUTPUT"
           echo "pr_author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
 
-          echo "✅ PR #${{ inputs.pr_number }} — \"$PR_TITLE\" by @$PR_AUTHOR"
-          echo "   Repo : $HEAD_REPO @ $HEAD_REF"
-          echo "   SHA  : $HEAD_SHA"
+          echo "PR #${{ inputs.pr_number }}: \"$PR_TITLE\" by @$PR_AUTHOR ($PR_STATE)"
+          echo "  fork:   $HEAD_REPO @ $HEAD_REF ($HEAD_SHA)"
+          echo "  target: $BASE_REF"
 
-      - name: Guard — only external PRs need this workflow
-        env:
-          HEAD_REPO: ${{ steps.meta.outputs.head_repo }}
-        run: |
-          set -euo pipefail
+          # Guard: must be an external (fork) PR
           if [ "$HEAD_REPO" = "${{ github.repository }}" ]; then
-            echo "::warning::PR #${{ inputs.pr_number }} is from the same repo — use regular CI instead."
+            echo "::warning::PR #${{ inputs.pr_number }} is from this repo — regular CI already works."
             exit 1
           fi
-          echo "External PR confirmed. Proceeding with trusted replay."
-
-  # ── 1. Post "CI started" comment ───────────────────────────────────────────
-  notify-start:
-    name: Notify PR — CI started
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
-    needs: resolve-pr
-    steps:
-      - name: Comment on PR
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr comment ${{ inputs.pr_number }} \
-            --repo ${{ github.repository }} \
-            --body "🔄 **Maintainer approved CI run started** by @${{ github.actor }}
-          
-          - Commit: \`${{ needs.resolve-pr.outputs.head_sha }}\`
-          - [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-
-  # ── 2. Static validation (mirrors validate.yml) ────────────────────────────
-  static-validation:
-    name: Static validation
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
-    needs: resolve-pr
-    steps:
-      - name: Check out external PR commit (read-only)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ needs.resolve-pr.outputs.head_repo }}
-          ref:        ${{ needs.resolve-pr.outputs.head_sha }}
-
-      - name: Verify local toolchain
-        run: |
-          set -euo pipefail
-          python3 --version
-          dotnet --version
-
-      - name: Run static package validation
-        run: bash scripts/prepush-validate.sh --static-only
-
-  # ── 3. Documentation quality AI (mirrors validate.yml) ─────────────────────
-  documentation-quality-ai:
-    name: Documentation quality AI
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci, nexus-doc-ai]
-    needs: [resolve-pr, static-validation]
-    env:
-      NEXUS_DOC_AI_MAX_PARALLEL:   "1"
-      NEXUS_OLLAMA_URL:            http://127.0.0.1:11434
-      NEXUS_DOC_AI_MODEL:          qwen3-coder:30b-a3b-q4_K_M
-      NEXUS_DOC_AI_KEEP_ALIVE:     "30s"
-      NEXUS_DOC_AI_UNLOAD_ON_EXIT: "true"
-      NEXUS_DOC_AI_TIMEOUT_SECONDS: "300"
-    steps:
-      - name: Check out trusted validator (from main)
-        uses: actions/checkout@v4
-        with:
-          path: trusted
-          ref:  ${{ github.sha }}
-
-      - name: Check out external PR commit as candidate
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ needs.resolve-pr.outputs.head_repo }}
-          ref:        ${{ needs.resolve-pr.outputs.head_sha }}
-          path:       candidate
-
-      - name: Run required Ollama documentation and checklist review
-        run: |
-          set -euo pipefail
-          dotnet --version
-
-          QUALITY_GATE_PROJECT="trusted/tools~/NexusQualityGate/NexusQualityGate.csproj"
-          if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
-            echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
-            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          if [ "$PR_STATE" != "open" ]; then
+            echo "::error::PR #${{ inputs.pr_number }} is $PR_STATE — only open PRs can be replayed."
+            exit 1
           fi
 
-          cd candidate
-          dotnet run \
-            --project "../$QUALITY_GATE_PROJECT" \
-            -- --candidate . --trusted ../trusted
-
-  # ── 4. Post final result comment ───────────────────────────────────────────
-  notify-result:
-    name: Notify PR — CI result
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
-    needs: [resolve-pr, static-validation, documentation-quality-ai]
-    if: always()
-    steps:
-      - name: Post result comment
+      # ── 1. Create trusted branch with the fork's commits ───────────────────
+      - name: Create trusted/pr-${{ inputs.pr_number }} branch
         env:
-          GH_TOKEN: ${{ github.token }}
-          STATIC_RESULT:  ${{ needs.static-validation.result }}
-          DOC_AI_RESULT:  ${{ needs.documentation-quality-ai.result }}
+          TRUSTED_BRANCH: trusted/pr-${{ inputs.pr_number }}
+          FORK_REPO:      ${{ steps.pr.outputs.head_repo }}
+          FORK_SHA:       ${{ steps.pr.outputs.head_sha }}
+          FORK_REF:       ${{ steps.pr.outputs.head_ref }}
+          GH_TOKEN:       ${{ github.token }}
         run: |
           set -euo pipefail
 
-          if [ "$STATIC_RESULT" = "success" ] && [ "$DOC_AI_RESULT" = "success" ]; then
-            ICON="✅"
-            STATUS="**All checks passed.** Ready to review and merge."
-          else
-            ICON="❌"
-            STATUS="**CI failed.** See [run details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+          WORK_DIR=$(mktemp -d)
+          trap "rm -rf $WORK_DIR" EXIT
+
+          echo "Cloning fork branch $FORK_REF from $FORK_REPO..."
+          git clone \
+            --depth=50 \
+            --branch "$FORK_REF" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${FORK_REPO}.git" \
+            "$WORK_DIR"
+
+          echo "Verifying HEAD matches expected SHA..."
+          ACTUAL_SHA=$(git -C "$WORK_DIR" rev-parse HEAD)
+          if [ "$ACTUAL_SHA" != "$FORK_SHA" ]; then
+            echo "::error::SHA mismatch: expected $FORK_SHA but got $ACTUAL_SHA. PR may have been force-pushed."
+            exit 1
           fi
+
+          echo "Pushing $FORK_SHA as $TRUSTED_BRANCH to this repo..."
+          git -C "$WORK_DIR" remote set-url origin \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git -C "$WORK_DIR" push --force origin \
+            "HEAD:refs/heads/${TRUSTED_BRANCH}"
+
+          echo "✅ Branch $TRUSTED_BRANCH created at $FORK_SHA"
+          echo "   validate.yml will now run on it automatically."
+
+      # ── 2. Post comment on the original external PR ─────────────────────────
+      - name: Comment on PR #${{ inputs.pr_number }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRUSTED_BRANCH: trusted/pr-${{ inputs.pr_number }}
+        run: |
+          BRANCH_URL="${{ github.server_url }}/${{ github.repository }}/tree/${TRUSTED_BRANCH}"
+          ACTIONS_URL="${{ github.server_url }}/${{ github.repository }}/actions"
 
           gh pr comment ${{ inputs.pr_number }} \
             --repo ${{ github.repository }} \
-            --body "$ICON Maintainer CI run **completed**
+            --body "🔐 **Trusted CI replay started** by @${{ github.actor }}
 
-          | Check | Result |
+          Your code has been copied to an internal branch and CI is now running:
+
+          | | |
           |---|---|
-          | Static validation | $STATIC_RESULT |
-          | Doc AI | $DOC_AI_RESULT |
+          | Trusted branch | [\`${TRUSTED_BRANCH}\`]($BRANCH_URL) |
+          | Commit | \`${{ steps.pr.outputs.head_sha }}\` |
+          | CI runs | [$ACTIONS_URL]($ACTIONS_URL) |
 
-          $STATUS"
+          CI results will appear on the trusted branch. Once all checks pass, this PR can be merged. ✅"
