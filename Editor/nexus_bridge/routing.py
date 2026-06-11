@@ -1,29 +1,40 @@
+"""Tool-call routing for the NexusUnity Python bridge.
+
+:func:`route_tool` is the single dispatch entry point: given a tool name (with
+the ``unity_`` prefix already stripped) and an arguments dict, it forwards the
+call to the appropriate Unity JSON-RPC method via :func:`.client.call_unity`.
+"""
+from __future__ import annotations
+
 import time
-from .client import call_unity, log
+from typing import Any
+
+from ._logging import logger
+from ._transport import call_unity
 from .schemas import STATIC_TOOLS
 
 
-def _compact(params):
+def _compact(params: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in params.items() if value is not None}
 
 
-def _alias(action, aliases):
-    return aliases.get(action, action)
+def _alias(action: str | None, aliases: dict[str, str]) -> str | None:
+    return aliases.get(action, action)  # type: ignore[arg-type]
 
 
-def _invalid_action(action, valid_actions):
+def _invalid_action(action: str | None, valid_actions: list[str]) -> dict[str, Any]:
     valid = ", ".join(valid_actions)
     return {"error": {"code": -32602, "message": f"Invalid action: {action}. Valid actions: {valid}"}}
 
 
-def _transform_params(args, instance_id=None):
-    params = {"instance_id": instance_id if instance_id is not None else args.get("instance_id")}
+def _transform_params(args: dict[str, Any], instance_id: int | None = None) -> dict[str, Any]:
+    params: dict[str, Any] = {"instance_id": instance_id if instance_id is not None else args.get("instance_id")}
     for key in ["position", "rotation", "scale", "eulerAngles", "localScale"]:
         params[key] = args.get(key)
     return _compact(params)
 
 
-def _extract_created_instance_id(response):
+def _extract_created_instance_id(response: dict[str, Any]) -> int | None:
     if not isinstance(response, dict) or "error" in response:
         return None
     result = response.get("result", {})
@@ -31,7 +42,7 @@ def _extract_created_instance_id(response):
     return data.get("instance_id") if isinstance(data, dict) else None
 
 
-def _apply_created_transform(response, args):
+def _apply_created_transform(response: dict[str, Any], args: dict[str, Any]) -> dict[str, Any]:
     instance_id = _extract_created_instance_id(response)
     if not instance_id:
         return response
@@ -44,7 +55,7 @@ def _apply_created_transform(response, args):
     return response
 
 
-def _run_tests_wait(args):
+def _run_tests_wait(args: dict[str, Any]) -> dict[str, Any]:
     timeout = args.get("timeout_seconds", 180)
     poll_interval = args.get("poll_interval_seconds", 1.0)
     start_time = time.time()
@@ -88,61 +99,75 @@ def _run_tests_wait(args):
     }
 
 
-def route_tool(name, args):
+def _wait_for_compilation(timeout: float, start_time: float | None = None) -> dict[str, Any]:
+    start_time = time.time() if start_time is None else start_time
+    status: str = "Ready"
+
+    reload_started: bool = False
+    while time.time() - start_time < 20:
+        res: dict[str, Any] = call_unity("initialize")
+        if res is None or "error" in res:
+            reload_started = True
+            break
+        time.sleep(0.5)
+
+    if not reload_started:
+        call_unity("refresh_asset_database")
+
+    while time.time() - start_time < timeout:
+        res = call_unity("initialize")
+        if res and "result" in res:
+            time.sleep(2.0)
+            state: dict[str, Any] = call_unity("get_editor_state")
+            if state and "result" in state:
+                if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
+                    break
+        time.sleep(1.0)
+    else:
+        status = "Timeout"
+
+    return {
+        "result": {
+            "status": status,
+            "time_waited_seconds": round(time.time() - start_time, 2),
+        }
+    }
+
+
+def route_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
     if name in ["tools/list", "list_tools", "listTools"]:
         return {"result": {"tools": STATIC_TOOLS}}
 
     if name == "write_and_compile":
-        files = args.get("files", [])
-        start_time = time.time()
+        files: list[dict[str, Any]] = args.get("files", [])
+        start_time: float = time.time()
         call_unity("clear_logs")
 
-        write_errors = []
-        for f in files:
-            res = call_unity("write_file", {"path": f["path"], "content": f["content"]})
+        write_errors: list[dict[str, Any]] = []
+        for file_info in files:
+            res = call_unity("write_file", {"path": file_info["path"], "content": file_info["content"]})
             if res and "error" in res:
-                write_errors.append({"path": f["path"], "error": res["error"]})
+                write_errors.append({"path": file_info["path"], "error": res["error"]})
 
         if write_errors:
             return {"result": {"status": "Failed", "message": "Failed to write some files", "errors": write_errors}}
         else:
-            timeout = 90
-            reload_started = False
-            while time.time() - start_time < 20:
-                res = call_unity("initialize")
-                if res is None or "error" in res:
-                    reload_started = True
-                    break
-                time.sleep(0.5)
+            wait_result: dict[str, Any] = _wait_for_compilation(timeout=90, start_time=start_time)
+            wait_status: str = wait_result["result"]["status"]
+            time_waited_seconds: float = wait_result["result"]["time_waited_seconds"]
 
-            if not reload_started:
-                call_unity("refresh_asset_database")
-
-            status = "Ready"
-            while time.time() - start_time < timeout:
-                res = call_unity("initialize")
-                if res and "result" in res:
-                    time.sleep(2.0)
-                    state = call_unity("get_editor_state")
-                    if state and "result" in state:
-                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"):
-                            break
-                time.sleep(1.0)
-            else:
-                status = "Timeout"
-
-            compiler_errors = []
-            if status == "Ready":
+            compiler_errors: list[dict[str, Any]] = []
+            if wait_status == "Ready":
                 log_res = call_unity("read_logs", {"count": 200})
                 if log_res and "result" in log_res:
-                    for l in log_res["result"].get("logs", []):
-                        if l.get("Type") in ["Error", "Exception", "Assert"]:
-                            compiler_errors.append(l)
+                    for log_entry in log_res["result"].get("logs", []):
+                        if log_entry.get("Type") in ["Error", "Exception", "Assert"]:
+                            compiler_errors.append(log_entry)
 
             return {
                 "result": {
-                    "status": "Failed" if compiler_errors else status,
-                    "time_waited_seconds": round(time.time() - start_time, 2),
+                    "status": "Failed" if compiler_errors else wait_status,
+                    "time_waited_seconds": time_waited_seconds,
                     "compiler_errors": compiler_errors
                 }
             }
@@ -277,29 +302,13 @@ def route_tool(name, args):
         else: return _invalid_action(action, ["get", "set", "delete", "list"])
 
     elif name == "wait":
-        cond = args.get("condition")
-        timeout = args.get("timeout_seconds", 60)
-        start_time = time.time()
-        status = "Ready"
+        cond: Any = args.get("condition")
+        timeout: float = args.get("timeout_seconds", 60)
+        start_time: float = time.time()
+        status: str = "Ready"
 
         if cond == "compilation":
-            reload_started = False
-            while time.time() - start_time < 20:
-                res = call_unity("initialize")
-                if res is None or "error" in res:
-                    reload_started = True
-                    break
-                time.sleep(0.5)
-            if not reload_started: call_unity("refresh_asset_database")
-            while time.time() - start_time < timeout:
-                res = call_unity("initialize")
-                if res and "result" in res:
-                    time.sleep(2.0)
-                    state = call_unity("get_editor_state")
-                    if state and "result" in state:
-                        if not state["result"].get("is_compiling") and not state["result"].get("is_updating"): break
-                time.sleep(1.0)
-            else: status = "Timeout"
+            return _wait_for_compilation(timeout=timeout, start_time=start_time)
         elif cond == "play_mode":
             target_state = args.get("state", True)
             while time.time() - start_time < timeout:
