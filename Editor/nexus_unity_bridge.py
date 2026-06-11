@@ -45,7 +45,7 @@ logging.basicConfig(
 
 from nexus_bridge.schemas import STATIC_TOOLS, STATIC_RESOURCES
 from nexus_bridge.routing import route_tool
-from nexus_bridge.client import logger
+from nexus_bridge._logging import logger
 
 PARENT_PID = os.getppid()
 
