@@ -20,7 +20,7 @@ namespace UnityMCP.Editor
         {
             if (DeployBridgeScript(out string destinationPath))
             {
-                string pythonPath = ResolveExecutablePath("python3");
+                string pythonPath = ResolvePythonPath();
                 ExecuteCodexLinkSequence(destinationPath, pythonPath);
             }
         }

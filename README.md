@@ -66,7 +66,7 @@ The server is intended for trusted local automation only. It validates loopback 
 Nexus Unity uses a single Unity menu entry: `Window > Nexus Unity`.
 
 - `Server`: start, stop, restart, copy the local URL, and deploy the MCP bridge to the project root.
-- `Integrations`: configure Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or a generic MCP JSON client.
+- `Integrations`: configure Codex, Claude Desktop, Claude Code, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or a generic MCP JSON client.
 - `Resources`: open docs, API reference, changelog, and the package folder.
 - `Settings`: choose how much Nexus Unity service logging is written to the Unity Console.
 
@@ -99,7 +99,9 @@ The Unity window can also deploy the bridge to the project root for CLIs that pr
 
 ## AI Client Setup
 
-For Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or compatible MCP clients, open `Window > Nexus Unity` and use the `Integrations` tab.
+For Codex, Claude Desktop, Claude Code, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or compatible MCP clients, open `Window > Nexus Unity` and use the `Integrations` tab.
+
+> **Claude Code vs. Claude Desktop:** these are different products with different config locations. The `Claude Code` card registers the `nexus-unity` server in a project-scoped `.mcp.json` at the Unity project root (using the `claude` CLI when it is on `PATH`, otherwise writing the file directly). The `Claude Desktop` card writes the desktop app's `claude_desktop_config.json`. After running `Auto Setup` for Claude Code, run `/mcp` inside Claude Code (or restart it) to load the server.
 
 Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, or `Error` status and provides:
 
@@ -107,7 +109,9 @@ Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, o
 - `Copy Config` for manual setup.
 - `Open Config` when the client uses a known config file path.
 
-Nexus Unity generates configs from the current `python3` path and deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
+Nexus Unity generates configs from the resolved Python interpreter and the deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
+
+> **Windows / Linux:** The Python interpreter is resolved as `python3`, then `python`, then the Windows `py` launcher — make sure a Python 3 install is on `PATH`. CLI-based cards (Codex, Gemini, Antigravity, and the Claude Code CLI path) are detected with `where` on Windows and `which` on macOS/Linux, so the CLI must be on the `PATH` of the shell that launched Unity for `Auto Setup` to find it; otherwise use `Copy Config`.
 
 `Outdated` means the client config points at a different Unity project, the project-root bridge has not been deployed, or the deployed bridge version differs from the package bridge version. Run `Auto Setup`, then restart the affected MCP client session so it loads the current bridge.
 

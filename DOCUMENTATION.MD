@@ -30,7 +30,7 @@ The server:
 Nexus Unity exposes one Unity menu entry: `Window > Nexus Unity`.
 
 - `Server`: local server lifecycle, URL copy, server health, and bridge deployment status.
-- `Integrations`: MCP setup cards for Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
+- `Integrations`: MCP setup cards for Codex, Claude Desktop, Claude Code, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
 - `Resources`: documentation, API reference, changelog, package folder access, and collapsed maintainer diagnostics.
 - `Settings`: Nexus Unity editor preferences, including Console logging verbosity.
 
@@ -40,7 +40,14 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 
 ## MCP Client Configuration
 
-The `Integrations` tab builds all snippets from the active `python3` executable and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
+The `Integrations` tab builds all snippets from the resolved Python interpreter and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, Claude Code uses a project-root `.mcp.json` with `mcpServers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
+
+Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly); the Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.
+
+### Platform notes
+
+- The Python interpreter is resolved in the order `python3`, then `python`, then the Windows `py` launcher. On Windows, where `python3` is frequently absent from `PATH`, the generated config falls back to a discovered `python.exe` or `py`. Ensure a Python 3 interpreter is installed and on `PATH`.
+- CLI-managed clients (Codex, Gemini, Antigravity, and the Claude Code CLI path) are discovered with `which` on macOS/Linux and `where` on Windows. The matching CLI must be on the `PATH` of the environment that launched the Unity Editor for `Auto Setup` to detect it; otherwise use `Copy Config` or the file-based card.
 
 Integration status checks compare the package bridge with the project-root deployed bridge and the client config path. A card reports `Outdated` when the config points at another Unity project, the deployed bridge is missing, or the deployed bridge version differs from the package bridge version. Running `Auto Setup` redeploys `nexus_unity_bridge.py` plus `nexus_bridge/`, rewrites the client entry, and requires restarting the external MCP client session.
 
@@ -174,6 +181,9 @@ Before release, maintainers should run a public API stress audit that compares r
 - Tool returns `Method not found`: compare the raw Unity catalog from `list_tools` with the MCP catalog in `API_REFERENCE.MD`.
 - File write denied: ensure the target path resolves inside the Unity project root.
 - Compile loop times out: call `get_server_status`, `read_logs`, and `unity_wait` with `editor_idle`.
+- Auto Setup reports success but the client does not connect: confirm you used the card for the client you actually run (Claude Code reads `.mcp.json`, not the Claude Desktop config), then reload the client (`/mcp` in Claude Code) after starting the Nexus server.
+- Bridge fails to launch on Windows: verify a Python 3 interpreter is on `PATH` (`python --version` or `py --version`); the generated config uses `python3`, `python`, or `py` in that order.
+- Gemini/Antigravity card shows `Not found` or disabled Auto Setup: the CLI is not on the Editor's `PATH`. Install it and ensure `where <cli>` (Windows) or `which <cli>` (macOS/Linux) resolves, or use `Copy Config`.
 
 ## Packaging Rules
 

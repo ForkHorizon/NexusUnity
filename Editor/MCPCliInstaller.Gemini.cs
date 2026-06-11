@@ -27,7 +27,7 @@ namespace UnityMCP.Editor
         private static void ExecuteGeminiLinkSequence(string scriptPath)
         {
             string geminiPath = ResolveExecutablePath("gemini");
-            string pythonPath = ResolveExecutablePath("python3");
+            string pythonPath = ResolvePythonPath();
 
             // 1. Ensure clean slate by removing existing registration
             string removeCommand = "\"" + geminiPath + "\" mcp remove nexus-unity";

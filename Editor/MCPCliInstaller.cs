@@ -165,7 +165,13 @@ namespace UnityMCP.Editor
 
         private static string ResolveExecutablePath(string name)
         {
-            if (Application.platform == RuntimePlatform.WindowsEditor) return name;
+            if (Application.platform == RuntimePlatform.WindowsEditor)
+            {
+                // 'which' does not exist on Windows; use 'where' to resolve against PATH (and PATHEXT, so
+                // .cmd/.exe shims like gemini.cmd are found). Falls back to the bare name when unresolved.
+                string fromWhere = GetPathFromWhere(name);
+                return string.IsNullOrEmpty(fromWhere) ? name : fromWhere;
+            }
 
             // 1. Explicit check for NVM/Node paths (High priority for Codex)
             if (name == "codex")
@@ -240,6 +246,60 @@ namespace UnityMCP.Editor
             }
             catch (Exception) { }
             return name;
+        }
+
+        private static string GetPathFromWhere(string name)
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = "where",
+                    Arguments = name,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (Process p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+                    if (p.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+                    {
+                        // 'where' can list multiple matches, one per line. Take the first that exists on disk.
+                        foreach (string line in output.Split('\n'))
+                        {
+                            string candidate = line.Trim();
+                            if (!string.IsNullOrEmpty(candidate) && File.Exists(candidate)) return candidate;
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+            return null;
+        }
+
+        /// <summary>
+        /// Resolves the Python interpreter to embed in generated MCP configs, preferring a concrete path.
+        /// Tries <c>python3</c>, then <c>python</c>, then the Windows <c>py</c> launcher (which defaults to Python 3).
+        /// </summary>
+        /// <remarks>
+        /// Generated configs previously hardcoded <c>python3</c>, which is frequently absent from PATH on Windows
+        /// (where the interpreter is usually <c>python</c> or the <c>py</c> launcher), so the bridge failed to launch.
+        /// </remarks>
+        private static string ResolvePythonPath()
+        {
+            string python3 = ResolveExecutablePath("python3");
+            if (!string.IsNullOrEmpty(python3) && python3 != "python3") return python3;
+
+            string python = ResolveExecutablePath("python");
+            if (!string.IsNullOrEmpty(python) && python != "python") return python;
+
+            // Windows commonly ships the 'py' launcher instead of a 'python3' alias; 'py <script>' runs Python 3.
+            if (Application.platform == RuntimePlatform.WindowsEditor) return "py";
+
+            return "python3";
         }
 
         private static ProcessStartInfo CreateProcessStartInfo(string command)
