@@ -17,7 +17,10 @@ def _normalize_url(url: str) -> str:
 def _read_port() -> int:
     raw_port: str | None = os.environ.get("NEXUS_UNITY_PORT")
     if raw_port:
-        return int(raw_port)
+        try:
+            return int(raw_port)
+        except ValueError:
+            pass
     if len(sys.argv) > 1:
         try:
             return int(sys.argv[1])

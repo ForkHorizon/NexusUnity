@@ -103,6 +103,15 @@ class ReadPortTests(unittest.TestCase):
             with patch.object(sys, "argv", ["nexus_unity_bridge.py", "scene_manager"]):
                 self.assertEqual(transport.DEFAULT_PORT, transport._read_port())
 
+    def test_read_port_ignores_invalid_environment_variable(self) -> None:
+        transport: Any = _reload_transport_module(
+            {"NEXUS_UNITY_PORT": "scene_manager"},
+            ["nexus_unity_bridge.py", "8124"],
+        )
+        with patch.dict(os.environ, {"NEXUS_UNITY_PORT": "scene_manager"}, clear=True):
+            with patch.object(sys, "argv", ["nexus_unity_bridge.py", "8124"]):
+                self.assertEqual(8124, transport._read_port())
+
 
 class ModuleConfigTests(unittest.TestCase):
     def test_unity_url_uses_environment_variable_and_normalizes_trailing_slash(self) -> None:
