@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
@@ -13,7 +14,7 @@ namespace UnityMCP.Editor
 
         internal static List<NexusMcpClientInfo> BuildAllForCurrentProject()
         {
-            string pythonPath = MCPCliInstaller.ResolveExecutablePathForUi("python3");
+            string pythonPath = MCPCliInstaller.ResolvePythonPathForUi();
             return BuildAll(MCPCliInstaller.GetDefaultBridgePathForUi(), pythonPath,
                 MCPCliInstaller.GetProjectRootForUi(), GetHomeDirectory(), MCPCliInstaller.GetSourceBridgePathForUi());
         }
@@ -29,6 +30,7 @@ namespace UnityMCP.Editor
             {
                 CreateCodex(normalizedBridgePath, pythonPath, homeDir),
                 CreateClaude(normalizedBridgePath, pythonPath),
+                CreateClaudeCode(projectRoot, normalizedBridgePath, pythonPath),
                 CreateCliClient(NexusMcpClientKind.Gemini, "Gemini", "gemini",
                     "Run Auto Setup, then restart or reopen Gemini CLI sessions.", normalizedBridgePath, pythonPath),
                 CreateCliClient(NexusMcpClientKind.Antigravity, "Antigravity", "ag",
@@ -125,10 +127,19 @@ namespace UnityMCP.Editor
 
         private static NexusMcpClientInfo CreateClaude(string bridgePath, string pythonPath)
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
+            string path = GetClaudeDesktopConfigPath();
             var info = CreateJsonClient(NexusMcpClientKind.ClaudeDesktop, "Claude Desktop", path,
                 "Paste into claude_desktop_config.json, then restart Claude Desktop.", bridgePath, pythonPath, "mcpServers");
             info.SupportsAutoSetup = true;
+            return info;
+        }
+
+        private static NexusMcpClientInfo CreateClaudeCode(string projectRoot, string bridgePath, string pythonPath)
+        {
+            string path = Path.Combine(projectRoot, ".mcp.json");
+            var info = CreateJsonClient(NexusMcpClientKind.ClaudeCode, "Claude Code", path,
+                "Writes .mcp.json in the project root (uses the claude CLI when available). Run /mcp or restart Claude Code afterwards.",
+                bridgePath, pythonPath, "mcpServers");
             return info;
         }
 
@@ -354,6 +365,18 @@ namespace UnityMCP.Editor
         private static string GetHomeDirectory()
         {
             return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
+        // Claude Desktop reads ~/Library/Application Support/Claude on macOS and %APPDATA%\Claude on Windows.
+        // SpecialFolder.ApplicationData maps to ~/.config (XDG) under Mono on macOS, so resolve macOS explicitly.
+        private static string GetClaudeDesktopConfigPath()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return Path.Combine(GetHomeDirectory(), "Library", "Application Support", "Claude", "claude_desktop_config.json");
+            }
+
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
         }
     }
 }

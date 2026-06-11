@@ -15,6 +15,11 @@ namespace UnityMCP.Editor
             return ResolveExecutablePath(name);
         }
 
+        internal static string ResolvePythonPathForUi()
+        {
+            return ResolvePythonPath();
+        }
+
         internal static string GetProjectRootForUi()
         {
             return Path.GetDirectoryName(Application.dataPath);

@@ -4,6 +4,14 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Added
+- Claude Code integration card that registers `nexus-unity` in a project-root `.mcp.json`, using the `claude` CLI at project scope when available and falling back to writing the file directly. This is separate from the existing Claude Desktop card.
+
+### Fixed
+- Claude Desktop auto setup on macOS now writes `~/Library/Application Support/Claude/claude_desktop_config.json` instead of the XDG `~/.config/Claude` path, which the macOS app does not read (`SpecialFolder.ApplicationData` resolves to `~/.config` under Mono).
+- CLI client detection (Codex, Gemini, Antigravity, Claude Code) now resolves executables with `where` on Windows instead of always failing, which previously left Gemini and Antigravity `Auto Setup` disabled on Windows even when installed.
+- Generated MCP configs resolve the Python interpreter as `python3`, then `python`, then the Windows `py` launcher, instead of hardcoding `python3`, so the bridge launches on Windows hosts without a `python3` alias.
+
 ## [1.3.0] - 2026-06-05
 
 ### Added

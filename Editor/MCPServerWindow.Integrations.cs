@@ -126,6 +126,14 @@ namespace UnityMCP.Editor
                 return;
             }
 
+            if (refreshed.Kind == NexusMcpClientKind.ClaudeCode)
+            {
+                MCPCliInstaller.LinkToClaudeCode();
+                DrawIntegrationsTabRefresh();
+                SetIntegrationMessage("Claude Code setup finished. Run /mcp or restart Claude Code.");
+                return;
+            }
+
             var result = NexusMcpConfigGenerator.WriteConfig(refreshed);
             string message = result.Success ? "Config updated: " + result.ConfigPath : "Setup failed: " + result.Message;
             if (result.Success && !string.IsNullOrEmpty(result.BackupPath))

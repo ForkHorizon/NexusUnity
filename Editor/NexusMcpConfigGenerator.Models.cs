@@ -4,6 +4,7 @@ namespace UnityMCP.Editor
     {
         Codex,
         ClaudeDesktop,
+        ClaudeCode,
         Gemini,
         Antigravity,
         Cursor,
