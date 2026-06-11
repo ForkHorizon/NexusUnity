@@ -1,0 +1,140 @@
+name: Approve external PR for CI
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Maintainer "Approve & run CI" button for external (fork) pull requests.
+#
+# HOW TO USE:
+#   1. Actions → "Approve external PR for CI" → "Run workflow"
+#   2. Enter the PR number (e.g. 30) → click "Run workflow"
+#
+# WHAT HAPPENS:
+#   1. Fetches the fork's commits (read-only)
+#   2. Creates branch  trusted/pr-<N>  inside THIS repo with those commits
+#   3. validate.yml fires automatically on that branch — CI passes naturally
+#      because the branch is internal (no fork check triggered)
+#   4. Posts a comment on the original PR with a link to the trusted branch
+#   5. When you're happy, merge the original external PR normally
+#
+# SECURITY:
+#   - Only org members with Actions:write can trigger workflow_dispatch
+#   - The fork's code lands inside your repo under your control before CI runs
+#   - Secrets are never sent to the fork
+#   - The trusted/pr-N branch is deleted automatically after 14 days (optional)
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "External PR number to replay (e.g. 30)"
+        required: true
+        type: string
+
+permissions:
+  contents: write        # push the trusted/pr-N branch
+  pull-requests: write   # comment on the original PR
+
+jobs:
+  replay:
+    name: "Create trusted/pr-${{ inputs.pr_number }} and run CI"
+    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
+
+    steps:
+      # ── 0. Resolve external PR metadata ────────────────────────────────────
+      - name: Fetch PR metadata
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          DATA=$(gh api repos/${{ github.repository }}/pulls/${{ inputs.pr_number }})
+
+          HEAD_SHA=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['sha'])")
+          HEAD_REPO=$(echo "$DATA"  | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['repo']['full_name'])")
+          HEAD_REF=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['head']['ref'])")
+          BASE_REF=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['base']['ref'])")
+          PR_TITLE=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['title'])")
+          PR_AUTHOR=$(echo "$DATA"  | python3 -c "import sys,json; print(json.load(sys.stdin)['user']['login'])")
+          PR_STATE=$(echo "$DATA"   | python3 -c "import sys,json; print(json.load(sys.stdin)['state'])")
+
+          echo "head_sha=$HEAD_SHA"   >> "$GITHUB_OUTPUT"
+          echo "head_repo=$HEAD_REPO" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$HEAD_REF"   >> "$GITHUB_OUTPUT"
+          echo "base_ref=$BASE_REF"   >> "$GITHUB_OUTPUT"
+          echo "pr_title=$PR_TITLE"   >> "$GITHUB_OUTPUT"
+          echo "pr_author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
+
+          echo "PR #${{ inputs.pr_number }}: \"$PR_TITLE\" by @$PR_AUTHOR ($PR_STATE)"
+          echo "  fork:   $HEAD_REPO @ $HEAD_REF ($HEAD_SHA)"
+          echo "  target: $BASE_REF"
+
+          # Guard: must be an external (fork) PR
+          if [ "$HEAD_REPO" = "${{ github.repository }}" ]; then
+            echo "::warning::PR #${{ inputs.pr_number }} is from this repo — regular CI already works."
+            exit 1
+          fi
+          if [ "$PR_STATE" != "open" ]; then
+            echo "::error::PR #${{ inputs.pr_number }} is $PR_STATE — only open PRs can be replayed."
+            exit 1
+          fi
+
+      # ── 1. Create trusted branch with the fork's commits ───────────────────
+      - name: Create trusted/pr-${{ inputs.pr_number }} branch
+        env:
+          TRUSTED_BRANCH: trusted/pr-${{ inputs.pr_number }}
+          FORK_REPO:      ${{ steps.pr.outputs.head_repo }}
+          FORK_SHA:       ${{ steps.pr.outputs.head_sha }}
+          FORK_REF:       ${{ steps.pr.outputs.head_ref }}
+          GH_TOKEN:       ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          WORK_DIR=$(mktemp -d)
+          trap "rm -rf $WORK_DIR" EXIT
+
+          echo "Cloning fork branch $FORK_REF from $FORK_REPO..."
+          git clone \
+            --depth=50 \
+            --branch "$FORK_REF" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${FORK_REPO}.git" \
+            "$WORK_DIR"
+
+          echo "Verifying HEAD matches expected SHA..."
+          ACTUAL_SHA=$(git -C "$WORK_DIR" rev-parse HEAD)
+          if [ "$ACTUAL_SHA" != "$FORK_SHA" ]; then
+            echo "::error::SHA mismatch: expected $FORK_SHA but got $ACTUAL_SHA. PR may have been force-pushed."
+            exit 1
+          fi
+
+          echo "Pushing $FORK_SHA as $TRUSTED_BRANCH to this repo..."
+          git -C "$WORK_DIR" remote set-url origin \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git -C "$WORK_DIR" push --force origin \
+            "HEAD:refs/heads/${TRUSTED_BRANCH}"
+
+          echo "✅ Branch $TRUSTED_BRANCH created at $FORK_SHA"
+          echo "   validate.yml will now run on it automatically."
+
+      # ── 2. Post comment on the original external PR ─────────────────────────
+      - name: Comment on PR #${{ inputs.pr_number }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TRUSTED_BRANCH: trusted/pr-${{ inputs.pr_number }}
+        run: |
+          BRANCH_URL="${{ github.server_url }}/${{ github.repository }}/tree/${TRUSTED_BRANCH}"
+          ACTIONS_URL="${{ github.server_url }}/${{ github.repository }}/actions"
+
+          gh pr comment ${{ inputs.pr_number }} \
+            --repo ${{ github.repository }} \
+            --body "🔐 **Trusted CI replay started** by @${{ github.actor }}
+
+          Your code has been copied to an internal branch and CI is now running:
+
+          | | |
+          |---|---|
+          | Trusted branch | [\`${TRUSTED_BRANCH}\`]($BRANCH_URL) |
+          | Commit | \`${{ steps.pr.outputs.head_sha }}\` |
+          | CI runs | [$ACTIONS_URL]($ACTIONS_URL) |
+
+          CI results will appear on the trusted branch. Once all checks pass, this PR can be merged. ✅"

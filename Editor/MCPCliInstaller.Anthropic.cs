@@ -21,7 +21,7 @@ namespace UnityMCP.Editor
         {
             if (DeployBridgeScript(out string destinationPath))
             {
-                string pythonPath = ResolveExecutablePath("python3");
+                string pythonPath = ResolvePythonPath();
                 ExecuteAnthropicLinkSequence(destinationPath, pythonPath);
             }
         }
@@ -32,7 +32,9 @@ namespace UnityMCP.Editor
             {
                 string configPath = "";
 #if UNITY_EDITOR_OSX
-                configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
+                // On macOS, SpecialFolder.ApplicationData resolves to ~/.config (XDG) under Mono, but Claude Desktop
+                // reads ~/Library/Application Support/Claude. Build that path explicitly.
+                configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support", "Claude", "claude_desktop_config.json");
 #elif UNITY_EDITOR_WIN
                 configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
 #endif

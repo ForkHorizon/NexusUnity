@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.3.0`
+Version: `1.4.0`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -30,7 +30,7 @@ The server:
 Nexus Unity exposes one Unity menu entry: `Window > Nexus Unity`.
 
 - `Server`: local server lifecycle, URL copy, server health, and bridge deployment status.
-- `Integrations`: MCP setup cards for Codex, Claude Desktop, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
+- `Integrations`: MCP setup cards for Codex, Claude Desktop, Claude Code, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, and generic JSON clients.
 - `Resources`: documentation, API reference, changelog, package folder access, and collapsed maintainer diagnostics.
 - `Settings`: Nexus Unity editor preferences, including Console logging verbosity.
 
@@ -40,7 +40,14 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 
 ## MCP Client Configuration
 
-The `Integrations` tab builds all snippets from the active `python3` executable and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
+The `Integrations` tab builds all snippets from the resolved Python interpreter and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, Claude Code uses a project-root `.mcp.json` with `mcpServers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
+
+Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly); the Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.
+
+### Platform notes
+
+- The Python interpreter is resolved in the order `python3`, then `python`, then the Windows `py` launcher. On Windows, where `python3` is frequently absent from `PATH`, the generated config falls back to a discovered `python.exe` or `py`. Ensure a Python 3 interpreter is installed and on `PATH`.
+- CLI-managed clients (Codex, Gemini, Antigravity, and the Claude Code CLI path) are discovered with `which` on macOS/Linux and `where` on Windows. The matching CLI must be on the `PATH` of the environment that launched the Unity Editor for `Auto Setup` to detect it; otherwise use `Copy Config` or the file-based card.
 
 Integration status checks compare the package bridge with the project-root deployed bridge and the client config path. A card reports `Outdated` when the config points at another Unity project, the deployed bridge is missing, or the deployed bridge version differs from the package bridge version. Running `Auto Setup` redeploys `nexus_unity_bridge.py` plus `nexus_bridge/`, rewrites the client entry, and requires restarting the external MCP client session.
 
@@ -70,14 +77,25 @@ Manual or root-deployed path:
 python3 nexus_unity_bridge.py
 ```
 
-Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`. A positional port argument is still supported for existing MCP client configs.
+Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
+
+Direct CLI mode is available for diagnostics and scripts:
+
+```bash
+python3 nexus_unity_bridge.py scene_manager action=list
+python3 nexus_unity_bridge.py hierarchy_manager action=create_primitive primitive_type=Cube position='[0,1,0]'
+```
+
+CLI arguments must use `key=value`; JSON-looking values are parsed before routing the call.
 
 The bridge is modular:
 
 - `nexus_unity_bridge.py`: MCP loop and CLI entry point.
+- `nexus_bridge/_logging.py`: shared bridge logger.
+- `nexus_bridge/_transport.py`: Unity JSON-RPC URL, port, timeout, and HTTP transport helpers.
 - `nexus_bridge/client.py`: HTTP JSON-RPC client.
 - `nexus_bridge/routing.py`: manager routing and macro behavior.
-- `nexus_bridge/schemas.py`: public MCP tool schemas.
+- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources.
 
 When deploying from the Unity UI, Nexus Unity copies both `nexus_unity_bridge.py` and the full `nexus_bridge/` package to the project root so the bridge can run from a stable path.
 
@@ -135,15 +153,15 @@ For scene work, prefer manager tools:
 
 ## Contributor Validation
 
-Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner, not GitHub-hosted runners. It runs the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` jobs on every trusted push and pull request.
+Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner, not GitHub-hosted runners. It runs the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` jobs on trusted pushes and pull requests.
 
 Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
 
-Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`. External fork pull requests are intentionally stopped by `PR target policy` before checkout because the full CI runs on a local maintainer MacBook. A maintainer must review an external patch and replay it through a trusted branch before full CI can execute candidate code.
+Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`. External fork pull requests currently emit a `PR target policy` warning and continue through the same CI pipeline; maintainers should review forked code carefully before merge. When an internal rerun is needed, the manual `Approve external PR for CI` workflow can copy a reviewed fork PR to a trusted `trusted/pr-N` branch and trigger validation there.
 
 The local runner must have `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci` labels. The AI documentation job additionally requires `nexus-doc-ai`. The runner environment must provide `python3`, `dotnet`, Unity `6000.4.3f1` at `/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app/Contents/MacOS/Unity`, and Ollama on `http://127.0.0.1:11434`. Workflow-level `concurrency` uses group `nexus-unity-ci` with `queue: max`, so trusted CI runs are processed one at a time and up to 100 pending runs can wait instead of being canceled.
 
-For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs package metadata validation, Python bridge compilation, Unity `.meta` pairing checks, `NexusQualityGate` tests, and the deterministic Roslyn quality gate. It uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
+For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs package metadata validation, Python bridge compilation, Unity `.meta` pairing checks, Python bridge unit tests, `NexusQualityGate` tests, and the deterministic Roslyn quality gate. It uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
 
 `NexusQualityGate` lives under `tools~/` so Unity ignores the .NET/Roslyn source while GitHub Actions and local scripts can build it. The deterministic gate scans production C# source under `Editor/` and `Runtime/`, fails public/protected types and methods without meaningful XML documentation, fails files over 450 lines, and fails methods over 150 lines. It warns for files over 300 lines and methods over 50 lines.
 
@@ -174,12 +192,15 @@ Before release, maintainers should run a public API stress audit that compares r
 - Tool returns `Method not found`: compare the raw Unity catalog from `list_tools` with the MCP catalog in `API_REFERENCE.MD`.
 - File write denied: ensure the target path resolves inside the Unity project root.
 - Compile loop times out: call `get_server_status`, `read_logs`, and `unity_wait` with `editor_idle`.
+- Auto Setup reports success but the client does not connect: confirm you used the card for the client you actually run (Claude Code reads `.mcp.json`, not the Claude Desktop config), then reload the client (`/mcp` in Claude Code) after starting the Nexus server.
+- Bridge fails to launch on Windows: verify a Python 3 interpreter is on `PATH` (`python --version` or `py --version`); the generated config uses `python3`, `python`, or `py` in that order.
+- Gemini/Antigravity card shows `Not found` or disabled Auto Setup: the CLI is not on the Editor's `PATH`. Install it and ensure `where <cli>` (Windows) or `which <cli>` (macOS/Linux) resolves, or use `Copy Config`.
 
 ## Packaging Rules
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.3.0`.
+- Public release version: `1.4.0`.
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -190,12 +211,12 @@ Before release, maintainers should run a public API stress audit that compares r
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.3.0` for the package version, `v1.3.0` for tags, and `1.3.0` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.4.0` for the package version, `v1.4.0` for tags, and `1.4.0` for release titles.
 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.3.0` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.4.0` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
@@ -203,4 +224,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.3.0` for package version `1.3.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.4.0` for package version `1.4.0`.

@@ -49,6 +49,9 @@ for path in paths:
     compile(source, str(path), "exec")
 PY
 
+  log "Running Python bridge unit tests"
+  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -v
+
   log "Checking for generated or local-only files"
   python3 - <<'PY'
 import os

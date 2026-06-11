@@ -1,6 +1,17 @@
-# --- Static Tool Definitions (Hybrid Bridge Strategy) ---
-# Optimized for 100% integrated AI development with strict parameter validation.
-VECTOR3_SCHEMA = {
+"""Static tool and resource definitions for the NexusUnity MCP bridge.
+
+:data:`STATIC_TOOLS` is the authoritative list of MCP tools exposed to AI
+clients.  Each entry follows the JSON Schema / MCP tool-definition shape.
+
+:data:`STATIC_RESOURCES` lists the static read-only resources advertised via
+``resources/list``.
+"""
+from __future__ import annotations
+
+from typing import Any
+
+# --- Shared sub-schemas ---
+VECTOR3_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "x": {"type": "number"},
@@ -9,7 +20,7 @@ VECTOR3_SCHEMA = {
     },
 }
 
-STATIC_TOOLS = [
+STATIC_TOOLS: list[dict[str, Any]] = [
     # --- Consolidated Core Managers ---
     {
         "name": "unity_scene_manager",
@@ -56,13 +67,13 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"action": {"const": "add"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
-                {"properties": {"action": {"const": "remove"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
-                {"properties": {"action": {"const": "inspect"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
-                {"properties": {"action": {"const": "get_schema"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
-                {"properties": {"action": {"const": "update_properties"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "properties": {"type": "object"}}, "required": ["action", "instance_id", "component_name", "properties"]},
-                {"properties": {"action": {"const": "set_property"}, "instance_id": {"type": "integer"}, "property_name": {"type": "string"}, "value": {"type": "string"}}, "required": ["action", "instance_id", "property_name", "value"]},
-                {"properties": {"action": {"const": "set_enabled"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["action", "instance_id", "component_name", "enabled"]}
+                {"description": "Add a component to a GameObject", "properties": {"action": {"const": "add"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"description": "Remove a component from a GameObject", "properties": {"action": {"const": "remove"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"description": "Inspect all serialized fields of a component", "properties": {"action": {"const": "inspect"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"description": "Get the serialized-field schema for a component type", "properties": {"action": {"const": "get_schema"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}}, "required": ["action", "instance_id", "component_name"]},
+                {"description": "Batch-update multiple properties on a component", "properties": {"action": {"const": "update_properties"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "properties": {"type": "object"}}, "required": ["action", "instance_id", "component_name", "properties"]},
+                {"description": "Set a single serialized property by name", "properties": {"action": {"const": "set_property"}, "instance_id": {"type": "integer"}, "property_name": {"type": "string"}, "value": {"type": "string"}}, "required": ["action", "instance_id", "property_name", "value"]},
+                {"description": "Enable or disable a component", "properties": {"action": {"const": "set_enabled"}, "instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["action", "instance_id", "component_name", "enabled"]}
             ]
         }
     },
@@ -72,10 +83,10 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"strategy": {"const": "regex"}, "query": {"type": "string"}, "tag": {"type": "string"}, "type": {"type": "string"}}, "required": ["strategy"]},
-                {"properties": {"strategy": {"const": "path"}, "query": {"type": "string"}}, "required": ["strategy", "query"]},
-                {"properties": {"strategy": {"const": "semantic"}, "query": {"type": "string"}}, "required": ["strategy", "query"]},
-                {"properties": {"strategy": {"const": "references"}, "target_id": {"type": "integer"}, "target_guid": {"type": "string"}}, "required": ["strategy"]}
+                {"description": "Find objects by name regex, tag, or type", "properties": {"strategy": {"const": "regex"}, "query": {"type": "string"}, "tag": {"type": "string"}, "type": {"type": "string"}}, "required": ["strategy"]},
+                {"description": "Find a single object by its scene hierarchy path", "properties": {"strategy": {"const": "path"}, "query": {"type": "string"}}, "required": ["strategy", "query"]},
+                {"description": "Find objects using a natural-language semantic query", "properties": {"strategy": {"const": "semantic"}, "query": {"type": "string"}}, "required": ["strategy", "query"]},
+                {"description": "Find all objects that reference a specific asset or component", "properties": {"strategy": {"const": "references"}, "target_id": {"type": "integer"}, "target_guid": {"type": "string"}}, "required": ["strategy"]}
             ]
         }
     },
@@ -85,15 +96,15 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"action": {"const": "search"}, "filter": {"type": "string"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "explore"}, "path": {"type": "string"}}, "required": ["action", "path"]},
-                {"properties": {"action": {"const": "create_material"}, "name": {"type": "string"}, "shader": {"type": "string"}, "path": {"type": "string"}, "base_color": {"type": "string"}, "color": {"type": "string"}, "emission_color": {"type": "string"}, "emission": {"type": "string"}}, "required": ["action", "name"]},
-                {"properties": {"action": {"const": "import"}, "path": {"type": "string"}}, "required": ["action", "path"]},
-                {"properties": {"action": {"const": "refresh"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "instantiate_prefab"}, "path": {"type": "string"}}, "required": ["action", "path"]},
-                {"properties": {"action": {"const": "create_prefab"}, "instance_id": {"type": "integer"}, "path": {"type": "string"}}, "required": ["action", "instance_id", "path"]},
-                {"properties": {"action": {"const": "apply_overrides"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
-                {"properties": {"action": {"const": "revert_overrides"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]}
+                {"description": "Search for assets by filter string", "properties": {"action": {"const": "search"}, "filter": {"type": "string"}}, "required": ["action"]},
+                {"description": "Explore metadata and sub-assets at a given asset path", "properties": {"action": {"const": "explore"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"description": "Create a new material asset", "properties": {"action": {"const": "create_material"}, "name": {"type": "string"}, "shader": {"type": "string"}, "path": {"type": "string"}, "base_color": {"type": "string"}, "color": {"type": "string"}, "emission_color": {"type": "string"}, "emission": {"type": "string"}}, "required": ["action", "name"]},
+                {"description": "Import an asset from disk into the Unity project", "properties": {"action": {"const": "import"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"description": "Refresh the AssetDatabase to pick up filesystem changes", "properties": {"action": {"const": "refresh"}}, "required": ["action"]},
+                {"description": "Instantiate a prefab from its asset path into the active scene", "properties": {"action": {"const": "instantiate_prefab"}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"description": "Create a new prefab asset from an existing scene GameObject", "properties": {"action": {"const": "create_prefab"}, "instance_id": {"type": "integer"}, "path": {"type": "string"}}, "required": ["action", "instance_id", "path"]},
+                {"description": "Apply all prefab instance overrides back to the prefab asset", "properties": {"action": {"const": "apply_overrides"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]},
+                {"description": "Revert all prefab instance overrides to match the prefab asset", "properties": {"action": {"const": "revert_overrides"}, "instance_id": {"type": "integer"}}, "required": ["action", "instance_id"]}
             ]
         }
     },
@@ -103,22 +114,22 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"action": {"const": "undo"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "redo"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "play"}, "state": {"type": "boolean"}}, "required": ["action", "state"]},
-                {"properties": {"action": {"const": "pause"}, "state": {"type": "boolean"}}, "required": ["action", "state"]},
-                {"properties": {"action": {"const": "step"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "menu"}, "item_path": {"type": "string"}}, "required": ["action", "item_path"]},
-                {"properties": {"action": {"const": "read_logs"}, "count": {"type": "integer"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "clear_logs"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "get_state"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "get_server_status"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "refresh_assets"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "run_tests"}, "mode": {"type": "string"}, "filter": {"type": "string"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "get_test_results"}, "result_path": {"type": "string"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "run_tests_wait"}, "mode": {"type": "string"}, "filter": {"type": "string"}, "timeout_seconds": {"type": "integer"}, "poll_interval_seconds": {"type": "number"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "get_tool_usage_stats"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "reset_tool_usage_stats"}}, "required": ["action"]}
+                {"description": "Undo the last editor action", "properties": {"action": {"const": "undo"}}, "required": ["action"]},
+                {"description": "Redo the previously undone editor action", "properties": {"action": {"const": "redo"}}, "required": ["action"]},
+                {"description": "Enter or exit Play Mode", "properties": {"action": {"const": "play"}, "state": {"type": "boolean"}}, "required": ["action", "state"]},
+                {"description": "Pause or unpause Play Mode", "properties": {"action": {"const": "pause"}, "state": {"type": "boolean"}}, "required": ["action", "state"]},
+                {"description": "Advance Play Mode by one frame while paused", "properties": {"action": {"const": "step"}}, "required": ["action"]},
+                {"description": "Execute an editor menu item by its path (e.g. 'File/Save')", "properties": {"action": {"const": "menu"}, "item_path": {"type": "string"}}, "required": ["action", "item_path"]},
+                {"description": "Read recent Unity console log entries", "properties": {"action": {"const": "read_logs"}, "count": {"type": "integer"}}, "required": ["action"]},
+                {"description": "Clear all Unity console log entries", "properties": {"action": {"const": "clear_logs"}}, "required": ["action"]},
+                {"description": "Get the current editor state (play mode, compiling, etc.)", "properties": {"action": {"const": "get_state"}}, "required": ["action"]},
+                {"description": "Get the Nexus Unity server status and version info", "properties": {"action": {"const": "get_server_status"}}, "required": ["action"]},
+                {"description": "Refresh the AssetDatabase", "properties": {"action": {"const": "refresh_assets"}}, "required": ["action"]},
+                {"description": "Trigger a Unity Test Runner run without waiting for results", "properties": {"action": {"const": "run_tests"}, "mode": {"type": "string"}, "filter": {"type": "string"}}, "required": ["action"]},
+                {"description": "Retrieve the most recent Test Runner results XML", "properties": {"action": {"const": "get_test_results"}, "result_path": {"type": "string"}}, "required": ["action"]},
+                {"description": "Run tests and block until results are available (or timeout)", "properties": {"action": {"const": "run_tests_wait"}, "mode": {"type": "string"}, "filter": {"type": "string"}, "timeout_seconds": {"type": "integer"}, "poll_interval_seconds": {"type": "number"}}, "required": ["action"]},
+                {"description": "Get per-tool invocation statistics", "properties": {"action": {"const": "get_tool_usage_stats"}}, "required": ["action"]},
+                {"description": "Reset all per-tool invocation statistics counters", "properties": {"action": {"const": "reset_tool_usage_stats"}}, "required": ["action"]}
             ]
         }
     },
@@ -128,14 +139,14 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"action": {"const": "list_windows"}}, "required": ["action"]},
-                {"properties": {"action": {"const": "get_hierarchy"}, "window_title": {"type": "string"}, "deep": {"type": "boolean"}}, "required": ["action", "window_title"]},
-                {"properties": {"action": {"const": "query"}, "window_title": {"type": "string"}, "name": {"type": "string"}, "text": {"type": "string"}, "class_name": {"type": "string"}}, "required": ["action", "window_title"]},
-                {"properties": {"action": {"const": "get_window_rect"}, "window_title": {"type": "string"}}, "required": ["action", "window_title"]},
-                {"properties": {"action": {"const": "set_window_rect"}, "window_title": {"type": "string"}, "x": {"type": "number"}, "y": {"type": "number"}, "width": {"type": "number"}, "height": {"type": "number"}}, "required": ["action", "window_title"]},
-                {"properties": {"action": {"const": "capture_window_snapshot"}, "window_title": {"type": "string"}, "include_image": {"type": "boolean"}, "include_hierarchy": {"type": "boolean"}}, "required": ["action", "window_title"]},
-                {"properties": {"action": {"const": "click"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}}, "required": ["action", "window_title", "element_name"]},
-                {"properties": {"action": {"const": "input"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}, "text": {"type": "string"}}, "required": ["action", "window_title", "element_name", "text"]}
+                {"description": "List all open editor windows", "properties": {"action": {"const": "list_windows"}}, "required": ["action"]},
+                {"description": "Get the UI element hierarchy for a window", "properties": {"action": {"const": "get_hierarchy"}, "window_title": {"type": "string"}, "deep": {"type": "boolean"}}, "required": ["action", "window_title"]},
+                {"description": "Query UI elements by name, text, or class within a window", "properties": {"action": {"const": "query"}, "window_title": {"type": "string"}, "name": {"type": "string"}, "text": {"type": "string"}, "class_name": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"description": "Get the screen rect (position and size) of a window", "properties": {"action": {"const": "get_window_rect"}, "window_title": {"type": "string"}}, "required": ["action", "window_title"]},
+                {"description": "Reposition and resize a window", "properties": {"action": {"const": "set_window_rect"}, "window_title": {"type": "string"}, "x": {"type": "number"}, "y": {"type": "number"}, "width": {"type": "number"}, "height": {"type": "number"}}, "required": ["action", "window_title"]},
+                {"description": "Capture a screenshot and/or UI hierarchy snapshot of a window", "properties": {"action": {"const": "capture_window_snapshot"}, "window_title": {"type": "string"}, "include_image": {"type": "boolean"}, "include_hierarchy": {"type": "boolean"}}, "required": ["action", "window_title"]},
+                {"description": "Click a named UI element inside a window", "properties": {"action": {"const": "click"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}}, "required": ["action", "window_title", "element_name"]},
+                {"description": "Type text into a named UI input element inside a window", "properties": {"action": {"const": "input"}, "window_title": {"type": "string"}, "element_name": {"type": "string"}, "text": {"type": "string"}}, "required": ["action", "window_title", "element_name", "text"]}
             ]
         }
     },
@@ -145,10 +156,10 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"condition": {"const": "compilation"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]},
-                {"properties": {"condition": {"const": "play_mode"}, "state": {"type": "boolean"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition", "state"]},
-                {"properties": {"condition": {"const": "import"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]},
-                {"properties": {"condition": {"const": "editor_idle"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]}
+                {"description": "Wait until script compilation and domain reload finishes", "properties": {"condition": {"const": "compilation"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]},
+                {"description": "Wait until Play Mode reaches the specified state (true=playing, false=stopped)", "properties": {"condition": {"const": "play_mode"}, "state": {"type": "boolean"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition", "state"]},
+                {"description": "Wait until all pending asset imports are complete", "properties": {"condition": {"const": "import"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]},
+                {"description": "Wait until the editor is fully idle (not compiling, importing, or playing)", "properties": {"condition": {"const": "editor_idle"}, "timeout_seconds": {"type": "integer"}}, "required": ["condition"]}
             ]
         }
     },
@@ -158,10 +169,10 @@ STATIC_TOOLS = [
         "inputSchema": {
             "type": "object",
             "oneOf": [
-                {"properties": {"action": {"const": "get"}, "key": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key"]},
-                {"properties": {"action": {"const": "set"}, "key": {"type": "string"}, "value": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key", "value"]},
-                {"properties": {"action": {"const": "delete"}, "key": {"type": "string"}}, "required": ["action", "key"]},
-                {"properties": {"action": {"const": "list"}}, "required": ["action"]}
+                {"description": "Read a PlayerPref value by key", "properties": {"action": {"const": "get"}, "key": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key"]},
+                {"description": "Write a PlayerPref value", "properties": {"action": {"const": "set"}, "key": {"type": "string"}, "value": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key", "value"]},
+                {"description": "Delete a PlayerPref entry by key", "properties": {"action": {"const": "delete"}, "key": {"type": "string"}}, "required": ["action", "key"]},
+                {"description": "List all stored PlayerPref keys and their values", "properties": {"action": {"const": "list"}}, "required": ["action"]}
             ]
         }
     },
@@ -172,4 +183,17 @@ STATIC_TOOLS = [
     {"name": "unity_dump_scene_graph", "description": "Dump recursive tree of active scene with components and key fields", "inputSchema": {"type": "object", "properties": {"root_id": {"type": "integer"}, "max_depth": {"type": "integer"}, "include_all_properties": {"type": "boolean"}}}},
     {"name": "unity_get_scene_dependencies", "description": "Return a scene-wide dependency map of cross-object references", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_lint_project", "description": "Run Roslyn-based C# audit of the entire project", "inputSchema": {"type": "object", "properties": {}}}
+]
+
+STATIC_RESOURCES: list[dict[str, Any]] = [
+    {
+        "uri": "unity://docs/api-reference",
+        "name": "API Reference",
+        "mimeType": "text/markdown",
+    },
+    {
+        "uri": "unity://docs/setup",
+        "name": "Setup Guide",
+        "mimeType": "text/markdown",
+    },
 ]
