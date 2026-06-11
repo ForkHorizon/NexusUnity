@@ -8,6 +8,7 @@ Supports two modes:
 * **MCP mode** — reads newline-delimited JSON-RPC 2.0 requests from stdin and
   writes responses to stdout, acting as a stdio MCP server.
 """
+import argparse
 import sys
 sys.dont_write_bytecode = True
 
@@ -16,6 +17,7 @@ import logging
 import os
 import threading
 import time
+from typing import Any
 
 # Ensure the Editor directory is in sys.path so we can import the module locally
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -61,23 +63,36 @@ def orphan_monitor() -> None:
             os._exit(0)
         time.sleep(5)
 
+
+def _json_or_string(value: str) -> Any:
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, ValueError):
+        return value
+
+
+def _parse_cli_args(argv: list[str]) -> tuple[str, dict[str, Any]]:
+    parser = argparse.ArgumentParser(prog="nexus_unity_bridge.py")
+    parser.add_argument("tool_name", help="Tool or method name to call (without unity_ prefix)")
+    parser.add_argument("arguments", nargs="*", help="Space-separated key=value arguments for the tool")
+    ns: argparse.Namespace = parser.parse_args(argv)
+
+    args: dict[str, Any] = {}
+    for raw in ns.arguments:
+        if "=" not in raw:
+            parser.error(f"expected key=value argument, got: {raw}")
+        key, value = raw.split("=", 1)
+        args[key] = _json_or_string(value)
+
+    return ns.tool_name, args
+
 def main() -> None:
     # Start orphan monitor thread
     threading.Thread(target=orphan_monitor, daemon=True).start()
 
     # CLI Mode: Support direct command execution
     if len(sys.argv) > 1 and not sys.argv[1].startswith("{"):
-        method = sys.argv[1]
-        args = {}
-        for arg in sys.argv[2:]:
-            if "=" in arg:
-                key, val = arg.split("=", 1)
-                # Try to parse as JSON if it looks like it, otherwise keep as string
-                try:
-                    args[key] = json.loads(val)
-                except (json.JSONDecodeError, ValueError):
-                    args[key] = val
-        
+        method, args = _parse_cli_args(sys.argv[1:])
         logger.debug("CLI Mode: Calling %s with %s", method, args)
         print(json.dumps(route_tool(method, args), indent=2))
         return
