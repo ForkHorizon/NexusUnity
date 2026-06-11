@@ -6,7 +6,8 @@ Nexus Unity is a local Unity Editor automation package. It intentionally exposes
 
 | Version | Supported |
 |---|---|
-| `1.0.x` | Yes |
+| `1.4.x` | Yes |
+| `1.0.x` - `1.3.x` | Yes |
 | Pre-public `2.x` / `3.x` internal builds | No |
 
 ## Security Model

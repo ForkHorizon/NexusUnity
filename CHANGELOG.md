@@ -4,13 +4,27 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-11
+
 ### Added
 - Claude Code integration card that registers `nexus-unity` in a project-root `.mcp.json`, using the `claude` CLI at project scope when available and falling back to writing the file directly. This is separate from the existing Claude Desktop card.
+- Dedicated Python bridge unit tests for routing, compilation/test-result polling helpers, transport config, and JSON-RPC payload construction.
+- `Python unit tests` GitHub Actions job that runs the bridge unit test suite after static validation.
+- Maintainer-dispatched external PR replay workflow that can copy a reviewed fork PR to a trusted `trusted/pr-N` branch for CI reruns.
+
+### Changed
+- Python MCP bridge internals now split logging and HTTP transport helpers into `nexus_bridge/_logging.py` and `nexus_bridge/_transport.py`, with stronger type hints, module documentation, and reusable transport configuration.
+- Bridge CLI mode now uses `argparse`, validates `key=value` arguments, and parses JSON-looking values before routing direct tool calls.
+- MCP bridge tool schemas now include clearer per-action descriptions and static resource metadata for `resources/list`.
+- `Validate package` now warns for external fork pull requests and continues the CI pipeline instead of blocking before checkout; maintainers can still use the trusted-branch replay workflow when they want an internal CI branch.
+- Local static/pre-push validation now runs the Python bridge unit test suite after compiling the bridge.
+- The bridge log level is configurable with `NEXUS_UNITY_LOG_LEVEL`.
 
 ### Fixed
 - Claude Desktop auto setup on macOS now writes `~/Library/Application Support/Claude/claude_desktop_config.json` instead of the XDG `~/.config/Claude` path, which the macOS app does not read (`SpecialFolder.ApplicationData` resolves to `~/.config` under Mono).
 - CLI client detection (Codex, Gemini, Antigravity, Claude Code) now resolves executables with `where` on Windows instead of always failing, which previously left Gemini and Antigravity `Auto Setup` disabled on Windows even when installed.
 - Generated MCP configs resolve the Python interpreter as `python3`, then `python`, then the Windows `py` launcher, instead of hardcoding `python3`, so the bridge launches on Windows hosts without a `python3` alias.
+- Invalid `NEXUS_UNITY_PORT` values are ignored cleanly so the bridge can fall back to a positional port argument or the default port.
 
 ## [1.3.0] - 2026-06-05
 

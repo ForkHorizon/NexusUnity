@@ -7,7 +7,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `GPL-3.0-only`
-- Current public version: `1.3.0`
+- Current public version: `1.4.0`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning
@@ -27,7 +27,7 @@ Use `CHANGELOG.md` as the source of truth during development:
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.3.0`. GitHub release tags, titles, and announcements use the same semantic version: `v1.3.0` for tags and `1.3.0` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.4.0`. GitHub release tags, titles, and announcements use the same semantic version: `v1.4.0` for tags and `1.4.0` for release titles.
 
 When preparing the release, choose the version by semantic versioning:
 
@@ -39,7 +39,7 @@ When preparing the release, choose the version by semantic versioning:
 
 1. Verify `Assets/NexusUnity/package.json`:
    - `name` is `com.forkhorizon.nexus.unity`.
-   - `version` matches the Unity package version, such as `1.3.0`.
+   - `version` matches the Unity package version, such as `1.4.0`.
    - `license` is `GPL-3.0-only`.
    - Repository, documentation, changelog, and license URLs point to the public repository.
 2. Verify docs:
@@ -61,6 +61,7 @@ When preparing the release, choose the version by semantic versioning:
    - Confirm the runner has `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama available locally.
    - Unity package compile.
    - Editor tests for path security, server port behavior, API contract, consolidated managers, and bridge contract consistency.
+   - `python3 -m unittest discover -s Editor/tests -v` for the Python bridge unit test suite.
    - `bash scripts/prepush-validate.sh --quick` for the contributor gate.
    - `bash scripts/prepush-validate.sh --integration` when a local Unity project is available.
    - Public API stress audit comparing raw `list_tools` with the MCP bridge catalog and exercising mutating tools in a disposable namespace.
@@ -82,7 +83,7 @@ The patch component is always included in public tags. Reserve patch bumps for u
 Release changes flow through a final pull request into `main`.
 
 1. Create a release PR from `development` or `release/*` to `main`.
-2. Confirm the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` checks pass on the self-hosted Mac runner.
+2. Confirm the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` checks pass on the self-hosted Mac runner.
 3. Resolve all review conversations.
 4. Merge the release PR manually.
 5. Create and push the matching GitHub release tag.

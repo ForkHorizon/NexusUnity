@@ -97,7 +97,7 @@ jobs:
       - name: Run Python unit tests
         run: |
           set -euo pipefail
-          python3 -m unittest discover -s Editor/tests -v
+          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -v
           echo "Python unit tests passed."
 
   documentation-quality-ai:
