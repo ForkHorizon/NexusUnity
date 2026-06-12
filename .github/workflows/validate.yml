@@ -20,7 +20,7 @@ env:
 jobs:
   pr-target-policy:
     name: PR target policy
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker]
     steps:
       - name: Validate protected branch workflow
         env:
@@ -71,7 +71,7 @@ jobs:
 
   static-validation:
     name: Static validation
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker]
     needs: pr-target-policy
     steps:
       - name: Check out repository
@@ -88,7 +88,7 @@ jobs:
 
   python-unit-tests:
     name: Python unit tests
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker]
     needs: static-validation
     steps:
       - name: Check out repository
@@ -102,7 +102,7 @@ jobs:
 
   documentation-quality-ai:
     name: Documentation quality AI
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci, nexus-doc-ai]
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker, ci-scope-heavy]
     needs: static-validation
     env:
       NEXUS_DOC_AI_MAX_PARALLEL: "1"
@@ -188,7 +188,7 @@ jobs:
 
   unity-package-smoke:
     name: Unity package smoke
-    runs-on: [self-hosted, macOS, ARM64, nexus-unity-ci]
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker, ci-scope-heavy]
     needs: static-validation
     steps:
       - name: Check out repository
