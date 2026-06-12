@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.3.0)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.4.1)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,21 +8,23 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.3.0`
+- Version: `1.4.1`
 - License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
 
-Active public release. Current version: `1.3.0`.
+Active public release. Current version: `1.4.1`.
 
 The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
 ## Screenshot / Demo
 
+Click the preview below to watch the full 98-second Nexus Unity demo on YouTube.
+
 [![Nexus Unity demo: AI agent building and iterating in the Unity Editor](docs/assets/nexus-unity-demo-8s.gif)](https://www.youtube.com/watch?v=zapydBzRzkE)
 
-[Watch the full Nexus Unity demo on YouTube](https://www.youtube.com/watch?v=zapydBzRzkE)
+**[Watch the full 98-second Nexus Unity demo on YouTube](https://www.youtube.com/watch?v=zapydBzRzkE)**
 
 Open `Window > Nexus Unity` in the Unity Editor to use the server, integrations, resources, and settings tabs. The demo shows an AI agent using Nexus Unity to create a scene, inspect editor feedback, generate code, and iterate inside the Unity Editor.
 
@@ -46,7 +48,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.3.0
+https://github.com/ForkHorizon/NexusUnity.git#v1.4.1
 ```
 
 ## Start The Server
@@ -187,7 +189,7 @@ Current development keeps the public API backward-compatible while tightening sc
 
 ## Contributor Validation
 
-GitHub Actions is the required validation gate for public contributions. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner instead of GitHub-hosted runners. Maintainers should configure the `PR target policy`, `Static validation`, `Documentation quality AI`, and `Unity package smoke` jobs as required status checks before merge.
+GitHub Actions is the required validation gate for public contributions. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner instead of GitHub-hosted runners. Maintainers should configure the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` jobs as required status checks before merge.
 
 Static validation includes `NexusQualityGate`, a Roslyn-based checker for production C# source under `Editor/` and `Runtime/`. It blocks missing XML documentation on public/protected types and methods, generic filler summaries, files over 450 lines, and methods over 150 lines. Files over 300 lines and methods over 50 lines are reported as warnings so contributors can split code before it becomes hard to review.
 
@@ -197,7 +199,7 @@ The required `Documentation quality AI` job also runs checklist quality review. 
 
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
-Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub. Because self-hosted runners in public repositories must not execute untrusted fork code, external fork pull requests fail the local CI policy check with a clear message; a maintainer reviews the patch and replays it through a trusted branch before full CI runs on the Mac runner.
+Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub. External fork pull requests currently receive a policy warning and continue through CI; maintainers should review forked code carefully before merge and can use the manual `Approve external PR for CI` workflow to replay a reviewed fork PR on a trusted `trusted/pr-N` branch when an internal rerun is needed.
 
 Contributors can also install the optional local pre-push hook for faster feedback:
 
@@ -238,9 +240,9 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.3.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.4.1`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.3.0` and `v1.3.0`. Reserve patch bumps for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.4.0` and `v1.4.0`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 
@@ -249,6 +251,10 @@ Please use GitHub Issues for reproducible bugs and focused feature requests. Sec
 To support ongoing development, use the repository Sponsor button configured through GitHub Sponsors.
 
 ## Release Notes
+
+The `1.4.1` patch adds the missing package folder `.meta` files (`docs/`, `docs/assets/`, `Editor/tests/`) so fresh installs no longer log "no meta file" warnings, and hardens the pre-push `.meta` validation to check the git-tracked tree and every folder.
+
+The `1.4.0` release adds Claude Code project setup, improves Windows/Linux MCP client detection, refactors the Python bridge transport/logging layers, adds bridge unit tests and CI coverage, and updates external PR validation/replay guidance.
 
 The `1.3.0` release improves integration drift detection, clarifies bridge redeploy restart guidance, and restores Unity 6.3 editor compilation while keeping Unity 6.4 object identity support.
 

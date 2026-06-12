@@ -1,6 +1,6 @@
 # Nexus Unity API Reference
 
-Version: `1.3.0`
+Version: `1.4.1`
 
 Nexus Unity exposes two supported public API surfaces:
 
@@ -153,7 +153,12 @@ Schema compatibility notes:
 
 ## MCP Bridge Tools
 
-The MCP bridge is the recommended AI-client surface. It exposes 14 tools.
+The MCP bridge is the recommended AI-client surface. It exposes 14 tools and two static read-only resources through `resources/list`.
+
+### MCP Resources
+
+- `unity://docs/api-reference`: API reference metadata.
+- `unity://docs/setup`: setup guide metadata.
 
 ### `unity_scene_manager`
 Actions: `create`, `open`, `save`, `list`. Aliases: `create_scene`, `open_scene`, `save_scene`, `list_scenes`.

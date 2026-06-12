@@ -115,7 +115,7 @@ def main() -> None:
                 res = {
                     "protocolVersion": "2024-11-05", 
                     "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.2.0"}
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.4.0"}
                 }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method in ["tools/list", "listTools", "list_tools"]:

@@ -49,6 +49,9 @@ for path in paths:
     compile(source, str(path), "exec")
 PY
 
+  log "Running Python bridge unit tests"
+  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -v
+
   log "Checking for generated or local-only files"
   python3 - <<'PY'
 import os
@@ -83,43 +86,64 @@ PY
   log "Checking Unity .meta pairing"
   python3 - <<'PY'
 import pathlib
+import subprocess
 import sys
 
-root = pathlib.Path(".")
-missing_meta = []
-orphan_meta = []
-ignored_folder_meta = []
-ignore_roots = {".git", ".github", "bin", "obj"}
+# Validate the COMMITTED tree (git-tracked files), not the working directory on disk.
+# Unity auto-generates .meta files locally, so a disk scan can pass while the metas were
+# never committed -- which then breaks a fresh package install. Drive the check from git.
+ignore_roots = {".git", ".github", ".githooks", "bin", "obj"}
 
 def is_unity_ignored_folder_path(path):
     return any(part.endswith("~") for part in path.parts)
 
-for path in root.rglob("*"):
-    if any(part in ignore_roots for part in path.parts):
-        continue
-    if path.suffix == ".meta":
-        target = pathlib.Path(str(path)[:-5])
+def needs_meta(path):
+    # Unity imports everything except '~'-suffixed folders, dot files/folders, and build dirs.
+    if is_unity_ignored_folder_path(path):
+        return False
+    return not any(part.startswith(".") or part in ignore_roots for part in path.parts)
+
+tracked = [pathlib.PurePosixPath(p) for p in subprocess.run(
+    ["git", "ls-files"], capture_output=True, text=True, check=True
+).stdout.split("\n") if p]
+tracked_set = {str(p) for p in tracked}
+
+# Every directory that contains tracked content is imported by Unity and needs its own folder .meta.
+folders = set()
+for p in tracked:
+    for parent in p.parents:
+        if str(parent) != ".":
+            folders.add(parent)
+
+missing_meta = []
+orphan_meta = []
+ignored_folder_meta = []
+
+for path in tracked:
+    if path.name.endswith(".meta"):
+        target = pathlib.PurePosixPath(str(path)[:-5])
         if is_unity_ignored_folder_path(target):
             ignored_folder_meta.append(str(path))
-            continue
-        if not target.exists():
+        elif str(target) not in tracked_set and target not in folders:
             orphan_meta.append(str(path))
-    elif is_unity_ignored_folder_path(path):
         continue
-    elif path.is_file() and path.name != ".gitignore":
-        if not pathlib.Path(str(path) + ".meta").exists():
-            missing_meta.append(str(path))
+    if needs_meta(path) and str(path) + ".meta" not in tracked_set:
+        missing_meta.append(str(path))
+
+for folder in folders:
+    if needs_meta(folder) and str(folder) + ".meta" not in tracked_set:
+        missing_meta.append(str(folder) + "/  (folder)")
 
 if missing_meta or orphan_meta or ignored_folder_meta:
     if missing_meta:
-        print("Missing .meta files:")
-        print("\n".join(missing_meta))
+        print("Missing tracked .meta files (files or folders):")
+        print("\n".join(sorted(missing_meta)))
     if orphan_meta:
-        print("Orphan .meta files:")
-        print("\n".join(orphan_meta))
+        print("Orphan .meta files (no tracked target):")
+        print("\n".join(sorted(orphan_meta)))
     if ignored_folder_meta:
         print("Unity-ignored folder .meta files must not be tracked:")
-        print("\n".join(ignored_folder_meta))
+        print("\n".join(sorted(ignored_folder_meta)))
     sys.exit(1)
 PY
 
