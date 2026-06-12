@@ -242,7 +242,7 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.4.1`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.4.0` and `v1.4.0`. Reserve patch bumps for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.4.1` and `v1.4.1`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 
