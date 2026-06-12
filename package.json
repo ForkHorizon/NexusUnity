@@ -23,8 +23,6 @@
   },
   "dependencies": {
     "com.unity.inputsystem": "1.19.0",
-    "com.unity.nuget.newtonsoft-json": "2.0.0",
-    "com.unity.project-auditor": "0.10.0-preview.1",
-    "com.unity.project-auditor-rules": "1.0.2"
+    "com.unity.nuget.newtonsoft-json": "2.0.0"
   }
 }
