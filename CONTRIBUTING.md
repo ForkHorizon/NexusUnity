@@ -25,6 +25,10 @@ Contributor pull requests must target `development`.
 - Direct pushes to `main` and `development` are blocked for everyone, including maintainers.
 - Trusted maintainers merge approved pull requests through GitHub; external contributors do not need direct repository write access.
 
+## Commit Attribution
+
+Author commits with an email address verified on your GitHub account, preferably the GitHub no-reply address from account email settings. Pull requests can merge even when commit author emails are not account-linked, but GitHub contributor statistics may not credit those commits. The repository `.mailmap` records known historical identity mappings for local Git reports; it is not a substitute for fixing your local `git config user.email` before future commits.
+
 ## Development Rules
 
 - Keep the server local-only. Do not add non-loopback binding without an explicit security design.
