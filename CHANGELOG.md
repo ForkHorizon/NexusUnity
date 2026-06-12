@@ -4,6 +4,9 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Changed
+- Added a repository mailmap entry for `air17` so local Git contributor reports resolve historical `air17@github.com` commits to the GitHub account's canonical no-reply identity.
+
 ## [1.4.1] - 2026-06-12
 
 ### Fixed

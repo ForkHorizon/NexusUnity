@@ -201,6 +201,8 @@ Contributor pull requests should target `development`. The `main` branch is rele
 
 Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub. External fork pull requests currently receive a policy warning and continue through CI; maintainers should review forked code carefully before merge and can use the manual `Approve external PR for CI` workflow to replay a reviewed fork PR on a trusted `trusted/pr-N` branch when an internal rerun is needed.
 
+Contributors should author commits with an email address verified on their GitHub account, preferably the GitHub no-reply address from account email settings. Commits made with placeholder or unverified author emails can merge successfully but may not appear in GitHub contributor statistics. The repository `.mailmap` keeps local Git reports aligned for known historical identities, but it does not replace fixing local Git email configuration before future commits.
+
 Contributors can also install the optional local pre-push hook for faster feedback:
 
 ```bash
