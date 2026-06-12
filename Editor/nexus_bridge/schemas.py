@@ -8,10 +8,10 @@ clients.  Each entry follows the JSON Schema / MCP tool-definition shape.
 """
 from __future__ import annotations
 
-from typing import Any
+from ._types import JsonObject, ResourceDefinition, ToolDefinition
 
 # --- Shared sub-schemas ---
-VECTOR3_SCHEMA: dict[str, Any] = {
+VECTOR3_SCHEMA: JsonObject = {
     "type": "object",
     "properties": {
         "x": {"type": "number"},
@@ -20,7 +20,7 @@ VECTOR3_SCHEMA: dict[str, Any] = {
     },
 }
 
-STATIC_TOOLS: list[dict[str, Any]] = [
+STATIC_TOOLS: list[ToolDefinition] = [
     # --- Consolidated Core Managers ---
     {
         "name": "unity_scene_manager",
@@ -185,7 +185,7 @@ STATIC_TOOLS: list[dict[str, Any]] = [
     {"name": "unity_lint_project", "description": "Run Roslyn-based C# audit of the entire project", "inputSchema": {"type": "object", "properties": {}}}
 ]
 
-STATIC_RESOURCES: list[dict[str, Any]] = [
+STATIC_RESOURCES: list[ResourceDefinition] = [
     {
         "uri": "unity://docs/api-reference",
         "name": "API Reference",
