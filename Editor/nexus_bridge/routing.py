@@ -77,7 +77,7 @@ def _extract_created_instance_id(response: JsonRpcResponse) -> int | None:
 
 def _apply_created_transform(response: JsonRpcResponse, args: JsonObject) -> JsonRpcResponse:
     instance_id = _extract_created_instance_id(response)
-    if not instance_id:
+    if instance_id is None:
         return response
     params = _transform_params(args, instance_id)
     if len(params) <= 1:

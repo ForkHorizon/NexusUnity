@@ -18,6 +18,7 @@ class RouteToolDispatchTests(unittest.TestCase):
         test_cases: list[tuple[str, dict[str, Any], str, tuple[Any, ...]]] = [
             ("scene_manager", {"action": "open", "path": "Assets/TestScene.unity"}, "open_scene", ({"path": "Assets/TestScene.unity"},)),
             ("hierarchy_manager", {"action": "destroy", "instance_id": 42}, "destroy_game_object", ({"instance_id": 42},)),
+            ("hierarchy_manager", {"action": "set_sibling_index", "instance_id": 42, "index": 2}, "set_sibling_index", ({"instance_id": 42, "index": 2},)),
             ("component_manager", {"action": "add", "instance_id": 42, "component_name": "BoxCollider"}, "add_component", ({"instance_id": 42, "component_name": "BoxCollider"},)),
             ("search_manager", {"strategy": "path", "query": "/Canvas/Button"}, "find_by_path", ({"path": "/Canvas/Button"},)),
             ("asset_manager", {"action": "refresh"}, "refresh_asset_database", tuple()),
@@ -33,6 +34,19 @@ class RouteToolDispatchTests(unittest.TestCase):
 
                 self.assertEqual({"result": {"ok": True}}, response)
                 mock_call_unity.assert_called_once_with(unity_method, *unity_params)
+
+    def test_apply_created_transform_accepts_zero_instance_id(self) -> None:
+        response: dict[str, Any] = {"result": {"data": {"instance_id": 0}}}
+        args: dict[str, Any] = {"position": {"x": 1, "y": 2, "z": 3}}
+
+        with patch("nexus_bridge.routing.call_unity", return_value={"result": {"ok": True}}) as mock_call_unity:
+            returned = routing._apply_created_transform(response, args)
+
+        self.assertIs(returned, response)
+        mock_call_unity.assert_called_once_with(
+            "set_transform",
+            {"instance_id": 0, "position": {"x": 1, "y": 2, "z": 3}},
+        )
 
 
 class RunTestsWaitTests(unittest.TestCase):

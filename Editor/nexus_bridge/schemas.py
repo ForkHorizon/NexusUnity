@@ -41,24 +41,120 @@ STATIC_TOOLS: list[ToolDefinition] = [
         "description": "Unified GameObject hierarchy and lifecycle management",
         "inputSchema": {
             "type": "object",
-            "properties": {
-                "action": {"type": "string", "enum": ["create_empty", "create", "create_gameobject", "create_game_object", "create_primitive", "create_hierarchy", "destroy", "duplicate", "rename", "set_name", "set_transform", "set_active", "set_parent", "set_sibling_index"]},
-                "instance_id": {"type": "integer"},
-                "name": {"type": "string"},
-                "new_name": {"type": "string"},
-                "parent_id": {"type": "integer"},
-                "primitive_type": {"type": "string", "enum": ["Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad"]},
-                "position": VECTOR3_SCHEMA,
-                "rotation": VECTOR3_SCHEMA,
-                "scale": VECTOR3_SCHEMA,
-                "eulerAngles": VECTOR3_SCHEMA,
-                "localScale": VECTOR3_SCHEMA,
-                "material_path": {"type": "string"},
-                "tree": {"type": "object"},
-                "active": {"type": "boolean"},
-                "index": {"type": "string"}
-            },
-            "required": ["action"]
+            "oneOf": [
+                {
+                    "description": "Create an empty GameObject, including common create-action aliases",
+                    "properties": {
+                        "action": {"type": "string", "enum": ["create_empty", "create", "create_gameobject", "create_game_object"]},
+                        "name": {"type": "string"},
+                        "parent_id": {"type": "integer"},
+                        "position": VECTOR3_SCHEMA,
+                        "rotation": VECTOR3_SCHEMA,
+                        "scale": VECTOR3_SCHEMA,
+                        "eulerAngles": VECTOR3_SCHEMA,
+                        "localScale": VECTOR3_SCHEMA,
+                    },
+                    "required": ["action", "name"]
+                },
+                {
+                    "description": "Create a primitive GameObject",
+                    "properties": {
+                        "action": {"const": "create_primitive"},
+                        "primitive_type": {"type": "string", "enum": ["Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad"]},
+                        "name": {"type": "string"},
+                        "parent_id": {"type": "integer"},
+                        "position": VECTOR3_SCHEMA,
+                        "rotation": VECTOR3_SCHEMA,
+                        "scale": VECTOR3_SCHEMA,
+                        "material_path": {"type": "string"},
+                    },
+                    "required": ["action", "primitive_type"]
+                },
+                {
+                    "description": "Batch-create a hierarchy of GameObjects",
+                    "properties": {
+                        "action": {"const": "create_hierarchy"},
+                        "tree": {"type": "object"},
+                        "parent_id": {"type": "integer"},
+                    },
+                    "required": ["action", "tree"]
+                },
+                {
+                    "description": "Destroy a GameObject",
+                    "properties": {
+                        "action": {"const": "destroy"},
+                        "instance_id": {"type": "integer"},
+                    },
+                    "required": ["action", "instance_id"]
+                },
+                {
+                    "description": "Duplicate a GameObject",
+                    "properties": {
+                        "action": {"const": "duplicate"},
+                        "instance_id": {"type": "integer"},
+                    },
+                    "required": ["action", "instance_id"]
+                },
+                {
+                    "description": "Rename a GameObject, including the rename alias",
+                    "properties": {
+                        "action": {"type": "string", "enum": ["rename", "set_name"]},
+                        "instance_id": {"type": "integer"},
+                        "name": {"type": "string"},
+                        "new_name": {"type": "string"},
+                    },
+                    "required": ["action", "instance_id"],
+                    "anyOf": [
+                        {"required": ["name"]},
+                        {"required": ["new_name"]}
+                    ]
+                },
+                {
+                    "description": "Move, rotate, or scale a GameObject, including the transform alias",
+                    "properties": {
+                        "action": {"type": "string", "enum": ["set_transform", "transform"]},
+                        "instance_id": {"type": "integer"},
+                        "position": VECTOR3_SCHEMA,
+                        "rotation": VECTOR3_SCHEMA,
+                        "scale": VECTOR3_SCHEMA,
+                        "eulerAngles": VECTOR3_SCHEMA,
+                        "localScale": VECTOR3_SCHEMA,
+                    },
+                    "required": ["action", "instance_id"]
+                },
+                {
+                    "description": "Enable or disable a GameObject",
+                    "properties": {
+                        "action": {"const": "set_active"},
+                        "instance_id": {"type": "integer"},
+                        "active": {"type": "boolean"},
+                    },
+                    "required": ["action", "instance_id", "active"]
+                },
+                {
+                    "description": "Reparent a GameObject",
+                    "properties": {
+                        "action": {"const": "set_parent"},
+                        "instance_id": {"type": "integer"},
+                        "parent_id": {"type": "integer"},
+                    },
+                    "required": ["action", "instance_id", "parent_id"]
+                },
+                {
+                    "description": "Reorder a GameObject within its siblings",
+                    "properties": {
+                        "action": {"const": "set_sibling_index"},
+                        "instance_id": {"type": "integer"},
+                        "index": {
+                            "oneOf": [
+                                {"type": "integer"},
+                                {"type": "string", "enum": ["first", "last"]}
+                            ]
+                        },
+                    },
+                    "required": ["action", "instance_id", "index"]
+                }
+            ]
         }
     },
     {
