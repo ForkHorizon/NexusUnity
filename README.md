@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.4.0)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.4.1)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,13 +8,13 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.4.0`
+- Version: `1.4.1`
 - License: `GPL-3.0-only`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
 
-Active public release. Current version: `1.4.0`.
+Active public release. Current version: `1.4.1`.
 
 The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
@@ -48,7 +48,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.4.0
+https://github.com/ForkHorizon/NexusUnity.git#v1.4.1
 ```
 
 ## Start The Server
@@ -240,7 +240,7 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.4.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.4.1`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
 When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.4.0` and `v1.4.0`. Reserve patch bumps for urgent compatible hotfixes.
 
@@ -251,6 +251,8 @@ Please use GitHub Issues for reproducible bugs and focused feature requests. Sec
 To support ongoing development, use the repository Sponsor button configured through GitHub Sponsors.
 
 ## Release Notes
+
+The `1.4.1` patch adds the missing package folder `.meta` files (`docs/`, `docs/assets/`, `Editor/tests/`) so fresh installs no longer log "no meta file" warnings, and hardens the pre-push `.meta` validation to check the git-tracked tree and every folder.
 
 The `1.4.0` release adds Claude Code project setup, improves Windows/Linux MCP client detection, refactors the Python bridge transport/logging layers, adds bridge unit tests and CI coverage, and updates external PR validation/replay guidance.
 
