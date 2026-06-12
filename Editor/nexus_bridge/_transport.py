@@ -5,7 +5,8 @@ import json
 import os
 import sys
 import urllib.request
-from typing import Any
+
+from ._types import JsonObject, JsonRpcError, JsonRpcRequest, JsonRpcResponse
 
 DEFAULT_PORT: int = 8081
 
@@ -44,8 +45,8 @@ UNITY_URL: str = (
 UNITY_TIMEOUT_SECONDS: float = _read_timeout()
 
 
-def call_unity(method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-    payload: dict[str, Any] = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
+def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse:
+    payload: JsonRpcRequest = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
     data: bytes = json.dumps(payload).encode("utf-8")
     req: urllib.request.Request = urllib.request.Request(
         UNITY_URL,
@@ -56,4 +57,8 @@ def call_unity(method: str, params: dict[str, Any] | None = None) -> dict[str, A
         with urllib.request.urlopen(req, timeout=UNITY_TIMEOUT_SECONDS) as response:
             return json.loads(response.read().decode("utf-8"))
     except Exception as error:
-        return {"error": {"code": -32000, "message": f"Unity Server unreachable. Error: {error}"}}
+        error_payload: JsonRpcError = {
+            "code": -32000,
+            "message": f"Unity Server unreachable. Error: {error}",
+        }
+        return {"error": error_payload}
