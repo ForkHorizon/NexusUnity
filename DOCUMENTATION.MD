@@ -173,7 +173,7 @@ The same job also runs `NexusQualityGate --checklist-ai required`. That mode rea
 
 The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping quality-gate changes, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet or has not learned the `--checklist-ai` option.
 
-The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that package dependencies resolved in `packages-lock.json`.
+The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that required package dependencies resolved in `packages-lock.json` without Unity Project Auditor packages.
 
 Full local integration validation is explicit:
 
@@ -208,6 +208,7 @@ Before release, maintainers should run a public API stress audit that compares r
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
 - Keep contributor tooling and package-internal tests under Unity-ignored folders such as `tools~/` and `Tests~/` without `.meta` files; Unity will not import those folders, and root `~.meta` entries break immutable PackageCache installs.
+- Do not declare Unity Project Auditor packages as Nexus dependencies. Nexus audit support uses reflection when a host project explicitly installs compatible Project Auditor rules; direct dependencies can add duplicate immutable `.meta` GUID warnings or no-module Console spam during clean installs.
 
 ## Development Versioning Policy
 

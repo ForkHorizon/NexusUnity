@@ -51,6 +51,8 @@ For reproducible installs, pin the public release tag:
 https://github.com/ForkHorizon/NexusUnity.git#v1.4.1
 ```
 
+Nexus Unity does not declare Unity Project Auditor packages. Its lint tool always runs Nexus style and scene checks, and only includes Unity Project Auditor findings when the host project explicitly has compatible Project Auditor rules installed.
+
 ## Start The Server
 
 1. Open `Window > Nexus Unity`.

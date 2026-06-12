@@ -4,6 +4,9 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- Removed direct Unity Project Auditor package dependencies and made Unity Project Auditor execution optional, so clean installs avoid duplicate immutable `.meta` GUID warnings and `Could not find any registered modules` Console spam.
+
 ### Changed
 - Added a repository mailmap entry for `air17` so local Git contributor reports resolve historical `air17@github.com` commits to the GitHub account's canonical no-reply identity.
 
