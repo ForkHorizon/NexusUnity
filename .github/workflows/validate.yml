@@ -11,8 +11,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: nexus-unity-ci
-  queue: max
+  group: nexus-unity-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   UNITY_EDITOR_PATH: /Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app/Contents/MacOS/Unity
