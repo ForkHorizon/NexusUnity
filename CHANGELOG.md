@@ -4,7 +4,7 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
-## [1.4.1] - 2026-06-11
+## [1.4.1] - 2026-06-12
 
 ### Fixed
 - Added the missing folder `.meta` files for `docs/`, `docs/assets/`, and `Editor/tests/`. These folders were published without their folder-level metas, so a fresh package install logged "no meta file ... will be ignored" warnings and skipped the folders.
