@@ -4,8 +4,19 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-06-13
+
+### Added
+- Added Python unit coverage for MCP bridge schema shape and type expectations.
+
 ### Changed
+- Expanded the `unity_hierarchy_manager` MCP schema into per-action shapes with clearer required parameters and aliases.
+- Refined Python MCP bridge routing with shared JSON-RPC payload types and more structured handler code.
 - Added a repository mailmap entry for `air17` so local Git contributor reports resolve historical `air17@github.com` commits to the GitHub account's canonical no-reply identity.
+
+### Fixed
+- Removed direct Unity Project Auditor package dependencies and made Unity Project Auditor execution optional, so clean installs avoid duplicate immutable `.meta` GUID warnings and `Could not find any registered modules` Console spam.
+- Fixed bridge-side compilation wait timeout handling after asset refresh and tightened test-result polling payload handling.
 
 ## [1.4.1] - 2026-06-12
 

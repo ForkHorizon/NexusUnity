@@ -1,6 +1,6 @@
 {
   "name": "com.forkhorizon.nexus.unity",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "displayName": "Nexus Unity",
   "description": "Open source Unity Editor automation server for local AI tools and developer workflows.",
   "unity": "6000.0",
@@ -23,8 +23,6 @@
   },
   "dependencies": {
     "com.unity.inputsystem": "1.19.0",
-    "com.unity.nuget.newtonsoft-json": "2.0.0",
-    "com.unity.project-auditor": "0.10.0-preview.1",
-    "com.unity.project-auditor-rules": "1.0.2"
+    "com.unity.nuget.newtonsoft-json": "2.0.0"
   }
 }

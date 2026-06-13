@@ -328,8 +328,6 @@ jobs:
               "com.forkhorizon.nexus.unity",
               "com.unity.inputsystem",
               "com.unity.nuget.newtonsoft-json",
-              "com.unity.project-auditor",
-              "com.unity.project-auditor-rules",
               "com.unity.test-framework",
           ]
           missing = [package for package in required if package not in dependencies]
@@ -337,7 +335,16 @@ jobs:
               print(f"::error::Unity package smoke did not resolve dependencies: {', '.join(missing)}")
               sys.exit(1)
 
-          print("Unity package smoke resolved Nexus Unity and required dependencies.")
+          forbidden = [
+              "com.unity.project-auditor",
+              "com.unity.project-auditor-rules",
+          ]
+          present_forbidden = [package for package in forbidden if package in dependencies]
+          if present_forbidden:
+              print(f"::error::Unity package smoke resolved forbidden Project Auditor dependencies: {', '.join(present_forbidden)}")
+              sys.exit(1)
+
+          print("Unity package smoke resolved Nexus Unity and required dependencies without Project Auditor packages.")
           PY
 
       - name: Run package Editor tests

@@ -34,6 +34,14 @@ assert package["name"] == "com.forkhorizon.nexus.unity"
 assert package["version"]
 assert package["license"] == "GPL-3.0-only"
 assert package["repository"]["url"] == "https://github.com/ForkHorizon/NexusUnity.git"
+
+dependencies = package.get("dependencies", {})
+for package_name in ("com.unity.project-auditor", "com.unity.project-auditor-rules"):
+    assert package_name not in dependencies, (
+        f"Do not depend on {package_name}; Nexus audit support uses reflection "
+        "when a host project explicitly installs compatible Unity Project "
+        "Auditor packages."
+    )
 PY
 
   log "Compiling Python bridge"

@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.4.1`
+Version: `1.4.2`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -173,7 +173,7 @@ The same job also runs `NexusQualityGate --checklist-ai required`. That mode rea
 
 The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping quality-gate changes, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet or has not learned the `--checklist-ai` option.
 
-The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that package dependencies resolved in `packages-lock.json`.
+The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that required package dependencies resolved in `packages-lock.json` without Unity Project Auditor packages.
 
 Full local integration validation is explicit:
 
@@ -202,23 +202,24 @@ Before release, maintainers should run a public API stress audit that compares r
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.4.1`.
+- Public release version: `1.4.2`.
 - License: `GPL-3.0-only`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
 - Keep contributor tooling and package-internal tests under Unity-ignored folders such as `tools~/` and `Tests~/` without `.meta` files; Unity will not import those folders, and root `~.meta` entries break immutable PackageCache installs.
+- Do not declare Unity Project Auditor packages as Nexus dependencies. Nexus audit support uses reflection when a host project explicitly installs compatible Project Auditor rules; direct dependencies can add duplicate immutable `.meta` GUID warnings or no-module Console spam during clean installs.
 
 ## Development Versioning Policy
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.4.1` for the package version, `v1.4.1` for tags, and `1.4.1` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.4.2` for the package version, `v1.4.2` for tags, and `1.4.2` for release titles.
 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.4.1` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.4.2` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
@@ -226,4 +227,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.4.1` for package version `1.4.1`.
+- Tag the release with the matching semantic GitHub version, for example `v1.4.2` for package version `1.4.2`.
