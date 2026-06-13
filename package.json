@@ -1,6 +1,6 @@
 {
   "name": "com.forkhorizon.nexus.unity",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "displayName": "Nexus Unity",
   "description": "Open source Unity Editor automation server for local AI tools and developer workflows.",
   "unity": "6000.0",
