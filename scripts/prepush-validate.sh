@@ -32,7 +32,7 @@ with open("package.json", encoding="utf-8") as handle:
 
 assert package["name"] == "com.forkhorizon.nexus.unity"
 assert package["version"]
-assert package["license"] == "GPL-3.0-only"
+assert package["license"] == "MIT"
 assert package["repository"]["url"] == "https://github.com/ForkHorizon/NexusUnity.git"
 
 dependencies = package.get("dependencies", {})

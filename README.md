@@ -1,7 +1,7 @@
 # Nexus Unity
 
 [![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.4.2)
-[![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
 
@@ -9,7 +9,7 @@ Nexus Unity is an open source Unity Editor automation package. It runs a local J
 
 - Package id: `com.forkhorizon.nexus.unity`
 - Version: `1.4.2`
-- License: `GPL-3.0-only`
+- License: `MIT`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
@@ -187,7 +187,7 @@ Current development keeps the public API backward-compatible while tightening sc
 | `CODE_OF_CONDUCT.md` | Community behavior expectations |
 | `RELEASE.md` | Public release checklist and smoke test |
 | `CHANGELOG.md` | Public release history |
-| `LICENSE.md` | GPL-3.0-only license text |
+| `LICENSE.md` | MIT license text |
 
 ## Contributor Validation
 
