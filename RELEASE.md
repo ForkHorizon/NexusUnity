@@ -6,7 +6,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
-- License: `GPL-3.0-only`
+- License: `MIT`
 - Current public version: `1.4.2`
 - Minimum Unity version: `6000.0`
 
@@ -40,7 +40,7 @@ When preparing the release, choose the version by semantic versioning:
 1. Verify `Assets/NexusUnity/package.json`:
    - `name` is `com.forkhorizon.nexus.unity`.
    - `version` matches the Unity package version, such as `1.4.2`.
-   - `license` is `GPL-3.0-only`.
+   - `license` is `MIT`.
    - Repository, documentation, changelog, and license URLs point to the public repository.
 2. Verify docs:
    - `README.md` install command uses the public Git URL.

@@ -5,16 +5,16 @@ namespace UnityMCP.Editor {
     /// Provides a maintainer-only diagnostic action that runs the Codex CLI linking flow from the Nexus Unity resources panel.
     /// </summary>
     /// <remarks>
-    /// The action can modify the local Codex configuration on the developer machine by delegating to
-    /// <see cref="MCPCliInstaller.LinkToCodex"/>, and writes progress to the Nexus diagnostics log category.
+    /// This is a thin troubleshooting wrapper: it logs start and finish messages to the Unity Console and delegates the actual
+    /// linking work — including any local Codex/MCP client configuration changes — to <see cref="MCPCliInstaller.LinkToCodex"/>.
     /// </remarks>
     public static class CodexLinkTester {
         /// <summary>
-        /// Runs the Codex integration link diagnostic and records start and finish messages in the Unity Console.
+        /// Runs the Codex integration link diagnostic, logging start and finish messages to the Unity Console.
         /// </summary>
         /// <remarks>
-        /// This method is intended for manual troubleshooting from the advanced diagnostics UI and may update local MCP client
-        /// configuration files through the Codex installer helper.
+        /// Intended for manual troubleshooting from the advanced diagnostics UI. The actual linking and any local MCP client
+        /// configuration changes are performed by <see cref="MCPCliInstaller.LinkToCodex"/>; this method itself only logs and delegates.
         /// </remarks>
         public static void TestLink() {
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[Test] Starting Codex link test...", true);
