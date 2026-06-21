@@ -17,6 +17,8 @@ namespace UnityMCP.Editor
     /// </remarks>
     public static partial class MCPServerMethods
     {
+        private static DateTime _scriptRefreshBusyUntilUtc;
+
         private static void RegisterHierarchyMethods()
         {
             _methods["duplicate_object"] = DuplicateObject;
@@ -288,6 +290,8 @@ namespace UnityMCP.Editor
 
         private static void TriggerSafeAssetRefresh()
         {
+            _scriptRefreshBusyUntilUtc = DateTime.UtcNow.AddSeconds(8);
+
             // Scripts trigger domain reload which blocks the HTTP response.
             // Unity strictly aborts Domain Reloads if the Editor window is in the background 
             // to protect external IDE development. We use LaunchServices (open -a) to explicitly

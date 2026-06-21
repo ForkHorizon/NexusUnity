@@ -168,6 +168,9 @@ Current development keeps the public API backward-compatible while tightening sc
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`, which lets agents build visible non-origin objects without fragile follow-up calls.
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` updates position, rotation, and scale.
+- `get_game_object` returns `transform` and compact `components` data for cheap verify-after-write reads.
+- Script writes keep readiness probes busy while Unity's scheduled refresh is pending.
+- Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so generated materials can be created inside a chosen project folder and made visibly distinct.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is an optional positional JSON array.
