@@ -129,6 +129,7 @@ The current development line preserves backward compatibility while correcting p
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
 - `create_scene` accepts optional `path` and `open_if_exists` for deterministic scene assets.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
+- Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `create_material` accepts an optional explicit `path` plus `base_color` / `color` and `emission_color`, so automation can isolate generated materials in a known project folder and make them visibly distinct.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.

@@ -166,6 +166,7 @@ Current development keeps the public API backward-compatible while tightening sc
 - `unity_scene_manager` accepts obvious aliases such as `list_scenes`, `create_scene`, `open_scene`, and `save_scene`; invalid manager actions now report the valid action names.
 - `create_scene` accepts optional `path` and `open_if_exists` so agents can create or reopen a deterministic scene asset in one call.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`, which lets agents build visible non-origin objects without fragile follow-up calls.
+- Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` updates position, rotation, and scale.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so generated materials can be created inside a chosen project folder and made visibly distinct.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.

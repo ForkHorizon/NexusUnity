@@ -397,13 +397,24 @@ namespace UnityMCP.Editor
 
         private static JObject GetVector3Schema() => new JObject
         {
-            ["type"] = "object",
-            ["properties"] = new JObject
-            {
-                ["x"] = new JObject { ["type"] = "number" },
-                ["y"] = new JObject { ["type"] = "number" },
-                ["z"] = new JObject { ["type"] = "number" }
-            }
+            ["oneOf"] = new JArray(
+                new JObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JObject
+                    {
+                        ["x"] = new JObject { ["type"] = "number" },
+                        ["y"] = new JObject { ["type"] = "number" },
+                        ["z"] = new JObject { ["type"] = "number" }
+                    }
+                },
+                new JObject
+                {
+                    ["type"] = "array",
+                    ["items"] = new JObject { ["type"] = "number" },
+                    ["minItems"] = 3,
+                    ["maxItems"] = 3
+                })
         };
 
         private static string SanitizeScriptName(string n) => System.Text.RegularExpressions.Regex.Replace(n, @"[^a-zA-Z0-9_]", "_");

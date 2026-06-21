@@ -7,6 +7,9 @@ All notable public changes to Nexus Unity are documented here.
 ### Changed
 - Relicensed Nexus Unity from `GPL-3.0-only` to the `MIT` license to remove copyleft friction for commercial Unity studios. All prior contributors consented to the relicense.
 
+### Fixed
+- `create_primitive` now validates parent, transform, and material inputs before creating the GameObject, and Vector3 inputs accept `[x, y, z]` arrays as well as `{x, y, z}` objects.
+
 ## [1.4.2] - 2026-06-13
 
 ### Added

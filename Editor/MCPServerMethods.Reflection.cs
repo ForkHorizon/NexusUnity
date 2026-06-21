@@ -429,6 +429,12 @@ namespace UnityMCP.Editor
         private static Vector3 ParseVector3(JToken t, Vector3 _defaultValue = default)
         {
             if (t == null) return _defaultValue;
+            if (t is JArray array)
+            {
+                if (array.Count != 3) throw new Exception("Vector3 array must have exactly 3 numbers");
+                return new Vector3(array[0].Value<float>(), array[1].Value<float>(), array[2].Value<float>());
+            }
+            if (t.Type != JTokenType.Object) throw new Exception("Vector3 must be an object with x/y/z or an array [x,y,z]");
             return new Vector3((float)(t["x"] ?? _defaultValue.x), (float)(t["y"] ?? _defaultValue.y), (float)(t["z"] ?? _defaultValue.z));
         }
 
