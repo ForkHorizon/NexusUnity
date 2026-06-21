@@ -363,6 +363,42 @@ namespace UnityMCP.Editor.Tests {
         }
 
         [Test]
+        public void GetGameObject_ReturnsTransformAndComponentsForReadBackVerification() {
+            var go = CreateTestGameObject();
+
+            var transformRes = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "set_transform",
+                ["instance_id"] = go.GetInstanceID(),
+                ["position"] = new JObject { ["x"] = -1, ["y"] = 2, ["z"] = 3 },
+                ["rotation"] = new JObject { ["x"] = 10, ["y"] = 20, ["z"] = 30 },
+                ["scale"] = new JObject { ["x"] = 2, ["y"] = 3, ["z"] = 4 }
+            });
+            Assert.IsNotNull(transformRes["result"], $"Expected result, got error: {transformRes["error"]}");
+
+            var addComponentRes = CallRaw("add_component", new JObject { ["instance_id"] = go.GetInstanceID(), ["component_name"] = "BoxCollider" });
+            Assert.IsNotNull(addComponentRes["result"], $"Expected result, got error: {addComponentRes["error"]}");
+
+            var readRes = CallRaw("get_game_object", new JObject { ["instance_id"] = go.GetInstanceID() });
+            Assert.IsNotNull(readRes["result"], $"Expected result, got error: {readRes["error"]}");
+            var data = readRes["result"]["data"];
+            Assert.IsNotNull(data);
+            Assert.AreEqual(-1f, data["transform"]["position"]["x"].Value<float>(), 0.001f);
+            Assert.AreEqual(2f, data["transform"]["position"]["y"].Value<float>(), 0.001f);
+            Assert.AreEqual(3f, data["transform"]["position"]["z"].Value<float>(), 0.001f);
+            Assert.AreEqual(10f, data["transform"]["rotation"]["x"].Value<float>(), 0.001f);
+            Assert.AreEqual(20f, data["transform"]["rotation"]["y"].Value<float>(), 0.001f);
+            Assert.AreEqual(30f, data["transform"]["rotation"]["z"].Value<float>(), 0.001f);
+            Assert.AreEqual(2f, data["transform"]["scale"]["x"].Value<float>(), 0.001f);
+            Assert.AreEqual(3f, data["transform"]["scale"]["y"].Value<float>(), 0.001f);
+            Assert.AreEqual(4f, data["transform"]["scale"]["z"].Value<float>(), 0.001f);
+
+            var components = data["components"] as JArray;
+            Assert.IsNotNull(components);
+            Assert.IsTrue(components.Any(c => c["type"]?.ToString() == "Transform"));
+            Assert.IsTrue(components.Any(c => c["type"]?.ToString() == "BoxCollider"));
+        }
+
+        [Test]
         public void UnityComponentManager_Inspect_ReturnsSuccess() {
             var go = CreateTestGameObject();
             var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetInstanceID(), ["component_name"] = "Transform" });

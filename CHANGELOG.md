@@ -9,6 +9,9 @@ All notable public changes to Nexus Unity are documented here.
 
 ### Fixed
 - `create_primitive` now validates parent, transform, and material inputs before creating the GameObject, and Vector3 inputs accept `[x, y, z]` arrays as well as `{x, y, z}` objects.
+- `get_game_object` now returns transform state and a compact component list so agents can verify basic write operations with the cheap read-back call.
+- Script writes now keep readiness probes in a busy/importing state while the scheduled asset refresh is pending, avoiding premature follow-up write calls during Unity domain reload.
+- Play mode transitions now keep readiness probes busy so agents do not issue follow-up writes while Unity is still entering or exiting Play Mode.
 
 ## [1.4.2] - 2026-06-13
 

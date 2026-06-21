@@ -27,6 +27,9 @@ Schema compatibility notes:
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path` for visible non-origin object creation.
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
+- `get_game_object` returns `transform.position`, `transform.rotation`, `transform.scale`, and compact `components` data for cheap read-back verification.
+- After script writes, readiness probes remain busy until the scheduled asset refresh window has passed.
+- During Play Mode transitions, readiness probes remain busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so callers can create visible materials in a chosen folder.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is an optional JSON array of positional arguments.

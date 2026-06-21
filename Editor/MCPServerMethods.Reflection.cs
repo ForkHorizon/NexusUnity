@@ -441,7 +441,9 @@ namespace UnityMCP.Editor
         private static JToken SerializeGameObject(GameObject go)
         {
             if (go == null) return JValue.CreateNull();
-            return new JObject { ["name"] = go.name, ["instance_id"] = go.GetRawId() };
+            return new JObject { ["name"] = go.name, ["instance_id"] = go.GetRawId(),
+                ["transform"] = new JObject { ["position"] = SerializeVector3(go.transform.position), ["rotation"] = SerializeVector3(go.transform.eulerAngles), ["scale"] = SerializeVector3(go.transform.localScale) },
+                ["components"] = new JArray(go.GetComponents<Component>().Where(c => c != null).Select(c => SerializeComponentSnapshot(c, false))) };
         }
     }
 }
