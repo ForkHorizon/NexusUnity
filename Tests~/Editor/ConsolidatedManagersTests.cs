@@ -289,6 +289,44 @@ namespace UnityMCP.Editor.Tests {
         }
 
         [Test]
+        public void UnityHierarchyManager_CreatePrimitiveWithArrayPosition_ReturnsPlacedObject() {
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "create_primitive",
+                ["primitive_type"] = "Cube",
+                ["name"] = "ArrayPlacedManagerCube",
+                ["position"] = new JArray(9, 9, 9)
+            });
+
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+            var id = res["result"]["data"]?["instance_id"]?.Value<int>();
+            Assert.IsTrue(id.HasValue && id.Value != 0);
+
+            var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
+            Assert.IsNotNull(go);
+            _createdObjects.Add(go);
+            Assert.AreEqual(9f, go.transform.position.x, 0.001f);
+            Assert.AreEqual(9f, go.transform.position.y, 0.001f);
+            Assert.AreEqual(9f, go.transform.position.z, 0.001f);
+        }
+
+        [Test]
+        public void UnityHierarchyManager_CreatePrimitiveWithInvalidArrayPosition_DoesNotCreateObject() {
+            string name = "InvalidArrayCube_" + Guid.NewGuid().ToString("N");
+            int before = GameObject.FindObjectsOfType<GameObject>().Count(go => go.name == name);
+
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "create_primitive",
+                ["primitive_type"] = "Cube",
+                ["name"] = name,
+                ["position"] = new JArray(9, 9)
+            });
+
+            Assert.IsNotNull(res["error"], "Expected invalid Vector3 array to fail.");
+            int after = GameObject.FindObjectsOfType<GameObject>().Count(go => go.name == name);
+            Assert.AreEqual(before, after);
+        }
+
+        [Test]
         public void UnityHierarchyManager_RenameAlias_UpdatesGameObjectName() {
             var go = CreateTestGameObject();
             var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {

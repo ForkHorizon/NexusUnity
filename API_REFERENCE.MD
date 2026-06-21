@@ -25,6 +25,7 @@ Schema compatibility notes:
 - `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
 - `create_scene` accepts optional `path` and `open_if_exists`, so agents can create or reopen a deterministic scene asset in one call.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path` for visible non-origin object creation.
+- Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so callers can create visible materials in a chosen folder.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
@@ -168,7 +169,7 @@ Actions: `create`, `open`, `save`, `list`. Aliases: `create_scene`, `open_scene`
 ### `unity_hierarchy_manager`
 Actions: `create_empty`, `create_primitive`, `create_hierarchy`, `destroy`, `duplicate`, `rename`, `set_name`, `set_transform`, `set_active`, `set_parent`, `set_sibling_index`.
 
-Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_empty`. `create_primitive` accepts `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
+Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_empty`. `create_primitive` accepts `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`; Vector3 fields accept either object or array form.
 
 ### `unity_component_manager`
 Actions: `add`, `remove`, `inspect`, `get_schema`, `update_properties`, `set_property`, `set_enabled`.

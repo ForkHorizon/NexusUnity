@@ -12,12 +12,22 @@ from ._types import JsonObject, ResourceDefinition, ToolDefinition
 
 # --- Shared sub-schemas ---
 VECTOR3_SCHEMA: JsonObject = {
-    "type": "object",
-    "properties": {
-        "x": {"type": "number"},
-        "y": {"type": "number"},
-        "z": {"type": "number"},
-    },
+    "oneOf": [
+        {
+            "type": "object",
+            "properties": {
+                "x": {"type": "number"},
+                "y": {"type": "number"},
+                "z": {"type": "number"},
+            },
+        },
+        {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 3,
+            "maxItems": 3,
+        },
+    ],
 }
 
 STATIC_TOOLS: list[ToolDefinition] = [
