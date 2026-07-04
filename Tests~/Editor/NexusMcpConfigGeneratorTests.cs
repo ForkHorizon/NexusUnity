@@ -57,7 +57,7 @@ namespace UnityMCP.Editor.Tests
             try
             {
                 var client = NexusMcpConfigGenerator.BuildAll("/bridge.py", "/python3", Path.Combine(root, "Project"), Path.Combine(root, "Home"))
-                    .First(item => item.Kind == NexusMcpClientKind.VsCodeClineRoo);
+                    .First(item => item.Kind == NexusMcpClientKind.VsCode);
 
                 var result = NexusMcpConfigGenerator.WriteConfig(client);
                 var json = JObject.Parse(File.ReadAllText(client.ConfigPath));

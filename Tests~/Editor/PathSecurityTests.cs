@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor.Tests
 {
@@ -11,6 +13,12 @@ namespace UnityMCP.Editor.Tests
     /// </summary>
     public class PathSecurityTests
     {
+        [SetUp]
+        public void InitRegistry()
+        {
+            MCPServerMethods.Init();
+        }
+
         /// <summary>
         /// Verifies that ValidatePath prevents access to sibling directories with similar prefixes.
         /// </summary>
@@ -63,6 +71,45 @@ namespace UnityMCP.Editor.Tests
 
             var ex = Assert.Throws<Exception>(() => MCPServerMethods.ValidatePath(parentPath));
             Assert.That(ex.Message, Does.Contain("Access denied"));
+        }
+
+        [Test]
+        public void ReadFile_PreventsTraversalThroughJsonRpc()
+        {
+            string projectRoot = Path.GetDirectoryName(Application.dataPath).Replace('\\', '/');
+            string outsidePath = Path.Combine(projectRoot, "..", "nexus-traversal.txt").Replace('\\', '/');
+
+            JObject response = Rpc("read_file", new JObject { ["path"] = outsidePath });
+
+            AssertRpcErrorContains(response, "Access denied");
+        }
+
+        [Test]
+        public void ExploreAsset_PreventsTraversalThroughJsonRpc()
+        {
+            JObject response = Rpc("explore_asset", new JObject { ["path"] = "Assets/../../nexus-traversal.asset" });
+
+            AssertRpcErrorContains(response, "Access denied");
+        }
+
+        private static JObject Rpc(string method, JObject parameters)
+        {
+            var request = new JObject
+            {
+                ["jsonrpc"] = "2.0",
+                ["method"] = method,
+                ["params"] = parameters,
+                ["id"] = 1
+            };
+
+            return JObject.Parse(MCPServerMethods.ProcessJsonRpc(request.ToString(Formatting.None)));
+        }
+
+        private static void AssertRpcErrorContains(JObject response, string expectedMessage)
+        {
+            Assert.IsNull(response["result"], response.ToString(Formatting.None));
+            Assert.IsNotNull(response["error"], response.ToString(Formatting.None));
+            Assert.That(response["error"]?["message"]?.ToString(), Does.Contain(expectedMessage));
         }
     }
 }

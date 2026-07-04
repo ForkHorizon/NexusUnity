@@ -117,7 +117,7 @@ Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, o
 
 Nexus Unity generates configs from the resolved Python interpreter and the deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
 
-> **Windows / Linux:** The Python interpreter is resolved as `python3`, then `python`, then the Windows `py` launcher — make sure a Python 3 install is on `PATH`. CLI-based cards (Codex, Gemini, Antigravity, and the Claude Code CLI path) are detected with `where` on Windows and `which` on macOS/Linux, so the CLI must be on the `PATH` of the shell that launched Unity for `Auto Setup` to find it; otherwise use `Copy Config`.
+> **Windows / Linux:** The Python interpreter is resolved as `python3`, then `python`, then the Windows `py` launcher — make sure a Python 3 install is on `PATH`. CLI-based cards (Codex, Gemini, and the Claude Code CLI path) are detected with `where` on Windows and `which` on macOS/Linux, so the CLI must be on the `PATH` of the shell that launched Unity for `Auto Setup` to find it; otherwise use `Copy Config`.
 
 `Outdated` means the client config points at a different Unity project, the project-root bridge has not been deployed, or the deployed bridge version differs from the package bridge version. Run `Auto Setup`, then restart the affected MCP client session so it loads the current bridge.
 
@@ -200,6 +200,8 @@ Current development keeps the public API backward-compatible while tightening sc
 GitHub Actions is the required validation gate for public contributions. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner instead of GitHub-hosted runners. Maintainers should configure the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` jobs as required status checks before merge.
 
 Static validation includes `NexusQualityGate`, a Roslyn-based checker for production C# source under `Editor/` and `Runtime/`. It blocks missing XML documentation on public/protected types and methods, generic filler summaries, files over 450 lines, and methods over 150 lines. Files over 300 lines and methods over 50 lines are reported as warnings so contributors can split code before it becomes hard to review.
+
+Editor security tests include JSON-RPC traversal checks for representative file and asset methods.
 
 The runner must have the labels `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`; the AI review job also requires `nexus-doc-ai`. The local toolchain must provide `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama on `http://127.0.0.1:11434`. The workflow uses GitHub Actions `concurrency` group `nexus-unity-ci` with `queue: max`, so multiple trusted runs wait in order instead of competing for the MacBook.
 

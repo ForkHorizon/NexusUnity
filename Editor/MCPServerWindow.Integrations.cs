@@ -110,27 +110,11 @@ namespace UnityMCP.Editor
             var refreshed = NexusMcpConfigGenerator.BuildAllForCurrentProject().First(item => item.Kind == client.Kind);
             refreshed.BridgePath = bridgePath.Replace("\\", "/");
 
-            if (refreshed.Kind == NexusMcpClientKind.Gemini)
+            if (refreshed.CustomAutoSetup != null)
             {
-                MCPCliInstaller.LinkToGemini();
+                refreshed.CustomAutoSetup();
                 DrawIntegrationsTabRefresh();
-                SetIntegrationMessage("Gemini setup command finished. Restart Gemini sessions.");
-                return;
-            }
-
-            if (refreshed.Kind == NexusMcpClientKind.Antigravity)
-            {
-                MCPCliInstaller.LinkToAntigravity();
-                DrawIntegrationsTabRefresh();
-                SetIntegrationMessage("Antigravity setup command finished. Restart Antigravity sessions.");
-                return;
-            }
-
-            if (refreshed.Kind == NexusMcpClientKind.ClaudeCode)
-            {
-                MCPCliInstaller.LinkToClaudeCode();
-                DrawIntegrationsTabRefresh();
-                SetIntegrationMessage("Claude Code setup finished. Run /mcp or restart Claude Code.");
+                SetIntegrationMessage(refreshed.DisplayName + " setup finished. Restart " + refreshed.DisplayName + " sessions to use the redeployed bridge.");
                 return;
             }
 
