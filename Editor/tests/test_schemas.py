@@ -78,5 +78,18 @@ class HierarchyManagerSchemaTests(unittest.TestCase):
         )
 
 
+class PlayerPrefsManagerSchemaTests(unittest.TestCase):
+    def test_delete_variant_advertises_optional_confirm(self) -> None:
+        playerprefs_manager = _get_tool("unity_playerprefs_manager")
+        delete_variant = next(
+            variant
+            for variant in playerprefs_manager["inputSchema"]["oneOf"]
+            if "delete" in _action_values(variant)
+        )
+
+        self.assertCountEqual(["action", "key"], delete_variant["required"])
+        self.assertEqual({"type": "boolean"}, delete_variant["properties"]["confirm"])
+
+
 if __name__ == "__main__":
     unittest.main()

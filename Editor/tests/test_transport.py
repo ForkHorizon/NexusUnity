@@ -122,6 +122,10 @@ class ModuleConfigTests(unittest.TestCase):
         transport: Any = _reload_transport_module({"NEXUS_UNITY_TIMEOUT_SECONDS": "0.2"}, ["nexus_unity_bridge.py"])
         self.assertEqual(1.0, transport.UNITY_TIMEOUT_SECONDS)
 
+    def test_timeout_ignores_invalid_environment_variable(self) -> None:
+        transport: Any = _reload_transport_module({"NEXUS_UNITY_TIMEOUT_SECONDS": "oops"}, ["nexus_unity_bridge.py"])
+        self.assertEqual(120, transport.UNITY_TIMEOUT_SECONDS)
+
 
 if __name__ == "__main__":
     unittest.main()
