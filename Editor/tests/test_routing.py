@@ -95,6 +95,15 @@ class RouteHandlerTests(unittest.TestCase):
         self.assertEqual(expected_response, response)
         mock_run_tests_wait.assert_called_once_with({"action": "run_tests_wait", "timeout_seconds": 9})
 
+    def test_playerprefs_delete_forwards_confirm(self) -> None:
+        with patch("nexus_bridge.routing.call_unity", return_value={"result": {"ok": True}}) as mock_call_unity:
+            response: dict[str, Any] = routing._route_playerprefs_manager(
+                {"action": "delete", "key": "all", "confirm": True}
+            )
+
+        self.assertEqual({"result": {"ok": True}}, response)
+        mock_call_unity.assert_called_once_with("delete_player_pref", {"key": "all", "confirm": True})
+
     def test_hierarchy_manager_create_applies_transform_after_create(self) -> None:
         create_response: dict[str, Any] = {"result": {"data": {"instance_id": 12}}}
         transform_response: dict[str, Any] = {"result": {"ok": True}}

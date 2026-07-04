@@ -414,7 +414,7 @@ def _route_playerprefs_manager(args: JsonObject) -> JsonRpcResponse:
     if action == "set":
         return call_unity("set_player_pref", {"key": args.get("key"), "value": args.get("value"), "type": args.get("type", "string")})
     if action == "delete":
-        return call_unity("delete_player_pref", {"key": args.get("key")})
+        return call_unity("delete_player_pref", _compact({"key": args.get("key"), "confirm": args.get("confirm")}))
     if action == "list":
         return call_unity("list_player_prefs")
     return _invalid_action(action, ["get", "set", "delete", "list"])

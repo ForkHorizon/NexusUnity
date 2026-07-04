@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityMCP.Editor.Tests {
     public class ConsolidatedManagersTests {
@@ -139,7 +140,11 @@ namespace UnityMCP.Editor.Tests {
                 string action = args["action"]?.ToString();
                 if (action == "get") { mappedMethod = "get_player_pref"; mappedParams = new JObject { ["key"] = args["key"], ["type"] = args["type"] ?? "string" }; }
                 else if (action == "set") { mappedMethod = "set_player_pref"; mappedParams = new JObject { ["key"] = args["key"], ["value"] = args["value"], ["type"] = args["type"] ?? "string" }; }
-                else if (action == "delete") { mappedMethod = "delete_player_pref"; mappedParams = new JObject { ["key"] = args["key"] }; }
+                else if (action == "delete") {
+                    mappedMethod = "delete_player_pref";
+                    mappedParams = new JObject { ["key"] = args["key"] };
+                    CopyIfPresent(args, mappedParams, "confirm");
+                }
                 else if (action == "list") { mappedMethod = "list_player_prefs"; mappedParams = new JObject(); }
             }
             else if (managerName == "unity_wait") {
@@ -450,6 +455,38 @@ namespace UnityMCP.Editor.Tests {
         public void UnityPlayerPrefsManager_List_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_playerprefs_manager", new JObject { ["action"] = "list" });
             Assert.IsNotNull(res["result"]);
+        }
+
+        [Test]
+        public void DeletePlayerPref_EmptyOrMissingKey_ReturnsErrorWithoutDeletingPrefs() {
+            string key = "NexusUnity_DeleteGuard_" + Guid.NewGuid().ToString("N");
+            PlayerPrefs.SetString(key, "keep");
+            PlayerPrefs.Save();
+
+            try {
+                var missing = CallRaw("delete_player_pref", new JObject());
+                Assert.IsNotNull(missing["error"], missing.ToString());
+                Assert.IsTrue(PlayerPrefs.HasKey(key));
+
+                var empty = CallRaw("delete_player_pref", new JObject { ["key"] = "" });
+                Assert.IsNotNull(empty["error"], empty.ToString());
+                Assert.IsTrue(PlayerPrefs.HasKey(key));
+            }
+            finally {
+                PlayerPrefs.DeleteKey(key);
+                PlayerPrefs.Save();
+            }
+        }
+
+        [Test]
+        public void DeletePlayerPref_ToolSchemaRequiresKeyAndAdvertisesConfirm() {
+            var tools = (JArray)CallRaw("list_tools", new JObject())["result"];
+            var tool = (JObject)tools.First(item => item["name"]?.ToString() == "delete_player_pref");
+            var schema = (JObject)tool["inputSchema"];
+            var properties = (JObject)schema["properties"];
+
+            CollectionAssert.Contains(((JArray)schema["required"]).Select(item => item.ToString()).ToArray(), "key");
+            Assert.AreEqual("boolean", properties["confirm"]["type"]?.ToString());
         }
 
         [Test]

@@ -277,7 +277,7 @@ STATIC_TOOLS: list[ToolDefinition] = [
             "oneOf": [
                 {"description": "Read a PlayerPref value by key", "properties": {"action": {"const": "get"}, "key": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key"]},
                 {"description": "Write a PlayerPref value", "properties": {"action": {"const": "set"}, "key": {"type": "string"}, "value": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key", "value"]},
-                {"description": "Delete a PlayerPref entry by key", "properties": {"action": {"const": "delete"}, "key": {"type": "string"}}, "required": ["action", "key"]},
+                {"description": "Delete a PlayerPref entry by key; use key 'all' with confirm true to clear all PlayerPrefs", "properties": {"action": {"const": "delete"}, "key": {"type": "string"}, "confirm": {"type": "boolean"}}, "required": ["action", "key"]},
                 {"description": "List all stored PlayerPref keys and their values", "properties": {"action": {"const": "list"}}, "required": ["action"]}
             ]
         }

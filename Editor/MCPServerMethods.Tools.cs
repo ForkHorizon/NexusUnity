@@ -165,7 +165,7 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("get_player_pref", "Get PlayerPref value", new JObject { ["key"] = new JObject { ["type"] = "string" }, ["type"] = new JObject { ["type"] = "string", ["description"] = "int, float, string" }, ["default"] = new JObject { ["type"] = "any" } }, "key"));
             tools.Add(CreateTool("set_player_pref", "Set PlayerPref value", new JObject { ["key"] = new JObject { ["type"] = "string" }, ["value"] = new JObject { ["type"] = "any" }, ["type"] = new JObject { ["type"] = "string", ["description"] = "int, float, string" } }, "key", "value"));
-            tools.Add(CreateTool("delete_player_pref", "Delete PlayerPref key or 'all'", new JObject { ["key"] = new JObject { ["type"] = "string", ["description"] = "Specific key or 'all' to clear everything" } }));
+            tools.Add(CreateTool("delete_player_pref", "Delete PlayerPref key, or delete all with explicit confirmation", new JObject { ["key"] = new JObject { ["type"] = "string", ["description"] = "Specific key, or 'all' only with confirm: true" }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required when key is 'all'; PlayerPrefs deletion is not undoable" } }, "key"));
             tools.Add(CreateTool("list_player_prefs", "List all PlayerPref keys and values", new JObject { }));
         }
 

@@ -1,9 +1,9 @@
 """Private type definitions for the NexusUnity Python bridge."""
 from __future__ import annotations
 
-from typing import Any, NotRequired, TypeAlias, TypedDict
+from typing import Any, Dict, TypedDict
 
-JsonObject: TypeAlias = dict[str, Any]
+JsonObject = Dict[str, Any]
 
 
 class JsonRpcError(TypedDict):
@@ -27,7 +27,7 @@ class ToolDefinition(TypedDict):
 class ResourceDefinition(TypedDict):
     uri: str
     name: str
-    mimeType: NotRequired[str]
+    mimeType: str
 
 
 class JsonRpcResponse(TypedDict, total=False):
