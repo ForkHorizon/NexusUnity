@@ -12,6 +12,9 @@ All notable public changes to Nexus Unity are documented here.
 - `get_game_object` now returns transform state and a compact component list so agents can verify basic write operations with the cheap read-back call.
 - Script writes now keep readiness probes in a busy/importing state while the scheduled asset refresh is pending, avoiding premature follow-up write calls during Unity domain reload.
 - Play mode transitions now keep readiness probes busy so agents do not issue follow-up writes while Unity is still entering or exiting Play Mode.
+- `delete_player_pref` now rejects missing or empty keys, and only clears all PlayerPrefs when called with `key: "all"` and `confirm: true`.
+- Invalid `NEXUS_UNITY_TIMEOUT_SECONDS` values now fall back to the default bridge timeout instead of crashing the Python bridge at import time.
+- Python bridge type helpers no longer require Python 3.11-only typing features.
 
 ## [1.4.2] - 2026-06-13
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 import urllib.request
@@ -34,7 +35,11 @@ def _read_timeout() -> float:
     raw_timeout: str | None = os.environ.get("NEXUS_UNITY_TIMEOUT_SECONDS")
     if not raw_timeout:
         return 120
-    return max(1.0, float(raw_timeout))
+    try:
+        timeout = float(raw_timeout)
+    except ValueError:
+        return 120
+    return max(1.0, timeout) if math.isfinite(timeout) else 120
 
 
 UNITY_URL: str = (

@@ -191,6 +191,8 @@ For a focused agent tooling check, run `python3 scripts/agent-tooling-smoke.py`.
 
 Before release, maintainers should run a public API stress audit that compares raw `list_tools` output with the MCP bridge catalog, exercises read-only and mutating tool groups in a disposable namespace, and verifies cleanup of generated assets and PlayerPrefs keys.
 
+PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `key: "all"` plus `confirm: true` because Unity does not provide an Undo path for `PlayerPrefs.DeleteAll()`.
+
 ## Troubleshooting
 
 - Server does not start: change the port in project settings and restart the server window.

@@ -201,6 +201,8 @@ Conditions: `compilation`, `play_mode`, `import`, `editor_idle`.
 ### `unity_playerprefs_manager`
 Actions: `get`, `set`, `delete`, `list`.
 
+Deleting every PlayerPrefs entry requires `action: "delete"`, `key: "all"`, and `confirm: true`; this operation is not undoable.
+
 ### `unity_write_and_compile`
 Writes one or more files, waits for Unity compilation/import work, and returns compiler errors.
 
