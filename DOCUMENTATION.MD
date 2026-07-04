@@ -47,7 +47,7 @@ Claude Code and Claude Desktop are distinct products with distinct config locati
 ### Platform notes
 
 - The Python interpreter is resolved in the order `python3`, then `python`, then the Windows `py` launcher. On Windows, where `python3` is frequently absent from `PATH`, the generated config falls back to a discovered `python.exe` or `py`. Ensure a Python 3 interpreter is installed and on `PATH`.
-- CLI-managed clients (Codex, Gemini, Antigravity, and the Claude Code CLI path) are discovered with `which` on macOS/Linux and `where` on Windows. The matching CLI must be on the `PATH` of the environment that launched the Unity Editor for `Auto Setup` to detect it; otherwise use `Copy Config` or the file-based card.
+- CLI-managed clients (Codex, Gemini, and the Claude Code CLI path) are discovered with `which` on macOS/Linux and `where` on Windows. The matching CLI must be on the `PATH` of the environment that launched the Unity Editor for `Auto Setup` to detect it; otherwise use `Copy Config` or the file-based card.
 
 Integration status checks compare the package bridge with the project-root deployed bridge and the client config path. A card reports `Outdated` when the config points at another Unity project, the deployed bridge is missing, or the deployed bridge version differs from the package bridge version. Running `Auto Setup` redeploys `nexus_unity_bridge.py` plus `nexus_bridge/`, rewrites the client entry, and requires restarting the external MCP client session.
 
@@ -60,6 +60,7 @@ Nexus Unity is a local developer tool and should be used only with trusted local
 - HTTP and WebSocket requests must target loopback hosts.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
+- Editor tests cover traversal rejection at the JSON-RPC boundary for representative file and asset methods.
 - Request payload size is capped to reduce memory exhaustion risk.
 - Raw write operations are intentionally powerful; prefer `unity_write_and_compile` through the MCP bridge for code edits.
 
@@ -202,7 +203,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 - Compile loop times out: call `get_server_status`, `read_logs`, and `unity_wait` with `editor_idle`.
 - Auto Setup reports success but the client does not connect: confirm you used the card for the client you actually run (Claude Code reads `.mcp.json`, not the Claude Desktop config), then reload the client (`/mcp` in Claude Code) after starting the Nexus server.
 - Bridge fails to launch on Windows: verify a Python 3 interpreter is on `PATH` (`python --version` or `py --version`); the generated config uses `python3`, `python`, or `py` in that order.
-- Gemini/Antigravity card shows `Not found` or disabled Auto Setup: the CLI is not on the Editor's `PATH`. Install it and ensure `where <cli>` (Windows) or `which <cli>` (macOS/Linux) resolves, or use `Copy Config`.
+- Gemini card shows `Not found` or disabled Auto Setup: the CLI is not on the Editor's `PATH`. Install it and ensure `where gemini` (Windows) or `which gemini` (macOS/Linux) resolves, or use `Copy Config`.
 
 ## Packaging Rules
 

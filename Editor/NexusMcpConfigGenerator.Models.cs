@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityMCP.Editor
 {
     internal enum NexusMcpClientKind
@@ -8,7 +10,9 @@ namespace UnityMCP.Editor
         Gemini,
         Antigravity,
         Cursor,
-        VsCodeClineRoo,
+        VsCode,
+        Cline,
+        RooCode,
         Windsurf,
         GenericJson
     }
@@ -52,6 +56,11 @@ namespace UnityMCP.Editor
         internal bool SupportsAutoSetup { get; set; }
         internal string AutoSetupDisabledReason { get; set; }
         internal string RootKey { get; set; }
+
+        // Set for clients whose Auto Setup must shell out to a CLI (e.g. Gemini, Claude Code) instead of
+        // writing ConfigPath directly. AutoSetupIntegration calls this instead of NexusMcpConfigGenerator.WriteConfig
+        // when present, keeping CLI-specific handling out of the UI layer's kind-based branching.
+        internal Action CustomAutoSetup { get; set; }
     }
 
     internal sealed class NexusMcpSetupResult

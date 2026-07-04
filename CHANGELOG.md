@@ -15,6 +15,7 @@ All notable public changes to Nexus Unity are documented here.
 - `delete_player_pref` now rejects missing or empty keys, and only clears all PlayerPrefs when called with `key: "all"` and `confirm: true`.
 - Invalid `NEXUS_UNITY_TIMEOUT_SECONDS` values now fall back to the default bridge timeout instead of crashing the Python bridge at import time.
 - Python bridge type helpers no longer require Python 3.11-only typing features.
+- Path security tests now exercise JSON-RPC traversal rejection for representative file and asset tools.
 
 ## [1.4.2] - 2026-06-13
 

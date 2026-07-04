@@ -16,7 +16,8 @@ namespace UnityMCP.Editor
         /// Prefers the official <c>claude</c> CLI (<c>claude mcp add --scope project</c>, which itself writes
         /// <c>.mcp.json</c>). When the CLI is unavailable or fails, it falls back to writing <c>.mcp.json</c> directly.
         /// Either path produces the same project-root <c>.mcp.json</c> that the Integrations tab tracks. This is distinct
-        /// from <see cref="LinkToAnthropic"/>, which targets the separate Claude Desktop app config.
+        /// from the Claude Desktop app config, which is handled by the generic JSON-config codepath in
+        /// <see cref="NexusMcpConfigGenerator"/> instead of a dedicated CLI installer.
         /// </remarks>
         public static void LinkToClaudeCode()
         {

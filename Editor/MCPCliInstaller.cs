@@ -231,8 +231,12 @@ namespace UnityMCP.Editor
             {
                 string pathEnv = "";
                 try { pathEnv = Environment.GetEnvironmentVariable("PATH"); } catch(Exception) {}
-                // Don't inject Homebrew here, let it find what's in the actual PATH
-                psi.EnvironmentVariables["PATH"] = pathEnv;
+                // Unity launched from Finder/Hub (not a terminal) inherits a stripped PATH
+                // (typically just /usr/bin:/bin:/usr/sbin:/sbin) with no /usr/local/bin or /opt/homebrew/bin.
+                // 'which' would then resolve python3 to the old Xcode-bundled interpreter at /usr/bin/python3
+                // instead of a modern one. Prepend common interpreter locations so they're checked first,
+                // matching the priority order ResolveExecutablePath's own fallback search list already uses.
+                psi.EnvironmentVariables["PATH"] = "/usr/local/bin:/opt/homebrew/bin:" + pathEnv;
             }
 
             try
