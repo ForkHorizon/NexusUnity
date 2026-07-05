@@ -60,6 +60,7 @@ Nexus Unity is a local developer tool and should be used only with trusted local
 - HTTP and WebSocket requests must target loopback hosts.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
+- C# script writes require `confirm: true` before creating or overwriting `.cs` files and triggering Unity compilation.
 - Editor tests cover traversal rejection at the JSON-RPC boundary for representative file and asset methods.
 - Request payload size is capped to reduce memory exhaustion risk.
 - Raw write operations are intentionally powerful; prefer `unity_write_and_compile` through the MCP bridge for code edits.
@@ -133,10 +134,10 @@ The current development line preserves backward compatibility while correcting p
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `get_game_object` includes transform state and a compact component list for cheap write verification; use `inspect_component` for full component properties.
-- Readiness probes remain busy while a script write's scheduled asset refresh is pending, so agents do not race Unity domain reload.
+- Script writes require `confirm: true`, then readiness probes remain busy while the scheduled asset refresh is pending so agents do not race Unity domain reload.
 - Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts an optional explicit `path` plus `base_color` / `color` and `emission_color`, so automation can isolate generated materials in a known project folder and make them visibly distinct.
-- `write_file` and `write_files_batch` create missing parent directories after path validation.
+- `write_file` and `write_files_batch` create missing parent directories after path validation; `.cs` writes require `confirm: true`.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
 - Unity 6.x compatibility is maintained across editor object identity API changes. External JSON payloads continue to use integer-shaped `instance_id` values, while Nexus maps them to `EntityId` internally and falls back to Unity 6.3-compatible hierarchy event and object-reference instance ID APIs when Unity 6.4+ members are unavailable.
@@ -144,7 +145,7 @@ The current development line preserves backward compatibility while correcting p
 
 ## Recommended AI Workflow
 
-Use `unity_write_and_compile` for code edits. It writes one or more files, waits for Unity reload/import work, and returns compiler errors from the Unity Console. Use `unity_wait` when a workflow needs to block until compilation, import, play mode, or editor idle state is reached.
+Use `unity_write_and_compile` with `confirm: true` for code edits. It writes one or more files, waits for Unity reload/import work, and returns compiler errors from the Unity Console. Use `unity_wait` when a workflow needs to block until compilation, import, play mode, or editor idle state is reached.
 
 For scene work, prefer manager tools:
 

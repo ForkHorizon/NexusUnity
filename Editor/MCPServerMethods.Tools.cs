@@ -268,8 +268,8 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_dependencies", "Get file deps", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("create_folder", "Create directory", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("read_file", "Read text content", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
-            tools.Add(CreateTool("write_file", "Write text content", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" } }, "path", "content"));
-            tools.Add(CreateTool("write_files_batch", "Write multiple files in a single pass", new JObject { ["files"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" } }, ["required"] = new JArray { "path", "content" } } } }, "files"));
+            tools.Add(CreateTool("write_file", "Write text content", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required when writing .cs files because Unity compilation is triggered" } }, "path", "content"));
+            tools.Add(CreateTool("write_files_batch", "Write multiple files in a single pass", new JObject { ["files"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" } }, ["required"] = new JArray { "path", "content" } } }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required when any file path ends in .cs because Unity compilation is triggered" } }, "files"));
         }
 
         private static void AddEditorControlTools(JArray tools)
@@ -298,7 +298,7 @@ namespace UnityMCP.Editor
                 ["search_text"] = new JObject { ["type"] = "string", ["description"] = "Filter by content" }
             }));
             tools.Add(CreateTool("clear_logs", "Clear Console", new JObject { }));
-            tools.Add(CreateTool("attach_script", "Create & Link C#", new JObject { ["script_name"] = new JObject { ["type"] = "string" }, ["script_content"] = new JObject { ["type"] = "string" } }, "script_name"));
+            tools.Add(CreateTool("attach_script", "Create & Link C#", new JObject { ["script_name"] = new JObject { ["type"] = "string" }, ["script_content"] = new JObject { ["type"] = "string" }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required because this writes a .cs file and triggers Unity compilation" } }, "script_name", "confirm"));
             tools.Add(CreateTool("wait_for_ready", "Wait until server is responsive", new JObject { }));
             tools.Add(CreateTool("run_tests", "Run NUnit tests in the editor", new JObject
             {

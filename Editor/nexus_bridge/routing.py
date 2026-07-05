@@ -188,6 +188,7 @@ def _route_list_tools(_: JsonObject) -> JsonRpcResponse:
 
 def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
     files: list[WriteFileSpec] = args.get("files", [])
+    confirm = args.get("confirm")
     start_time: float = time.time()
     call_unity("clear_logs")
 
@@ -195,7 +196,7 @@ def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
     for file_info in files:
         write_file_response = call_unity(
             "write_file",
-            {"path": file_info["path"], "content": file_info["content"]},
+            _compact({"path": file_info["path"], "content": file_info["content"], "confirm": confirm}),
         )
         write_error = _error_object(write_file_response)
         if write_error is not None:

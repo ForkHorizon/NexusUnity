@@ -87,6 +87,8 @@ Nexus Unity supports two public surfaces:
 
 PlayerPrefs deletion is guarded: deleting all entries requires `key: "all"` and `confirm: true`, and cannot be undone through Unity Undo.
 
+C# script writes are guarded: `attach_script`, `write_file`, `write_files_batch`, and `unity_write_and_compile` require `confirm: true` when they write `.cs` files and trigger Unity compilation.
+
 Direct JSON-RPC example:
 
 ```bash
@@ -171,10 +173,10 @@ Current development keeps the public API backward-compatible while tightening sc
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` updates position, rotation, and scale.
 - `get_game_object` returns `transform` and compact `components` data for cheap verify-after-write reads.
-- Script writes keep readiness probes busy while Unity's scheduled refresh is pending.
+- Script writes require `confirm: true` before Unity compilation is triggered, then keep readiness probes busy while the scheduled refresh is pending.
 - Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so generated materials can be created inside a chosen project folder and made visibly distinct.
-- `write_file` and `write_files_batch` create missing parent directories after path validation.
+- `write_file` and `write_files_batch` create missing parent directories after path validation; `.cs` writes require `confirm: true`.
 - `invoke_method.arguments` is an optional positional JSON array.
 - `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
 - Unity 6.x editor identity differences are handled internally: Nexus keeps JSON `instance_id` values stable while using Unity 6.4+ `EntityId` APIs when available and Unity 6.3-compatible instance ID APIs otherwise.

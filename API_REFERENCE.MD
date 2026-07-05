@@ -206,7 +206,9 @@ Deleting every PlayerPrefs entry requires `action: "delete"`, `key: "all"`, and 
 ### `unity_write_and_compile`
 Writes one or more files, waits for Unity compilation/import work, and returns compiler errors.
 
-This is the public MCP bridge macro for code edits. Use it instead of old internal or stale documentation references to `unity_apply_code_change`.
+This is the public MCP bridge macro for code edits. Pass `confirm: true` when writing `.cs` files because Unity compilation is triggered. Use it instead of old internal or stale documentation references to `unity_apply_code_change`.
+
+Raw `attach_script`, `write_file`, and `write_files_batch` calls also require `confirm: true` before writing `.cs` files.
 
 ### `unity_invoke_method`
 Invokes a C# method on a component through reflection.

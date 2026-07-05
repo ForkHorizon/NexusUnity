@@ -91,5 +91,13 @@ class PlayerPrefsManagerSchemaTests(unittest.TestCase):
         self.assertEqual({"type": "boolean"}, delete_variant["properties"]["confirm"])
 
 
+class WriteAndCompileSchemaTests(unittest.TestCase):
+    def test_write_and_compile_advertises_confirm(self) -> None:
+        tool = _get_tool("unity_write_and_compile")
+        properties = tool["inputSchema"]["properties"]
+
+        self.assertEqual("boolean", properties["confirm"]["type"])
+
+
 if __name__ == "__main__":
     unittest.main()

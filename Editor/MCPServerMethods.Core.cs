@@ -117,6 +117,7 @@ namespace UnityMCP.Editor
 
         private static JToken AttachScript(JToken p)
         {
+            RequireScriptWriteConfirmation(p);
             string name = SanitizeScriptName(p["script_name"].ToString());
             string content = p["script_content"]?.ToString().Replace("\n", "\n") ?? GetDefaultScript(name);
             File.WriteAllText(Path.Combine("Assets", $"{name}.cs"), content);
