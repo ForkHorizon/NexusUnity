@@ -81,23 +81,13 @@ python3 nexus_unity_bridge.py
 
 Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
 
-Direct CLI mode is available for diagnostics and scripts:
-
-```bash
-python3 nexus_unity_bridge.py scene_manager action=list
-python3 nexus_unity_bridge.py hierarchy_manager action=create_primitive primitive_type=Cube position='[0,1,0]'
-```
-
-CLI arguments must use `key=value`; JSON-looking values are parsed before routing the call.
-
 The bridge is modular:
 
 - `nexus_unity_bridge.py`: MCP loop and CLI entry point.
-- `nexus_bridge/_logging.py`: shared bridge logger.
 - `nexus_bridge/_transport.py`: Unity JSON-RPC URL, port, timeout, and HTTP transport helpers.
 - `nexus_bridge/client.py`: HTTP JSON-RPC client.
 - `nexus_bridge/routing.py`: manager routing and macro behavior.
-- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources.
+- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources served through `resources/list` and `resources/read`.
 
 When deploying from the Unity UI, Nexus Unity copies both `nexus_unity_bridge.py` and the full `nexus_bridge/` package to the project root so the bridge can run from a stable path.
 

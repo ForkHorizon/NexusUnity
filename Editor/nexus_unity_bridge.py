@@ -47,9 +47,28 @@ logging.basicConfig(
 
 from nexus_bridge.schemas import STATIC_TOOLS, STATIC_RESOURCES
 from nexus_bridge.routing import route_tool
-from nexus_bridge._logging import logger
+
+logger = logging.getLogger("nexus_bridge")
 
 PARENT_PID = os.getppid()
+RESOURCE_FILES = {
+    "unity://docs/api-reference": "API_REFERENCE.MD",
+    "unity://docs/setup": "README.md",
+}
+
+
+def read_resource(uri: str) -> dict[str, Any]:
+    filename = RESOURCE_FILES.get(uri)
+    if filename is None:
+        return {"error": {"code": -32602, "message": f"Unknown resource: {uri}"}}
+
+    for root in [CURRENT_DIR, os.path.dirname(CURRENT_DIR)]:
+        path = os.path.join(root, filename)
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as handle:
+                return {"result": {"contents": [{"uri": uri, "mimeType": "text/markdown", "text": handle.read()}]}}
+
+    return {"error": {"code": -32000, "message": f"Resource file not found: {filename}"}}
 
 def orphan_monitor() -> None:
     """Monitor if the parent process (AI CLI) is still alive."""
@@ -122,6 +141,9 @@ def main() -> None:
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
             elif method in ["resources/list", "listResources"]:
                 response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": STATIC_RESOURCES}}
+            elif method in ["resources/read", "readResource"]:
+                resource_response = read_resource(request.get("params", {}).get("uri", ""))
+                response = {"jsonrpc": "2.0", "id": req_id, **resource_response}
             elif method in ["tools/call", "callTool"]:
                 params = request.get("params", {})
                 name = params.get("name", "").replace("unity_", "")

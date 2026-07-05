@@ -83,7 +83,7 @@ Console logging defaults to `Important`, which shows key lifecycle/setup message
 Nexus Unity supports two public surfaces:
 
 - Raw HTTP JSON-RPC tools: unprefixed Unity method names returned by `list_tools`.
-- MCP bridge tools: consolidated `unity_` manager tools optimized for AI clients.
+- MCP bridge tools: consolidated `unity_` manager tools optimized for AI clients, plus static docs through `resources/list` and `resources/read`.
 
 PlayerPrefs deletion is guarded: deleting all entries requires `key: "all"` and `confirm: true`, and cannot be undone through Unity Undo.
 

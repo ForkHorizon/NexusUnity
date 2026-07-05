@@ -133,3 +133,4 @@ graphify-out/.graphify_*
 LINT_REPORT.txt
 temp_verify/
 *.tmp
+AUDIT_FINDINGS.md*
