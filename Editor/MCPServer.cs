@@ -31,6 +31,9 @@ namespace UnityMCP.Editor
 
         public static string SessionId { get; private set; }
         public static int SessionGeneration { get; private set; }
+        internal const string AuthTokenEnvironmentVariable = "NEXUS_UNITY_AUTH_TOKEN";
+        internal const string AuthTokenHeaderName = "X-Nexus-Unity-Token";
+        private static string _authToken;
         public static DateTime LastMainThreadTickUtc { get; private set; }
         public static bool IsCompilingCached { get; private set; }
         public static bool IsUpdatingCached { get; private set; }
@@ -61,6 +64,7 @@ namespace UnityMCP.Editor
         }
         private static string _prefsKeyCached;
         private static string StablePrefsKey => _prefsKeyCached ?? (_prefsKeyCached = GetDeterministicProjectKey());
+        private static string AuthSessionStateKey => StablePrefsKey + "_AuthToken";
         
         private static int _mainThreadId = -1;
         public static int MainThreadId => _mainThreadId;
@@ -84,6 +88,22 @@ namespace UnityMCP.Editor
             _logs = new ConcurrentQueue<LogEntry>();
         }
 
+        internal static string AuthToken => EnsureAuthToken();
+
+        private static string EnsureAuthToken()
+        {
+            if (!string.IsNullOrEmpty(_authToken)) return _authToken;
+
+            _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
+            if (string.IsNullOrEmpty(_authToken))
+            {
+                _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                SessionState.SetString(AuthSessionStateKey, _authToken);
+            }
+
+            return _authToken;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInit() => Init();
 
@@ -100,6 +120,7 @@ namespace UnityMCP.Editor
                 SessionState.SetString("MCP_SessionId", SessionId);
                 SessionGeneration = SessionState.GetInt("MCP_SessionGen", 0) + 1;
                 SessionState.SetInt("MCP_SessionGen", SessionGeneration);
+                EnsureAuthToken();
             }
             
             RefreshMainThreadCachedState();
@@ -188,6 +209,7 @@ namespace UnityMCP.Editor
             }
             
             MCPServerMethods.Init();
+            EnsureAuthToken();
             if (EditorApplication.isPlaying) Application.runInBackground = true;
 
             if (_port <= 0) {

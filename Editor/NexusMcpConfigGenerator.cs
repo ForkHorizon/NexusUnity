@@ -120,7 +120,8 @@ namespace UnityMCP.Editor
         {
             return "[mcp_servers.nexus-unity]\n" +
                    "command = \"" + EscapeToml(NormalizePath(pythonPath)) + "\"\n" +
-                   "args = [ \"" + EscapeToml(NormalizePath(bridgePath)) + "\" ]\n";
+                   "args = [ \"" + EscapeToml(NormalizePath(bridgePath)) + "\" ]\n" +
+                   "env = { " + MCPServer.AuthTokenEnvironmentVariable + " = \"" + EscapeToml(MCPServer.AuthToken) + "\" }\n";
         }
 
         internal static string BackupFileIfExists(string path)
@@ -245,6 +246,11 @@ namespace UnityMCP.Editor
 
                     info.Status = NexusMcpClientStatus.Configured;
                     info.StatusDetail = "nexus-unity is present in the config.";
+                    if (!TomlHasCurrentAuthToken(lines))
+                    {
+                        info.Status = NexusMcpClientStatus.Outdated;
+                        info.StatusDetail = "nexus-unity is missing the current auth token. Run Auto Setup, then restart this client.";
+                    }
                     return;
                 }
             }
@@ -302,6 +308,11 @@ namespace UnityMCP.Editor
 
                     info.Status = NexusMcpClientStatus.Configured;
                     info.StatusDetail = "nexus-unity is present in the config.";
+                    if (!JsonHasCurrentAuthToken(server))
+                    {
+                        info.Status = NexusMcpClientStatus.Outdated;
+                        info.StatusDetail = "nexus-unity is missing the current auth token. Run Auto Setup, then restart this client.";
+                    }
                 }
                 else
                 {
@@ -368,11 +379,21 @@ namespace UnityMCP.Editor
 
         private static JObject BuildServerEntry(string bridgePath, string pythonPath)
         {
-            return new JObject
+            return new JObject { ["command"] = NormalizePath(pythonPath), ["args"] = new JArray { NormalizePath(bridgePath) }, ["env"] = new JObject { [MCPServer.AuthTokenEnvironmentVariable] = MCPServer.AuthToken } };
+        }
+
+        private static bool JsonHasCurrentAuthToken(JObject server) => string.Equals((string)server["env"]?[MCPServer.AuthTokenEnvironmentVariable], MCPServer.AuthToken, StringComparison.Ordinal);
+
+        private static bool TomlHasCurrentAuthToken(List<string> lines)
+        {
+            string needle = MCPServer.AuthTokenEnvironmentVariable + " = \"" + MCPServer.AuthToken + "\"";
+            int start = lines.FindIndex(line => line.Trim() == "[mcp_servers.nexus-unity]");
+            if (start < 0) return false;
+            for (int i = start + 1; i < lines.Count && !lines[i].TrimStart().StartsWith("["); i++)
             {
-                ["command"] = NormalizePath(pythonPath),
-                ["args"] = new JArray { NormalizePath(bridgePath) }
-            };
+                if (lines[i].Contains(needle)) return true;
+            }
+            return false;
         }
 
         private static bool IsExecutableResolved(string name)

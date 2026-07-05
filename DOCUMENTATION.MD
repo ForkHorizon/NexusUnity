@@ -59,6 +59,7 @@ When Nexus Unity writes an existing user or project config, it preserves unrelat
 Nexus Unity is a local developer tool and should be used only with trusted local clients.
 
 - HTTP and WebSocket requests must target loopback hosts.
+- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
 - C# script writes require `confirm: true` before creating or overwriting `.cs` files and triggering Unity compilation.
@@ -80,7 +81,7 @@ Manual or root-deployed path:
 python3 nexus_unity_bridge.py
 ```
 
-Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
+Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, `NEXUS_UNITY_TIMEOUT_SECONDS`, and `NEXUS_UNITY_AUTH_TOKEN`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
 
 The bridge is modular:
 
