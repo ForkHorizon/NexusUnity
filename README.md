@@ -91,6 +91,8 @@ C# script writes are guarded: `attach_script`, `write_file`, `write_files_batch`
 
 Raw `batch_execute` is capped at 50 requests and rejects nested `batch_execute` calls.
 
+Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) return cached editor state so they can run safely from the listener thread.
+
 Direct JSON-RPC example:
 
 ```bash

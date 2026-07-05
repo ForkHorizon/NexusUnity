@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -49,7 +48,7 @@ namespace UnityMCP.Editor
                 ["sessionId"] = MCPServer.SessionId,
                 ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id,
                 ["projectPath"] = Directory.GetCurrentDirectory().Replace("\\", "/"),
-                ["unityVersion"] = Application.unityVersion,
+                ["unityVersion"] = MCPServer.UnityVersionCached,
                 ["editorConnected"] = true,
                 ["mainThreadResponsive"] = isMainThreadResponsive,
                 ["editorState"] = new JObject {
