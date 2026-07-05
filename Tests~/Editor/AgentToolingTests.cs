@@ -69,6 +69,18 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void GetTestResultsUsesOnlyScopedMessagesForNonPassingXml()
+        {
+            WriteTestResults("<test-run result=\"Failed\" total=\"2\" passed=\"0\" failed=\"0\" inconclusive=\"1\" skipped=\"0\" duration=\"0.2\"><test-suite><test-case name=\"Reason\" fullname=\"Agent.Reason\" result=\"Inconclusive\"><reason><message>No assertions</message></reason><metadata><message>Wrong nested message</message></metadata></test-case><test-case name=\"Error\" fullname=\"Agent.Error\" result=\"Error\"><metadata><message>Wrong nested message</message></metadata></test-case></test-suite></test-run>");
+
+            JObject result = RpcResult("get_test_results", new JObject { ["result_path"] = _resultPath });
+            JArray failures = (JArray)result["failed_tests"];
+
+            Assert.AreEqual("No assertions", failures[0]?["message"]?.ToString());
+            Assert.AreEqual("Error", failures[1]?["message"]?.ToString());
+        }
+
+        [Test]
         public void ToolUsageStatsTrackCountsAndErrorsWithoutPayloads()
         {
             RpcResult("get_editor_state");

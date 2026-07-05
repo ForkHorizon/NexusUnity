@@ -39,7 +39,9 @@ namespace UnityMCP.Editor
                         continue;
 
                     string message = testCase.Element("failure")?.Element("message")?.Value
-                        ?? testCase.Descendants("message").FirstOrDefault()?.Value;
+                        ?? testCase.Element("reason")?.Element("message")?.Value
+                        ?? testCase.Element("output")?.Value
+                        ?? result;
                     failedTests.Add(new JObject
                     {
                         ["name"] = Attr(testCase, "name"),

@@ -99,7 +99,7 @@ Raw HTTP JSON-RPC:
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
 - Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, `create_scene` accepts `path` / `open_if_exists`, `create_primitive` accepts transform/material fields, and `create_material` accepts an optional explicit asset `path` plus visible color fields.
-- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
+- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries with scoped non-passing test messages, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
 - `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls.
 
 MCP bridge:
@@ -120,6 +120,7 @@ The current development line preserves backward compatibility while correcting p
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
+- `unity_scene_manager` aliases such as `create_scene`, `open_scene`, `save_scene`, and `list_scenes` preserve action-specific required parameters.
 - `create_scene` accepts optional `path` and `open_if_exists` for deterministic scene assets.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
