@@ -37,6 +37,7 @@ namespace UnityMCP.Editor
         public static bool IsPlayingCached { get; private set; }
         public static bool IsPausedCached { get; private set; }
         public static bool IsPlayModeTransitionCached { get; private set; }
+        public static string UnityVersionCached { get; private set; }
 
         private static ConcurrentQueue<Action> _mainThreadQueue;
         private static ConcurrentQueue<LogEntry> _logs;
@@ -66,6 +67,17 @@ namespace UnityMCP.Editor
 
         private static readonly object _startLock = new object();
 
+        internal static void RefreshMainThreadCachedState()
+        {
+            LastMainThreadTickUtc = DateTime.UtcNow;
+            IsCompilingCached = EditorApplication.isCompiling;
+            IsUpdatingCached = EditorApplication.isUpdating;
+            IsPlayingCached = EditorApplication.isPlaying;
+            IsPausedCached = EditorApplication.isPaused;
+            IsPlayModeTransitionCached = EditorApplication.isPlayingOrWillChangePlaymode;
+            UnityVersionCached = Application.unityVersion;
+        }
+
         static MCPServer()
         {
             _mainThreadQueue = new ConcurrentQueue<Action>();
@@ -90,7 +102,7 @@ namespace UnityMCP.Editor
                 SessionState.SetInt("MCP_SessionGen", SessionGeneration);
             }
             
-            LastMainThreadTickUtc = DateTime.UtcNow;
+            RefreshMainThreadCachedState();
             #if UNITY_EDITOR_OSX
             AppNapBypass.CacheApplicationPath();
             #endif

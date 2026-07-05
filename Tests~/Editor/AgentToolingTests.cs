@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -110,6 +111,35 @@ namespace UnityMCP.Editor.Tests
 
             Assert.AreEqual("Success", reset["status"]?.ToString());
             Assert.IsFalse(tools.Children<JObject>().Any(t => t["method"]?.ToString() == "get_editor_state"));
+        }
+
+        [Test]
+        public void FastPathMethodsCanRunOffMainThread()
+        {
+            NexusConsoleLogMode originalLogMode = MCPSettings.ConsoleLogMode;
+            string[] methods =
+            {
+                "get_server_status",
+                "attach_existing_session",
+                "wait_for_asset_import_idle",
+                "wait_for_editor_idle"
+            };
+
+            try
+            {
+                MCPSettings.ConsoleLogMode = NexusConsoleLogMode.All;
+
+                foreach (string method in methods)
+                {
+                    JObject response = Task.Run(() => Rpc(method, new JObject { ["timeout_seconds"] = 0 })).GetAwaiter().GetResult();
+
+                    Assert.IsNull(response["error"], $"{method}: {response.ToString(Formatting.None)}");
+                }
+            }
+            finally
+            {
+                MCPSettings.ConsoleLogMode = originalLogMode;
+            }
         }
 
         [Test]

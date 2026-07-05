@@ -40,6 +40,7 @@ namespace UnityMCP.Editor
                 return;
             }
 
+            MCPServer.RefreshMainThreadCachedState();
             NexusEditorLog.Log(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init starting...");
             _methods.Clear();
             ClearCache();
@@ -113,10 +114,11 @@ namespace UnityMCP.Editor
             string method = request["method"]?.ToString();
             if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
             
-            // Fast-path for health checks (execute on current thread, usually listener thread)
+            // Fast-path health checks run on the listener/current thread.
+            // Handlers here must only read cached or thread-safe process state.
             if (method == "get_server_status" || method == "attach_existing_session" || method == "wait_for_asset_import_idle" || method == "wait_for_editor_idle") {
                 try {
-                    JToken result = ExecuteMethod(method, request["params"]);
+                    JToken result = ExecuteMethod(method, request["params"], false);
                     return CreateJsonResponse(id, result);
                 } catch(Exception e) { return CreateExceptionResponse(id, e); }
             }
@@ -215,9 +217,9 @@ namespace UnityMCP.Editor
             return CreateErrorResponse(id, -32000, actualException.Message, stackTrace);
         }
 
-        private static JToken ExecuteMethod(string method, JToken p)
+        private static JToken ExecuteMethod(string method, JToken p, bool logExecution = true)
         {
-            NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP_EXECUTE] {method}");
+            if (logExecution) NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP_EXECUTE] {method}");
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             Exception failure = null;
             try
