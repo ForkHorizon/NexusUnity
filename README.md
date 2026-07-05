@@ -89,6 +89,8 @@ PlayerPrefs deletion is guarded: deleting all entries requires `key: "all"` and 
 
 C# script writes are guarded: `attach_script`, `write_file`, `write_files_batch`, and `unity_write_and_compile` require `confirm: true` when they write `.cs` files and trigger Unity compilation.
 
+Raw `batch_execute` is capped at 50 requests and rejects nested `batch_execute` calls.
+
 Direct JSON-RPC example:
 
 ```bash

@@ -94,6 +94,7 @@ namespace UnityMCP.Editor
                 ["requests"] = new JObject
                 {
                     ["type"] = "array",
+                    ["maxItems"] = MaxBatchExecuteRequests,
                     ["items"] = new JObject
                     {
                         ["type"] = "object",
