@@ -169,7 +169,7 @@ Current development keeps the public API backward-compatible while tightening sc
 
 - Use `unity_write_and_compile` for code-edit workflows. Older references to `unity_apply_code_change` are outdated and should not be used for the public MCP bridge.
 - `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
-- `unity_scene_manager` accepts obvious aliases such as `list_scenes`, `create_scene`, `open_scene`, and `save_scene`; invalid manager actions now report the valid action names.
+- `unity_scene_manager` accepts obvious aliases such as `list_scenes`, `create_scene`, `open_scene`, and `save_scene` while preserving action-specific required parameters; invalid manager actions now report the valid action names.
 - `create_scene` accepts optional `path` and `open_if_exists` so agents can create or reopen a deterministic scene asset in one call.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`, which lets agents build visible non-origin objects without fragile follow-up calls.
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
@@ -182,7 +182,7 @@ Current development keeps the public API backward-compatible while tightening sc
 - `invoke_method.arguments` is an optional positional JSON array.
 - `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
 - Unity 6.x editor identity differences are handled internally: Nexus keeps JSON `instance_id` values stable while using Unity 6.4+ `EntityId` APIs when available and Unity 6.3-compatible instance ID APIs otherwise.
-- `get_test_results` reads Unity `TestResults*.xml` summaries from the project root or Unity persistent data path; `unity_editor_controller` exposes `run_tests_wait` as a bridge-side polling workflow.
+- `get_test_results` reads Unity `TestResults*.xml` summaries from the project root or Unity persistent data path, using scoped failure/reason/output messages for non-passing cases; `unity_editor_controller` exposes `run_tests_wait` as a bridge-side polling workflow.
 - `get_tool_usage_stats` reports in-memory raw tool counts, durations, and errors since Unity domain load without storing request payloads; `reset_tool_usage_stats` clears that state for scoped diagnostics. Both are also available through `unity_editor_controller`.
 - `ui_get_window_rect`, `ui_set_window_rect`, and `ui_capture_window_snapshot` support automated layout checks for editor windows.
 

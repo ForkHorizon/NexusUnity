@@ -39,13 +39,12 @@ STATIC_TOOLS: list[JsonObject] = [
         "description": "Unified scene management (create, open, save, list)",
         "inputSchema": {
             "type": "object",
-            "properties": {
-                "action": {"type": "string", "enum": ["create", "create_scene", "open", "open_scene", "save", "save_scene", "list", "list_scenes"]},
-                "name": {"type": "string"},
-                "path": {"type": "string"},
-                "open_if_exists": {"type": "boolean"}
-            },
-            "required": ["action"]
+            "oneOf": [
+                {"properties": {"action": {"type": "string", "enum": ["create", "create_scene"]}, "name": {"type": "string"}, "path": {"type": "string"}, "open_if_exists": {"type": "boolean"}}, "required": ["action"]},
+                {"properties": {"action": {"type": "string", "enum": ["open", "open_scene"]}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"type": "string", "enum": ["save", "save_scene"]}, "path": {"type": "string"}}, "required": ["action"]},
+                {"properties": {"action": {"type": "string", "enum": ["list", "list_scenes"]}}, "required": ["action"]}
+            ]
         }
     },
     {

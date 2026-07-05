@@ -26,6 +26,17 @@ def _action_values(variant: dict[str, Any]) -> set[str]:
     return set(action_schema["enum"])
 
 
+class SceneManagerSchemaTests(unittest.TestCase):
+    def test_scene_manager_keeps_action_specific_requirements(self) -> None:
+        scene_manager = _get_tool("unity_scene_manager")
+        variants = scene_manager["inputSchema"]["oneOf"]
+        open_variant = next(variant for variant in variants if "open_scene" in _action_values(variant))
+        list_variant = next(variant for variant in variants if "list_scenes" in _action_values(variant))
+
+        self.assertCountEqual(["action", "path"], open_variant["required"])
+        self.assertCountEqual(["action"], list_variant["required"])
+
+
 class HierarchyManagerSchemaTests(unittest.TestCase):
     def test_hierarchy_manager_uses_action_specific_variants(self) -> None:
         hierarchy_manager = _get_tool("unity_hierarchy_manager")

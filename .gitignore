@@ -119,7 +119,9 @@ repro/
 # Local agent and analysis artifacts
 .agents/
 .codex/
+.gemini/
 .hermes/
+.serena/
 .soma/
 graphify-out/
 graphify-out/cache/

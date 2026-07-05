@@ -19,6 +19,8 @@ All notable public changes to Nexus Unity are documented here.
 - Invalid `NEXUS_UNITY_TIMEOUT_SECONDS` values now fall back to the default bridge timeout instead of crashing the Python bridge at import time.
 - Python bridge type helpers no longer require Python 3.11-only typing features.
 - Path security tests now exercise JSON-RPC traversal rejection for representative file and asset tools.
+- `get_test_results` now reads messages only from scoped NUnit result nodes and falls back to the test result instead of unrelated nested messages.
+- `unity_scene_manager` schema aliases now preserve action-specific required parameters.
 
 ## [1.4.2] - 2026-06-13
 
