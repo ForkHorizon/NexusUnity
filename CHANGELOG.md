@@ -8,6 +8,7 @@ All notable public changes to Nexus Unity are documented here.
 - Relicensed Nexus Unity from `GPL-3.0-only` to the `MIT` license to remove copyleft friction for commercial Unity studios. All prior contributors consented to the relicense.
 
 ### Fixed
+- `add_component` now returns a clear `GameObject not found` error for stale instance IDs instead of throwing a raw Unity null reference.
 - `batch_execute` now caps batches at 50 requests and rejects nested batch execution.
 - `create_primitive` now validates parent, transform, and material inputs before creating the GameObject, and Vector3 inputs accept `[x, y, z]` arrays as well as `{x, y, z}` objects.
 - `get_game_object` now returns transform state and a compact component list so agents can verify basic write operations with the cheap read-back call.

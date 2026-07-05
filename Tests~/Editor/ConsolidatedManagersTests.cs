@@ -404,6 +404,18 @@ namespace UnityMCP.Editor.Tests {
         }
 
         [Test]
+        public void AddComponent_StaleInstanceId_ReturnsGameObjectNotFound() {
+            var go = CreateTestGameObject();
+            int staleId = go.GetInstanceID();
+            GameObject.DestroyImmediate(go);
+
+            var res = CallRaw("add_component", new JObject { ["instance_id"] = staleId, ["component_name"] = "BoxCollider" });
+
+            Assert.IsNotNull(res["error"], res.ToString());
+            StringAssert.Contains("GameObject not found", res["error"]["message"].ToString());
+        }
+
+        [Test]
         public void UnityComponentManager_Inspect_ReturnsSuccess() {
             var go = CreateTestGameObject();
             var res = SimulateBridgeRouting("unity_component_manager", new JObject { ["action"] = "inspect", ["instance_id"] = go.GetInstanceID(), ["component_name"] = "Transform" });
