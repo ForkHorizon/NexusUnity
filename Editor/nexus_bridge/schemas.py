@@ -8,7 +8,9 @@ clients.  Each entry follows the JSON Schema / MCP tool-definition shape.
 """
 from __future__ import annotations
 
-from ._types import JsonObject, ResourceDefinition, ToolDefinition
+from typing import Any
+
+JsonObject = dict[str, Any]
 
 # --- Shared sub-schemas ---
 VECTOR3_SCHEMA: JsonObject = {
@@ -30,7 +32,7 @@ VECTOR3_SCHEMA: JsonObject = {
     ],
 }
 
-STATIC_TOOLS: list[ToolDefinition] = [
+STATIC_TOOLS: list[JsonObject] = [
     # --- Consolidated Core Managers ---
     {
         "name": "unity_scene_manager",
@@ -284,14 +286,32 @@ STATIC_TOOLS: list[ToolDefinition] = [
     },
 
     # --- Specialized Diagnostics ---
-    {"name": "unity_write_and_compile", "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},
+    {
+        "name": "unity_write_and_compile",
+        "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {"path": {"type": "string"}, "content": {"type": "string"}},
+                        "required": ["path", "content"],
+                    },
+                },
+                "confirm": {"type": "boolean", "description": "Required when writing .cs files because Unity compilation is triggered"},
+            },
+            "required": ["files"],
+        },
+    },
     {"name": "unity_invoke_method", "description": "Invoke a C# method on a component via reflection", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "method_name": {"type": "string"}, "arguments": {"type": "array"}}, "required": ["instance_id", "method_name"]}},
     {"name": "unity_dump_scene_graph", "description": "Dump recursive tree of active scene with components and key fields", "inputSchema": {"type": "object", "properties": {"root_id": {"type": "integer"}, "max_depth": {"type": "integer"}, "include_all_properties": {"type": "boolean"}}}},
     {"name": "unity_get_scene_dependencies", "description": "Return a scene-wide dependency map of cross-object references", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_lint_project", "description": "Run Roslyn-based C# audit of the entire project", "inputSchema": {"type": "object", "properties": {}}}
 ]
 
-STATIC_RESOURCES: list[ResourceDefinition] = [
+STATIC_RESOURCES: list[JsonObject] = [
     {
         "uri": "unity://docs/api-reference",
         "name": "API Reference",

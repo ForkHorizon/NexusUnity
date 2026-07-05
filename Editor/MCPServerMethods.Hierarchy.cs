@@ -224,14 +224,15 @@ namespace UnityMCP.Editor
         {
             if (p?["path"] == null || p["content"] == null) throw new System.Exception("path and content required");
             string fullPath = ValidatePath(p["path"].ToString());
+            bool isScript = IsCSharpScriptPath(fullPath);
+            if (isScript) RequireScriptWriteConfirmation(p);
+
             EnsureParentDirectory(fullPath);
             System.IO.File.WriteAllText(fullPath, p["content"].ToString());
 
             // Convert to relative path for AssetDatabase
             string root = System.IO.Path.GetFullPath(".");
             string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
-
-            bool isScript = fullPath.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase);
 
             if (!isScript)
             {
@@ -258,13 +259,25 @@ namespace UnityMCP.Editor
             foreach (var f in files)
             {
                 if (f["path"] == null || f["content"] == null) continue;
+                if (IsCSharpScriptPath(ValidatePath(f["path"].ToString())))
+                {
+                    hasScripts = true;
+                    break;
+                }
+            }
+
+            if (hasScripts) RequireScriptWriteConfirmation(p);
+
+            foreach (var f in files)
+            {
+                if (f["path"] == null || f["content"] == null) continue;
                 string fullPath = ValidatePath(f["path"].ToString());
                 EnsureParentDirectory(fullPath);
                 System.IO.File.WriteAllText(fullPath, f["content"].ToString());
 
                 string relativePath = fullPath.Substring(root.Length).TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar).Replace("\\", "/");
                 
-                if (fullPath.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase))
+                if (IsCSharpScriptPath(fullPath))
                 {
                     hasScripts = true;
                 }

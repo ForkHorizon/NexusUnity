@@ -92,6 +92,73 @@ namespace UnityMCP.Editor.Tests
             AssertRpcErrorContains(response, "Access denied");
         }
 
+        [Test]
+        public void WriteFile_CSharpRequiresConfirm()
+        {
+            string path = "Assets/NexusUnityGeneratedTests/BlockedScript.cs";
+            DeleteGeneratedRoot();
+
+            try
+            {
+                JObject response = Rpc("write_file", new JObject { ["path"] = path, ["content"] = "class BlockedScript {}" });
+
+                AssertRpcErrorContains(response, "confirm: true");
+                Assert.IsFalse(File.Exists(MCPServerMethods.ValidatePath(path)));
+            }
+            finally
+            {
+                DeleteGeneratedRoot();
+            }
+        }
+
+        [Test]
+        public void WriteFilesBatch_CSharpRequiresConfirmBeforeAnyWrite()
+        {
+            string textPath = "Assets/NexusUnityGeneratedTests/Allowed.txt";
+            string scriptPath = "Assets/NexusUnityGeneratedTests/BlockedBatchScript.cs";
+            DeleteGeneratedRoot();
+
+            try
+            {
+                JObject response = Rpc("write_files_batch", new JObject
+                {
+                    ["files"] = new JArray
+                    {
+                        new JObject { ["path"] = textPath, ["content"] = "should not be written first" },
+                        new JObject { ["path"] = scriptPath, ["content"] = "class BlockedBatchScript {}" }
+                    }
+                });
+
+                AssertRpcErrorContains(response, "confirm: true");
+                Assert.IsFalse(File.Exists(MCPServerMethods.ValidatePath(textPath)));
+                Assert.IsFalse(File.Exists(MCPServerMethods.ValidatePath(scriptPath)));
+            }
+            finally
+            {
+                DeleteGeneratedRoot();
+            }
+        }
+
+        [Test]
+        public void AttachScript_RequiresConfirm()
+        {
+            string path = "Assets/BlockedAttachScript.cs";
+            string fullPath = MCPServerMethods.ValidatePath(path);
+            if (File.Exists(fullPath)) File.Delete(fullPath);
+
+            try
+            {
+                JObject response = Rpc("attach_script", new JObject { ["script_name"] = "BlockedAttachScript" });
+
+                AssertRpcErrorContains(response, "confirm: true");
+                Assert.IsFalse(File.Exists(fullPath));
+            }
+            finally
+            {
+                if (File.Exists(fullPath)) File.Delete(fullPath);
+            }
+        }
+
         private static JObject Rpc(string method, JObject parameters)
         {
             var request = new JObject
@@ -110,6 +177,12 @@ namespace UnityMCP.Editor.Tests
             Assert.IsNull(response["result"], response.ToString(Formatting.None));
             Assert.IsNotNull(response["error"], response.ToString(Formatting.None));
             Assert.That(response["error"]?["message"]?.ToString(), Does.Contain(expectedMessage));
+        }
+
+        private static void DeleteGeneratedRoot()
+        {
+            string fullPath = MCPServerMethods.ValidatePath("Assets/NexusUnityGeneratedTests");
+            if (Directory.Exists(fullPath)) Directory.Delete(fullPath, true);
         }
     }
 }

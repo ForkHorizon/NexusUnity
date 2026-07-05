@@ -5,11 +5,12 @@ import json
 import math
 import os
 import sys
+from typing import Any
 import urllib.request
 
-from ._types import JsonObject, JsonRpcError, JsonRpcRequest, JsonRpcResponse
-
 DEFAULT_PORT: int = 8081
+JsonObject = dict[str, Any]
+JsonRpcResponse = dict[str, Any]
 
 
 def _normalize_url(url: str) -> str:
@@ -51,7 +52,7 @@ UNITY_TIMEOUT_SECONDS: float = _read_timeout()
 
 
 def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse:
-    payload: JsonRpcRequest = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
+    payload = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
     data: bytes = json.dumps(payload).encode("utf-8")
     req: urllib.request.Request = urllib.request.Request(
         UNITY_URL,
@@ -62,7 +63,7 @@ def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse
         with urllib.request.urlopen(req, timeout=UNITY_TIMEOUT_SECONDS) as response:
             return json.loads(response.read().decode("utf-8"))
     except Exception as error:
-        error_payload: JsonRpcError = {
+        error_payload = {
             "code": -32000,
             "message": f"Unity Server unreachable. Error: {error}",
         }

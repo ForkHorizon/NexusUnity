@@ -7,25 +7,13 @@ call to the appropriate Unity JSON-RPC method via :func:`.client.call_unity`.
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, Mapping, Sequence, cast
+from typing import Any, Mapping, Sequence
 
-from ._logging import logger
 from ._transport import call_unity
 from .schemas import STATIC_TOOLS
-from ._types import (
-    JsonObject,
-    JsonRpcError,
-    JsonRpcResponse,
-    TestResultsPayload,
-    TransformArguments,
-    WaitResultPayload,
-    WriteAndCompileFailurePayload,
-    WriteAndCompileSuccessPayload,
-    WriteError,
-    WriteFileSpec,
-)
 
-RouteHandler = Callable[[JsonObject], JsonRpcResponse]
+JsonObject = dict[str, Any]
+JsonRpcResponse = dict[str, Any]
 
 
 def _compact(params: JsonObject) -> JsonObject:
@@ -40,7 +28,7 @@ def _alias(action_name: str | None, aliases: Mapping[str, str]) -> str | None:
 
 def _invalid_action(action_name: str | None, valid_actions: Sequence[str]) -> JsonRpcResponse:
     valid = ", ".join(valid_actions)
-    error_payload: JsonRpcError = {
+    error_payload = {
         "code": -32602,
         "message": f"Invalid action: {action_name}. Valid actions: {valid}",
     }
@@ -54,14 +42,14 @@ def _result_object(response: JsonRpcResponse | None) -> JsonObject:
     return result_payload if isinstance(result_payload, dict) else {}
 
 
-def _error_object(response: JsonRpcResponse | None) -> JsonRpcError | None:
+def _error_object(response: JsonRpcResponse | None) -> JsonObject | None:
     if not response:
         return None
     return response.get("error")
 
 
 def _transform_params(args: JsonObject, instance_id: int | None = None) -> JsonObject:
-    params: TransformArguments = {
+    params: JsonObject = {
         "instance_id": instance_id if instance_id is not None else args.get("instance_id")
     }
     for key in ["position", "rotation", "scale", "eulerAngles", "localScale"]:
@@ -125,13 +113,13 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
             current_results_payload.get("status") == "Success"
             and current_results_payload.get("timestamp_utc") != previous_timestamp
         ):
-            test_results = cast(TestResultsPayload, dict(current_results_payload))
+            test_results = dict(current_results_payload)
             test_results["time_waited_seconds"] = round(time.time() - start_time, 2)
             return {"result": test_results}
 
         time.sleep(poll_interval)
 
-    timeout_result: TestResultsPayload = {
+    timeout_result = {
         "status": "Timeout",
         "message": "Timed out waiting for a new Unity TestResults XML file.",
         "time_waited_seconds": round(time.time() - start_time, 2),
@@ -173,7 +161,7 @@ def _wait_for_compilation(timeout: float, start_time: float | None = None) -> Js
     else:
         status = "Timeout"
 
-    wait_result: WaitResultPayload = {
+    wait_result = {
         "status": status,
         "time_waited_seconds": round(time.time() - start_time, 2),
     }
@@ -187,22 +175,23 @@ def _route_list_tools(_: JsonObject) -> JsonRpcResponse:
 
 
 def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
-    files: list[WriteFileSpec] = args.get("files", [])
+    files = args.get("files", [])
+    confirm = args.get("confirm")
     start_time: float = time.time()
     call_unity("clear_logs")
 
-    write_errors: list[WriteError] = []
+    write_errors: list[JsonObject] = []
     for file_info in files:
         write_file_response = call_unity(
             "write_file",
-            {"path": file_info["path"], "content": file_info["content"]},
+            _compact({"path": file_info["path"], "content": file_info["content"], "confirm": confirm}),
         )
         write_error = _error_object(write_file_response)
         if write_error is not None:
             write_errors.append({"path": file_info["path"], "error": write_error})
 
     if write_errors:
-        failure_result: WriteAndCompileFailurePayload = {
+        failure_result = {
             "status": "Failed",
             "message": "Failed to write some files",
             "errors": write_errors,
@@ -223,7 +212,7 @@ def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
                 if log_entry.get("Type") in ["Error", "Exception", "Assert"]:
                     compiler_errors.append(log_entry)
 
-    success_result: WriteAndCompileSuccessPayload = {
+    success_result = {
         "status": "Failed" if compiler_errors else wait_status,
         "time_waited_seconds": time_waited_seconds,
         "compiler_errors": compiler_errors,
@@ -460,14 +449,14 @@ def _route_wait(args: JsonObject) -> JsonRpcResponse:
         else:
             status = "Timeout"
 
-    wait_result: WaitResultPayload = {
+    wait_result = {
         "status": status,
         "time_waited_seconds": round(time.time() - start_time, 2),
     }
     return {"result": wait_result}
 
 
-_HANDLERS: dict[str, RouteHandler] = {
+_HANDLERS = {
     "tools/list": _route_list_tools,
     "list_tools": _route_list_tools,
     "listTools": _route_list_tools,
