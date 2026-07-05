@@ -17,6 +17,9 @@ namespace UnityMCP.Editor
     /// </remarks>
     public static partial class MCPServerMethods
     {
+        private const int MaxBatchExecuteRequests = 50;
+        private static int _batchExecuteDepth;
+
         private static void RegisterCoreMethods()
         {
             _methods["initialize"] = Initialize;
@@ -41,20 +44,30 @@ namespace UnityMCP.Editor
             if (p == null || p["requests"] == null) throw new Exception("requests array is required");
             var requests = p["requests"] as JArray;
             if (requests == null) throw new Exception("requests must be a JSON array");
+            if (requests.Count > MaxBatchExecuteRequests) throw new Exception($"batch_execute supports at most {MaxBatchExecuteRequests} requests");
+            if (_batchExecuteDepth > 0) throw new Exception("Recursive batch_execute is not allowed");
 
             var results = new JArray();
-            foreach (var req in requests)
+            _batchExecuteDepth++;
+            try
             {
-                string method = req["method"]?.ToString();
-                if (method == "batch_execute") 
+                foreach (var req in requests)
                 {
-                    results.Add(new JObject { ["status"] = "Error", ["message"] = "Recursive batch_execute is not allowed" });
-                    continue;
-                }
+                    string method = req["method"]?.ToString();
+                    if (method == "batch_execute")
+                    {
+                        results.Add(new JObject { ["status"] = "Error", ["message"] = "Recursive batch_execute is not allowed" });
+                        continue;
+                    }
 
-                JToken par = req["params"];
-                try { results.Add(ExecuteMethod(method, par)); }
-                catch (Exception e) { results.Add(new JObject { ["status"] = "Error", ["message"] = e.Message }); }
+                    JToken par = req["params"];
+                    try { results.Add(ExecuteMethod(method, par)); }
+                    catch (Exception e) { results.Add(new JObject { ["status"] = "Error", ["message"] = e.Message }); }
+                }
+            }
+            finally
+            {
+                _batchExecuteDepth--;
             }
             return new JObject { ["results"] = results };
         }

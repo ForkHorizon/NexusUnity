@@ -155,6 +155,8 @@ Schema compatibility notes:
 - `ui_click` / `unity_ui_click`
 - `ui_input_text` / `unity_ui_input_text`
 
+`batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls.
+
 ## MCP Bridge Tools
 
 The MCP bridge is the recommended AI-client surface. It exposes 14 tools and two static read-only resources through `resources/list` and `resources/read`.

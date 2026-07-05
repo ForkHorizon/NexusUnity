@@ -101,6 +101,39 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void BatchExecuteRejectsOversizedBatches()
+        {
+            var requests = new JArray();
+            for (int i = 0; i < 51; i++)
+            {
+                requests.Add(new JObject { ["method"] = "get_server_status", ["params"] = new JObject() });
+            }
+
+            JObject response = Rpc("batch_execute", new JObject { ["requests"] = requests });
+
+            StringAssert.Contains("at most 50 requests", response["error"]?["message"]?.ToString());
+        }
+
+        [Test]
+        public void BatchExecuteRejectsRecursiveRequests()
+        {
+            JObject result = RpcResult("batch_execute", new JObject
+            {
+                ["requests"] = new JArray
+                {
+                    new JObject
+                    {
+                        ["method"] = "batch_execute",
+                        ["params"] = new JObject { ["requests"] = new JArray() }
+                    }
+                }
+            });
+
+            Assert.AreEqual("Error", result["results"]?[0]?["status"]?.ToString());
+            StringAssert.Contains("Recursive batch_execute", result["results"]?[0]?["message"]?.ToString());
+        }
+
+        [Test]
         public void UiWindowRectMethodsRoundTrip()
         {
             MCPTestWindow window = MCPTestWindow.ShowWindow();
