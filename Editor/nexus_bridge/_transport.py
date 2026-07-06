@@ -49,15 +49,19 @@ UNITY_URL: str = (
     else f"http://127.0.0.1:{_read_port()}/"
 )
 UNITY_TIMEOUT_SECONDS: float = _read_timeout()
+AUTH_TOKEN: str | None = os.environ.get("NEXUS_UNITY_AUTH_TOKEN")
 
 
 def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse:
     payload = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
     data: bytes = json.dumps(payload).encode("utf-8")
+    headers: dict[str, str] = {"Content-Type": "application/json"}
+    if AUTH_TOKEN:
+        headers["X-Nexus-Unity-Token"] = AUTH_TOKEN
     req: urllib.request.Request = urllib.request.Request(
         UNITY_URL,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(req, timeout=UNITY_TIMEOUT_SECONDS) as response:

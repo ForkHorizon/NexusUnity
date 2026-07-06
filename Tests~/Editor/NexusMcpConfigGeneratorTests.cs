@@ -20,6 +20,10 @@ namespace UnityMCP.Editor.Tests
             Assert.IsTrue(vsCode.Contains("\"servers\""));
             Assert.IsTrue(codex.Contains("[mcp_servers.nexus-unity]"));
             Assert.IsTrue(codex.Contains("command = \"/usr/bin/python3\""));
+
+            var jsonRoot = JObject.Parse(json);
+            Assert.AreEqual(MCPServer.AuthToken, (string)jsonRoot["mcpServers"]["nexus-unity"]["env"][MCPServer.AuthTokenEnvironmentVariable]);
+            Assert.IsTrue(codex.Contains(MCPServer.AuthTokenEnvironmentVariable + " = \"" + MCPServer.AuthToken + "\""));
         }
 
         [Test]
@@ -93,6 +97,34 @@ namespace UnityMCP.Editor.Tests
                     .First(item => item.Kind == NexusMcpClientKind.Cursor);
 
                 Assert.AreEqual(NexusMcpClientStatus.Configured, configured.Status);
+            }
+            finally
+            {
+                DeleteTempRoot(root);
+            }
+        }
+
+        [Test]
+        public void DetectsJsonServerMissingCurrentAuthToken()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string projectRoot = Path.Combine(root, "Project");
+                string homeRoot = Path.Combine(root, "Home");
+                string sourceBridge = Path.Combine(root, "Package", "nexus_unity_bridge.py");
+                string deployedBridge = Path.Combine(projectRoot, "nexus_unity_bridge.py");
+                WriteBridge(sourceBridge, "1.2.0");
+                WriteBridge(deployedBridge, "1.2.0");
+                string configPath = Path.Combine(projectRoot, ".cursor", "mcp.json");
+                Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+                File.WriteAllText(configPath, "{ \"mcpServers\": { \"nexus-unity\": { \"command\": \"/python3\", \"args\": [\"" + deployedBridge.Replace("\\", "/") + "\"] } } }");
+
+                var configured = NexusMcpConfigGenerator.BuildAll(deployedBridge, "/python3", projectRoot, homeRoot, sourceBridge)
+                    .First(item => item.Kind == NexusMcpClientKind.Cursor);
+
+                Assert.AreEqual(NexusMcpClientStatus.Outdated, configured.Status);
+                StringAssert.Contains("auth token", configured.StatusDetail);
             }
             finally
             {

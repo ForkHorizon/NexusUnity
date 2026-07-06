@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Diagnostics;
-using System.Collections.Generic;
+using System.Linq;
 using System;
 
 namespace UnityMCP.Editor
@@ -37,7 +37,7 @@ namespace UnityMCP.Editor
                 RunInstallerProcess(CreateProcessStartInfo(removeCommand), codexPath, false, "Codex");
 
                 // 2. Add new with command/args (silent, because we have a fallback)
-                string addCommand = "\"" + codexPath + "\" mcp add nexus-unity -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
+                string addCommand = "\"" + codexPath + "\" mcp add nexus-unity --env " + MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken + " -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
 
                 // If it succeeds, we are done
                 if (RunInstallerProcess(CreateProcessStartInfo(addCommand), codexPath, false, "Codex"))
@@ -55,74 +55,12 @@ namespace UnityMCP.Editor
             try
             {
                 string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string codexDir = Path.Combine(homeDir, ".codex");
-                string configPath = Path.Combine(codexDir, "config.toml");
-
-                if (!Directory.Exists(codexDir))
-                {
-                    Directory.CreateDirectory(codexDir);
-                }
-
-                List<string> lines = new List<string>();
-                if (File.Exists(configPath))
-                {
-                    lines.AddRange(File.ReadAllLines(configPath));
-                }
-
-                string safeScriptPath = scriptPath.Replace("\\", "/");
-                string safePythonPath = pythonPath.Replace("\\", "/");
-
-                // Check if [mcp_servers.nexus-unity] already exists
-                int existingIndex = -1;
-                for (int i = 0; i < lines.Count; i++)
-                {
-                    if (lines[i].Trim() == "[mcp_servers.nexus-unity]")
-                    {
-                        existingIndex = i;
-                        break;
-                    }
-                }
-
-                if (existingIndex != -1)
-                {
-                    // Update existing
-                    bool foundCommand = false;
-                    bool foundArgs = false;
-                    for (int i = existingIndex + 1; i < lines.Count; i++)
-                    {
-                        string trimmed = lines[i].Trim();
-                        if (trimmed.StartsWith("[")) break; // Next section
-
-                        if (trimmed.StartsWith("command"))
-                        {
-                            lines[i] = "command = \"" + safePythonPath + "\"";
-                            foundCommand = true;
-                        }
-                        else if (trimmed.StartsWith("args"))
-                        {
-                            lines[i] = "args = [ \"" + safeScriptPath + "\" ]";
-                            foundArgs = true;
-                        }
-                    }
-
-                    if (!foundCommand) lines.Insert(existingIndex + 1, "command = \"" + safePythonPath + "\"");
-                    if (!foundArgs) lines.Insert(existingIndex + (foundCommand ? 2 : 1), "args = [ \"" + safeScriptPath + "\" ]");
-                }
-                else
-                {
-                    // Append new
-                    if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines[lines.Count - 1]))
-                    {
-                        lines.Add(""); // Add a blank line for spacing
-                    }
-                    lines.Add("[mcp_servers.nexus-unity]");
-                    lines.Add("command = \"" + safePythonPath + "\"");
-                    lines.Add("args = [ \"" + safeScriptPath + "\" ]");
-                }
-
-                NexusMcpConfigGenerator.BackupFileIfExists(configPath);
-                File.WriteAllLines(configPath, lines);
-                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + configPath, true);
+                string projectRoot = Path.GetDirectoryName(Application.dataPath);
+                var codex = NexusMcpConfigGenerator.BuildAll(scriptPath, pythonPath, projectRoot, homeDir)
+                    .First(client => client.Kind == NexusMcpClientKind.Codex);
+                var result = NexusMcpConfigGenerator.WriteConfig(codex);
+                if (!result.Success) throw new Exception(result.Message);
+                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via manual TOML update: " + result.ConfigPath, true);
                 EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
             }
             catch (Exception e)

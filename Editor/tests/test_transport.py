@@ -83,6 +83,17 @@ class CallUnityTests(unittest.TestCase):
             payload,
         )
 
+    def test_call_unity_sends_auth_token_header_when_configured(self) -> None:
+        transport: Any = _reload_transport_module({"NEXUS_UNITY_AUTH_TOKEN": "secret-token"}, ["nexus_unity_bridge.py"])
+        fake_response: _FakeHttpResponse = _FakeHttpResponse(b'{"result": {"ok": true}}')
+
+        with patch("nexus_bridge._transport.urllib.request.urlopen", return_value=fake_response) as mock_urlopen:
+            transport.call_unity("get_state")
+
+        request: Any = mock_urlopen.call_args.args[0]
+        headers: dict[str, str] = {key.lower(): value for key, value in request.header_items()}
+        self.assertEqual("secret-token", headers["x-nexus-unity-token"])
+
 
 class ReadPortTests(unittest.TestCase):
     def test_read_port_prefers_environment_variable(self) -> None:

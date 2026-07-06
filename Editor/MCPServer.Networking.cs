@@ -17,10 +17,12 @@ namespace UnityMCP.Editor
         {
             using var client = new System.Net.Http.HttpClient();
             client.Timeout = TimeSpan.FromMilliseconds(500); 
+            client.DefaultRequestHeaders.Add(AuthTokenHeaderName, AuthToken);
             try
             {
                 var content = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"get_server_status\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
                 var response = await client.PostAsync($"http://127.0.0.1:{_port}/", content);
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden) return true;
                 string body = await response.Content.ReadAsStringAsync();
                 
                 if (body.Contains("serverAlive"))
@@ -58,6 +60,7 @@ namespace UnityMCP.Editor
                 // Fallback to old initialize method just in case it's an older server
                 var initContent = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
                 var initResponse = await client.PostAsync($"http://127.0.0.1:{_port}/", initContent);
+                if (initResponse.StatusCode == HttpStatusCode.Unauthorized || initResponse.StatusCode == HttpStatusCode.Forbidden) return true;
                 string initBody = await initResponse.Content.ReadAsStringAsync();
                 if (initBody.Contains("Unity MCP Server")) {
                     NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Connected to an older existing session on port {_port}", true);
@@ -139,6 +142,12 @@ namespace UnityMCP.Editor
                 return;
             }
 
+            if (!IsAuthorized(context))
+            {
+                RejectUnauthorized(context);
+                return;
+            }
+
             var wsContext = await context.AcceptWebSocketAsync(null);
             _webSocket = wsContext.WebSocket;
             await ReceiveWebsocketLoop(_cts.Token);
@@ -151,6 +160,12 @@ namespace UnityMCP.Editor
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                     context.Response.Close();
+                    return;
+                }
+
+                if (!IsAuthorized(context))
+                {
+                    RejectUnauthorized(context);
                     return;
                 }
 
@@ -203,6 +218,22 @@ namespace UnityMCP.Editor
             {
                 NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Error handling HTTP request: {e.Message}");
             }
+        }
+
+        private static bool IsAuthorized(HttpListenerContext context)
+        {
+            return IsAuthorizedToken(context.Request.Headers[AuthTokenHeaderName]);
+        }
+
+        internal static bool IsAuthorizedToken(string token)
+        {
+            return !string.IsNullOrEmpty(token) && string.Equals(token, _authToken, StringComparison.Ordinal);
+        }
+
+        private static void RejectUnauthorized(HttpListenerContext context)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            context.Response.Close();
         }
 
         private static async Task ReceiveWebsocketLoop(CancellationToken token)

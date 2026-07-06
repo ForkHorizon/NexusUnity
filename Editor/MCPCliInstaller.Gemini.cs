@@ -34,7 +34,7 @@ namespace UnityMCP.Editor
             RunInstallerProcess(CreateProcessStartInfo(removeCommand), geminiPath, false, "Gemini");
 
             // 2. Add new registration with stable path
-            string addCommand = "\"" + geminiPath + "\" mcp add nexus-unity --trust \"" + pythonPath + "\" \"" + scriptPath + "\"";
+            string addCommand = "\"" + geminiPath + "\" mcp add nexus-unity --trust -e " + MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken + " \"" + pythonPath + "\" \"" + scriptPath + "\"";
             RunInstallerProcess(CreateProcessStartInfo(addCommand), geminiPath, true, "Gemini");
         }
     }

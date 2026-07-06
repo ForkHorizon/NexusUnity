@@ -40,7 +40,7 @@ namespace UnityMCP.Editor
                 RunInstallerProcess(CreateProcessStartInfo(removeCommand), claudePath, false, "Claude Code");
 
                 // 2. Add the server at project scope (silent, because we have a file fallback).
-                string addCommand = "\"" + claudePath + "\" mcp add nexus-unity -s project -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
+                string addCommand = "\"" + claudePath + "\" mcp add nexus-unity -s project -e " + MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken + " -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
                 if (RunInstallerProcess(CreateProcessStartInfo(addCommand), claudePath, false, "Claude Code"))
                 {
                     NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Claude Code via '" + claudePath + "'.", true);
@@ -74,7 +74,8 @@ namespace UnityMCP.Editor
                 servers["nexus-unity"] = new JObject
                 {
                     ["command"] = pythonPath.Replace("\\", "/"),
-                    ["args"] = new JArray { scriptPath.Replace("\\", "/") }
+                    ["args"] = new JArray { scriptPath.Replace("\\", "/") },
+                    ["env"] = new JObject { [MCPServer.AuthTokenEnvironmentVariable] = MCPServer.AuthToken }
                 };
 
                 NexusMcpConfigGenerator.BackupFileIfExists(configPath);
