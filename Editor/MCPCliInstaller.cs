@@ -2,8 +2,8 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Diagnostics;
-using System.Collections.Generic;
 using System;
+using System.Text;
 
 namespace UnityMCP.Editor
 {
@@ -306,13 +306,15 @@ namespace UnityMCP.Editor
             return "python3";
         }
 
-        private static ProcessStartInfo CreateProcessStartInfo(string command)
+        private static ProcessStartInfo CreateProcessStartInfo(string executable, params string[] arguments)
         {
             bool isWindows = Application.platform == RuntimePlatform.WindowsEditor;
+            string extension = Path.GetExtension(executable);
+            bool useCmdShim = isWindows && (string.Equals(extension, ".cmd", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".bat", StringComparison.OrdinalIgnoreCase));
             ProcessStartInfo psi = new ProcessStartInfo
             {
-                FileName = isWindows ? "cmd.exe" : "/bin/bash",
-                Arguments = isWindows ? ("/c \"" + command + "\"") : ("-c \"" + command + "\""),
+                FileName = useCmdShim ? "cmd.exe" : executable,
+                Arguments = useCmdShim ? BuildWindowsBatchArguments(executable, arguments) : BuildProcessArguments(arguments),
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
@@ -327,6 +329,70 @@ namespace UnityMCP.Editor
                 psi.EnvironmentVariables["PATH"] = pathEnv + ":/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin";
             }
             return psi;
+        }
+
+        private static string BuildProcessArguments(string[] arguments)
+        {
+            return string.Join(" ", Array.ConvertAll(arguments, QuoteWindowsArgument));
+        }
+
+        private static string BuildWindowsBatchArguments(string executable, string[] arguments)
+        {
+            string command = QuoteCmdArgument(executable);
+            foreach (string argument in arguments)
+            {
+                command += " " + QuoteCmdArgument(argument);
+            }
+            return "/d /v:off /s /c " + QuoteWindowsArgument(command);
+        }
+
+        private static string QuoteCmdArgument(string argument)
+        {
+            return QuoteWindowsArgument(EscapeCmdMetacharacters(argument));
+        }
+
+        private static string EscapeCmdMetacharacters(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            return value
+                .Replace("^", "^^")
+                .Replace("&", "^&")
+                .Replace("|", "^|")
+                .Replace("<", "^<")
+                .Replace(">", "^>")
+                .Replace("%", "^%");
+        }
+
+        private static string QuoteWindowsArgument(string argument)
+        {
+            if (string.IsNullOrEmpty(argument)) return "\"\"";
+            if (argument.IndexOfAny(new[] { ' ', '\t', '\n', '\r', '"' }) < 0) return argument;
+
+            StringBuilder result = new StringBuilder();
+            result.Append('"');
+            int backslashes = 0;
+            foreach (char c in argument)
+            {
+                if (c == '\\')
+                {
+                    backslashes++;
+                    continue;
+                }
+
+                if (c == '"')
+                {
+                    result.Append('\\', backslashes * 2 + 1);
+                    result.Append('"');
+                    backslashes = 0;
+                    continue;
+                }
+                result.Append('\\', backslashes);
+                result.Append(c);
+                backslashes = 0;
+            }
+            result.Append('\\', backslashes * 2);
+            result.Append('"');
+            return result.ToString();
         }
 
         private static bool RunInstallerProcess(ProcessStartInfo psi, string cliPath, bool showSuccessDialog, string cliName)

@@ -1,7 +1,6 @@
 using UnityEditor;
 using UnityEngine;
 using System.IO;
-using System.Diagnostics;
 using System.Linq;
 using System;
 
@@ -33,14 +32,11 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(codexPath) && codexPath != "codex")
             {
                 // 1. Remove existing to ensure clean slate (silent)
-                string removeCommand = "\"" + codexPath + "\" mcp remove nexus-unity";
-                RunInstallerProcess(CreateProcessStartInfo(removeCommand), codexPath, false, "Codex");
+                RunInstallerProcess(CreateProcessStartInfo(codexPath, "mcp", "remove", "nexus-unity"), codexPath, false, "Codex");
 
                 // 2. Add new with command/args (silent, because we have a fallback)
-                string addCommand = "\"" + codexPath + "\" mcp add nexus-unity --env " + MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken + " -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
-
                 // If it succeeds, we are done
-                if (RunInstallerProcess(CreateProcessStartInfo(addCommand), codexPath, false, "Codex"))
+                if (RunInstallerProcess(CreateProcessStartInfo(codexPath, "mcp", "add", "nexus-unity", "--env", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, "--", pythonPath, scriptPath), codexPath, false, "Codex"))
                 {
                     NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Codex CLI via '" + codexPath + "'", true);
                     EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to your system Codex CLI!", "OK");
