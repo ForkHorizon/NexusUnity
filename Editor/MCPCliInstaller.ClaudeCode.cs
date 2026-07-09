@@ -36,12 +36,10 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(claudePath) && claudePath != "claude")
             {
                 // 1. Remove any stale registration so re-running is idempotent (silent).
-                string removeCommand = "\"" + claudePath + "\" mcp remove nexus-unity -s project";
-                RunInstallerProcess(CreateProcessStartInfo(removeCommand), claudePath, false, "Claude Code");
+                RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "remove", "nexus-unity", "-s", "project"), claudePath, false, "Claude Code");
 
                 // 2. Add the server at project scope (silent, because we have a file fallback).
-                string addCommand = "\"" + claudePath + "\" mcp add nexus-unity -s project -e " + MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken + " -- \"" + pythonPath + "\" \"" + scriptPath + "\"";
-                if (RunInstallerProcess(CreateProcessStartInfo(addCommand), claudePath, false, "Claude Code"))
+                if (RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "add", "nexus-unity", "-s", "project", "-e", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, "--", pythonPath, scriptPath), claudePath, false, "Claude Code"))
                 {
                     NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Claude Code via '" + claudePath + "'.", true);
                     EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to Claude Code.\n\nRun /mcp inside Claude Code (or restart it) to load the server.", "OK");

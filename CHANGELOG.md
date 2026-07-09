@@ -24,6 +24,7 @@ All notable public changes to Nexus Unity are documented here.
 - `get_test_results` now reads messages only from scoped NUnit result nodes and falls back to the test result instead of unrelated nested messages.
 - `unity_scene_manager` schema aliases now preserve action-specific required parameters.
 - Fast-path health JSON-RPC methods now use cached editor state instead of direct Unity API reads on the listener thread.
+- MCP CLI installers now pass executable paths and project paths as process arguments instead of shell command strings.
 
 ## [1.4.2] - 2026-06-13
 
