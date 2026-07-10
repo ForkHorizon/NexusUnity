@@ -29,11 +29,11 @@ namespace UnityMCP.Editor
             string geminiPath = ResolveExecutablePath("gemini");
             string pythonPath = ResolvePythonPath();
 
-            // 1. Ensure clean slate by removing existing registration
-            RunInstallerProcess(CreateProcessStartInfo(geminiPath, "mcp", "remove", "nexus-unity"), geminiPath, false, "Gemini");
+            // 1. Ensure clean slate by removing the existing project registration.
+            RunInstallerProcess(CreateProcessStartInfo(geminiPath, "mcp", "remove", "--scope", "project", "nexus-unity"), geminiPath, false, "Gemini");
 
-            // 2. Add new registration with stable path
-            RunInstallerProcess(CreateProcessStartInfo(geminiPath, "mcp", "add", "nexus-unity", "--trust", "-e", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, pythonPath, scriptPath), geminiPath, true, "Gemini");
+            // 2. Add a stdio registration without bypassing Gemini's tool-approval prompts.
+            RunInstallerProcess(CreateProcessStartInfo(geminiPath, "mcp", "add", "--scope", "project", "--transport", "stdio", "--env", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, "nexus-unity", pythonPath, scriptPath), geminiPath, true, "Gemini");
         }
     }
 }
