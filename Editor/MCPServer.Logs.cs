@@ -108,12 +108,7 @@ namespace UnityMCP.Editor
 
         internal static void HandleMainThreadQueue()
         {
-            LastMainThreadTickUtc = DateTime.UtcNow;
-            IsCompilingCached = EditorApplication.isCompiling;
-            IsUpdatingCached = EditorApplication.isUpdating;
-            IsPlayingCached = EditorApplication.isPlaying;
-            IsPausedCached = EditorApplication.isPaused;
-            IsPlayModeTransitionCached = EditorApplication.isPlayingOrWillChangePlaymode;
+            RefreshMainThreadCachedState();
 
             if (_mainThreadQueue == null || _mainThreadQueue.IsEmpty) return;
 

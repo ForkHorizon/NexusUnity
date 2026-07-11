@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -69,6 +70,18 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void GetTestResultsUsesOnlyScopedMessagesForNonPassingXml()
+        {
+            WriteTestResults("<test-run result=\"Failed\" total=\"2\" passed=\"0\" failed=\"0\" inconclusive=\"1\" skipped=\"0\" duration=\"0.2\"><test-suite><test-case name=\"Reason\" fullname=\"Agent.Reason\" result=\"Inconclusive\"><reason><message>No assertions</message></reason><metadata><message>Wrong nested message</message></metadata></test-case><test-case name=\"Error\" fullname=\"Agent.Error\" result=\"Error\"><metadata><message>Wrong nested message</message></metadata></test-case></test-suite></test-run>");
+
+            JObject result = RpcResult("get_test_results", new JObject { ["result_path"] = _resultPath });
+            JArray failures = (JArray)result["failed_tests"];
+
+            Assert.AreEqual("No assertions", failures[0]?["message"]?.ToString());
+            Assert.AreEqual("Error", failures[1]?["message"]?.ToString());
+        }
+
+        [Test]
         public void ToolUsageStatsTrackCountsAndErrorsWithoutPayloads()
         {
             RpcResult("get_editor_state");
@@ -98,6 +111,68 @@ namespace UnityMCP.Editor.Tests
 
             Assert.AreEqual("Success", reset["status"]?.ToString());
             Assert.IsFalse(tools.Children<JObject>().Any(t => t["method"]?.ToString() == "get_editor_state"));
+        }
+
+        [Test]
+        public void FastPathMethodsCanRunOffMainThread()
+        {
+            NexusConsoleLogMode originalLogMode = MCPSettings.ConsoleLogMode;
+            string[] methods =
+            {
+                "get_server_status",
+                "attach_existing_session",
+                "wait_for_asset_import_idle",
+                "wait_for_editor_idle"
+            };
+
+            try
+            {
+                MCPSettings.ConsoleLogMode = NexusConsoleLogMode.All;
+
+                foreach (string method in methods)
+                {
+                    JObject response = Task.Run(() => Rpc(method, new JObject { ["timeout_seconds"] = 0 })).GetAwaiter().GetResult();
+
+                    Assert.IsNull(response["error"], $"{method}: {response.ToString(Formatting.None)}");
+                }
+            }
+            finally
+            {
+                MCPSettings.ConsoleLogMode = originalLogMode;
+            }
+        }
+
+        [Test]
+        public void BatchExecuteRejectsOversizedBatches()
+        {
+            var requests = new JArray();
+            for (int i = 0; i < 51; i++)
+            {
+                requests.Add(new JObject { ["method"] = "get_server_status", ["params"] = new JObject() });
+            }
+
+            JObject response = Rpc("batch_execute", new JObject { ["requests"] = requests });
+
+            StringAssert.Contains("at most 50 requests", response["error"]?["message"]?.ToString());
+        }
+
+        [Test]
+        public void BatchExecuteRejectsRecursiveRequests()
+        {
+            JObject result = RpcResult("batch_execute", new JObject
+            {
+                ["requests"] = new JArray
+                {
+                    new JObject
+                    {
+                        ["method"] = "batch_execute",
+                        ["params"] = new JObject { ["requests"] = new JArray() }
+                    }
+                }
+            });
+
+            Assert.AreEqual("Error", result["results"]?[0]?["status"]?.ToString());
+            StringAssert.Contains("Recursive batch_execute", result["results"]?[0]?["message"]?.ToString());
         }
 
         [Test]

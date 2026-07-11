@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
+from typing import Any
 import urllib.request
 
-from ._types import JsonObject, JsonRpcError, JsonRpcRequest, JsonRpcResponse
-
 DEFAULT_PORT: int = 8081
+JsonObject = dict[str, Any]
+JsonRpcResponse = dict[str, Any]
 
 
 def _normalize_url(url: str) -> str:
@@ -34,7 +36,11 @@ def _read_timeout() -> float:
     raw_timeout: str | None = os.environ.get("NEXUS_UNITY_TIMEOUT_SECONDS")
     if not raw_timeout:
         return 120
-    return max(1.0, float(raw_timeout))
+    try:
+        timeout = float(raw_timeout)
+    except ValueError:
+        return 120
+    return max(1.0, timeout) if math.isfinite(timeout) else 120
 
 
 UNITY_URL: str = (
@@ -43,21 +49,25 @@ UNITY_URL: str = (
     else f"http://127.0.0.1:{_read_port()}/"
 )
 UNITY_TIMEOUT_SECONDS: float = _read_timeout()
+AUTH_TOKEN: str | None = os.environ.get("NEXUS_UNITY_AUTH_TOKEN")
 
 
 def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse:
-    payload: JsonRpcRequest = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
+    payload = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
     data: bytes = json.dumps(payload).encode("utf-8")
+    headers: dict[str, str] = {"Content-Type": "application/json"}
+    if AUTH_TOKEN:
+        headers["X-Nexus-Unity-Token"] = AUTH_TOKEN
     req: urllib.request.Request = urllib.request.Request(
         UNITY_URL,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(req, timeout=UNITY_TIMEOUT_SECONDS) as response:
             return json.loads(response.read().decode("utf-8"))
     except Exception as error:
-        error_payload: JsonRpcError = {
+        error_payload = {
             "code": -32000,
             "message": f"Unity Server unreachable. Error: {error}",
         }

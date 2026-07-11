@@ -1,6 +1,6 @@
 # Nexus Unity API Reference
 
-Version: `1.4.2`
+Version: `1.5.0`
 
 Nexus Unity exposes two supported public API surfaces:
 
@@ -14,10 +14,11 @@ Raw requests use unprefixed method names:
 ```bash
 curl -s http://127.0.0.1:8081/ \
   -H 'Content-Type: application/json' \
+  -H "X-Nexus-Unity-Token: $NEXUS_UNITY_AUTH_TOKEN" \
   -d '{"jsonrpc":"2.0","method":"get_server_status","params":{},"id":1}'
 ```
 
-Call `list_tools` at runtime for full JSON schemas. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
+Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge; rerun Auto Setup after restarting Unity if the token is stale. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
 
 Schema compatibility notes:
 
@@ -25,7 +26,12 @@ Schema compatibility notes:
 - `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
 - `create_scene` accepts optional `path` and `open_if_exists`, so agents can create or reopen a deterministic scene asset in one call.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path` for visible non-origin object creation.
+- Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
+- `get_game_object` returns `transform.position`, `transform.rotation`, `transform.scale`, and compact `components` data for cheap read-back verification.
+- Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) use cached editor state because they may run on the listener thread.
+- After script writes, readiness probes remain busy until the scheduled asset refresh window has passed.
+- During Play Mode transitions, readiness probes remain busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so callers can create visible materials in a chosen folder.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
 - `invoke_method.arguments` is an optional JSON array of positional arguments.
@@ -151,14 +157,11 @@ Schema compatibility notes:
 - `ui_click` / `unity_ui_click`
 - `ui_input_text` / `unity_ui_input_text`
 
+`batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls.
+
 ## MCP Bridge Tools
 
-The MCP bridge is the recommended AI-client surface. It exposes 14 tools and two static read-only resources through `resources/list`.
-
-### MCP Resources
-
-- `unity://docs/api-reference`: API reference metadata.
-- `unity://docs/setup`: setup guide metadata.
+The MCP bridge is the recommended AI-client surface. It exposes 14 tools and two static read-only resources through `resources/list` and `resources/read`.
 
 ### `unity_scene_manager`
 Actions: `create`, `open`, `save`, `list`. Aliases: `create_scene`, `open_scene`, `save_scene`, `list_scenes`.
@@ -168,7 +171,7 @@ Actions: `create`, `open`, `save`, `list`. Aliases: `create_scene`, `open_scene`
 ### `unity_hierarchy_manager`
 Actions: `create_empty`, `create_primitive`, `create_hierarchy`, `destroy`, `duplicate`, `rename`, `set_name`, `set_transform`, `set_active`, `set_parent`, `set_sibling_index`.
 
-Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_empty`. `create_primitive` accepts `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
+Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_empty`. `create_primitive` accepts `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`; Vector3 fields accept either object or array form.
 
 ### `unity_component_manager`
 Actions: `add`, `remove`, `inspect`, `get_schema`, `update_properties`, `set_property`, `set_enabled`.
@@ -197,10 +200,14 @@ Conditions: `compilation`, `play_mode`, `import`, `editor_idle`.
 ### `unity_playerprefs_manager`
 Actions: `get`, `set`, `delete`, `list`.
 
+Deleting every PlayerPrefs entry requires `action: "delete"`, `key: "all"`, and `confirm: true`; this operation is not undoable.
+
 ### `unity_write_and_compile`
 Writes one or more files, waits for Unity compilation/import work, and returns compiler errors.
 
-This is the public MCP bridge macro for code edits. Use it instead of old internal or stale documentation references to `unity_apply_code_change`.
+This is the public MCP bridge macro for code edits. Pass `confirm: true` when writing `.cs` files because Unity compilation is triggered. Use it instead of old internal or stale documentation references to `unity_apply_code_change`.
+
+Raw `attach_script`, `write_file`, and `write_files_batch` calls also require `confirm: true` before writing `.cs` files.
 
 ### `unity_invoke_method`
 Invokes a C# method on a component through reflection.

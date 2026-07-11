@@ -26,23 +26,43 @@ namespace UnityMCP.Editor
             string sourceBridgeVersion = ReadBridgeVersion(normalizedSourceBridgePath);
             string deployedBridgeVersion = ReadBridgeVersion(normalizedBridgePath);
 
+            var geminiClient = CreateCliClient(NexusMcpClientKind.Gemini, "Gemini", "gemini",
+                "Run Auto Setup, then restart or reopen Gemini CLI sessions.", normalizedBridgePath, pythonPath);
+            geminiClient.CustomAutoSetup = MCPCliInstaller.LinkToGemini;
+
+            var claudeCodeClient = CreateClaudeCode(projectRoot, normalizedBridgePath, pythonPath);
+            claudeCodeClient.CustomAutoSetup = MCPCliInstaller.LinkToClaudeCode;
+
             var clients = new List<NexusMcpClientInfo>
             {
                 CreateCodex(normalizedBridgePath, pythonPath, homeDir),
                 CreateClaude(normalizedBridgePath, pythonPath),
-                CreateClaudeCode(projectRoot, normalizedBridgePath, pythonPath),
-                CreateCliClient(NexusMcpClientKind.Gemini, "Gemini", "gemini",
-                    "Run Auto Setup, then restart or reopen Gemini CLI sessions.", normalizedBridgePath, pythonPath),
-                CreateCliClient(NexusMcpClientKind.Antigravity, "Antigravity", "ag",
-                    "Run Auto Setup, then restart Antigravity sessions that use MCP.", normalizedBridgePath, pythonPath),
-                CreateJsonClient(NexusMcpClientKind.Cursor, "Cursor", Path.Combine(projectRoot, ".cursor", "mcp.json"),
-                    "Paste into .cursor/mcp.json or use Auto Setup for this Unity project.", normalizedBridgePath, pythonPath, "mcpServers"),
-                CreateJsonClient(NexusMcpClientKind.VsCodeClineRoo, "VS Code / Cline / Roo", Path.Combine(projectRoot, ".vscode", "mcp.json"),
-                    "Paste into .vscode/mcp.json, then restart the MCP client extension.", normalizedBridgePath, pythonPath, "servers"),
-                CreateJsonClient(NexusMcpClientKind.Windsurf, "Windsurf", Path.Combine(homeDir, ".codeium", "windsurf", "mcp_config.json"),
-                    "Paste into the Windsurf MCP config, then restart Windsurf.", normalizedBridgePath, pythonPath, "mcpServers"),
-                CreateManual(normalizedBridgePath, pythonPath)
+                claudeCodeClient,
+                geminiClient
             };
+
+            // Plain JSON-config clients - one row per tool, no client-specific behavior beyond path/format.
+            var jsonClients = new[]
+            {
+                (NexusMcpClientKind.Antigravity, "Antigravity", Path.Combine(projectRoot, ".agents", "mcp_config.json"),
+                    "Paste into .agents/mcp_config.json, then restart or reload Antigravity sessions.", "mcpServers"),
+                (NexusMcpClientKind.Cursor, "Cursor", Path.Combine(projectRoot, ".cursor", "mcp.json"),
+                    "Paste into .cursor/mcp.json or use Auto Setup for this Unity project.", "mcpServers"),
+                (NexusMcpClientKind.VsCode, "VS Code", Path.Combine(projectRoot, ".vscode", "mcp.json"),
+                    "Paste into .vscode/mcp.json, then restart VS Code's built-in MCP support.", "servers"),
+                (NexusMcpClientKind.RooCode, "Roo Code", Path.Combine(projectRoot, ".roo", "mcp.json"),
+                    "Paste into .roo/mcp.json, then restart Roo Code.", "mcpServers"),
+                (NexusMcpClientKind.Cline, "Cline", GetClineConfigPath(homeDir),
+                    "Paste into Cline's global MCP settings, then restart Cline.", "mcpServers"),
+                (NexusMcpClientKind.Windsurf, "Windsurf", Path.Combine(homeDir, ".codeium", "windsurf", "mcp_config.json"),
+                    "Paste into the Windsurf MCP config, then restart Windsurf.", "mcpServers"),
+            };
+            foreach (var (kind, name, path, instruction, rootKey) in jsonClients)
+            {
+                clients.Add(CreateJsonClient(kind, name, path, instruction, normalizedBridgePath, pythonPath, rootKey));
+            }
+
+            clients.Add(CreateManual(normalizedBridgePath, pythonPath));
 
             foreach (var client in clients)
             {
@@ -100,7 +120,8 @@ namespace UnityMCP.Editor
         {
             return "[mcp_servers.nexus-unity]\n" +
                    "command = \"" + EscapeToml(NormalizePath(pythonPath)) + "\"\n" +
-                   "args = [ \"" + EscapeToml(NormalizePath(bridgePath)) + "\" ]\n";
+                   "args = [ \"" + EscapeToml(NormalizePath(bridgePath)) + "\" ]\n" +
+                   "env = { " + MCPServer.AuthTokenEnvironmentVariable + " = \"" + EscapeToml(MCPServer.AuthToken) + "\" }\n";
         }
 
         internal static string BackupFileIfExists(string path)
@@ -130,7 +151,16 @@ namespace UnityMCP.Editor
             string path = GetClaudeDesktopConfigPath();
             var info = CreateJsonClient(NexusMcpClientKind.ClaudeDesktop, "Claude Desktop", path,
                 "Paste into claude_desktop_config.json, then restart Claude Desktop.", bridgePath, pythonPath, "mcpServers");
-            info.SupportsAutoSetup = true;
+            bool supportedPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            if (supportedPlatform)
+            {
+                info.SupportsAutoSetup = true;
+            }
+            else
+            {
+                info.SupportsAutoSetup = false;
+                info.AutoSetupDisabledReason = "Claude Desktop Auto Setup is only supported on macOS and Windows. Use Copy Config and paste it into Claude Desktop's settings manually.";
+            }
             return info;
         }
 
@@ -165,7 +195,7 @@ namespace UnityMCP.Editor
             info.Instruction = instruction;
             info.ConfigPath = "Managed by " + command + " CLI";
             info.ConfigText = BuildJsonConfig("mcpServers", bridgePath, pythonPath);
-            bool found = IsExecutableResolved(command) || (kind == NexusMcpClientKind.Antigravity && IsExecutableResolved("antigravity"));
+            bool found = IsExecutableResolved(command);
             info.SupportsAutoSetup = found;
             info.Status = found ? NexusMcpClientStatus.Detected : NexusMcpClientStatus.NotFound;
             info.StatusDetail = found ? command + " CLI detected." : command + " CLI was not found on PATH.";
@@ -216,6 +246,11 @@ namespace UnityMCP.Editor
 
                     info.Status = NexusMcpClientStatus.Configured;
                     info.StatusDetail = "nexus-unity is present in the config.";
+                    if (!TomlHasCurrentAuthToken(lines))
+                    {
+                        info.Status = NexusMcpClientStatus.Outdated;
+                        info.StatusDetail = "nexus-unity is missing the current auth token. Run Auto Setup, then restart this client.";
+                    }
                     return;
                 }
             }
@@ -273,6 +308,11 @@ namespace UnityMCP.Editor
 
                     info.Status = NexusMcpClientStatus.Configured;
                     info.StatusDetail = "nexus-unity is present in the config.";
+                    if (!JsonHasCurrentAuthToken(server))
+                    {
+                        info.Status = NexusMcpClientStatus.Outdated;
+                        info.StatusDetail = "nexus-unity is missing the current auth token. Run Auto Setup, then restart this client.";
+                    }
                 }
                 else
                 {
@@ -339,11 +379,21 @@ namespace UnityMCP.Editor
 
         private static JObject BuildServerEntry(string bridgePath, string pythonPath)
         {
-            return new JObject
+            return new JObject { ["command"] = NormalizePath(pythonPath), ["args"] = new JArray { NormalizePath(bridgePath) }, ["env"] = new JObject { [MCPServer.AuthTokenEnvironmentVariable] = MCPServer.AuthToken } };
+        }
+
+        private static bool JsonHasCurrentAuthToken(JObject server) => string.Equals((string)server["env"]?[MCPServer.AuthTokenEnvironmentVariable], MCPServer.AuthToken, StringComparison.Ordinal);
+
+        private static bool TomlHasCurrentAuthToken(List<string> lines)
+        {
+            string needle = MCPServer.AuthTokenEnvironmentVariable + " = \"" + MCPServer.AuthToken + "\"";
+            int start = lines.FindIndex(line => line.Trim() == "[mcp_servers.nexus-unity]");
+            if (start < 0) return false;
+            for (int i = start + 1; i < lines.Count && !lines[i].TrimStart().StartsWith("["); i++)
             {
-                ["command"] = NormalizePath(pythonPath),
-                ["args"] = new JArray { NormalizePath(bridgePath) }
-            };
+                if (lines[i].Contains(needle)) return true;
+            }
+            return false;
         }
 
         private static bool IsExecutableResolved(string name)
@@ -377,6 +427,13 @@ namespace UnityMCP.Editor
             }
 
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
+        }
+
+        // Cline (VS Code extension saoudrizwan.claude-dev) stores MCP settings in VS Code's global storage,
+        // not in the workspace - same layout on macOS/Windows/Linux, rooted at the OS config dir for VS Code.
+        private static string GetClineConfigPath(string homeDir)
+        {
+            return Path.Combine(homeDir, ".cline", "data", "settings", "cline_mcp_settings.json");
         }
     }
 }

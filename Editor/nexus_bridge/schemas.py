@@ -8,32 +8,43 @@ clients.  Each entry follows the JSON Schema / MCP tool-definition shape.
 """
 from __future__ import annotations
 
-from ._types import JsonObject, ResourceDefinition, ToolDefinition
+from typing import Any
+
+JsonObject = dict[str, Any]
 
 # --- Shared sub-schemas ---
 VECTOR3_SCHEMA: JsonObject = {
-    "type": "object",
-    "properties": {
-        "x": {"type": "number"},
-        "y": {"type": "number"},
-        "z": {"type": "number"},
-    },
+    "oneOf": [
+        {
+            "type": "object",
+            "properties": {
+                "x": {"type": "number"},
+                "y": {"type": "number"},
+                "z": {"type": "number"},
+            },
+        },
+        {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 3,
+            "maxItems": 3,
+        },
+    ],
 }
 
-STATIC_TOOLS: list[ToolDefinition] = [
+STATIC_TOOLS: list[JsonObject] = [
     # --- Consolidated Core Managers ---
     {
         "name": "unity_scene_manager",
         "description": "Unified scene management (create, open, save, list)",
         "inputSchema": {
             "type": "object",
-            "properties": {
-                "action": {"type": "string", "enum": ["create", "create_scene", "open", "open_scene", "save", "save_scene", "list", "list_scenes"]},
-                "name": {"type": "string"},
-                "path": {"type": "string"},
-                "open_if_exists": {"type": "boolean"}
-            },
-            "required": ["action"]
+            "oneOf": [
+                {"properties": {"action": {"type": "string", "enum": ["create", "create_scene"]}, "name": {"type": "string"}, "path": {"type": "string"}, "open_if_exists": {"type": "boolean"}}, "required": ["action"]},
+                {"properties": {"action": {"type": "string", "enum": ["open", "open_scene"]}, "path": {"type": "string"}}, "required": ["action", "path"]},
+                {"properties": {"action": {"type": "string", "enum": ["save", "save_scene"]}, "path": {"type": "string"}}, "required": ["action"]},
+                {"properties": {"action": {"type": "string", "enum": ["list", "list_scenes"]}}, "required": ["action"]}
+            ]
         }
     },
     {
@@ -267,21 +278,39 @@ STATIC_TOOLS: list[ToolDefinition] = [
             "oneOf": [
                 {"description": "Read a PlayerPref value by key", "properties": {"action": {"const": "get"}, "key": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key"]},
                 {"description": "Write a PlayerPref value", "properties": {"action": {"const": "set"}, "key": {"type": "string"}, "value": {"type": "string"}, "type": {"type": "string", "enum": ["string", "int", "float"]}}, "required": ["action", "key", "value"]},
-                {"description": "Delete a PlayerPref entry by key", "properties": {"action": {"const": "delete"}, "key": {"type": "string"}}, "required": ["action", "key"]},
+                {"description": "Delete a PlayerPref entry by key; use key 'all' with confirm true to clear all PlayerPrefs", "properties": {"action": {"const": "delete"}, "key": {"type": "string"}, "confirm": {"type": "boolean"}}, "required": ["action", "key"]},
                 {"description": "List all stored PlayerPref keys and their values", "properties": {"action": {"const": "list"}}, "required": ["action"]}
             ]
         }
     },
 
     # --- Specialized Diagnostics ---
-    {"name": "unity_write_and_compile", "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.", "inputSchema": {"type": "object", "properties": {"files": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "content": {"type": "string"}}, "required": ["path", "content"]}}}, "required": ["files"]}},
+    {
+        "name": "unity_write_and_compile",
+        "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {"path": {"type": "string"}, "content": {"type": "string"}},
+                        "required": ["path", "content"],
+                    },
+                },
+                "confirm": {"type": "boolean", "description": "Required when writing .cs files because Unity compilation is triggered"},
+            },
+            "required": ["files"],
+        },
+    },
     {"name": "unity_invoke_method", "description": "Invoke a C# method on a component via reflection", "inputSchema": {"type": "object", "properties": {"instance_id": {"type": "integer"}, "component_name": {"type": "string"}, "method_name": {"type": "string"}, "arguments": {"type": "array"}}, "required": ["instance_id", "method_name"]}},
     {"name": "unity_dump_scene_graph", "description": "Dump recursive tree of active scene with components and key fields", "inputSchema": {"type": "object", "properties": {"root_id": {"type": "integer"}, "max_depth": {"type": "integer"}, "include_all_properties": {"type": "boolean"}}}},
     {"name": "unity_get_scene_dependencies", "description": "Return a scene-wide dependency map of cross-object references", "inputSchema": {"type": "object", "properties": {}}},
     {"name": "unity_lint_project", "description": "Run Roslyn-based C# audit of the entire project", "inputSchema": {"type": "object", "properties": {}}}
 ]
 
-STATIC_RESOURCES: list[ResourceDefinition] = [
+STATIC_RESOURCES: list[JsonObject] = [
     {
         "uri": "unity://docs/api-reference",
         "name": "API Reference",

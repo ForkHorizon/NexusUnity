@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.4.2`
+Version: `1.5.0`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -24,6 +24,7 @@ The server:
 - Restarts after Unity domain reloads when the previous session was running.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
 - Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, `get_tool_usage_stats`, and `reset_tool_usage_stats` for robust automation loops.
+- Serves fast-path health and wait calls from cached editor state when they run on the listener thread.
 
 ## Unity Editor Menu
 
@@ -42,12 +43,14 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 
 The `Integrations` tab builds all snippets from the resolved Python interpreter and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, Claude Code uses a project-root `.mcp.json` with `mcpServers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
 
-Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly); the Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.
+Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly). If the CLI cannot remove a stale registration, setup skips its add command and writes `.mcp.json` directly instead; the CLI error is logged for diagnosis. The Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.
+
+Gemini CLI uses a project-scoped stdio registration in `.gemini/settings.json`; Auto Setup keeps Gemini's normal tool-approval prompts enabled. Antigravity uses the workspace-local `.agents/mcp_config.json` with the standard `mcpServers` object, not the older shared Gemini configuration path. Cline uses `~/.cline/data/settings/cline_mcp_settings.json` for shared MCP settings.
 
 ### Platform notes
 
 - The Python interpreter is resolved in the order `python3`, then `python`, then the Windows `py` launcher. On Windows, where `python3` is frequently absent from `PATH`, the generated config falls back to a discovered `python.exe` or `py`. Ensure a Python 3 interpreter is installed and on `PATH`.
-- CLI-managed clients (Codex, Gemini, Antigravity, and the Claude Code CLI path) are discovered with `which` on macOS/Linux and `where` on Windows. The matching CLI must be on the `PATH` of the environment that launched the Unity Editor for `Auto Setup` to detect it; otherwise use `Copy Config` or the file-based card.
+- CLI-managed clients (Codex, Gemini, and the Claude Code CLI path) are discovered with `which` on macOS/Linux and `where` on Windows. The matching CLI must be on the `PATH` of the environment that launched the Unity Editor for `Auto Setup` to detect it; otherwise use `Copy Config` or the file-based card.
 
 Integration status checks compare the package bridge with the project-root deployed bridge and the client config path. A card reports `Outdated` when the config points at another Unity project, the deployed bridge is missing, or the deployed bridge version differs from the package bridge version. Running `Auto Setup` redeploys `nexus_unity_bridge.py` plus `nexus_bridge/`, rewrites the client entry, and requires restarting the external MCP client session.
 
@@ -58,8 +61,11 @@ When Nexus Unity writes an existing user or project config, it preserves unrelat
 Nexus Unity is a local developer tool and should be used only with trusted local clients.
 
 - HTTP and WebSocket requests must target loopback hosts.
+- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
+- C# script writes require `confirm: true` before creating or overwriting `.cs` files and triggering Unity compilation.
+- Editor tests cover traversal rejection at the JSON-RPC boundary for representative file and asset methods.
 - Request payload size is capped to reduce memory exhaustion risk.
 - Raw write operations are intentionally powerful; prefer `unity_write_and_compile` through the MCP bridge for code edits.
 
@@ -77,25 +83,15 @@ Manual or root-deployed path:
 python3 nexus_unity_bridge.py
 ```
 
-Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, and `NEXUS_UNITY_TIMEOUT_SECONDS`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
-
-Direct CLI mode is available for diagnostics and scripts:
-
-```bash
-python3 nexus_unity_bridge.py scene_manager action=list
-python3 nexus_unity_bridge.py hierarchy_manager action=create_primitive primitive_type=Cube position='[0,1,0]'
-```
-
-CLI arguments must use `key=value`; JSON-looking values are parsed before routing the call.
+Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, `NEXUS_UNITY_TIMEOUT_SECONDS`, and `NEXUS_UNITY_AUTH_TOKEN`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
 
 The bridge is modular:
 
 - `nexus_unity_bridge.py`: MCP loop and CLI entry point.
-- `nexus_bridge/_logging.py`: shared bridge logger.
 - `nexus_bridge/_transport.py`: Unity JSON-RPC URL, port, timeout, and HTTP transport helpers.
 - `nexus_bridge/client.py`: HTTP JSON-RPC client.
 - `nexus_bridge/routing.py`: manager routing and macro behavior.
-- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources.
+- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources served through `resources/list` and `resources/read`.
 
 When deploying from the Unity UI, Nexus Unity copies both `nexus_unity_bridge.py` and the full `nexus_bridge/` package to the project root so the bridge can run from a stable path.
 
@@ -107,7 +103,8 @@ Raw HTTP JSON-RPC:
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
 - Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, `create_scene` accepts `path` / `open_if_exists`, `create_primitive` accepts transform/material fields, and `create_material` accepts an optional explicit asset `path` plus visible color fields.
-- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
+- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries with scoped non-passing test messages, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
+- `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls.
 
 MCP bridge:
 
@@ -127,11 +124,16 @@ The current development line preserves backward compatibility while correcting p
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
+- `unity_scene_manager` aliases such as `create_scene`, `open_scene`, `save_scene`, and `list_scenes` preserve action-specific required parameters.
 - `create_scene` accepts optional `path` and `open_if_exists` for deterministic scene assets.
 - `create_primitive` accepts optional `name`, `parent_id`, `position`, `rotation`, `scale`, and `material_path`.
+- Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
+- `get_game_object` includes transform state and a compact component list for cheap write verification; use `inspect_component` for full component properties.
+- Script writes require `confirm: true`, then readiness probes remain busy while the scheduled asset refresh is pending so agents do not race Unity domain reload.
+- Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts an optional explicit `path` plus `base_color` / `color` and `emission_color`, so automation can isolate generated materials in a known project folder and make them visibly distinct.
-- `write_file` and `write_files_batch` create missing parent directories after path validation.
+- `write_file` and `write_files_batch` create missing parent directories after path validation; `.cs` writes require `confirm: true`.
 - `invoke_method.arguments` is documented and exposed as a JSON array schema.
 - `click_object_in_game` accepts either `instance_id` or hierarchy `path`.
 - Unity 6.x compatibility is maintained across editor object identity API changes. External JSON payloads continue to use integer-shaped `instance_id` values, while Nexus maps them to `EntityId` internally and falls back to Unity 6.3-compatible hierarchy event and object-reference instance ID APIs when Unity 6.4+ members are unavailable.
@@ -139,7 +141,7 @@ The current development line preserves backward compatibility while correcting p
 
 ## Recommended AI Workflow
 
-Use `unity_write_and_compile` for code edits. It writes one or more files, waits for Unity reload/import work, and returns compiler errors from the Unity Console. Use `unity_wait` when a workflow needs to block until compilation, import, play mode, or editor idle state is reached.
+Use `unity_write_and_compile` with `confirm: true` for code edits. It writes one or more files, waits for Unity reload/import work, and returns compiler errors from the Unity Console. Use `unity_wait` when a workflow needs to block until compilation, import, play mode, or editor idle state is reached.
 
 For scene work, prefer manager tools:
 
@@ -187,6 +189,8 @@ For a focused agent tooling check, run `python3 scripts/agent-tooling-smoke.py`.
 
 Before release, maintainers should run a public API stress audit that compares raw `list_tools` output with the MCP bridge catalog, exercises read-only and mutating tool groups in a disposable namespace, and verifies cleanup of generated assets and PlayerPrefs keys.
 
+PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `key: "all"` plus `confirm: true` because Unity does not provide an Undo path for `PlayerPrefs.DeleteAll()`.
+
 ## Troubleshooting
 
 - Server does not start: change the port in project settings and restart the server window.
@@ -196,14 +200,14 @@ Before release, maintainers should run a public API stress audit that compares r
 - Compile loop times out: call `get_server_status`, `read_logs`, and `unity_wait` with `editor_idle`.
 - Auto Setup reports success but the client does not connect: confirm you used the card for the client you actually run (Claude Code reads `.mcp.json`, not the Claude Desktop config), then reload the client (`/mcp` in Claude Code) after starting the Nexus server.
 - Bridge fails to launch on Windows: verify a Python 3 interpreter is on `PATH` (`python --version` or `py --version`); the generated config uses `python3`, `python`, or `py` in that order.
-- Gemini/Antigravity card shows `Not found` or disabled Auto Setup: the CLI is not on the Editor's `PATH`. Install it and ensure `where <cli>` (Windows) or `which <cli>` (macOS/Linux) resolves, or use `Copy Config`.
+- Gemini card shows `Not found` or disabled Auto Setup: the CLI is not on the Editor's `PATH`. Install it and ensure `where gemini` (Windows) or `which gemini` (macOS/Linux) resolves, or use `Copy Config`.
 
 ## Packaging Rules
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.4.2`.
-- License: `GPL-3.0-only`.
+- Public release version: `1.5.0`.
+- License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
@@ -214,12 +218,12 @@ Before release, maintainers should run a public API stress audit that compares r
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.4.2` for the package version, `v1.4.2` for tags, and `1.4.2` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.5.0` for the package version, `v1.5.0` for tags, and `1.5.0` for release titles.
 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.4.2` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.5.0` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
@@ -227,4 +231,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.4.2` for package version `1.4.2`.
+- Tag the release with the matching semantic GitHub version, for example `v1.5.0` for package version `1.5.0`.

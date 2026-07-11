@@ -88,6 +88,19 @@ namespace UnityMCP.Editor
             return relativePath;
         }
 
+        private static bool IsCSharpScriptPath(string path)
+        {
+            return path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void RequireScriptWriteConfirmation(JToken p)
+        {
+            if (p?["confirm"]?.Value<bool>() != true)
+            {
+                throw new System.ArgumentException("Writing C# scripts requires confirm: true because it triggers Unity compilation.");
+            }
+        }
+
         internal static JObject SerializeVector3(Vector3 v)
         {
             return new JObject { ["x"] = v.x, ["y"] = v.y, ["z"] = v.z };

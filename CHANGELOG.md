@@ -4,6 +4,34 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-12
+
+### Changed
+- Relicensed Nexus Unity from `GPL-3.0-only` to the `MIT` license to remove copyleft friction for commercial Unity studios. All prior contributors consented to the relicense.
+
+### Fixed
+- Updated Claude Code and Gemini CLI setup commands for their current option ordering and explicit project-scoped stdio registration; Gemini setup no longer bypasses tool approvals with `--trust`.
+- Antigravity setup now writes its workspace configuration to `.agents/mcp_config.json` instead of the legacy global Gemini config path.
+- Cline setup now writes its shared MCP settings to `~/.cline/data/settings/cline_mcp_settings.json` instead of the retired VS Code extension storage path.
+- Claude Code setup now skips the CLI add command when removal of a stale project registration fails, logs the actionable failure, and falls back directly to `.mcp.json`.
+- The local HTTP/WebSocket control plane now requires a per-session auth token before JSON-RPC dispatch; generated MCP configs pass the token through the Python bridge.
+- `add_component` now returns a clear `GameObject not found` error for stale instance IDs instead of throwing a raw Unity null reference.
+- `batch_execute` now caps batches at 50 requests and rejects nested batch execution.
+- `create_primitive` now validates parent, transform, and material inputs before creating the GameObject, and Vector3 inputs accept `[x, y, z]` arrays as well as `{x, y, z}` objects.
+- `get_game_object` now returns transform state and a compact component list so agents can verify basic write operations with the cheap read-back call.
+- Script writes now keep readiness probes in a busy/importing state while the scheduled asset refresh is pending, avoiding premature follow-up write calls during Unity domain reload.
+- Script-writing RPC methods now require `confirm: true` before creating or overwriting `.cs` files and triggering Unity compilation.
+- MCP bridge static resources can now be read through `resources/read` after discovery through `resources/list`.
+- Play mode transitions now keep readiness probes busy so agents do not issue follow-up writes while Unity is still entering or exiting Play Mode.
+- `delete_player_pref` now rejects missing or empty keys, and only clears all PlayerPrefs when called with `key: "all"` and `confirm: true`.
+- Invalid `NEXUS_UNITY_TIMEOUT_SECONDS` values now fall back to the default bridge timeout instead of crashing the Python bridge at import time.
+- Python bridge type helpers no longer require Python 3.11-only typing features.
+- Path security tests now exercise JSON-RPC traversal rejection for representative file and asset tools.
+- `get_test_results` now reads messages only from scoped NUnit result nodes and falls back to the test result instead of unrelated nested messages.
+- `unity_scene_manager` schema aliases now preserve action-specific required parameters.
+- Fast-path health JSON-RPC methods now use cached editor state instead of direct Unity API reads on the listener thread.
+- MCP CLI installers now pass executable paths and project paths as process arguments instead of shell command strings.
+
 ## [1.4.2] - 2026-06-13
 
 ### Added

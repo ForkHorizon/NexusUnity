@@ -95,6 +95,15 @@ class RouteHandlerTests(unittest.TestCase):
         self.assertEqual(expected_response, response)
         mock_run_tests_wait.assert_called_once_with({"action": "run_tests_wait", "timeout_seconds": 9})
 
+    def test_playerprefs_delete_forwards_confirm(self) -> None:
+        with patch("nexus_bridge.routing.call_unity", return_value={"result": {"ok": True}}) as mock_call_unity:
+            response: dict[str, Any] = routing._route_playerprefs_manager(
+                {"action": "delete", "key": "all", "confirm": True}
+            )
+
+        self.assertEqual({"result": {"ok": True}}, response)
+        mock_call_unity.assert_called_once_with("delete_player_pref", {"key": "all", "confirm": True})
+
     def test_hierarchy_manager_create_applies_transform_after_create(self) -> None:
         create_response: dict[str, Any] = {"result": {"data": {"instance_id": 12}}}
         transform_response: dict[str, Any] = {"result": {"ok": True}}
@@ -128,7 +137,7 @@ class WriteAndCompileTests(unittest.TestCase):
 
         with patch("nexus_bridge.routing.call_unity", side_effect=call_results) as mock_call_unity:
             with patch("nexus_bridge.routing._wait_for_compilation") as mock_wait_for_compilation:
-                response: dict[str, Any] = routing._route_write_and_compile({"files": files})
+                response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
 
         self.assertEqual("Failed", response["result"]["status"])
         self.assertEqual("Failed to write some files", response["result"]["message"])
@@ -140,8 +149,8 @@ class WriteAndCompileTests(unittest.TestCase):
         self.assertEqual(
             [
                 call("clear_logs"),
-                call("write_file", {"path": "Assets/One.cs", "content": "one"}),
-                call("write_file", {"path": "Assets/Two.cs", "content": "two"}),
+                call("write_file", {"path": "Assets/One.cs", "content": "one", "confirm": True}),
+                call("write_file", {"path": "Assets/Two.cs", "content": "two", "confirm": True}),
             ],
             mock_call_unity.call_args_list,
         )
@@ -162,7 +171,7 @@ class WriteAndCompileTests(unittest.TestCase):
         with patch("nexus_bridge.routing.time.time", return_value=10.0):
             with patch("nexus_bridge.routing.call_unity", side_effect=[None, {"result": {"ok": True}}, log_response]) as mock_call_unity:
                 with patch("nexus_bridge.routing._wait_for_compilation", return_value=wait_response) as mock_wait_for_compilation:
-                    response: dict[str, Any] = routing._route_write_and_compile({"files": files})
+                    response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
 
         self.assertEqual("Failed", response["result"]["status"])
         self.assertEqual(1.5, response["result"]["time_waited_seconds"])
@@ -177,7 +186,7 @@ class WriteAndCompileTests(unittest.TestCase):
         self.assertEqual(
             [
                 call("clear_logs"),
-                call("write_file", {"path": "Assets/Test.cs", "content": "class Test {}"}),
+                call("write_file", {"path": "Assets/Test.cs", "content": "class Test {}", "confirm": True}),
                 call("read_logs", {"count": 200}),
             ],
             mock_call_unity.call_args_list,

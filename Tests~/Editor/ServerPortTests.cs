@@ -48,6 +48,17 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void AuthToken_IsRequiredForNetworkRequests()
+        {
+            string token = MCPServer.AuthToken;
+
+            Assert.IsFalse((bool)InvokePrivateMethod("IsAuthorizedToken", null));
+            Assert.IsFalse((bool)InvokePrivateMethod("IsAuthorizedToken", ""));
+            Assert.IsFalse((bool)InvokePrivateMethod("IsAuthorizedToken", "wrong-token"));
+            Assert.IsTrue((bool)InvokePrivateMethod("IsAuthorizedToken", token));
+        }
+
+        [Test]
         public void GetPortOwner_IdentifiesProcess()
         {
             TcpListener listener = new TcpListener(IPAddress.Loopback, TEST_PORT);

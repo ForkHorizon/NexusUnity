@@ -164,6 +164,11 @@ namespace UnityMCP.Editor
 
         private static JToken RefreshAssetDatabase(JToken p)
         {
+            if (DateTime.UtcNow < _scriptRefreshBusyUntilUtc)
+            {
+                return new JObject { ["status"] = "Compiling", ["is_compiling"] = false, ["is_updating"] = true, ["compiler_errors"] = new JArray() };
+            }
+
             #if UNITY_EDITOR_OSX
             // Signal AppNapBypass to bring Unity to the foreground so compilation can happen.
             AppNapBypass.ScheduleActivation();

@@ -102,7 +102,11 @@ jobs:
 
   documentation-quality-ai:
     name: Documentation quality AI
-    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker, ci-scope-heavy]
+    # ci-scope-job-doc-ai disambiguates this from unity-package-smoke below:
+    # two same-run jobs with byte-identical runs-on let GitHub's scheduler
+    # hand a connecting runner EITHER one, not necessarily the one the broker
+    # leased it for (NexusUnity PR #145, 2026-07-04).
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker, ci-scope-heavy, ci-scope-job-doc-ai]
     needs: static-validation
     env:
       NEXUS_DOC_AI_MAX_PARALLEL: "1"
@@ -188,7 +192,9 @@ jobs:
 
   unity-package-smoke:
     name: Unity package smoke
-    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker, ci-scope-heavy]
+    # ci-scope-job-unity-smoke disambiguates this from documentation-quality-ai
+    # above — see that job's comment.
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker, ci-scope-heavy, ci-scope-job-unity-smoke]
     needs: static-validation
     steps:
       - name: Check out repository

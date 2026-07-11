@@ -31,12 +31,16 @@ namespace UnityMCP.Editor
 
         public static string SessionId { get; private set; }
         public static int SessionGeneration { get; private set; }
+        internal const string AuthTokenEnvironmentVariable = "NEXUS_UNITY_AUTH_TOKEN";
+        internal const string AuthTokenHeaderName = "X-Nexus-Unity-Token";
+        private static string _authToken;
         public static DateTime LastMainThreadTickUtc { get; private set; }
         public static bool IsCompilingCached { get; private set; }
         public static bool IsUpdatingCached { get; private set; }
         public static bool IsPlayingCached { get; private set; }
         public static bool IsPausedCached { get; private set; }
         public static bool IsPlayModeTransitionCached { get; private set; }
+        public static string UnityVersionCached { get; private set; }
 
         private static ConcurrentQueue<Action> _mainThreadQueue;
         private static ConcurrentQueue<LogEntry> _logs;
@@ -60,16 +64,44 @@ namespace UnityMCP.Editor
         }
         private static string _prefsKeyCached;
         private static string StablePrefsKey => _prefsKeyCached ?? (_prefsKeyCached = GetDeterministicProjectKey());
+        private static string AuthSessionStateKey => StablePrefsKey + "_AuthToken";
         
         private static int _mainThreadId = -1;
         public static int MainThreadId => _mainThreadId;
 
         private static readonly object _startLock = new object();
 
+        internal static void RefreshMainThreadCachedState()
+        {
+            LastMainThreadTickUtc = DateTime.UtcNow;
+            IsCompilingCached = EditorApplication.isCompiling;
+            IsUpdatingCached = EditorApplication.isUpdating;
+            IsPlayingCached = EditorApplication.isPlaying;
+            IsPausedCached = EditorApplication.isPaused;
+            IsPlayModeTransitionCached = EditorApplication.isPlayingOrWillChangePlaymode;
+            UnityVersionCached = Application.unityVersion;
+        }
+
         static MCPServer()
         {
             _mainThreadQueue = new ConcurrentQueue<Action>();
             _logs = new ConcurrentQueue<LogEntry>();
+        }
+
+        internal static string AuthToken => EnsureAuthToken();
+
+        private static string EnsureAuthToken()
+        {
+            if (!string.IsNullOrEmpty(_authToken)) return _authToken;
+
+            _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
+            if (string.IsNullOrEmpty(_authToken))
+            {
+                _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                SessionState.SetString(AuthSessionStateKey, _authToken);
+            }
+
+            return _authToken;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -88,9 +120,10 @@ namespace UnityMCP.Editor
                 SessionState.SetString("MCP_SessionId", SessionId);
                 SessionGeneration = SessionState.GetInt("MCP_SessionGen", 0) + 1;
                 SessionState.SetInt("MCP_SessionGen", SessionGeneration);
+                EnsureAuthToken();
             }
             
-            LastMainThreadTickUtc = DateTime.UtcNow;
+            RefreshMainThreadCachedState();
             #if UNITY_EDITOR_OSX
             AppNapBypass.CacheApplicationPath();
             #endif
@@ -176,6 +209,7 @@ namespace UnityMCP.Editor
             }
             
             MCPServerMethods.Init();
+            EnsureAuthToken();
             if (EditorApplication.isPlaying) Application.runInBackground = true;
 
             if (_port <= 0) {

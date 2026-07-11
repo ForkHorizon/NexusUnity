@@ -45,15 +45,25 @@ namespace UnityMCP.Editor
 
         private static JToken DeletePlayerPref(JToken p)
         {
-            string key = p["key"]?.ToString();
-            if (string.IsNullOrEmpty(key) || key == "all")
+            string key = p?["key"]?.ToString();
+            if (string.IsNullOrEmpty(key))
             {
+                throw new ArgumentException("key is required");
+            }
+
+            if (key == "all")
+            {
+                if (p?["confirm"]?.Value<bool>() != true)
+                {
+                    throw new ArgumentException("Deleting all PlayerPrefs requires key: \"all\" and confirm: true because it is not undoable.");
+                }
+
                 PlayerPrefs.DeleteAll();
+                PlayerPrefs.Save();
+                return new JObject { ["status"] = "Success", ["message"] = "Deleted all PlayerPrefs. This operation is not undoable." };
             }
-            else
-            {
-                PlayerPrefs.DeleteKey(key);
-            }
+
+            PlayerPrefs.DeleteKey(key);
             PlayerPrefs.Save();
             return "Success";
         }

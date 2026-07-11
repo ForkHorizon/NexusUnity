@@ -94,6 +94,7 @@ namespace UnityMCP.Editor
                 ["requests"] = new JObject
                 {
                     ["type"] = "array",
+                    ["maxItems"] = MaxBatchExecuteRequests,
                     ["items"] = new JObject
                     {
                         ["type"] = "object",
@@ -165,7 +166,7 @@ namespace UnityMCP.Editor
         {
             tools.Add(CreateTool("get_player_pref", "Get PlayerPref value", new JObject { ["key"] = new JObject { ["type"] = "string" }, ["type"] = new JObject { ["type"] = "string", ["description"] = "int, float, string" }, ["default"] = new JObject { ["type"] = "any" } }, "key"));
             tools.Add(CreateTool("set_player_pref", "Set PlayerPref value", new JObject { ["key"] = new JObject { ["type"] = "string" }, ["value"] = new JObject { ["type"] = "any" }, ["type"] = new JObject { ["type"] = "string", ["description"] = "int, float, string" } }, "key", "value"));
-            tools.Add(CreateTool("delete_player_pref", "Delete PlayerPref key or 'all'", new JObject { ["key"] = new JObject { ["type"] = "string", ["description"] = "Specific key or 'all' to clear everything" } }));
+            tools.Add(CreateTool("delete_player_pref", "Delete PlayerPref key, or delete all with explicit confirmation", new JObject { ["key"] = new JObject { ["type"] = "string", ["description"] = "Specific key, or 'all' only with confirm: true" }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required when key is 'all'; PlayerPrefs deletion is not undoable" } }, "key"));
             tools.Add(CreateTool("list_player_prefs", "List all PlayerPref keys and values", new JObject { }));
         }
 
@@ -268,8 +269,8 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("get_dependencies", "Get file deps", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("create_folder", "Create directory", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
             tools.Add(CreateTool("read_file", "Read text content", new JObject { ["path"] = new JObject { ["type"] = "string" } }, "path"));
-            tools.Add(CreateTool("write_file", "Write text content", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" } }, "path", "content"));
-            tools.Add(CreateTool("write_files_batch", "Write multiple files in a single pass", new JObject { ["files"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" } }, ["required"] = new JArray { "path", "content" } } } }, "files"));
+            tools.Add(CreateTool("write_file", "Write text content", new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required when writing .cs files because Unity compilation is triggered" } }, "path", "content"));
+            tools.Add(CreateTool("write_files_batch", "Write multiple files in a single pass", new JObject { ["files"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "object", ["properties"] = new JObject { ["path"] = new JObject { ["type"] = "string" }, ["content"] = new JObject { ["type"] = "string" } }, ["required"] = new JArray { "path", "content" } } }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required when any file path ends in .cs because Unity compilation is triggered" } }, "files"));
         }
 
         private static void AddEditorControlTools(JArray tools)
@@ -298,7 +299,7 @@ namespace UnityMCP.Editor
                 ["search_text"] = new JObject { ["type"] = "string", ["description"] = "Filter by content" }
             }));
             tools.Add(CreateTool("clear_logs", "Clear Console", new JObject { }));
-            tools.Add(CreateTool("attach_script", "Create & Link C#", new JObject { ["script_name"] = new JObject { ["type"] = "string" }, ["script_content"] = new JObject { ["type"] = "string" } }, "script_name"));
+            tools.Add(CreateTool("attach_script", "Create & Link C#", new JObject { ["script_name"] = new JObject { ["type"] = "string" }, ["script_content"] = new JObject { ["type"] = "string" }, ["confirm"] = new JObject { ["type"] = "boolean", ["description"] = "Required because this writes a .cs file and triggers Unity compilation" } }, "script_name", "confirm"));
             tools.Add(CreateTool("wait_for_ready", "Wait until server is responsive", new JObject { }));
             tools.Add(CreateTool("run_tests", "Run NUnit tests in the editor", new JObject
             {
@@ -397,13 +398,24 @@ namespace UnityMCP.Editor
 
         private static JObject GetVector3Schema() => new JObject
         {
-            ["type"] = "object",
-            ["properties"] = new JObject
-            {
-                ["x"] = new JObject { ["type"] = "number" },
-                ["y"] = new JObject { ["type"] = "number" },
-                ["z"] = new JObject { ["type"] = "number" }
-            }
+            ["oneOf"] = new JArray(
+                new JObject
+                {
+                    ["type"] = "object",
+                    ["properties"] = new JObject
+                    {
+                        ["x"] = new JObject { ["type"] = "number" },
+                        ["y"] = new JObject { ["type"] = "number" },
+                        ["z"] = new JObject { ["type"] = "number" }
+                    }
+                },
+                new JObject
+                {
+                    ["type"] = "array",
+                    ["items"] = new JObject { ["type"] = "number" },
+                    ["minItems"] = 3,
+                    ["maxItems"] = 3
+                })
         };
 
         private static string SanitizeScriptName(string n) => System.Text.RegularExpressions.Regex.Replace(n, @"[^a-zA-Z0-9_]", "_");

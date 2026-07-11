@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityMCP.Editor.Tests {
     public class ConsolidatedManagersTests {
@@ -139,7 +140,11 @@ namespace UnityMCP.Editor.Tests {
                 string action = args["action"]?.ToString();
                 if (action == "get") { mappedMethod = "get_player_pref"; mappedParams = new JObject { ["key"] = args["key"], ["type"] = args["type"] ?? "string" }; }
                 else if (action == "set") { mappedMethod = "set_player_pref"; mappedParams = new JObject { ["key"] = args["key"], ["value"] = args["value"], ["type"] = args["type"] ?? "string" }; }
-                else if (action == "delete") { mappedMethod = "delete_player_pref"; mappedParams = new JObject { ["key"] = args["key"] }; }
+                else if (action == "delete") {
+                    mappedMethod = "delete_player_pref";
+                    mappedParams = new JObject { ["key"] = args["key"] };
+                    CopyIfPresent(args, mappedParams, "confirm");
+                }
                 else if (action == "list") { mappedMethod = "list_player_prefs"; mappedParams = new JObject(); }
             }
             else if (managerName == "unity_wait") {
@@ -289,6 +294,44 @@ namespace UnityMCP.Editor.Tests {
         }
 
         [Test]
+        public void UnityHierarchyManager_CreatePrimitiveWithArrayPosition_ReturnsPlacedObject() {
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "create_primitive",
+                ["primitive_type"] = "Cube",
+                ["name"] = "ArrayPlacedManagerCube",
+                ["position"] = new JArray(9, 9, 9)
+            });
+
+            Assert.IsNotNull(res["result"], $"Expected result, got error: {res["error"]}");
+            var id = res["result"]["data"]?["instance_id"]?.Value<int>();
+            Assert.IsTrue(id.HasValue && id.Value != 0);
+
+            var go = EditorUtility.InstanceIDToObject(id.Value) as GameObject;
+            Assert.IsNotNull(go);
+            _createdObjects.Add(go);
+            Assert.AreEqual(9f, go.transform.position.x, 0.001f);
+            Assert.AreEqual(9f, go.transform.position.y, 0.001f);
+            Assert.AreEqual(9f, go.transform.position.z, 0.001f);
+        }
+
+        [Test]
+        public void UnityHierarchyManager_CreatePrimitiveWithInvalidArrayPosition_DoesNotCreateObject() {
+            string name = "InvalidArrayCube_" + Guid.NewGuid().ToString("N");
+            int before = GameObject.FindObjectsOfType<GameObject>().Count(go => go.name == name);
+
+            var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "create_primitive",
+                ["primitive_type"] = "Cube",
+                ["name"] = name,
+                ["position"] = new JArray(9, 9)
+            });
+
+            Assert.IsNotNull(res["error"], "Expected invalid Vector3 array to fail.");
+            int after = GameObject.FindObjectsOfType<GameObject>().Count(go => go.name == name);
+            Assert.AreEqual(before, after);
+        }
+
+        [Test]
         public void UnityHierarchyManager_RenameAlias_UpdatesGameObjectName() {
             var go = CreateTestGameObject();
             var res = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
@@ -322,6 +365,54 @@ namespace UnityMCP.Editor.Tests {
             Assert.AreEqual(2f, go.transform.localScale.x, 0.001f);
             Assert.AreEqual(3f, go.transform.localScale.y, 0.001f);
             Assert.AreEqual(4f, go.transform.localScale.z, 0.001f);
+        }
+
+        [Test]
+        public void GetGameObject_ReturnsTransformAndComponentsForReadBackVerification() {
+            var go = CreateTestGameObject();
+
+            var transformRes = SimulateBridgeRouting("unity_hierarchy_manager", new JObject {
+                ["action"] = "set_transform",
+                ["instance_id"] = go.GetInstanceID(),
+                ["position"] = new JObject { ["x"] = -1, ["y"] = 2, ["z"] = 3 },
+                ["rotation"] = new JObject { ["x"] = 10, ["y"] = 20, ["z"] = 30 },
+                ["scale"] = new JObject { ["x"] = 2, ["y"] = 3, ["z"] = 4 }
+            });
+            Assert.IsNotNull(transformRes["result"], $"Expected result, got error: {transformRes["error"]}");
+
+            var addComponentRes = CallRaw("add_component", new JObject { ["instance_id"] = go.GetInstanceID(), ["component_name"] = "BoxCollider" });
+            Assert.IsNotNull(addComponentRes["result"], $"Expected result, got error: {addComponentRes["error"]}");
+
+            var readRes = CallRaw("get_game_object", new JObject { ["instance_id"] = go.GetInstanceID() });
+            Assert.IsNotNull(readRes["result"], $"Expected result, got error: {readRes["error"]}");
+            var data = readRes["result"]["data"];
+            Assert.IsNotNull(data);
+            Assert.AreEqual(-1f, data["transform"]["position"]["x"].Value<float>(), 0.001f);
+            Assert.AreEqual(2f, data["transform"]["position"]["y"].Value<float>(), 0.001f);
+            Assert.AreEqual(3f, data["transform"]["position"]["z"].Value<float>(), 0.001f);
+            Assert.AreEqual(10f, data["transform"]["rotation"]["x"].Value<float>(), 0.001f);
+            Assert.AreEqual(20f, data["transform"]["rotation"]["y"].Value<float>(), 0.001f);
+            Assert.AreEqual(30f, data["transform"]["rotation"]["z"].Value<float>(), 0.001f);
+            Assert.AreEqual(2f, data["transform"]["scale"]["x"].Value<float>(), 0.001f);
+            Assert.AreEqual(3f, data["transform"]["scale"]["y"].Value<float>(), 0.001f);
+            Assert.AreEqual(4f, data["transform"]["scale"]["z"].Value<float>(), 0.001f);
+
+            var components = data["components"] as JArray;
+            Assert.IsNotNull(components);
+            Assert.IsTrue(components.Any(c => c["type"]?.ToString() == "Transform"));
+            Assert.IsTrue(components.Any(c => c["type"]?.ToString() == "BoxCollider"));
+        }
+
+        [Test]
+        public void AddComponent_StaleInstanceId_ReturnsGameObjectNotFound() {
+            var go = CreateTestGameObject();
+            int staleId = go.GetInstanceID();
+            GameObject.DestroyImmediate(go);
+
+            var res = CallRaw("add_component", new JObject { ["instance_id"] = staleId, ["component_name"] = "BoxCollider" });
+
+            Assert.IsNotNull(res["error"], res.ToString());
+            StringAssert.Contains("GameObject not found", res["error"]["message"].ToString());
         }
 
         [Test]
@@ -376,6 +467,38 @@ namespace UnityMCP.Editor.Tests {
         public void UnityPlayerPrefsManager_List_ReturnsSuccess() {
             var res = SimulateBridgeRouting("unity_playerprefs_manager", new JObject { ["action"] = "list" });
             Assert.IsNotNull(res["result"]);
+        }
+
+        [Test]
+        public void DeletePlayerPref_EmptyOrMissingKey_ReturnsErrorWithoutDeletingPrefs() {
+            string key = "NexusUnity_DeleteGuard_" + Guid.NewGuid().ToString("N");
+            PlayerPrefs.SetString(key, "keep");
+            PlayerPrefs.Save();
+
+            try {
+                var missing = CallRaw("delete_player_pref", new JObject());
+                Assert.IsNotNull(missing["error"], missing.ToString());
+                Assert.IsTrue(PlayerPrefs.HasKey(key));
+
+                var empty = CallRaw("delete_player_pref", new JObject { ["key"] = "" });
+                Assert.IsNotNull(empty["error"], empty.ToString());
+                Assert.IsTrue(PlayerPrefs.HasKey(key));
+            }
+            finally {
+                PlayerPrefs.DeleteKey(key);
+                PlayerPrefs.Save();
+            }
+        }
+
+        [Test]
+        public void DeletePlayerPref_ToolSchemaRequiresKeyAndAdvertisesConfirm() {
+            var tools = (JArray)CallRaw("list_tools", new JObject())["result"];
+            var tool = (JObject)tools.First(item => item["name"]?.ToString() == "delete_player_pref");
+            var schema = (JObject)tool["inputSchema"];
+            var properties = (JObject)schema["properties"];
+
+            CollectionAssert.Contains(((JArray)schema["required"]).Select(item => item.ToString()).ToArray(), "key");
+            Assert.AreEqual("boolean", properties["confirm"]["type"]?.ToString());
         }
 
         [Test]

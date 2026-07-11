@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -18,7 +17,12 @@ namespace UnityMCP.Editor
             return new JObject { ["status"] = "Shutting down..." };
         }
 
-        private static JToken Initialize(JToken p) => new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
+        private static JToken Initialize(JToken p)
+        {
+            if (MCPServer.IsCompilingCached || MCPServer.IsUpdatingCached || MCPServer.IsPlayModeTransitionCached || DateTime.UtcNow < _scriptRefreshBusyUntilUtc)
+                throw new Exception("Unity editor is busy compiling, importing assets, or changing play mode.");
+            return new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
+        }
 
         private static JToken GetServerStatus(JToken p)
         {
@@ -27,12 +31,13 @@ namespace UnityMCP.Editor
             bool isPlaying = MCPServer.IsPlayingCached;
             bool isPaused = MCPServer.IsPausedCached;
             bool isPlayModeTransition = MCPServer.IsPlayModeTransitionCached;
+            bool isScriptRefreshPending = DateTime.UtcNow < _scriptRefreshBusyUntilUtc;
             bool isMainThreadResponsive = (DateTime.UtcNow - MCPServer.LastMainThreadTickUtc).TotalSeconds < 5;
 
             string busyReason = "idle";
             if (isCompiling) busyReason = "compiling";
-            else if (isUpdating) busyReason = "importing";
-            else if (isPlayModeTransition && !isPlaying) busyReason = "play_mode_transition";
+            else if (isUpdating || isScriptRefreshPending) busyReason = "importing";
+            else if (isPlayModeTransition) busyReason = "play_mode_transition";
 
             return new JObject {
                 ["serverAlive"] = MCPServer.IsRunning,
@@ -43,19 +48,19 @@ namespace UnityMCP.Editor
                 ["sessionId"] = MCPServer.SessionId,
                 ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id,
                 ["projectPath"] = Directory.GetCurrentDirectory().Replace("\\", "/"),
-                ["unityVersion"] = Application.unityVersion,
+                ["unityVersion"] = MCPServer.UnityVersionCached,
                 ["editorConnected"] = true,
                 ["mainThreadResponsive"] = isMainThreadResponsive,
                 ["editorState"] = new JObject {
                     ["isPlaying"] = isPlaying,
                     ["isCompiling"] = isCompiling,
-                    ["isImporting"] = isUpdating,
+                    ["isImporting"] = isUpdating || isScriptRefreshPending,
                     ["isPaused"] = isPaused,
                     ["isPlayModeTransition"] = isPlayModeTransition
                 },
                 ["commandState"] = new JObject {
                     ["acceptsReadCommands"] = true,
-                    ["acceptsWriteCommands"] = !isCompiling && !isUpdating,
+                    ["acceptsWriteCommands"] = !isCompiling && !isUpdating && !isPlayModeTransition && !isScriptRefreshPending,
                     ["busyReason"] = busyReason
                 },
                 ["lastHeartbeatUtc"] = MCPServer.LastMainThreadTickUtc.ToString("o"),
