@@ -4,6 +4,8 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-12
+
 ### Changed
 - Relicensed Nexus Unity from `GPL-3.0-only` to the `MIT` license to remove copyleft friction for commercial Unity studios. All prior contributors consented to the relicense.
 
