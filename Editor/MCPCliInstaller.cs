@@ -397,11 +397,17 @@ namespace UnityMCP.Editor
 
         private static bool RunInstallerProcess(ProcessStartInfo psi, string cliPath, bool showSuccessDialog, string cliName)
         {
+            return RunInstallerProcess(psi, cliPath, showSuccessDialog, cliName, out _, true);
+        }
+
+        private static bool RunInstallerProcess(ProcessStartInfo psi, string cliPath, bool showSuccessDialog, string cliName, out string error, bool logFailure)
+        {
+            error = string.Empty;
             try
             {
                 using (Process p = Process.Start(psi))
                 {
-                    string error = p.StandardError.ReadToEnd();
+                    error = p.StandardError.ReadToEnd();
                     p.WaitForExit();
 
                     if (p.ExitCode == 0)
@@ -411,7 +417,7 @@ namespace UnityMCP.Editor
                     else
                     {
                         string msg = "CLI command failed at " + cliPath + ".\n\nExit Code: " + p.ExitCode + "\nError: " + error;
-                        NexusEditorLog.Warning(NexusLogCategory.Integrations, "[MCP] " + msg);
+                        if (logFailure) NexusEditorLog.Warning(NexusLogCategory.Integrations, "[MCP] " + msg);
                         
                         if (showSuccessDialog) // If this was supposed to be the final step
                         {
@@ -422,6 +428,7 @@ namespace UnityMCP.Editor
             }
             catch (Exception e)
             {
+                error = e.Message;
                 NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Process start failed: " + e.Message);
             }
             return false;

@@ -77,6 +77,43 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void AntigravityUsesWorkspaceMcpConfig()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string projectRoot = Path.Combine(root, "Project");
+                var antigravity = NexusMcpConfigGenerator.BuildAll("/bridge.py", "/python3", projectRoot, Path.Combine(root, "Home"))
+                    .First(item => item.Kind == NexusMcpClientKind.Antigravity);
+
+                Assert.AreEqual(Path.Combine(projectRoot, ".agents", "mcp_config.json"), antigravity.ConfigPath);
+                Assert.AreEqual(NexusMcpConfigFormat.JsonMcpServers, antigravity.Format);
+            }
+            finally
+            {
+                DeleteTempRoot(root);
+            }
+        }
+
+        [Test]
+        public void ClineUsesCurrentSharedSettingsPath()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string homeRoot = Path.Combine(root, "Home");
+                var cline = NexusMcpConfigGenerator.BuildAll("/bridge.py", "/python3", Path.Combine(root, "Project"), homeRoot)
+                    .First(item => item.Kind == NexusMcpClientKind.Cline);
+
+                Assert.AreEqual(Path.Combine(homeRoot, ".cline", "data", "settings", "cline_mcp_settings.json"), cline.ConfigPath);
+            }
+            finally
+            {
+                DeleteTempRoot(root);
+            }
+        }
+
+        [Test]
         public void DetectsConfiguredJsonServer()
         {
             string root = CreateTempRoot();

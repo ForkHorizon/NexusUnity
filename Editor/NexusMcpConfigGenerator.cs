@@ -44,8 +44,8 @@ namespace UnityMCP.Editor
             // Plain JSON-config clients - one row per tool, no client-specific behavior beyond path/format.
             var jsonClients = new[]
             {
-                (NexusMcpClientKind.Antigravity, "Antigravity", Path.Combine(homeDir, ".gemini", "config", "mcp_config.json"),
-                    "Paste into ~/.gemini/config/mcp_config.json (shared with Gemini), then restart Antigravity sessions.", "mcpServers"),
+                (NexusMcpClientKind.Antigravity, "Antigravity", Path.Combine(projectRoot, ".agents", "mcp_config.json"),
+                    "Paste into .agents/mcp_config.json, then restart or reload Antigravity sessions.", "mcpServers"),
                 (NexusMcpClientKind.Cursor, "Cursor", Path.Combine(projectRoot, ".cursor", "mcp.json"),
                     "Paste into .cursor/mcp.json or use Auto Setup for this Unity project.", "mcpServers"),
                 (NexusMcpClientKind.VsCode, "VS Code", Path.Combine(projectRoot, ".vscode", "mcp.json"),
@@ -433,13 +433,7 @@ namespace UnityMCP.Editor
         // not in the workspace - same layout on macOS/Windows/Linux, rooted at the OS config dir for VS Code.
         private static string GetClineConfigPath(string homeDir)
         {
-            string vsCodeUserDir = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? Path.Combine(homeDir, "Library", "Application Support", "Code", "User")
-                : RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? Path.Combine(homeDir, "AppData", "Roaming", "Code", "User")
-                    : Path.Combine(homeDir, ".config", "Code", "User");
-
-            return Path.Combine(vsCodeUserDir, "globalStorage", "saoudrizwan.claude-dev", "settings", "cline_mcp_settings.json");
+            return Path.Combine(homeDir, ".cline", "data", "settings", "cline_mcp_settings.json");
         }
     }
 }

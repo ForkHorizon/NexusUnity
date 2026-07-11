@@ -114,7 +114,7 @@ The Unity window can also deploy the bridge to the project root for CLIs that pr
 
 For Codex, Claude Desktop, Claude Code, Gemini, Antigravity, Cursor, VS Code/Cline/Roo, Windsurf, or compatible MCP clients, open `Window > Nexus Unity` and use the `Integrations` tab.
 
-> **Claude Code vs. Claude Desktop:** these are different products with different config locations. The `Claude Code` card registers the `nexus-unity` server in a project-scoped `.mcp.json` at the Unity project root (using the `claude` CLI when it is on `PATH`, otherwise writing the file directly). The `Claude Desktop` card writes the desktop app's `claude_desktop_config.json`. After running `Auto Setup` for Claude Code, run `/mcp` inside Claude Code (or restart it) to load the server.
+> **Claude Code vs. Claude Desktop:** these are different products with different config locations. The `Claude Code` card registers the `nexus-unity` server in a project-scoped `.mcp.json` at the Unity project root (using the `claude` CLI when it is on `PATH`, otherwise writing the file directly). If the CLI cannot remove an existing registration, setup skips its add command and writes `.mcp.json` directly instead. The `Claude Desktop` card writes the desktop app's `claude_desktop_config.json`. After running `Auto Setup` for Claude Code, run `/mcp` inside Claude Code (or restart it) to load the server.
 
 Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, or `Error` status and provides:
 
@@ -122,7 +122,7 @@ Each integration card shows `Detected`, `Not found`, `Configured`, `Outdated`, o
 - `Copy Config` for manual setup.
 - `Open Config` when the client uses a known config file path.
 
-Nexus Unity generates configs from the resolved Python interpreter and the deployed `nexus_unity_bridge.py` path. User/global config writes create a timestamped backup before modifying an existing file.
+Nexus Unity generates configs from the resolved Python interpreter and the deployed `nexus_unity_bridge.py` path. Antigravity uses the workspace-local `.agents/mcp_config.json`; its older global Gemini config location is not used. User/global config writes create a timestamped backup before modifying an existing file.
 
 > **Windows / Linux:** The Python interpreter is resolved as `python3`, then `python`, then the Windows `py` launcher — make sure a Python 3 install is on `PATH`. CLI-based cards (Codex, Gemini, and the Claude Code CLI path) are detected with `where` on Windows and `which` on macOS/Linux, so the CLI must be on the `PATH` of the shell that launched Unity for `Auto Setup` to find it; otherwise use `Copy Config`.
 

@@ -43,7 +43,9 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 
 The `Integrations` tab builds all snippets from the resolved Python interpreter and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, Claude Code uses a project-root `.mcp.json` with `mcpServers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
 
-Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly); the Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.
+Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly). If the CLI cannot remove a stale registration, setup skips its add command and writes `.mcp.json` directly instead; the CLI error is logged for diagnosis. The Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.
+
+Gemini CLI uses a project-scoped stdio registration in `.gemini/settings.json`; Auto Setup keeps Gemini's normal tool-approval prompts enabled. Antigravity uses the workspace-local `.agents/mcp_config.json` with the standard `mcpServers` object, not the older shared Gemini configuration path. Cline uses `~/.cline/data/settings/cline_mcp_settings.json` for shared MCP settings.
 
 ### Platform notes
 

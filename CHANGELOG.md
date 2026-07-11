@@ -8,6 +8,10 @@ All notable public changes to Nexus Unity are documented here.
 - Relicensed Nexus Unity from `GPL-3.0-only` to the `MIT` license to remove copyleft friction for commercial Unity studios. All prior contributors consented to the relicense.
 
 ### Fixed
+- Updated Claude Code and Gemini CLI setup commands for their current option ordering and explicit project-scoped stdio registration; Gemini setup no longer bypasses tool approvals with `--trust`.
+- Antigravity setup now writes its workspace configuration to `.agents/mcp_config.json` instead of the legacy global Gemini config path.
+- Cline setup now writes its shared MCP settings to `~/.cline/data/settings/cline_mcp_settings.json` instead of the retired VS Code extension storage path.
+- Claude Code setup now skips the CLI add command when removal of a stale project registration fails, logs the actionable failure, and falls back directly to `.mcp.json`.
 - The local HTTP/WebSocket control plane now requires a per-session auth token before JSON-RPC dispatch; generated MCP configs pass the token through the Python bridge.
 - `add_component` now returns a clear `GameObject not found` error for stale instance IDs instead of throwing a raw Unity null reference.
 - `batch_execute` now caps batches at 50 requests and rejects nested batch execution.

@@ -9,6 +9,13 @@ namespace UnityMCP.Editor.Tests
     public class MCPCliInstallerTests
     {
         [Test]
+        public void ClaudeCodeMissingRegistrationIsSafeToAdd()
+        {
+            Assert.IsTrue(MCPCliInstaller.IsClaudeCodeRegistrationAbsent("MCP server 'nexus-unity' not found."));
+            Assert.IsFalse(MCPCliInstaller.IsClaudeCodeRegistrationAbsent("Could not read project configuration."));
+        }
+
+        [Test]
         public void CreateProcessStartInfoPreservesShellMetacharactersAsArguments()
         {
             var method = typeof(MCPCliInstaller).GetMethod(
