@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -107,7 +108,13 @@ namespace UnityMCP.Editor
                 return;
             }
 
-            var refreshed = NexusMcpConfigGenerator.BuildAllForCurrentProject().First(item => item.Kind == client.Kind);
+            var refreshed = FindIntegrationByKind(NexusMcpConfigGenerator.BuildAllForCurrentProject(), client.Kind);
+            if (refreshed == null)
+            {
+                SetIntegrationMessage(client.DisplayName + " is no longer available. Refresh integrations and try again.");
+                return;
+            }
+
             refreshed.BridgePath = bridgePath.Replace("\\", "/");
 
             if (refreshed.CustomAutoSetup != null)
@@ -132,6 +139,11 @@ namespace UnityMCP.Editor
             ShowNotification(new GUIContent(result.Success ? "Integration updated" : "Integration failed"));
             DrawIntegrationsTabRefresh();
             SetIntegrationMessage(message);
+        }
+
+        internal static NexusMcpClientInfo FindIntegrationByKind(IEnumerable<NexusMcpClientInfo> clients, NexusMcpClientKind kind)
+        {
+            return clients.FirstOrDefault(item => item.Kind == kind);
         }
 
         private void CopyIntegrationConfig(NexusMcpClientInfo client)
