@@ -146,5 +146,9 @@ AUDIT_FINDINGS.md*
 .projectmem/watch.pid
 .projectmem/watch.log
 .projectmem/structure.json
+
+# Claude Code project registration is generated locally and includes the Nexus auth token.
+.mcp.json
+.mcp.json.bak-*
 CLAUDE.md
 AGENTS.md.soma-backup-*
