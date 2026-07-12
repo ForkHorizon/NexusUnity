@@ -131,6 +131,29 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void TestWindowPreservesVerificationStateWhenRebuilt()
+        {
+            var window = ScriptableObject.CreateInstance<MCPTestWindow>();
+            try
+            {
+                window.CreateGUI();
+                window.rootVisualElement.Q<TextField>("TestInput").value = "Persisted";
+                window.rootVisualElement.Q<Button>("TestButton").Click();
+
+                window.CreateGUI();
+
+                Assert.AreEqual("Persisted", window.LastInputValue);
+                Assert.IsTrue(window.ButtonClicked);
+                Assert.AreEqual("Persisted", window.rootVisualElement.Q<TextField>("TestInput").value);
+                Assert.AreEqual("Button Clicked!", window.rootVisualElement.Q<Label>("TestLabel").text);
+            }
+            finally
+            {
+                Object.DestroyImmediate(window);
+            }
+        }
+
+        [Test]
         public void ServerWindowAppliesMinimumUsableSize()
         {
             var window = ScriptableObject.CreateInstance<MCPServerWindow>();
