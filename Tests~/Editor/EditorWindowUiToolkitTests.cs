@@ -85,6 +85,13 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void IntegrationLookupReturnsNullWhenTheClientIsNoLongerAvailable()
+        {
+            Assert.IsNull(MCPServerWindow.FindIntegrationByKind(
+                Enumerable.Empty<NexusMcpClientInfo>(), NexusMcpClientKind.Codex));
+        }
+
+        [Test]
         public void VerificationWindowBuildsNamedControls()
         {
             var window = ScriptableObject.CreateInstance<MCPVerificationWindow>();

@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+if [ -d "$REPO_ROOT/.projectmem" ] && command -v pjm >/dev/null 2>&1; then
+  (cd "$REPO_ROOT" && pjm _auto-capture commit >/dev/null 2>&1 &)
+fi

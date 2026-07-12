@@ -4,6 +4,9 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- Auto Setup now reports a clear refresh-and-retry message if a client is unavailable after the integration list is regenerated, instead of throwing an exception.
+
 ## [1.5.0] - 2026-07-12
 
 ### Changed
