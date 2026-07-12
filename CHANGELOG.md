@@ -4,7 +4,11 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Changed
+- Consolidated duplicate internal Ollama-review and serialized-property write helpers.
+
 ### Fixed
+- `run_tests` now reports `Submitted` rather than `Success` after Unity accepts its asynchronous request, and `run_tests_wait` now returns rejected submissions immediately instead of polling until timeout.
 - Auto Setup now reports a clear refresh-and-retry message if a client is unavailable after the integration list is regenerated, instead of throwing an exception.
 
 ## [1.5.0] - 2026-07-12

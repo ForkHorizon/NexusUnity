@@ -140,8 +140,6 @@ namespace UnityMCP.Editor
             Application.logMessageReceived += OnLogMessageReceived;
             #endif
 
-            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
-            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;            
             AssemblyReloadEvents.beforeAssemblyReload -= Cleanup;
             AssemblyReloadEvents.beforeAssemblyReload += Cleanup;
 

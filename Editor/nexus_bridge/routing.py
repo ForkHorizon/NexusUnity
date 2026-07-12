@@ -100,6 +100,9 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
         return trigger_response
 
     trigger_payload = _result_object(trigger_response)
+    if trigger_payload.get("status") not in ("Submitted", "Success"):
+        return {"result": trigger_payload}
+
     result_path = trigger_payload.get("result_path")
 
     while time.time() - start_time < timeout:
