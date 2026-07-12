@@ -10,7 +10,7 @@ public sealed class OllamaDocumentationReviewer
     private const string RubricVersion = "2026-05-23-pragmatic-doc-review-v2";
 
     private readonly QualityGateOptions _options;
-    private readonly HttpClient _client = new();
+    private readonly HttpClient _client;
     private readonly Dictionary<string, CachedVerdict> _cache;
     private readonly string _cachePath;
     private bool _contactedOllama;
@@ -18,10 +18,9 @@ public sealed class OllamaDocumentationReviewer
     public OllamaDocumentationReviewer(QualityGateOptions options)
     {
         _options = options;
-        _client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.AiTimeoutSeconds));
-        Directory.CreateDirectory(options.CacheDirectory);
-        _cachePath = Path.Combine(options.CacheDirectory, "ollama-verdicts.json");
-        _cache = LoadCache(_cachePath);
+        _client = OllamaReviewSupport.CreateClient(options);
+        _cachePath = OllamaReviewSupport.GetCachePath(options, "ollama-verdicts.json");
+        _cache = OllamaReviewSupport.LoadCache<CachedVerdict>(_cachePath);
     }
 
     public async Task<IReadOnlyList<QualityGateIssue>> ReviewAsync(IReadOnlyList<DocumentationCandidate> candidates)
@@ -59,7 +58,7 @@ public sealed class OllamaDocumentationReviewer
         }
 
         await Task.WhenAll(tasks);
-        SaveCache(_cachePath, _cache);
+        OllamaReviewSupport.SaveCache(_cachePath, _cache);
         return issues.OrderBy(issue => issue.File, StringComparer.Ordinal).ThenBy(issue => issue.Line).ToList();
     }
 
@@ -124,7 +123,7 @@ public sealed class OllamaDocumentationReviewer
 
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         _contactedOllama = true;
-        using HttpResponseMessage response = await _client.PostAsync(BuildOllamaEndpoint(), content);
+        using HttpResponseMessage response = await _client.PostAsync(OllamaReviewSupport.BuildChatEndpoint(_options), content);
         string responseBody = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
 
@@ -149,10 +148,10 @@ public sealed class OllamaDocumentationReviewer
             };
 
             using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            using HttpResponseMessage response = await _client.PostAsync(BuildOllamaGenerateEndpoint(), content);
+            using HttpResponseMessage response = await _client.PostAsync(OllamaReviewSupport.BuildGenerateEndpoint(_options), content);
             string responseBody = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
-                return $"{(int)response.StatusCode} {response.ReasonPhrase}: {TrimForLog(responseBody)}";
+                return $"{(int)response.StatusCode} {response.ReasonPhrase}: {OllamaReviewSupport.TrimForLog(responseBody)}";
 
             return null;
         }
@@ -160,18 +159,6 @@ public sealed class OllamaDocumentationReviewer
         {
             return ex.Message;
         }
-    }
-
-    private Uri BuildOllamaEndpoint()
-    {
-        string baseUrl = _options.OllamaUrl.TrimEnd('/');
-        return new Uri(baseUrl + "/api/chat");
-    }
-
-    private Uri BuildOllamaGenerateEndpoint()
-    {
-        string baseUrl = _options.OllamaUrl.TrimEnd('/');
-        return new Uri(baseUrl + "/api/generate");
     }
 
     private static string BuildPrompt(DocumentationCandidate candidate)
@@ -193,7 +180,7 @@ public sealed class OllamaDocumentationReviewer
 
     private CachedVerdict ParseModelVerdict(string content)
     {
-        string json = ExtractJsonObject(content);
+        string json = OllamaReviewSupport.ExtractJsonObject(content);
         AiVerdict verdict = JsonSerializer.Deserialize<AiVerdict>(json, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -205,16 +192,6 @@ public sealed class OllamaDocumentationReviewer
         string suggestedDoc = verdict.SuggestedDoc?.Trim() ?? string.Empty;
 
         return new CachedVerdict(pass, severity, reason, suggestedDoc);
-    }
-
-    private static string ExtractJsonObject(string content)
-    {
-        int start = content.IndexOf('{', StringComparison.Ordinal);
-        int end = content.LastIndexOf('}');
-        if (start < 0 || end <= start)
-            throw new InvalidOperationException("Model did not return a JSON object.");
-
-        return content[start..(end + 1)];
     }
 
     private QualityGateIssue? ToIssue(DocumentationCandidate candidate, CachedVerdict verdict)
@@ -238,36 +215,6 @@ public sealed class OllamaDocumentationReviewer
         string input = RubricVersion + "\n" + _options.Model + "\n" + candidate.CacheInput;
         byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(hash);
-    }
-
-    private static Dictionary<string, CachedVerdict> LoadCache(string path)
-    {
-        if (!File.Exists(path))
-            return new Dictionary<string, CachedVerdict>(StringComparer.Ordinal);
-
-        try
-        {
-            return JsonSerializer.Deserialize<Dictionary<string, CachedVerdict>>(File.ReadAllText(path))
-                ?? new Dictionary<string, CachedVerdict>(StringComparer.Ordinal);
-        }
-        catch
-        {
-            return new Dictionary<string, CachedVerdict>(StringComparer.Ordinal);
-        }
-    }
-
-    private static void SaveCache(string path, Dictionary<string, CachedVerdict> cache)
-    {
-        string tempPath = path + ".tmp";
-        File.WriteAllText(tempPath, JsonSerializer.Serialize(cache, new JsonSerializerOptions { WriteIndented = true }));
-        File.Move(tempPath, path, true);
-    }
-
-    private static string TrimForLog(string value)
-    {
-        const int maxLength = 500;
-        value = value.ReplaceLineEndings(" ").Trim();
-        return value.Length <= maxLength ? value : value[..maxLength] + "...";
     }
 
     private sealed record CachedVerdict(bool Pass, string Severity, string Reason, string SuggestedDoc);

@@ -133,7 +133,7 @@ namespace UnityMCP.Editor
 
                     if (prop != null)
                     {
-                        try { ApplyValueToSerializedPropertyAsset(prop, propPair.Value); updatedCount++; }
+                        try { ApplySimpleJTokenValue(prop, propPair.Value, "Value type not supported for surgical asset edit yet"); updatedCount++; }
                         catch (Exception e) { errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = e.Message }); }
                     }
                     else { errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = "Property not found" }); }
@@ -155,21 +155,6 @@ namespace UnityMCP.Editor
                 PrefabUtility.UnloadPrefabContents(go);
             }
         }
-
-
-        private static void ApplyValueToSerializedPropertyAsset(SerializedProperty prop, JToken val)
-        {
-            if (val.Type == JTokenType.Boolean) prop.boolValue = val.Value<bool>();
-            else if (val.Type == JTokenType.Float) prop.floatValue = val.Value<float>();
-            else if (val.Type == JTokenType.Integer) prop.intValue = val.Value<int>();
-            else if (val.Type == JTokenType.String) prop.stringValue = val.Value<string>();
-            else if (val.Type == JTokenType.Object && val["x"] != null)
-            {
-                prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
-            }
-            else throw new Exception("Value type not supported for surgical asset edit yet");
-        }
-
 
     }
 }
