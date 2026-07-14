@@ -301,8 +301,27 @@ namespace UnityMCP.Editor
             if (!string.IsNullOrEmpty(directory)) System.IO.Directory.CreateDirectory(directory);
         }
 
+        private static EditorApplication.CallbackFunction _pendingRefreshCallback;
+
+        static MCPServerMethods()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload += CleanupPendingRefresh;
+            EditorApplication.quitting += CleanupPendingRefresh;
+        }
+
+        private static void CleanupPendingRefresh()
+        {
+            if (_pendingRefreshCallback != null)
+            {
+                EditorApplication.update -= _pendingRefreshCallback;
+                _pendingRefreshCallback = null;
+            }
+        }
+
         private static void TriggerSafeAssetRefresh()
         {
+            CleanupPendingRefresh();
+
             _scriptRefreshBusyUntilUtc = DateTime.UtcNow.AddSeconds(8);
 
             // Scripts trigger domain reload which blocks the HTTP response.
@@ -314,16 +333,27 @@ namespace UnityMCP.Editor
             AppNapBypass.ScheduleActivation();
             #endif
 
-            EditorApplication.CallbackFunction waitForFocus = null;
-            waitForFocus = () => {
-                EditorApplication.update -= waitForFocus;
+            double startTime = EditorApplication.timeSinceStartup;
+            double timeoutSeconds = 15.0; // Fail-safe fallback timeout
+
+            _pendingRefreshCallback = () => {
+                var cb = _pendingRefreshCallback;
+                if (cb == null) return;
+                EditorApplication.update -= cb;
+                _pendingRefreshCallback = null;
+
+                if (EditorApplication.timeSinceStartup - startTime > timeoutSeconds)
+                {
+                    NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] TriggerSafeAssetRefresh timed out waiting for OS focus. Refresh aborted.");
+                    return;
+                }
                 
                 // Trigger refresh immediately. With App Nap bypassed, this is reliable 
                 // even if the focus-switch (open -a) is still in flight.
                 AssetDatabase.Refresh();
             };
             
-            EditorApplication.update += waitForFocus;
+            EditorApplication.update += _pendingRefreshCallback;
         }
     }
 }
