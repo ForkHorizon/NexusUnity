@@ -4,6 +4,11 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Newtonsoft.Json.Linq;
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 [assembly: InternalsVisibleTo("UnityMCP.Editor.Tests")]
 namespace UnityMCP.Editor
@@ -17,6 +22,133 @@ namespace UnityMCP.Editor
     /// </remarks>
     public static partial class MCPServerMethods
     {
+        [DllImport("libc", EntryPoint = "realpath", SetLastError = true, CharSet = CharSet.Ansi)]
+        private static extern IntPtr sys_realpath(string path, IntPtr resolved_path);
+
+        [DllImport("libc", EntryPoint = "free")]
+        private static extern void sys_free(IntPtr ptr);
+
+        [DllImport("kernel32.dll", EntryPoint = "CreateFileW", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern SafeFileHandle CreateFile(
+            string lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr lpSecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile);
+
+        [DllImport("kernel32.dll", EntryPoint = "GetFinalPathNameByHandleW", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern uint GetFinalPathNameByHandle(
+            SafeFileHandle hFile,
+            [Out] StringBuilder lpszFilePath,
+            uint cchFilePath,
+            uint dwFlags);
+
+        private const uint FILE_SHARE_READ = 0x00000001;
+        private const uint FILE_SHARE_WRITE = 0x00000002;
+        private const uint FILE_SHARE_DELETE = 0x00000004;
+        private const uint OPEN_EXISTING = 3;
+        private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+        private const uint VOLUME_NAME_DOS = 0x0;
+
+        private static string ResolveUnixPath(string path)
+        {
+            IntPtr resolved = sys_realpath(path, IntPtr.Zero);
+            if (resolved == IntPtr.Zero)
+            {
+                return path;
+            }
+            try
+            {
+                return Marshal.PtrToStringAnsi(resolved);
+            }
+            finally
+            {
+                sys_free(resolved);
+            }
+        }
+
+        private static string ResolveWindowsPath(string path)
+        {
+            using (SafeFileHandle hFile = CreateFile(
+                path,
+                0,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                IntPtr.Zero,
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS,
+                IntPtr.Zero))
+            {
+                if (hFile.IsInvalid)
+                {
+                    return path;
+                }
+
+                StringBuilder sb = new StringBuilder(4096);
+                uint result = GetFinalPathNameByHandle(hFile, sb, (uint)sb.Capacity, VOLUME_NAME_DOS);
+                if (result == 0)
+                {
+                    return path;
+                }
+
+                string resolved = sb.ToString();
+                if (resolved.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolved = @"\\" + resolved.Substring(8);
+                }
+                else if (resolved.StartsWith(@"\\?\", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolved = resolved.Substring(4);
+                }
+                return resolved;
+            }
+        }
+
+        private static string ResolveRealPathInternal(string path)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return ResolveWindowsPath(path);
+            }
+            else
+            {
+                return ResolveUnixPath(path);
+            }
+        }
+
+        private static string ResolveRealPath(string path)
+        {
+            string absolutePath = Path.GetFullPath(path).Replace('\\', '/');
+            string current = absolutePath;
+            string remainder = "";
+
+            while (!string.IsNullOrEmpty(current) && !File.Exists(current) && !Directory.Exists(current))
+            {
+                string parent = Path.GetDirectoryName(current);
+                if (string.IsNullOrEmpty(parent) || parent == current)
+                {
+                    break;
+                }
+
+                string name = Path.GetFileName(current);
+                if (!string.IsNullOrEmpty(name))
+                {
+                    remainder = string.IsNullOrEmpty(remainder) ? name : name + "/" + remainder;
+                }
+                current = parent.Replace('\\', '/');
+            }
+
+            string resolvedCurrent = current;
+            if (File.Exists(current) || Directory.Exists(current))
+            {
+                resolvedCurrent = ResolveRealPathInternal(current);
+            }
+
+            string result = string.IsNullOrEmpty(remainder) ? resolvedCurrent : Path.Combine(resolvedCurrent, remainder);
+            return Path.GetFullPath(result).Replace('\\', '/');
+        }
+
         /// <summary>
         /// Validates that the path is within the project directory to prevent path traversal.
         /// Returns the absolute path if valid.
@@ -37,18 +169,21 @@ namespace UnityMCP.Editor
                 cleanPath = System.IO.Path.Combine(projectRoot, cleanPath).Replace('\\', '/');
             }
 
-            // Resolve full path (handles .. and symlinks)
-            string fullPath = System.IO.Path.GetFullPath(cleanPath).Replace('\\', '/');
+            // Resolve real target path (resolving symbolic links and junctions)
+            string resolvedPath = ResolveRealPath(cleanPath);
+
+            // Get project root with resolved symlinks as well to allow matching when project itself is in symlinked dir
+            string resolvedProjectRoot = ResolveRealPath(projectRoot);
 
             // Check if path is within project root
-            string projectRootSlash = projectRoot.EndsWith("/") ? projectRoot : projectRoot + "/";
-            if (!fullPath.Equals(projectRoot, System.StringComparison.OrdinalIgnoreCase) &&
-                !fullPath.StartsWith(projectRootSlash, System.StringComparison.OrdinalIgnoreCase))
+            string projectRootSlash = resolvedProjectRoot.EndsWith("/") ? resolvedProjectRoot : resolvedProjectRoot + "/";
+            if (!resolvedPath.Equals(resolvedProjectRoot, System.StringComparison.OrdinalIgnoreCase) &&
+                !resolvedPath.StartsWith(projectRootSlash, System.StringComparison.OrdinalIgnoreCase))
             {
                 throw new System.Exception("Access denied: Path is outside project directory.");
             }
 
-            return fullPath;
+            return resolvedPath;
         }
 
         /// <summary>

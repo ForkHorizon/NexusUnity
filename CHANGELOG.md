@@ -8,6 +8,7 @@ All notable public changes to Nexus Unity are documented here.
 - Consolidated duplicate internal Ollama-review and serialized-property write helpers.
 
 ### Fixed
+- Resolve symlinks and directory junctions to their real filesystem targets in `ValidatePath` before checking project boundaries to prevent path traversal.
 - Reject abstract ScriptableObject types before calling `CreateInstance` in `create_scriptable_object_asset` and `list_fields_for_type`.
 - `TriggerSafeAssetRefresh` callback is now tracked to prevent callback leaks, duplicate refresh hooks, and memory leaks across assembly reload/shutdown boundaries, with a fail-safe 15-second timeout guard.
 - `run_tests` now reports `Submitted` rather than `Success` after Unity accepts its asynchronous request, and `run_tests_wait` now returns rejected submissions immediately instead of polling until timeout.
