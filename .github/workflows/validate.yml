@@ -243,6 +243,9 @@ jobs:
           dependencies = manifest.setdefault("dependencies", {})
           dependencies["com.forkhorizon.nexus.unity"] = f"file:{os.environ['GITHUB_WORKSPACE']}"
           dependencies["com.unity.test-framework"] = "1.5.1"
+          testables = manifest.setdefault("testables", [])
+          if "com.forkhorizon.nexus.unity" not in testables:
+              testables.append("com.forkhorizon.nexus.unity")
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           PY
 
@@ -365,7 +368,7 @@ jobs:
             -projectPath "$SMOKE_ROOT" \
             -runTests \
             -testPlatform editmode \
-            -assemblyNames NexusUnity.PackageSmoke.EditorTests \
+            -assemblyNames "NexusUnity.PackageSmoke.EditorTests;UnityMCP.Editor.Tests" \
             -testResults "$SMOKE_TEST_RESULTS" \
             -logFile "$SMOKE_TEST_LOG"; then
             echo "::error::Unity package Editor tests failed."

@@ -184,6 +184,7 @@ namespace UnityMCP.Editor
             Type type = FindType(typeName);
             if (type == null) throw new Exception($"Type '{typeName}' not found");
             if (!typeof(ScriptableObject).IsAssignableFrom(type)) throw new Exception($"Type '{typeName}' is not a ScriptableObject");
+            if (type.IsAbstract) throw new Exception($"Type '{typeName}' is abstract and cannot be instantiated");
 
             var instance = ScriptableObject.CreateInstance(type);
             AssetDatabase.CreateAsset(instance, path);
@@ -228,6 +229,7 @@ namespace UnityMCP.Editor
             // For ScriptableObjects and Components, we use SerializedObject to get serializable fields
             if (typeof(ScriptableObject).IsAssignableFrom(type))
             {
+                if (type.IsAbstract) throw new Exception($"Type '{typeName}' is abstract and cannot be instantiated");
                 var temp = ScriptableObject.CreateInstance(type);
                 var so = new SerializedObject(temp);
                 var prop = so.GetIterator();
