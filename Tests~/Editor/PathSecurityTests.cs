@@ -140,6 +140,61 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void ValidatePath_PreventsSymlinkTraversalOutsideProject()
+        {
+            string projectRoot = Path.GetDirectoryName(Application.dataPath).Replace('\\', '/');
+            string outsideDir = Path.Combine(Path.GetDirectoryName(projectRoot), "nexus-test-outside-" + Guid.NewGuid().ToString("N")).Replace('\\', '/');
+            Directory.CreateDirectory(outsideDir);
+            
+            string symlinkPath = Path.Combine(Application.dataPath, "OutsideSymlinkTemp").Replace('\\', '/');
+            
+            try
+            {
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    var processInfo = new System.Diagnostics.ProcessStartInfo("cmd", $"/c mklink /d \"{symlinkPath.Replace('/', '\\')}\" \"{outsideDir.Replace('/', '\\')}\"")
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    System.Diagnostics.Process.Start(processInfo).WaitForExit();
+                }
+                else
+                {
+                    System.Diagnostics.Process.Start("ln", $"-s \"{outsideDir}\" \"{symlinkPath}\"").WaitForExit();
+                }
+
+                if (!Directory.Exists(symlinkPath))
+                {
+                    Assert.Ignore("Symlink could not be created (possible permission/platform limitation).");
+                }
+
+                string maliciousPath = Path.Combine(symlinkPath, "file.txt").Replace('\\', '/');
+                
+                var ex = Assert.Throws<Exception>(() => MCPServerMethods.ValidatePath(maliciousPath));
+                Assert.That(ex.Message, Does.Contain("Access denied"));
+            }
+            finally
+            {
+                if (File.Exists(symlinkPath) || Directory.Exists(symlinkPath))
+                {
+                    if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                    {
+                        Directory.Delete(symlinkPath);
+                    }
+                    else
+                    {
+                        File.Delete(symlinkPath);
+                    }
+                }
+                if (Directory.Exists(outsideDir))
+                {
+                    Directory.Delete(outsideDir);
+                }
+            }
+        }
+
+        [Test]
         public void AttachScript_RequiresConfirm()
         {
             string path = "Assets/BlockedAttachScript.cs";
