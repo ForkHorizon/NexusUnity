@@ -238,39 +238,6 @@ namespace UnityMCP.Editor
             return name;
         }
 
-        internal static Type FindType(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return null;
-            if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            Type resultType = null;
-            
-            // Priority 1: Check Assembly-CSharp
-            var mainAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "Assembly-CSharp");
-            if (mainAsm != null)
-            {
-                resultType = mainAsm.GetType(name) ?? mainAsm.GetTypes().FirstOrDefault(x => x.Name == name);
-            }
-
-            // Priority 2: Check all other assemblies
-            if (resultType == null)
-            {
-                foreach (var a in assemblies)
-                {
-                    try 
-                    {
-                        resultType = a.GetType(name) ?? a.GetTypes().FirstOrDefault(x => x.Name == name);
-                        if (resultType != null) break;
-                    }
-                    catch { }
-                }
-            }
-
-            _typeCache[name] = resultType;
-            return resultType;
-        }
-
         private static JToken InvokeMethod(JToken p)
         {
             if (p == null || p["instance_id"] == null || p["method_name"] == null) 

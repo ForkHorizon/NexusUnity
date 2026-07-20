@@ -181,10 +181,8 @@ namespace UnityMCP.Editor
             string typeName = p["type"].ToString();
             string path = ValidateAssetPath(p["path"].ToString());
 
-            Type type = FindType(typeName);
-            if (type == null) throw new Exception($"Type '{typeName}' not found");
-            if (!typeof(ScriptableObject).IsAssignableFrom(type)) throw new Exception($"Type '{typeName}' is not a ScriptableObject");
-            if (type.IsAbstract) throw new Exception($"Type '{typeName}' is abstract and cannot be instantiated");
+            Type type = FindScriptableObjectType(typeName);
+            if (type == null) throw new Exception($"Type '{typeName}' not found or is not a valid instantiable ScriptableObject");
 
             var instance = ScriptableObject.CreateInstance(type);
             AssetDatabase.CreateAsset(instance, path);
@@ -221,8 +219,8 @@ namespace UnityMCP.Editor
             if (p["type"] == null) throw new Exception("'type' required");
             string typeName = p["type"].ToString();
 
-            Type type = FindType(typeName);
-            if (type == null) throw new Exception($"Type '{typeName}' not found");
+            Type type = FindScriptableObjectType(typeName) ?? FindComponentType(typeName);
+            if (type == null) throw new Exception($"Type '{typeName}' not found or is not an inspectable Component/ScriptableObject");
 
             JArray result = new JArray();
             

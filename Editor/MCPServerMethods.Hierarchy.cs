@@ -63,7 +63,7 @@ namespace UnityMCP.Editor
             if (components == null) return;
             foreach (var c in components)
             {
-                Type type = FindType(c.ToString());
+                Type type = FindComponentType(c.ToString());
                 if (type != null) Undo.AddComponent(go, type);
             }
         }
