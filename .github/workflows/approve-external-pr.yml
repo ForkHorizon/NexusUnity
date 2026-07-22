@@ -79,6 +79,63 @@ jobs:
             exit 1
           fi
 
+      # ── 0.1. Authorize maintainer actor ─────────────────────────────────────
+      - name: Verify maintainer authorization
+        env:
+          ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          echo "Verifying authorization for actor @$ACTOR..."
+
+          # Explicit maintainer bypass
+          if [ "$ACTOR" = "Daliys" ]; then
+            echo "Actor @$ACTOR is authorized maintainer."
+            exit 0
+          fi
+
+          # Check collaborator permission via GitHub API
+          PERM=$(gh api "repos/$REPOSITORY/collaborators/$ACTOR/permission" --jq '.permission' 2>/dev/null || echo "none")
+          case "$PERM" in
+            admin|write)
+              echo "Actor @$ACTOR authorized with permission: $PERM"
+              ;;
+            *)
+              echo "::error::Actor @$ACTOR does not have maintainer authorization (permission: $PERM)."
+              exit 1
+              ;;
+          esac
+
+      # ── 0.2. Content & Security Pre-scan ────────────────────────────────────
+      - name: Run security pre-scan on PR files
+        env:
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          echo "Scanning changed files in PR #$PR_NUMBER..."
+          FILES=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
+
+          SUSPICIOUS_COUNT=0
+          for file in $FILES; do
+            case "$file" in
+              .github/workflows/*|.githooks/*|scripts/*)
+                echo "::warning::PR #$PR_NUMBER modifies critical CI/script file: $file"
+                SUSPICIOUS_COUNT=$((SUSPICIOUS_COUNT + 1))
+                ;;
+            esac
+          done
+
+          if [ "$SUSPICIOUS_COUNT" -gt 0 ]; then
+            echo "::notice::PR #$PR_NUMBER modifies $SUSPICIOUS_COUNT critical file(s). Review diff before merging."
+          else
+            echo "Content pre-scan passed cleanly: no critical CI/workflow files modified."
+          fi
+
       # ── 1. Create trusted branch with the fork's commits ───────────────────
       - name: Create trusted/pr-${{ inputs.pr_number }} branch
         env:
