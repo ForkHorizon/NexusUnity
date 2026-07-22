@@ -82,16 +82,44 @@ namespace UnityMCP.Editor
                     .Where(go => go.hideFlags == HideFlags.None);
             }
 
-            if (!string.IsNullOrEmpty(name))
-            {
-                var regex = new System.Text.RegularExpressions.Regex(name, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                results = results.Where(go => regex.IsMatch(go.name));
-            }
+            results = FilterByName(results, name);
 
             if (!string.IsNullOrEmpty(tag))
                 results = results.Where(go => go.CompareTag(tag));
 
             return new JObject { ["objects"] = new JArray(results.Take(50).Select(SerializeGameObject)) };
+        }
+
+        private static IEnumerable<GameObject> FilterByName(IEnumerable<GameObject> results, string name)
+        {
+            if (string.IsNullOrEmpty(name)) return results;
+
+            System.Text.RegularExpressions.Regex regex = null;
+            try
+            {
+                regex = new System.Text.RegularExpressions.Regex(name, System.Text.RegularExpressions.RegexOptions.IgnoreCase, System.TimeSpan.FromMilliseconds(100));
+            }
+            catch (System.ArgumentException)
+            {
+                // Invalid regex pattern (e.g. "Player (1)"), fallback to literal substring search
+            }
+
+            if (regex != null)
+            {
+                return results.Where(go =>
+                {
+                    try
+                    {
+                        return regex.IsMatch(go.name);
+                    }
+                    catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
+                    {
+                        return go.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0;
+                    }
+                });
+            }
+
+            return results.Where(go => go.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         private static Stack<string> _pathStackCache = new Stack<string>();
@@ -120,130 +148,6 @@ namespace UnityMCP.Editor
             if (obj == null) throw new System.Exception("Object not found");
             EditorGUIUtility.PingObject(obj);
             return new JObject { ["status"] = "Success", ["message"] = "Pinged" };
-        }
-
-        private static JToken FindReferences(JToken p)
-        {
-            string targetGuid = p?["target_guid"]?.ToString();
-            EntityId targetId = MCPServerMethods.ExtractId(p, "target_id");
-
-            if (string.IsNullOrEmpty(targetGuid) && targetId == default)
-                throw new System.Exception("Either target_guid or target_id is required.");
-
-            Object targetObject = null;
-            if (!string.IsNullOrEmpty(targetGuid))
-            {
-                string path = AssetDatabase.GUIDToAssetPath(targetGuid);
-                if (!string.IsNullOrEmpty(path))
-                    targetObject = AssetDatabase.LoadAssetAtPath<Object>(path);
-            }
-            else if (targetId != default)
-            {
-                targetObject = MCPServerMethods.IdToObject(targetId);
-            }
-
-            if (targetObject == null)
-                throw new System.Exception("Could not find the target object.");
-
-            var assetRefs = new JArray();
-            string searchGuid = targetGuid;
-
-            if (string.IsNullOrEmpty(searchGuid))
-            {
-                string path = AssetDatabase.GetAssetPath(targetObject);
-                if (!string.IsNullOrEmpty(path))
-                    searchGuid = AssetDatabase.AssetPathToGUID(path);
-            }
-
-            if (!string.IsNullOrEmpty(searchGuid))
-            {
-                string[] dependencies = AssetDatabase.FindAssets("ref:" + searchGuid);
-                foreach (var guid in dependencies)
-                {
-                    string path = AssetDatabase.GUIDToAssetPath(guid);
-                    if (!string.IsNullOrEmpty(path))
-                        assetRefs.Add(path);
-                }
-            }
-
-            var sceneRefs = new JArray();
-            var allGameObjects = Resources.FindObjectsOfTypeAll<GameObject>()
-                .Where(go => go.hideFlags == HideFlags.None || go.hideFlags == HideFlags.NotEditable);
-
-            var targetInstanceIds = new HashSet<EntityId>();
-            if (targetObject != null)
-                targetInstanceIds.Add(targetObject.GetId());
-
-            if (!string.IsNullOrEmpty(searchGuid))
-            {
-                string path = AssetDatabase.GUIDToAssetPath(searchGuid);
-                if (!string.IsNullOrEmpty(path))
-                {
-                    var allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
-                    foreach (var a in allAssets)
-                    {
-                        if (a != null)
-                            targetInstanceIds.Add(a.GetId());
-                    }
-                }
-            }
-
-            using (UnityEngine.Pool.ListPool<Component>.Get(out var components))
-            {
-                foreach (var go in allGameObjects)
-                {
-                    if (go.scene == null || !go.scene.isLoaded) continue;
-
-                    go.GetComponents(components);
-                    var goMatches = new JArray();
-
-                    foreach (var comp in components)
-                    {
-                        if (comp == null) continue;
-
-                        using (var so = new SerializedObject(comp))
-                        {
-                            var prop = so.GetIterator();
-                            bool enterChildren = true;
-                            while (prop.Next(enterChildren))
-                            {
-                                enterChildren = false;
-                                if (prop.propertyType == SerializedPropertyType.ObjectReference)
-                                {
-                                    var propId = MCPServerMethods.GetObjectReferenceId(prop);
-                                    var objRef = prop.objectReferenceValue;
-                                    
-                                    bool directMatch = targetInstanceIds.Contains(propId);
-                                    bool indirectMatch = objRef != null && targetInstanceIds.Contains(objRef.GetId());
-
-                                    if (directMatch || indirectMatch)
-                                    {
-                                        var matchDetail = new JObject();
-                                        matchDetail["component"] = GetTypeName(comp.GetType());
-                                        matchDetail["field"] = prop.propertyPath;
-                                        goMatches.Add(matchDetail);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (goMatches.Count > 0)
-                    {
-                        var goData = new JObject();
-                        goData["name"] = go.name;
-                        goData["instance_id"] = go.GetRawId();
-                        goData["references"] = goMatches;
-                        sceneRefs.Add(goData);
-                    }
-                }
-            }
-
-            var result = new JObject();
-            result["status"] = "Success";
-            result["asset_references"] = assetRefs;
-            result["scene_references"] = sceneRefs;
-            return result;
         }
     }
 }
