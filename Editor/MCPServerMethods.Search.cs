@@ -84,8 +84,34 @@ namespace UnityMCP.Editor
 
             if (!string.IsNullOrEmpty(name))
             {
-                var regex = new System.Text.RegularExpressions.Regex(name, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                results = results.Where(go => regex.IsMatch(go.name));
+                System.Text.RegularExpressions.Regex regex = null;
+                try
+                {
+                    regex = new System.Text.RegularExpressions.Regex(name, System.Text.RegularExpressions.RegexOptions.IgnoreCase, System.TimeSpan.FromMilliseconds(100));
+                }
+                catch (System.ArgumentException)
+                {
+                    // Invalid regex pattern (e.g. "Player (1)"), fallback to literal substring search
+                }
+
+                if (regex != null)
+                {
+                    results = results.Where(go =>
+                    {
+                        try
+                        {
+                            return regex.IsMatch(go.name);
+                        }
+                        catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
+                        {
+                            return go.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0;
+                        }
+                    });
+                }
+                else
+                {
+                    results = results.Where(go => go.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                }
             }
 
             if (!string.IsNullOrEmpty(tag))
