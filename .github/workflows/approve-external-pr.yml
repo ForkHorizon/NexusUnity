@@ -29,6 +29,11 @@ on:
         description: "External PR number to replay (e.g. 30)"
         required: true
         type: string
+      acknowledge_critical_files:
+        description: "Set true only after reviewing the diff, to proceed even though the PR touches .github/workflows, .githooks, or scripts"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write        # push the trusted/pr-N branch
@@ -113,6 +118,7 @@ jobs:
         env:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          ACKNOWLEDGE: ${{ inputs.acknowledge_critical_files }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -121,17 +127,23 @@ jobs:
           FILES=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
 
           SUSPICIOUS_COUNT=0
-          for file in $FILES; do
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
             case "$file" in
               .github/workflows/*|.githooks/*|scripts/*)
                 echo "::warning::PR #$PR_NUMBER modifies critical CI/script file: $file"
                 SUSPICIOUS_COUNT=$((SUSPICIOUS_COUNT + 1))
                 ;;
             esac
-          done
+          done <<< "$FILES"
 
           if [ "$SUSPICIOUS_COUNT" -gt 0 ]; then
-            echo "::notice::PR #$PR_NUMBER modifies $SUSPICIOUS_COUNT critical file(s). Review diff before merging."
+            echo "::notice::PR #$PR_NUMBER modifies $SUSPICIOUS_COUNT critical file(s)."
+            if [ "$ACKNOWLEDGE" != "true" ]; then
+              echo "::error::Refusing to replay PR #$PR_NUMBER: it modifies critical CI/script file(s) (see warnings above). Review the diff, then re-run this workflow with 'acknowledge_critical_files' set to true if it's safe to proceed."
+              exit 1
+            fi
+            echo "Critical file changes acknowledged by @${{ github.actor }} — proceeding."
           else
             echo "Content pre-scan passed cleanly: no critical CI/workflow files modified."
           fi
