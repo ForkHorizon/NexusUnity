@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
@@ -26,6 +27,7 @@ namespace UnityMCP.Editor
     public static partial class MCPServer
     {
         private static string _version;
+        private static long _logCounter = 0;
         public static string Version => _version ?? (_version = ReadPackageVersion());
 
         private static string ReadPackageVersion()
