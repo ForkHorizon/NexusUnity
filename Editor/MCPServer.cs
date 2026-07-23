@@ -161,6 +161,21 @@ namespace UnityMCP.Editor
             catch { }
         }
 
+        internal static string ReadTokenFile()
+        {
+            try
+            {
+                string projectRoot = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, ".."));
+                string tokenPath = Path.Combine(projectRoot, "Library", "NexusUnityAuthToken.txt");
+                if (File.Exists(tokenPath))
+                {
+                    return File.ReadAllText(tokenPath).Trim();
+                }
+            }
+            catch { }
+            return null;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void RuntimeInit() => Init();
 

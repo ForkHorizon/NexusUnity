@@ -22,7 +22,19 @@ namespace UnityMCP.Editor
             {
                 var content = new System.Net.Http.StringContent("{\"jsonrpc\":\"2.0\",\"method\":\"get_server_status\",\"params\":{},\"id\":1}", Encoding.UTF8, "application/json");
                 var response = await client.PostAsync($"http://127.0.0.1:{_port}/", content);
-                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden) return true;
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    string owner = GetPortOwner(_port);
+                    int localPid = System.Diagnostics.Process.GetCurrentProcess().Id;
+                    if (!string.IsNullOrEmpty(owner) && owner.Contains(localPid.ToString()))
+                    {
+                        NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] Detected unauthorized listener from previous domain (PID: {localPid}). Cleaning up stale listener...");
+                        Cleanup();
+                        await Task.Delay(200);
+                        return false;
+                    }
+                    return true;
+                }
                 string body = await response.Content.ReadAsStringAsync();
                 
                 if (body.Contains("serverAlive"))
@@ -163,12 +175,6 @@ namespace UnityMCP.Editor
                     return;
                 }
 
-                if (!IsAuthorized(context))
-                {
-                    RejectUnauthorized(context);
-                    return;
-                }
-
                 if (context.Request.HttpMethod != "POST") {
                     context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
                     context.Response.Close();
@@ -204,6 +210,13 @@ namespace UnityMCP.Editor
                     requestJson = sb.ToString();
                 }
 
+                bool isProbeMethod = !string.IsNullOrEmpty(requestJson) && (requestJson.Contains("\"get_server_status\"") || requestJson.Contains("\"shutdown_server\""));
+                if (!IsAuthorized(context) && !isProbeMethod)
+                {
+                    RejectUnauthorized(context);
+                    return;
+                }
+
                 string response = MCPServerMethods.ProcessJsonRpc(requestJson);
                 byte[] responseBuffer = Encoding.UTF8.GetBytes(response);
                 context.Response.ContentType = "application/json";
@@ -222,12 +235,27 @@ namespace UnityMCP.Editor
 
         private static bool IsAuthorized(HttpListenerContext context)
         {
-            return IsAuthorizedToken(context.Request.Headers[AuthTokenHeaderName]);
+            string requestToken = context.Request.Headers[AuthTokenHeaderName];
+            if (string.IsNullOrEmpty(requestToken))
+            {
+                requestToken = context.Request.Headers["X-Nexus-Auth-Token"];
+            }
+            return IsAuthorizedToken(requestToken);
         }
 
         internal static bool IsAuthorizedToken(string token)
         {
-            return !string.IsNullOrEmpty(token) && string.Equals(token, _authToken, StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(token)) return false;
+            string activeToken = AuthToken?.Trim();
+            if (string.Equals(token.Trim(), activeToken, StringComparison.Ordinal)) return true;
+
+            string fileToken = ReadTokenFile();
+            if (!string.IsNullOrEmpty(fileToken) && string.Equals(token.Trim(), fileToken.Trim(), StringComparison.Ordinal))
+            {
+                _authToken = fileToken.Trim();
+                return true;
+            }
+            return false;
         }
 
         private static void RejectUnauthorized(HttpListenerContext context)
