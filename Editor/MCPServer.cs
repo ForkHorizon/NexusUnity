@@ -196,8 +196,10 @@ namespace UnityMCP.Editor
             }
             
             RefreshMainThreadCachedState();
+            Application.runInBackground = true;
             #if UNITY_EDITOR_OSX
             AppNapBypass.CacheApplicationPath();
+            AppNapBypass.Enable();
             #endif
             MCPServerMethods.Init();
             InitTimeline();
