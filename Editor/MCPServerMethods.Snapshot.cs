@@ -205,7 +205,7 @@ namespace UnityMCP.Editor
                             bool enterChildren = true;
                             while (prop.Next(enterChildren))
                             {
-                                enterChildren = true;
+                                enterChildren = false;
                                 if (prop.propertyType == SerializedPropertyType.ObjectReference)
                                 {
                                     var target = prop.objectReferenceValue;
