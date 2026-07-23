@@ -25,9 +25,39 @@ namespace UnityMCP.Editor
 
     public static partial class MCPServer
     {
-        private static string _version = "1.4.0";
-        private static long _logCounter = 0;
-        public static string Version => _version;
+        private static string _version;
+        public static string Version => _version ?? (_version = ReadPackageVersion());
+
+        private static string ReadPackageVersion()
+        {
+            try
+            {
+                var pkgInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(MCPServer).Assembly);
+                if (pkgInfo != null && !string.IsNullOrEmpty(pkgInfo.version))
+                {
+                    return pkgInfo.version;
+                }
+            }
+            catch { }
+
+            try
+            {
+                string packageJsonPath = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "NexusUnity", "package.json"));
+                if (!File.Exists(packageJsonPath))
+                {
+                    packageJsonPath = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "package.json"));
+                }
+                if (File.Exists(packageJsonPath))
+                {
+                    var json = JObject.Parse(File.ReadAllText(packageJsonPath));
+                    string ver = json["version"]?.ToString();
+                    if (!string.IsNullOrEmpty(ver)) return ver;
+                }
+            }
+            catch { }
+
+            return "1.5.0";
+        }
 
         public static string SessionId { get; private set; }
         public static int SessionGeneration { get; private set; }
@@ -94,14 +124,24 @@ namespace UnityMCP.Editor
         {
             if (!string.IsNullOrEmpty(_authToken)) return _authToken;
 
-            _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
-            if (string.IsNullOrEmpty(_authToken))
+            if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
             {
-                _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-                SessionState.SetString(AuthSessionStateKey, _authToken);
+                return _authToken;
             }
 
-            WriteTokenFile(_authToken);
+            try
+            {
+                _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
+                if (string.IsNullOrEmpty(_authToken))
+                {
+                    _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                    SessionState.SetString(AuthSessionStateKey, _authToken);
+                }
+
+                WriteTokenFile(_authToken);
+            }
+            catch { }
+
             return _authToken;
         }
 

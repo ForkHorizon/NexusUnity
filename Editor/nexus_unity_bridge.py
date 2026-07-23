@@ -24,6 +24,21 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
+def _read_package_version() -> str:
+    try:
+        package_json = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "package.json")
+        if os.path.isfile(package_json):
+            with open(package_json, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                ver = data.get("version")
+                if ver:
+                    return ver
+    except Exception:
+        pass
+    return "1.5.0"
+
+BRIDGE_VERSION = _read_package_version()
+
 def consume_positional_port_arg() -> None:
     if len(sys.argv) <= 1:
         return
@@ -129,12 +144,11 @@ def main() -> None:
             request = json.loads(line)
             method = request.get("method")
             req_id = request.get("id")
-            
             if method == "initialize":
                 res = {
                     "protocolVersion": "2024-11-05", 
                     "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": "1.4.0"}
+                    "serverInfo": {"name": "NexusUnity-Bridge", "version": BRIDGE_VERSION}
                 }
                 response = {"jsonrpc": "2.0", "id": req_id, "result": res}
             elif method in ["tools/list", "listTools", "list_tools"]:
