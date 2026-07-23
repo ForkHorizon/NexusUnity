@@ -101,7 +101,22 @@ namespace UnityMCP.Editor
                 SessionState.SetString(AuthSessionStateKey, _authToken);
             }
 
+            WriteTokenFile(_authToken);
             return _authToken;
+        }
+
+        private static void WriteTokenFile(string token)
+        {
+            try
+            {
+                string projectRoot = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, ".."));
+                string libraryDir = Path.Combine(projectRoot, "Library");
+                if (Directory.Exists(libraryDir))
+                {
+                    File.WriteAllText(Path.Combine(libraryDir, "NexusUnityAuthToken.txt"), token);
+                }
+            }
+            catch { }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

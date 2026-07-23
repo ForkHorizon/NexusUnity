@@ -49,15 +49,35 @@ UNITY_URL: str = (
     else f"http://127.0.0.1:{_read_port()}/"
 )
 UNITY_TIMEOUT_SECONDS: float = _read_timeout()
-AUTH_TOKEN: str | None = os.environ.get("NEXUS_UNITY_AUTH_TOKEN")
+def _resolve_auth_token() -> str | None:
+    token = os.environ.get("NEXUS_UNITY_AUTH_TOKEN")
+    if token:
+        return token
+    for candidate in (
+        os.path.join(os.getcwd(), "Library", "NexusUnityAuthToken.txt"),
+        os.path.join(os.getcwd(), "..", "..", "Library", "NexusUnityAuthToken.txt"),
+    ):
+        if os.path.isfile(candidate):
+            try:
+                with open(candidate, "r", encoding="utf-8") as handle:
+                    val = handle.read().strip()
+                    if val:
+                        return val
+            except Exception:
+                pass
+    return None
+
+
+AUTH_TOKEN: str | None = _resolve_auth_token()
 
 
 def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse:
     payload = {"jsonrpc": "2.0", "method": method, "params": params or {}, "id": 1}
     data: bytes = json.dumps(payload).encode("utf-8")
     headers: dict[str, str] = {"Content-Type": "application/json"}
-    if AUTH_TOKEN:
-        headers["X-Nexus-Unity-Token"] = AUTH_TOKEN
+    token = AUTH_TOKEN or _resolve_auth_token()
+    if token:
+        headers["X-Nexus-Unity-Token"] = token
     req: urllib.request.Request = urllib.request.Request(
         UNITY_URL,
         data=data,
