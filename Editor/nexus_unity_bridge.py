@@ -120,20 +120,71 @@ def _parse_cli_args(argv: list[str]) -> tuple[str, dict[str, Any]]:
 
     return ns.tool_name, args
 
+def _run_cli_mode() -> None:
+    """Direct command execution: `nexus_unity_bridge.py <tool> key=value ...`."""
+    method, args = _parse_cli_args(sys.argv[1:])
+    logger.debug("CLI Mode: Calling %s with %s", method, args)
+    print(json.dumps(route_tool(method, args), indent=2))
+
+
+def _handle_tool_call(request: dict, req_id) -> dict:
+    params = request.get("params", {})
+    name = params.get("name", "").replace("unity_", "")
+    args = params.get("arguments", {})
+
+    unity_res = route_tool(name, args)
+    if "error" in unity_res:
+        return {"jsonrpc": "2.0", "id": req_id, "error": unity_res["error"]}
+
+    result_content = unity_res.get("result", unity_res)
+    if isinstance(result_content, dict) and "content" in result_content:
+        return {"jsonrpc": "2.0", "id": req_id, "result": result_content}
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "result": {"content": [{"type": "text", "text": json.dumps(result_content)}]},
+    }
+
+
+def _handle_rpc_request(request: dict):
+    """Build a JSON-RPC response for one request, or None when there is nothing
+    to send back (a notification with no id)."""
+    method = request.get("method")
+    req_id = request.get("id")
+
+    if method == "initialize":
+        res = {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {"tools": {}, "resources": {}, "prompts": {}},
+            "serverInfo": {"name": "NexusUnity-Bridge", "version": BRIDGE_VERSION},
+        }
+        return {"jsonrpc": "2.0", "id": req_id, "result": res}
+    if method in ["tools/list", "listTools", "list_tools"]:
+        return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
+    if method in ["resources/list", "listResources"]:
+        return {"jsonrpc": "2.0", "id": req_id, "result": {"resources": STATIC_RESOURCES}}
+    if method in ["resources/read", "readResource"]:
+        resource_response = read_resource(request.get("params", {}).get("uri", ""))
+        return {"jsonrpc": "2.0", "id": req_id, **resource_response}
+    if method in ["tools/call", "callTool"]:
+        return _handle_tool_call(request, req_id)
+    if req_id is not None:
+        return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Method not found"}}
+    return None
+
+
 def main() -> None:
     # Start orphan monitor thread
     threading.Thread(target=orphan_monitor, daemon=True).start()
 
     # CLI Mode: Support direct command execution
     if len(sys.argv) > 1 and not sys.argv[1].startswith("{"):
-        method, args = _parse_cli_args(sys.argv[1:])
-        logger.debug("CLI Mode: Calling %s with %s", method, args)
-        print(json.dumps(route_tool(method, args), indent=2))
+        _run_cli_mode()
         return
 
     # MCP Mode: JSON-RPC 2.0 over Stdin/Stdout
     logger.info("NexusUnity Bridge started (Parent PID: %s)", PARENT_PID)
-    
+
     while True:
         line = sys.stdin.readline()
         if not line:
@@ -141,46 +192,9 @@ def main() -> None:
             break
 
         try:
-            request = json.loads(line)
-            method = request.get("method")
-            req_id = request.get("id")
-            if method == "initialize":
-                res = {
-                    "protocolVersion": "2024-11-05", 
-                    "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, 
-                    "serverInfo": {"name": "NexusUnity-Bridge", "version": BRIDGE_VERSION}
-                }
-                response = {"jsonrpc": "2.0", "id": req_id, "result": res}
-            elif method in ["tools/list", "listTools", "list_tools"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
-            elif method in ["resources/list", "listResources"]:
-                response = {"jsonrpc": "2.0", "id": req_id, "result": {"resources": STATIC_RESOURCES}}
-            elif method in ["resources/read", "readResource"]:
-                resource_response = read_resource(request.get("params", {}).get("uri", ""))
-                response = {"jsonrpc": "2.0", "id": req_id, **resource_response}
-            elif method in ["tools/call", "callTool"]:
-                params = request.get("params", {})
-                name = params.get("name", "").replace("unity_", "")
-                args = params.get("arguments", {})
-
-                unity_res = route_tool(name, args)
-
-                if "error" in unity_res:
-                    response = {"jsonrpc": "2.0", "id": req_id, "error": unity_res["error"]}
-                else:
-                    result_content = unity_res.get("result", unity_res)
-                    if isinstance(result_content, dict) and "content" in result_content:
-                        response = {"jsonrpc": "2.0", "id": req_id, "result": result_content}
-                    else:
-                        response = {
-                            "jsonrpc": "2.0", 
-                            "id": req_id, 
-                            "result": {"content": [{"type": "text", "text": json.dumps(result_content) }]}}
-            elif req_id is not None:
-                response = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Method not found"}}
-            else:
+            response = _handle_rpc_request(json.loads(line))
+            if response is None:
                 continue
-
             sys.stdout.write(json.dumps(response) + "\n")
             sys.stdout.flush()
         except Exception as e:
