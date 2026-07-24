@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
@@ -25,9 +26,9 @@ namespace UnityMCP.Editor
 
     public static partial class MCPServer
     {
-        private static string _version = "1.4.0";
+        private static string _version;
         private static long _logCounter = 0;
-        public static string Version => _version;
+        public static string Version => _version ?? (_version = ReadPackageVersion());
 
         public static string SessionId { get; private set; }
         public static int SessionGeneration { get; private set; }
@@ -78,7 +79,14 @@ namespace UnityMCP.Editor
             IsUpdatingCached = EditorApplication.isUpdating;
             IsPlayingCached = EditorApplication.isPlaying;
             IsPausedCached = EditorApplication.isPaused;
-            IsPlayModeTransitionCached = EditorApplication.isPlayingOrWillChangePlaymode;
+            // isPlayingOrWillChangePlaymode stays true for the WHOLE play session,
+            // so using it directly reported a permanent "play_mode_transition":
+            // acceptsWriteCommands stayed false and Initialize threw "editor is
+            // busy" for as long as the game ran. A transition is in progress only
+            // while the two flags disagree (entering: will-change but not yet
+            // playing; exiting: still playing but no longer will-change).
+            IsPlayModeTransitionCached =
+                EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying;
             UnityVersionCached = Application.unityVersion;
         }
 
@@ -86,22 +94,6 @@ namespace UnityMCP.Editor
         {
             _mainThreadQueue = new ConcurrentQueue<Action>();
             _logs = new ConcurrentQueue<LogEntry>();
-        }
-
-        internal static string AuthToken => EnsureAuthToken();
-
-        private static string EnsureAuthToken()
-        {
-            if (!string.IsNullOrEmpty(_authToken)) return _authToken;
-
-            _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
-            if (string.IsNullOrEmpty(_authToken))
-            {
-                _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-                SessionState.SetString(AuthSessionStateKey, _authToken);
-            }
-
-            return _authToken;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -124,12 +116,31 @@ namespace UnityMCP.Editor
             }
             
             RefreshMainThreadCachedState();
+            Application.runInBackground = true;
             #if UNITY_EDITOR_OSX
             AppNapBypass.CacheApplicationPath();
+            AppNapBypass.Enable();
             #endif
             MCPServerMethods.Init();
             InitTimeline();
-            
+
+            SubscribeEditorEvents();
+
+            ParseCommandLineArgs();
+            _port = _cliPortOverride ?? MCPSettings.Port;
+
+            if (EditorPrefs.GetBool(StablePrefsKey, false)) ScheduleAutoStart();
+
+            #if UNITY_EDITOR_OSX
+            _postCompileFramesToWait = 15;
+            EditorApplication.update += HandlePostCompileFocusReturn;
+            #endif
+        }
+
+        // Idempotent (unsubscribe-then-subscribe) so it is safe to call on every
+        // domain reload without stacking duplicate handlers.
+        private static void SubscribeEditorEvents()
+        {
             EditorApplication.update -= HandleMainThreadQueue;
             EditorApplication.update += HandleMainThreadQueue;
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
@@ -142,27 +153,21 @@ namespace UnityMCP.Editor
 
             AssemblyReloadEvents.beforeAssemblyReload -= Cleanup;
             AssemblyReloadEvents.beforeAssemblyReload += Cleanup;
+        }
 
-            ParseCommandLineArgs();
-            _port = _cliPortOverride ?? MCPSettings.Port;
-            
-            if (EditorPrefs.GetBool(StablePrefsKey, false))
-            {
-                int framesToWait = 60;
-                EditorApplication.CallbackFunction autoStart = null;
-                autoStart = () => {
-                    if (framesToWait-- <= 0) {
-                        EditorApplication.update -= autoStart;
-                        if (_state != ServerState.Running) Start();
-                    }
-                };
-                EditorApplication.update += autoStart;
-            }
-
-            #if UNITY_EDITOR_OSX
-            _postCompileFramesToWait = 15;
-            EditorApplication.update += HandlePostCompileFocusReturn;
-            #endif
+        // Restart intent was persisted in EditorPrefs, so start the server a few
+        // frames after the reload settles rather than during Init itself.
+        private static void ScheduleAutoStart()
+        {
+            int framesToWait = 60;
+            EditorApplication.CallbackFunction autoStart = null;
+            autoStart = () => {
+                if (framesToWait-- <= 0) {
+                    EditorApplication.update -= autoStart;
+                    if (_state != ServerState.Running) Start();
+                }
+            };
+            EditorApplication.update += autoStart;
         }
 
         #if UNITY_EDITOR_OSX
@@ -181,125 +186,5 @@ namespace UnityMCP.Editor
 
         public static int Port => _port;
         public static bool IsRunning => _state == ServerState.Running;
-
-        /// <summary>
-        /// Starts the loopback-only Nexus Unity HTTP/WebSocket server and persists restart intent in Unity <see cref="EditorPrefs"/>.
-        /// </summary>
-        /// <remarks>
-        /// Startup must run from the Unity Editor main thread; background calls are marshaled through <see cref="EditorApplication.delayCall"/>.
-        /// The method initializes tool dispatch, resolves or allocates the configured port, records restart intent, may attach to an
-        /// existing Nexus Unity instance on the same port, and enables the macOS App Nap bypass before binding the listener.
-        /// </remarks>
-        public static void Start()
-        {
-            if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
-            {
-                EditorApplication.delayCall += Start;
-                return;
-            }
-
-            lock (_startLock)
-            {
-                if (_state == ServerState.Running || _state == ServerState.Starting) return;
-                _state = ServerState.Starting;
-                LastError = null;
-                _cts = new CancellationTokenSource();
-            }
-            
-            MCPServerMethods.Init();
-            EnsureAuthToken();
-            if (EditorApplication.isPlaying) Application.runInBackground = true;
-
-            if (_port <= 0) {
-                ParseCommandLineArgs();
-                _port = _cliPortOverride ?? MCPSettings.Port;
-            }
-
-            if (_port == 0)
-            {
-                try {
-                    var l = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
-                    l.Start();
-                    _port = ((System.Net.IPEndPoint)l.LocalEndpoint).Port;
-                    l.Stop();
-                    System.Threading.Thread.Sleep(100);
-                } catch { }
-            }
-            
-            EditorPrefs.SetBool(StablePrefsKey, true);
-            NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Attempting to start server on port {_port}...", true);
-
-            var token = _cts.Token;
-            Task.Run(async () => {
-                try {
-                    if (IsPortBusy(_port))
-                    {
-                        if (await IsAnotherMcpInstanceRunning()) {
-                            _state = ServerState.Attached;
-                            return;
-                        }
-                        
-                        string owner = GetPortOwner(_port);
-                        if (owner != "Unknown Process")
-                        {
-                            _state = ServerState.Error;
-                            LastError = $"Port {_port} is being used by another application: {owner}.";
-                            NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] {LastError}");
-                            return;
-                        }
-                        NexusEditorLog.Warning(NexusLogCategory.Server, $"[MCP] Port {_port} reported busy by Unknown Process. Proceeding with force-bind attempt...");
-                    }
-
-                    if (token.IsCancellationRequested) return;
-                    #if UNITY_EDITOR_OSX
-                    AppNapBypass.Enable();
-                    #endif
-                    BindAndStartListener();
-                } catch (Exception e) {
-                    _state = ServerState.Error;
-                    LastError = e.Message;
-                    NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Server start error: {e.Message}");
-                }
-            });
-        }
-
-        /// <summary>
-        /// Stops the Nexus Unity server on the editor main thread, clears restart intent, disables macOS App Nap bypass, and closes listeners.
-        /// </summary>
-        /// <remarks>
-        /// Calls from background threads are marshaled through <see cref="Enqueue"/> before mutating Unity editor state.
-        /// Cleanup cancels pending server work and closes the HTTP listener/WebSocket state used by the local automation server.
-        /// </remarks>
-        public static void Stop()
-        {
-            if (Thread.CurrentThread.ManagedThreadId != _mainThreadId)
-            {
-                MCPServer.Enqueue(Stop);
-                return;
-            }
-            EditorPrefs.SetBool(StablePrefsKey, false);
-            #if UNITY_EDITOR_OSX
-            AppNapBypass.Disable();
-            #endif
-            Cleanup();
-        }
-
-        internal static void Cleanup()
-        {
-            lock (_startLock)
-            {
-                _cts?.Cancel();
-                if (_listener != null)
-                {
-                    try { if (_listener.IsListening) _listener.Stop(); } catch { }
-                    try { _listener.Close(); } catch { }
-                    _listener = null;
-                }
-                _state = ServerState.Stopped;
-            }
-        }
-
-
-
     }
 }
