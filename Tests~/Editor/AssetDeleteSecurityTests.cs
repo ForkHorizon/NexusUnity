@@ -123,10 +123,69 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void MoveAsset_FromPackagesOrProjectSettings_ReturnsError()
+        {
+            var res = CallRaw("move_asset", new JObject { ["old_path"] = "Packages/com.unity.textmeshpro", ["new_path"] = "Assets/TMP_Backup" });
+            Assert.IsNotNull(res["error"], "move_asset from Packages should return error");
+            Assert.IsTrue(res["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying Packages is forbidden");
+        }
+
+        [Test]
+        public void MoveAsset_ToAssetsRoot_Succeeds()
+        {
+            string root = "Assets/NexusUnityGeneratedTests";
+            string oldPath = $"{root}/Sub/MoveToRoot.txt";
+            CleanupGeneratedAssetRoot(root);
+
+            try
+            {
+                CallRaw("create_folder", new JObject { ["path"] = $"{root}/Sub" });
+                CallRaw("write_file", new JObject { ["path"] = oldPath, ["content"] = "test" });
+                AssetDatabase.Refresh();
+
+                var res = CallRaw("move_asset", new JObject { ["old_path"] = oldPath, ["new_path"] = root });
+                Assert.IsNotNull(res["result"], $"Expected success result, got error: {res["error"]}");
+                Assert.IsTrue(File.Exists(MCPServerMethods.ValidatePath($"{root}/MoveToRoot.txt")), "File should be moved into target folder");
+            }
+            finally
+            {
+                CleanupGeneratedAssetRoot(root);
+            }
+        }
+
+        [Test]
         public void CopyAsset_ToProjectSettings_ReturnsError()
         {
             var res = CallRaw("copy_asset", new JObject { ["source_path"] = "Assets/Test.txt", ["dest_path"] = "ProjectSettings/ProjectSettings.asset" });
             Assert.IsNotNull(res["error"], "copy_asset to ProjectSettings should return error");
+            Assert.IsTrue(res["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying ProjectSettings is forbidden");
+        }
+
+        [Test]
+        public void CreateFolder_InProjectSettingsOrPackages_ReturnsError()
+        {
+            var res1 = CallRaw("create_folder", new JObject { ["path"] = "ProjectSettings/ForbiddenDir" });
+            Assert.IsNotNull(res1["error"], "create_folder in ProjectSettings should return error");
+            Assert.IsTrue(res1["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying ProjectSettings is forbidden");
+
+            var res2 = CallRaw("create_folder", new JObject { ["path"] = "Packages/ForbiddenDir" });
+            Assert.IsNotNull(res2["error"], "create_folder in Packages should return error");
+            Assert.IsTrue(res2["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying Packages is forbidden");
+        }
+
+        [Test]
+        public void CreateMaterial_InProjectSettingsOrPackages_ReturnsError()
+        {
+            var res = CallRaw("create_material", new JObject { ["name"] = "BadMat", ["path"] = "ProjectSettings/BadMat.mat" });
+            Assert.IsNotNull(res["error"], "create_material in ProjectSettings should return error");
+            Assert.IsTrue(res["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying ProjectSettings is forbidden");
+        }
+
+        [Test]
+        public void ImportAsset_InProjectSettingsOrPackages_ReturnsError()
+        {
+            var res = CallRaw("import_asset", new JObject { ["path"] = "ProjectSettings/ProjectSettings.asset" });
+            Assert.IsNotNull(res["error"], "import_asset in ProjectSettings should return error");
             Assert.IsTrue(res["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying ProjectSettings is forbidden");
         }
     }

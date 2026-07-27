@@ -90,7 +90,7 @@ namespace UnityMCP.Editor
             if (string.IsNullOrEmpty(path)) path = Path.Combine("Assets", $"{name}.mat");
             else if (!path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase)) path += ".mat";
 
-            path = ValidateAssetPath(path);
+            path = ValidateWritableAssetPath(path);
             string fullPath = ValidatePath(path);
             string directory = Path.GetDirectoryName(fullPath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
@@ -180,7 +180,7 @@ namespace UnityMCP.Editor
         private static JToken ImportAsset(JToken p)
         {
             if (p == null || p["path"] == null) throw new Exception("path is required");
-            string path = ValidateAssetPath(p["path"].ToString());
+            string path = ValidateWritableAssetPath(p["path"].ToString());
             AssetDatabase.ImportAsset(path);
             return new JObject { ["status"] = "Success", ["message"] = "Imported" };
         }
@@ -188,9 +188,8 @@ namespace UnityMCP.Editor
         private static JToken MoveAsset(JToken p)
         {
             if (p?["old_path"] == null || p["new_path"] == null) throw new Exception("old_path and new_path required");
-            string oldPath = ValidateAssetPath(p["old_path"].ToString());
-            string newPath = ValidateAssetPath(p["new_path"].ToString());
-            ValidateDestinationAssetPath(newPath);
+            string oldPath = ValidateWritableAssetPath(p["old_path"].ToString());
+            string newPath = ValidateWritableAssetPath(p["new_path"].ToString(), allowAssetsRoot: true);
 
             if (AssetDatabase.IsValidFolder(oldPath) && AssetDatabase.IsValidFolder(newPath))
             {
@@ -198,22 +197,15 @@ namespace UnityMCP.Editor
                 return new JObject { ["status"] = "Success", ["message"] = "OK (Merged)" };
             }
 
+            if (newPath.Equals("Assets", StringComparison.OrdinalIgnoreCase))
+            {
+                string fileName = Path.GetFileName(oldPath);
+                newPath = Path.Combine("Assets", fileName).Replace("\\", "/");
+            }
+
             string result = AssetDatabase.MoveAsset(oldPath, newPath);
             if (!string.IsNullOrEmpty(result)) throw new Exception(result);
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
-        }
-
-        private static void ValidateDestinationAssetPath(string path)
-        {
-            string clean = path.TrimEnd('/', '\\');
-            if (clean.Equals("Assets", StringComparison.OrdinalIgnoreCase) ||
-                clean.Equals("Packages", StringComparison.OrdinalIgnoreCase) ||
-                clean.Equals("ProjectSettings", StringComparison.OrdinalIgnoreCase) ||
-                clean.StartsWith("ProjectSettings/", StringComparison.OrdinalIgnoreCase) ||
-                clean.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new Exception($"Modifying root or system folders (Packages, ProjectSettings) is forbidden. Path: '{path}'");
-            }
         }
 
         private static void MergeDirectories(string sourceDir, string targetDir)
@@ -249,15 +241,16 @@ namespace UnityMCP.Editor
             if (string.IsNullOrWhiteSpace(rawPath)) throw new Exception("Asset path cannot be empty");
             if (rawPath.Contains("\0")) throw new Exception("Invalid character in asset path");
 
-            string path = ValidateAssetPath(rawPath).TrimEnd('/', '\\');
+            string path = ValidateWritableAssetPath(rawPath, allowAssetsRoot: false).TrimEnd('/', '\\');
             if (path.EndsWith(".meta", StringComparison.OrdinalIgnoreCase)) throw new Exception("Cannot delete .meta files directly. Delete the main asset file or folder instead.");
-            if (!path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) || path.Length <= "Assets/".Length) throw new Exception($"Deleting assets outside 'Assets/' or deleting the root 'Assets' folder is forbidden. Path: '{path}'");
 
             string fullPath = ValidatePath(path);
             if (!File.Exists(fullPath) && !Directory.Exists(fullPath)) throw new Exception($"Asset not found: {path}");
 
-            bool deleted = AssetDatabase.MoveAssetToTrash(path) || AssetDatabase.DeleteAsset(path);
-            if (!deleted) throw new Exception($"Failed to delete asset at path: {path}");
+            bool movedToTrash = AssetDatabase.MoveAssetToTrash(path);
+            if (!movedToTrash) throw new Exception($"Failed to move asset to OS trash at path: '{path}'. Permanent deletion was blocked for security.");
+
+            AssetDatabase.Refresh();
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
@@ -265,8 +258,14 @@ namespace UnityMCP.Editor
         {
             if (p?["source_path"] == null || p["dest_path"] == null) throw new Exception("source_path and dest_path required");
             string sourcePath = ValidateAssetPath(p["source_path"].ToString());
-            string destPath = ValidateAssetPath(p["dest_path"].ToString());
-            ValidateDestinationAssetPath(destPath);
+            string destPath = ValidateWritableAssetPath(p["dest_path"].ToString(), allowAssetsRoot: true);
+
+            if (destPath.Equals("Assets", StringComparison.OrdinalIgnoreCase))
+            {
+                string fileName = Path.GetFileName(sourcePath);
+                destPath = Path.Combine("Assets", fileName).Replace("\\", "/");
+            }
+
             if (!AssetDatabase.CopyAsset(sourcePath, destPath)) throw new Exception("Copy failed");
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
@@ -283,7 +282,7 @@ namespace UnityMCP.Editor
         private static JToken CreateFolder(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required (e.g., 'Assets/NewFolder')");
-            string path = ValidateAssetPath(p["path"].ToString());
+            string path = ValidateWritableAssetPath(p["path"].ToString());
             string parent = Path.GetDirectoryName(path).Replace("\\", "/");
             string name = Path.GetFileName(path);
             string guid = AssetDatabase.CreateFolder(parent, name);

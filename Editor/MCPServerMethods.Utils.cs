@@ -223,6 +223,39 @@ namespace UnityMCP.Editor
             return relativePath;
         }
 
+        /// <summary>
+        /// Validates that an asset path is safe for write/modification operations.
+        /// Restricts targets to the 'Assets' folder (or optionally 'Assets' root directory itself).
+        /// Rejects any attempt to modify system folders (Packages, ProjectSettings).
+        /// Returns the relative, normalized asset path.
+        /// </summary>
+        internal static string ValidateWritableAssetPath(string path, bool allowAssetsRoot = false)
+        {
+            string relativePath = ValidateAssetPath(path);
+            string clean = relativePath.TrimEnd('/', '\\');
+
+            if (clean.Equals("Packages", StringComparison.OrdinalIgnoreCase) ||
+                clean.Equals("ProjectSettings", StringComparison.OrdinalIgnoreCase) ||
+                clean.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase) ||
+                clean.StartsWith("ProjectSettings/", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new System.Exception($"Modifying root or system folders (Packages, ProjectSettings) is forbidden. Path: '{path}'");
+            }
+
+            if (clean.Equals("Assets", StringComparison.OrdinalIgnoreCase))
+            {
+                if (allowAssetsRoot) return relativePath;
+                throw new System.Exception("Cannot delete or overwrite the root 'Assets' folder directly.");
+            }
+
+            if (!clean.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new System.Exception($"Modifying assets outside 'Assets/' is forbidden. Path: '{path}'");
+            }
+
+            return relativePath;
+        }
+
         private static bool IsCSharpScriptPath(string path)
         {
             return path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase);
