@@ -54,25 +54,11 @@ namespace UnityMCP.Editor
             foreach (var asset in allAssets)
             {
                 if (asset == null) continue;
-                
                 if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long fileId))
                 {
-                    var assetData = new JObject
-                    {
-                        ["name"] = asset.name,
-                        ["type"] = asset.GetType().Name,
-                        ["file_id"] = fileId,
-                        ["instance_id"] = asset.GetRawId()
-                    };
-                    
-                    if (asset == mainAsset)
-                    {
-                        result["main_asset"] = assetData;
-                    }
-                    else
-                    {
-                        subAssetsArr.Add(assetData);
-                    }
+                    var assetData = new JObject { ["name"] = asset.name, ["type"] = asset.GetType().Name, ["file_id"] = fileId, ["instance_id"] = asset.GetRawId() };
+                    if (asset == mainAsset) result["main_asset"] = assetData;
+                    else subAssetsArr.Add(assetData);
                 }
             }
             
@@ -101,14 +87,9 @@ namespace UnityMCP.Editor
             ApplyOptionalMaterialColor(mat, p["emission_color"] ?? (p["emission"]?.Type == JTokenType.Boolean ? null : p["emission"]), true);
 
             string path = p["path"]?.ToString();
-            if (string.IsNullOrEmpty(path))
-            {
-                path = Path.Combine("Assets", $"{name}.mat");
-            }
-            else if (!path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase))
-            {
-                path += ".mat";
-            }
+            if (string.IsNullOrEmpty(path)) path = Path.Combine("Assets", $"{name}.mat");
+            else if (!path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase)) path += ".mat";
+
             path = ValidateAssetPath(path);
             string fullPath = ValidatePath(path);
             string directory = Path.GetDirectoryName(fullPath);
@@ -204,19 +185,12 @@ namespace UnityMCP.Editor
             return new JObject { ["status"] = "Success", ["message"] = "Imported" };
         }
 
-
-
-
-
-
-        // Helper for isolated prefab asset edits
-
         private static JToken MoveAsset(JToken p)
         {
             if (p?["old_path"] == null || p["new_path"] == null) throw new Exception("old_path and new_path required");
-            
             string oldPath = ValidateAssetPath(p["old_path"].ToString());
             string newPath = ValidateAssetPath(p["new_path"].ToString());
+            ValidateDestinationAssetPath(newPath);
 
             if (AssetDatabase.IsValidFolder(oldPath) && AssetDatabase.IsValidFolder(newPath))
             {
@@ -229,16 +203,27 @@ namespace UnityMCP.Editor
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
+        private static void ValidateDestinationAssetPath(string path)
+        {
+            string clean = path.TrimEnd('/', '\\');
+            if (clean.Equals("Assets", StringComparison.OrdinalIgnoreCase) ||
+                clean.Equals("Packages", StringComparison.OrdinalIgnoreCase) ||
+                clean.Equals("ProjectSettings", StringComparison.OrdinalIgnoreCase) ||
+                clean.StartsWith("ProjectSettings/", StringComparison.OrdinalIgnoreCase) ||
+                clean.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new Exception($"Modifying root or system folders (Packages, ProjectSettings) is forbidden. Path: '{path}'");
+            }
+        }
+
         private static void MergeDirectories(string sourceDir, string targetDir)
         {
             var files = Directory.GetFiles(sourceDir);
             foreach (var file in files)
             {
                 if (file.EndsWith(".meta")) continue;
-                
                 string fileName = Path.GetFileName(file);
                 string destFile = Path.Combine(targetDir, fileName).Replace("\\", "/");
-                
                 string result = AssetDatabase.MoveAsset(file.Replace("\\", "/"), destFile);
                 if (!string.IsNullOrEmpty(result)) throw new Exception($"Failed to move {fileName}: {result}");
             }
@@ -248,12 +233,7 @@ namespace UnityMCP.Editor
             {
                 string dirName = Path.GetFileName(dir);
                 string destDir = Path.Combine(targetDir, dirName).Replace("\\", "/");
-                
-                if (!AssetDatabase.IsValidFolder(destDir))
-                {
-                    AssetDatabase.CreateFolder(targetDir, dirName);
-                }
-                
+                if (!AssetDatabase.IsValidFolder(destDir)) AssetDatabase.CreateFolder(targetDir, dirName);
                 MergeDirectories(dir.Replace("\\", "/"), destDir);
             }
 
@@ -263,8 +243,21 @@ namespace UnityMCP.Editor
         private static JToken DeleteAsset(JToken p)
         {
             if (p?["path"] == null) throw new Exception("path required");
-            string path = ValidateAssetPath(p["path"].ToString());
-            if (!AssetDatabase.DeleteAsset(path)) throw new Exception("Delete failed");
+            if (p?["confirm"]?.Value<bool>() != true) throw new ArgumentException("Deleting an asset requires confirm: true because it is destructive.");
+
+            string rawPath = p["path"]?.ToString()?.Trim();
+            if (string.IsNullOrWhiteSpace(rawPath)) throw new Exception("Asset path cannot be empty");
+            if (rawPath.Contains("\0")) throw new Exception("Invalid character in asset path");
+
+            string path = ValidateAssetPath(rawPath).TrimEnd('/', '\\');
+            if (path.EndsWith(".meta", StringComparison.OrdinalIgnoreCase)) throw new Exception("Cannot delete .meta files directly. Delete the main asset file or folder instead.");
+            if (!path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) || path.Length <= "Assets/".Length) throw new Exception($"Deleting assets outside 'Assets/' or deleting the root 'Assets' folder is forbidden. Path: '{path}'");
+
+            string fullPath = ValidatePath(path);
+            if (!File.Exists(fullPath) && !Directory.Exists(fullPath)) throw new Exception($"Asset not found: {path}");
+
+            bool deleted = AssetDatabase.MoveAssetToTrash(path) || AssetDatabase.DeleteAsset(path);
+            if (!deleted) throw new Exception($"Failed to delete asset at path: {path}");
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
 
@@ -273,6 +266,7 @@ namespace UnityMCP.Editor
             if (p?["source_path"] == null || p["dest_path"] == null) throw new Exception("source_path and dest_path required");
             string sourcePath = ValidateAssetPath(p["source_path"].ToString());
             string destPath = ValidateAssetPath(p["dest_path"].ToString());
+            ValidateDestinationAssetPath(destPath);
             if (!AssetDatabase.CopyAsset(sourcePath, destPath)) throw new Exception("Copy failed");
             return new JObject { ["status"] = "Success", ["message"] = "OK" };
         }
@@ -297,4 +291,4 @@ namespace UnityMCP.Editor
             return new JObject { ["status"] = "Success" };
         }
     }
-}// Force Wed Apr  1 21:53:54 CEST 2026
+}

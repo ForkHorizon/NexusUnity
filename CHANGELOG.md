@@ -5,6 +5,7 @@ All notable public changes to Nexus Unity are documented here.
 ## [Unreleased]
 
 ### Security
+- Require explicit confirmation (`confirm: true`) for `delete_asset`, use `AssetDatabase.MoveAssetToTrash` for OS trash recovery, and block deletion of `ProjectSettings/` and `Packages/` paths (#140).
 - Hardened external PR replay workflow (`approve-external-pr.yml`) with an in-workflow actor authorization gate and a PR content security pre-scan to prevent unauthorized execution and flag critical CI modifications on self-hosted runners (#144).
 - The content pre-scan now blocks the replay when a PR touches `.github/workflows/*`, `.githooks/*`, or `scripts/*`, requiring the maintainer to re-run with `acknowledge_critical_files: true` after reviewing the diff, instead of only logging a warning (#144).
 
