@@ -209,6 +209,9 @@ This is the public MCP bridge macro for code edits. Pass `confirm: true` when wr
 
 Raw `attach_script`, `write_file`, and `write_files_batch` calls also require `confirm: true` before writing `.cs` files.
 
+### `delete_asset`
+Deletes a file or folder in the project. Requires `path` and `confirm: true`. Deletions use `AssetDatabase.MoveAssetToTrash` to send items to the OS Trash. Deletion of `ProjectSettings/` or `Packages/` paths is forbidden.
+
 ### `unity_invoke_method`
 Invokes a C# method on a component through reflection.
 
