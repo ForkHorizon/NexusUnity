@@ -13,6 +13,7 @@ All notable public changes to Nexus Unity are documented here.
 - Consolidated duplicate internal Ollama-review and serialized-property write helpers.
 
 ### Fixed
+- Persist authentication tokens across Unity Editor process restarts in Library token file, preventing persistent HTTP 401 Unauthorized errors for external MCP CLI integrations after restarting Unity (#166).
 - `get_scene_dependencies` now uses `enterChildren = false` after the initial property iteration step, preventing deep recursive traversal into child properties and eliminating duplicated dependency references (#71).
 - `find_objects` now safely constructs name search regexes with a 100ms match timeout and falls back gracefully to literal substring search on invalid regex patterns or match timeouts (#119).
 - Restrict type resolution (`FindType`) to user project assemblies and standard public `UnityEngine` assemblies, disallow internal system/editor assemblies and namespaces, and enforce strict type allowlist constraints for component and ScriptableObject creation/inspection tools (#139).

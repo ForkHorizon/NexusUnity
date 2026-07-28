@@ -45,29 +45,68 @@ namespace UnityMCP.Editor
 
         internal static string AuthToken => EnsureAuthToken();
 
+        private static readonly object AuthTokenLock = new object();
+
         private static string EnsureAuthToken()
         {
             if (!string.IsNullOrEmpty(_authToken)) return _authToken;
 
-            if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
+            lock (AuthTokenLock)
             {
-                return _authToken;
-            }
+                if (!string.IsNullOrEmpty(_authToken)) return _authToken;
 
-            try
-            {
-                _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
+                bool isMainThread = _mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId == _mainThreadId;
+
+                if (isMainThread)
+                {
+                    try
+                    {
+                        _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
+                    }
+                    catch { }
+                }
+
+                if (string.IsNullOrEmpty(_authToken))
+                {
+                    _authToken = ReadTokenFile();
+                }
+
                 if (string.IsNullOrEmpty(_authToken))
                 {
                     _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-                    SessionState.SetString(AuthSessionStateKey, _authToken);
+                }
+
+                if (isMainThread)
+                {
+                    try
+                    {
+                        SessionState.SetString(AuthSessionStateKey, _authToken);
+                    }
+                    catch { }
                 }
 
                 WriteTokenFile(_authToken);
+                return _authToken;
             }
-            catch { }
+        }
 
-            return _authToken;
+        internal static string RotateAuthToken()
+        {
+            lock (AuthTokenLock)
+            {
+                _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                bool isMainThread = _mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId == _mainThreadId;
+                if (isMainThread)
+                {
+                    try
+                    {
+                        SessionState.SetString(AuthSessionStateKey, _authToken);
+                    }
+                    catch { }
+                }
+                WriteTokenFile(_authToken);
+                return _authToken;
+            }
         }
 
         private static void WriteTokenFile(string token)
@@ -76,10 +115,11 @@ namespace UnityMCP.Editor
             {
                 string projectRoot = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, ".."));
                 string libraryDir = Path.Combine(projectRoot, "Library");
-                if (Directory.Exists(libraryDir))
+                if (!Directory.Exists(libraryDir))
                 {
-                    File.WriteAllText(Path.Combine(libraryDir, "NexusUnityAuthToken.txt"), token);
+                    Directory.CreateDirectory(libraryDir);
                 }
+                File.WriteAllText(Path.Combine(libraryDir, "NexusUnityAuthToken.txt"), token);
             }
             catch { }
         }
