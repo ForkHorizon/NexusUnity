@@ -45,6 +45,19 @@ namespace UnityMCP.Editor
 
         internal static string AuthToken => EnsureAuthToken();
 
+        private static string GetEditorPrefsTokenKey()
+        {
+            try
+            {
+                string projectRoot = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, ".."));
+                return "NexusUnity_AuthToken_" + Math.Abs(projectRoot.GetHashCode());
+            }
+            catch
+            {
+                return "NexusUnity_AuthToken_Default";
+            }
+        }
+
         private static string EnsureAuthToken()
         {
             if (!string.IsNullOrEmpty(_authToken)) return _authToken;
@@ -57,16 +70,41 @@ namespace UnityMCP.Editor
             try
             {
                 _authToken = SessionState.GetString(AuthSessionStateKey, string.Empty);
+
+                if (string.IsNullOrEmpty(_authToken))
+                {
+                    _authToken = ReadTokenFile();
+                }
+
+                if (string.IsNullOrEmpty(_authToken))
+                {
+                    _authToken = EditorPrefs.GetString(GetEditorPrefsTokenKey(), string.Empty);
+                }
+
                 if (string.IsNullOrEmpty(_authToken))
                 {
                     _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-                    SessionState.SetString(AuthSessionStateKey, _authToken);
                 }
 
+                SessionState.SetString(AuthSessionStateKey, _authToken);
+                EditorPrefs.SetString(GetEditorPrefsTokenKey(), _authToken);
                 WriteTokenFile(_authToken);
             }
             catch { }
 
+            return _authToken;
+        }
+
+        internal static string RotateAuthToken()
+        {
+            _authToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+            try
+            {
+                SessionState.SetString(AuthSessionStateKey, _authToken);
+                EditorPrefs.SetString(GetEditorPrefsTokenKey(), _authToken);
+                WriteTokenFile(_authToken);
+            }
+            catch { }
             return _authToken;
         }
 
