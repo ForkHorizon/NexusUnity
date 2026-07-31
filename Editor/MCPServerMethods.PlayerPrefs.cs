@@ -89,7 +89,9 @@ namespace UnityMCP.Editor
                 
                 foreach (var domain in domainsToCheck)
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo("defaults", $"read \"{domain}\"");
+                    ProcessStartInfo psi = new ProcessStartInfo("defaults");
+                    psi.ArgumentList.Add("read");
+                    psi.ArgumentList.Add(domain);
                     psi.RedirectStandardOutput = true;
                     psi.RedirectStandardError = true;
                     psi.UseShellExecute = false;
