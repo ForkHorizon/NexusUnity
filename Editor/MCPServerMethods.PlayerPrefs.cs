@@ -68,114 +68,121 @@ namespace UnityMCP.Editor
             return "Success";
         }
 
-        private static JToken ListPlayerPrefs(JToken p)
+        private static List<string> CollectPlayerPrefKeys()
         {
-            var result = new JObject();
             var keys = new List<string>();
-
-            // Note: Unity doesn't provide a native way to list all PlayerPrefs keys.
-            // We use platform-specific logic to find where they are stored.
-            
             try
             {
 #if UNITY_EDITOR_OSX
-                string bundleId = PlayerSettings.applicationIdentifier;
-                if (string.IsNullOrEmpty(bundleId)) bundleId = $"com.{PlayerSettings.companyName}.{PlayerSettings.productName}";
-                
-                // On macOS, Unity Editor stores PlayerPrefs in unity.<Company>.<Product>.plist
-                string editorPlist = $"unity.{PlayerSettings.companyName}.{PlayerSettings.productName}";
-                
-                var domainsToCheck = new List<string> { editorPlist, bundleId };
-                
-                foreach (var domain in domainsToCheck)
-                {
-                    ProcessStartInfo psi = new ProcessStartInfo("defaults");
-                    psi.ArgumentList.Add("read");
-                    psi.ArgumentList.Add(domain);
-                    psi.RedirectStandardOutput = true;
-                    psi.RedirectStandardError = true;
-                    psi.UseShellExecute = false;
-                    psi.CreateNoWindow = true;
-                    
-                    using (Process process = Process.Start(psi))
-                    {
-                        string output = process.StandardOutput.ReadToEnd();
-                        process.WaitForExit();
-                        
-                        if (process.ExitCode == 0)
-                        {
-                            var lines = output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                            foreach (var line in lines)
-                            {
-                                var trimmed = line.Trim();
-                                if (trimmed.StartsWith("{") || trimmed.EndsWith("}") || string.IsNullOrEmpty(trimmed) || trimmed.EndsWith("(")) continue;
-                                
-                                int equalIndex = trimmed.IndexOf('=');
-                                if (equalIndex > 0)
-                                {
-                                    string key = trimmed.Substring(0, equalIndex).Trim().Trim('"');
-                                    keys.Add(key);
-                                }
-                            }
-                        }
-                    }
-                }
+                CollectMacOsPlayerPrefKeys(keys);
 #elif UNITY_EDITOR_WIN
-                string registryPath = $@"Software\Unity\UnityEditor\{PlayerSettings.companyName}\{PlayerSettings.productName}";
-                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(registryPath))
-                {
-                    if (key != null)
-                    {
-                        foreach (var valueName in key.GetValueNames())
-                        {
-                            // Unity appends a hash to the end of the key name in the registry
-                            // e.g. "MyKey_h123456789"
-                            int lastUnderscore = valueName.LastIndexOf('_');
-                            if (lastUnderscore > 0)
-                            {
-                                keys.Add(valueName.Substring(0, lastUnderscore));
-                            }
-                            else
-                            {
-                                keys.Add(valueName);
-                            }
-                        }
-                    }
-                }
+                CollectWindowsPlayerPrefKeys(keys);
 #endif
             }
             catch (Exception ex)
             {
                 NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Failed to list PlayerPrefs: {ex.Message}");
             }
+            return keys;
+        }
 
-            // Now populate the result with values using the standard Unity API
+#if UNITY_EDITOR_OSX
+        private static void CollectMacOsPlayerPrefKeys(List<string> keys)
+        {
+            string bundleId = PlayerSettings.applicationIdentifier;
+            if (string.IsNullOrEmpty(bundleId)) bundleId = $"com.{PlayerSettings.companyName}.{PlayerSettings.productName}";
+            string editorPlist = $"unity.{PlayerSettings.companyName}.{PlayerSettings.productName}";
+
+            var domainsToCheck = new List<string> { editorPlist, bundleId };
+            foreach (var domain in domainsToCheck)
+            {
+                ReadMacOsPlistKeys(domain, keys);
+            }
+        }
+
+        private static void ReadMacOsPlistKeys(string domain, List<string> keys)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("defaults");
+            psi.ArgumentList.Add("read");
+            psi.ArgumentList.Add(domain);
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+            psi.UseShellExecute = false;
+            psi.CreateNoWindow = true;
+
+            using (Process process = Process.Start(psi))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    ParseMacOsDefaultsOutput(output, keys);
+                }
+            }
+        }
+
+        private static void ParseMacOsDefaultsOutput(string output, List<string> keys)
+        {
+            var lines = output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith("{") || trimmed.EndsWith("}") || string.IsNullOrEmpty(trimmed) || trimmed.EndsWith("(")) continue;
+
+                int equalIndex = trimmed.IndexOf('=');
+                if (equalIndex > 0)
+                {
+                    string key = trimmed.Substring(0, equalIndex).Trim().Trim('"');
+                    keys.Add(key);
+                }
+            }
+        }
+#elif UNITY_EDITOR_WIN
+        private static void CollectWindowsPlayerPrefKeys(List<string> keys)
+        {
+            string registryPath = $@"Software\Unity\UnityEditor\{PlayerSettings.companyName}\{PlayerSettings.productName}";
+            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(registryPath))
+            {
+                if (key != null)
+                {
+                    foreach (var valueName in key.GetValueNames())
+                    {
+                        int lastUnderscore = valueName.LastIndexOf('_');
+                        if (lastUnderscore > 0)
+                            keys.Add(valueName.Substring(0, lastUnderscore));
+                        else
+                            keys.Add(valueName);
+                    }
+                }
+            }
+        }
+#endif
+
+        private static JToken ReadPlayerPrefValue(string key)
+        {
+            string sVal = PlayerPrefs.GetString(key, null);
+            if (sVal != null) return sVal;
+
+            int iVal = PlayerPrefs.GetInt(key, int.MinValue);
+            if (iVal != int.MinValue) return iVal;
+
+            float fVal = PlayerPrefs.GetFloat(key, float.NaN);
+            if (!float.IsNaN(fVal)) return fVal;
+
+            return "[Unknown Type]";
+        }
+
+        private static JToken ListPlayerPrefs(JToken p)
+        {
+            var result = new JObject();
+            var keys = CollectPlayerPrefKeys();
+
             foreach (var key in keys.Distinct())
             {
                 if (PlayerPrefs.HasKey(key))
                 {
-                    // Best effort to get the value.
-                    // If it's a string, GetString works.
-                    // If it's an int, GetString might return empty, but GetInt will work.
-                    // Since we can't be sure, we'll try to get it as string.
-                    // If it's empty, we try int and float.
-                    string sVal = PlayerPrefs.GetString(key, null);
-                    if (sVal != null) 
-                    {
-                        result[key] = sVal;
-                    }
-                    else
-                    {
-                        // Try int
-                        int iVal = PlayerPrefs.GetInt(key, int.MinValue);
-                        if (iVal != int.MinValue) result[key] = iVal;
-                        else
-                        {
-                            float fVal = PlayerPrefs.GetFloat(key, float.NaN);
-                            if (!float.IsNaN(fVal)) result[key] = fVal;
-                            else result[key] = "[Unknown Type]";
-                        }
-                    }
+                    result[key] = ReadPlayerPrefValue(key);
                 }
             }
 
