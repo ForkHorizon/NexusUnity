@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
@@ -70,105 +71,195 @@ namespace UnityMCP.Editor
 
         private static List<string> CollectPlayerPrefKeys()
         {
-            var keys = new List<string>();
             try
             {
 #if UNITY_EDITOR_OSX
-                CollectMacOsPlayerPrefKeys(keys);
+                return CollectMacOsPlayerPrefKeys();
 #elif UNITY_EDITOR_WIN
-                CollectWindowsPlayerPrefKeys(keys);
+                return CollectWindowsPlayerPrefKeys();
+#elif UNITY_EDITOR_LINUX
+                return CollectLinuxPlayerPrefKeys();
+#else
+                return new List<string>();
 #endif
             }
             catch (Exception ex)
             {
                 NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Failed to list PlayerPrefs: {ex.Message}");
+                return new List<string>();
             }
-            return keys;
+        }
+
+        private static string GetSafeCompanyName()
+        {
+            string company = PlayerSettings.companyName;
+            return string.IsNullOrEmpty(company) ? "DefaultCompany" : company;
+        }
+
+        private static string GetSafeProductName()
+        {
+            string product = PlayerSettings.productName;
+            return string.IsNullOrEmpty(product) ? "DefaultProduct" : product;
         }
 
 #if UNITY_EDITOR_OSX
-        private static void CollectMacOsPlayerPrefKeys(List<string> keys)
+        private static List<string> CollectMacOsPlayerPrefKeys()
         {
+            var keys = new List<string>();
+            string company = GetSafeCompanyName();
+            string product = GetSafeProductName();
             string bundleId = PlayerSettings.applicationIdentifier;
-            if (string.IsNullOrEmpty(bundleId)) bundleId = $"com.{PlayerSettings.companyName}.{PlayerSettings.productName}";
-            string editorPlist = $"unity.{PlayerSettings.companyName}.{PlayerSettings.productName}";
+            if (string.IsNullOrEmpty(bundleId)) bundleId = $"com.{company}.{product}";
+            string editorPlist = $"unity.{company}.{product}";
 
             var domainsToCheck = new List<string> { editorPlist, bundleId };
             foreach (var domain in domainsToCheck)
             {
-                ReadMacOsPlistKeys(domain, keys);
+                keys.AddRange(ReadMacOsPlistKeys(domain));
             }
+            return keys;
         }
 
-        private static void ReadMacOsPlistKeys(string domain, List<string> keys)
+        private static List<string> ReadMacOsPlistKeys(string domain)
         {
+            var keys = new List<string>();
             ProcessStartInfo psi = new ProcessStartInfo("defaults");
             psi.ArgumentList.Add("read");
             psi.ArgumentList.Add(domain);
             psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
+            psi.RedirectStandardError = false;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
 
-            using (Process process = Process.Start(psi))
+            try
             {
-                string output = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
-
-                if (process.ExitCode == 0)
+                using (Process process = Process.Start(psi))
                 {
-                    ParseMacOsDefaultsOutput(output, keys);
+                    if (process == null) return keys;
+                    string output = process.StandardOutput.ReadToEnd();
+                    if (!process.WaitForExit(5000))
+                    {
+                        try { process.Kill(); } catch { }
+                        NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] 'defaults read {domain}' timed out after 5000ms.");
+                        return keys;
+                    }
+
+                    if (process.ExitCode == 0)
+                    {
+                        keys.AddRange(ParseMacOsDefaultsOutput(output));
+                    }
                 }
             }
-        }
-
-        private static void ParseMacOsDefaultsOutput(string output, List<string> keys)
-        {
-            var lines = output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
+            catch (Exception ex)
             {
-                var trimmed = line.Trim();
-                if (trimmed.StartsWith("{") || trimmed.EndsWith("}") || string.IsNullOrEmpty(trimmed) || trimmed.EndsWith("(")) continue;
-
-                int equalIndex = trimmed.IndexOf('=');
-                if (equalIndex > 0)
-                {
-                    string key = trimmed.Substring(0, equalIndex).Trim().Trim('"');
-                    keys.Add(key);
-                }
+                NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Failed reading macOS plist for domain '{domain}': {ex.Message}");
             }
+            return keys;
         }
 #elif UNITY_EDITOR_WIN
-        private static void CollectWindowsPlayerPrefKeys(List<string> keys)
+        private static List<string> CollectWindowsPlayerPrefKeys()
         {
-            string registryPath = $@"Software\Unity\UnityEditor\{PlayerSettings.companyName}\{PlayerSettings.productName}";
+            var keys = new List<string>();
+            string company = GetSafeCompanyName();
+            string product = GetSafeProductName();
+            string registryPath = $@"Software\Unity\UnityEditor\{company}\{product}";
             using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(registryPath))
             {
                 if (key != null)
                 {
                     foreach (var valueName in key.GetValueNames())
                     {
-                        int lastUnderscore = valueName.LastIndexOf('_');
-                        if (lastUnderscore > 0)
-                            keys.Add(valueName.Substring(0, lastUnderscore));
-                        else
-                            keys.Add(valueName);
+                        keys.Add(UnescapeWindowsRegistryKeyName(valueName));
                     }
                 }
             }
+            return keys;
+        }
+#elif UNITY_EDITOR_LINUX
+        private static List<string> CollectLinuxPlayerPrefKeys()
+        {
+            var keys = new List<string>();
+            string company = GetSafeCompanyName();
+            string product = GetSafeProductName();
+            string configDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string prefsPath = Path.Combine(configDir, ".config", "unity3d", company, product, "prefs");
+
+            if (File.Exists(prefsPath))
+            {
+                try
+                {
+                    var doc = System.Xml.Linq.XDocument.Load(prefsPath);
+                    foreach (var elem in doc.Descendants("pref"))
+                    {
+                        var nameAttr = elem.Attribute("name");
+                        if (nameAttr != null && !string.IsNullOrEmpty(nameAttr.Value))
+                        {
+                            keys.Add(nameAttr.Value);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Failed to parse Linux PlayerPrefs XML: {ex.Message}");
+                }
+            }
+            return keys;
         }
 #endif
 
-        private static JToken ReadPlayerPrefValue(string key)
+        internal static List<string> ParseMacOsDefaultsOutput(string output)
         {
-            string sVal = PlayerPrefs.GetString(key, null);
-            if (sVal != null) return sVal;
+            var keys = new List<string>();
+            if (string.IsNullOrEmpty(output)) return keys;
 
-            int iVal = PlayerPrefs.GetInt(key, int.MinValue);
-            if (iVal != int.MinValue) return iVal;
+            var lineRegex = new Regex(@"^\s*(?:""((?:[^""\\]|\\.)+)""|([^\s=]+))\s*=", RegexOptions.Multiline);
+            var matches = lineRegex.Matches(output);
+            foreach (Match match in matches)
+            {
+                string rawKey = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+                if (!string.IsNullOrEmpty(rawKey))
+                {
+                    string unescaped = rawKey.Replace("\\\"", "\"").Replace("\\\\", "\\");
+                    keys.Add(unescaped);
+                }
+            }
+            return keys;
+        }
 
-            float fVal = PlayerPrefs.GetFloat(key, float.NaN);
-            if (!float.IsNaN(fVal)) return fVal;
+        internal static string UnescapeWindowsRegistryKeyName(string valueName)
+        {
+            if (string.IsNullOrEmpty(valueName)) return valueName;
+            int lastUnderscore = valueName.LastIndexOf('_');
+            if (lastUnderscore > 0 && lastUnderscore < valueName.Length - 1 && valueName[lastUnderscore + 1] == 'h')
+            {
+                string hashPart = valueName.Substring(lastUnderscore + 2);
+                if (hashPart.Length > 0 && hashPart.All(char.IsDigit))
+                {
+                    return valueName.Substring(0, lastUnderscore);
+                }
+            }
+            return valueName;
+        }
+
+        internal static JToken ReadPlayerPrefValue(string key)
+        {
+            const string def1 = "__NEXUS_PLPREF_DEF_1__";
+            const string def2 = "__NEXUS_PLPREF_DEF_2__";
+
+            string sVal1 = PlayerPrefs.GetString(key, def1);
+            string sVal2 = PlayerPrefs.GetString(key, def2);
+            if (sVal1 == sVal2 && sVal1 != def1)
+            {
+                return sVal1;
+            }
+
+            int iVal1 = PlayerPrefs.GetInt(key, 0);
+            int iVal2 = PlayerPrefs.GetInt(key, 1);
+            if (iVal1 == iVal2) return iVal1;
+
+            float fVal1 = PlayerPrefs.GetFloat(key, 0f);
+            float fVal2 = PlayerPrefs.GetFloat(key, 1f);
+            if (Mathf.Approximately(fVal1, fVal2)) return fVal1;
 
             return "[Unknown Type]";
         }
@@ -193,3 +284,5 @@ namespace UnityMCP.Editor
         }
     }
 }
+
+
