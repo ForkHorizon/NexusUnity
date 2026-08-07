@@ -153,14 +153,7 @@ namespace UnityMCP.Editor
             finally { if (_state == ServerState.Running) _state = ServerState.Stopped; }
         }
 
-        /// <summary>
-        /// Starts the loopback-only Nexus Unity HTTP/WebSocket server and persists restart intent in Unity <see cref="EditorPrefs"/>.
-        /// </summary>
-        /// <remarks>
-        /// Startup must run from the Unity Editor main thread; background calls are marshaled through <see cref="EditorApplication.delayCall"/>.
-        /// The method initializes tool dispatch, resolves or allocates the configured port, records restart intent, may attach to an
-        /// existing Nexus Unity instance on the same port, and enables the macOS App Nap bypass before binding the listener.
-        /// </remarks>
+        /// <summary>Starts the loopback-only Nexus Unity HTTP/WebSocket server and persists restart intent in Unity <see cref="EditorPrefs"/>.</summary>
         public static void Start()
         {
             if (_mainThreadId != -1 && Thread.CurrentThread.ManagedThreadId != _mainThreadId)
@@ -258,13 +251,7 @@ namespace UnityMCP.Editor
             return true;
         }
 
-        /// <summary>
-        /// Stops the Nexus Unity server on the editor main thread, clears restart intent, disables macOS App Nap bypass, and closes listeners.
-        /// </summary>
-        /// <remarks>
-        /// Calls from background threads are marshaled through <see cref="Enqueue"/> before mutating Unity editor state.
-        /// Cleanup cancels pending server work and closes the HTTP listener/WebSocket state used by the local automation server.
-        /// </remarks>
+        /// <summary>Stops the Nexus Unity server on the editor main thread, clears restart intent, disables macOS App Nap bypass, and closes listeners.</summary>
         public static void Stop()
         {
             if (Thread.CurrentThread.ManagedThreadId != _mainThreadId)
@@ -286,10 +273,7 @@ namespace UnityMCP.Editor
                 _cts?.Cancel();
                 lock (_webSocketLock)
                 {
-                    foreach (var ws in _activeWebSockets)
-                    {
-                        try { ws?.Dispose(); } catch { }
-                    }
+                    foreach (var ws in _activeWebSockets) { try { ws?.Dispose(); } catch { } }
                     _activeWebSockets.Clear();
                 }
                 if (_listener != null)

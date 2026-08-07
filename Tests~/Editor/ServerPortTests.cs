@@ -184,23 +184,7 @@ namespace UnityMCP.Editor.Tests
                         var completedTask = await Task.WhenAny(connectTask, Task.Delay(2000));
                         Assert.AreEqual(connectTask, completedTask, "WebSocket should connect within 2s");
 
-                        // While WebSocket is connected, issue an HTTP request to prove ServerLoop is accept-capable
-                        using (var httpClient = new System.Net.Http.HttpClient())
-                        {
-                            var requestContent = new System.Net.Http.StringContent(
-                                "{\"jsonrpc\":\"2.0\",\"method\":\"get_server_status\",\"id\":1}",
-                                System.Text.Encoding.UTF8,
-                                "application/json"
-                            );
-                            requestContent.Headers.Add("X-Nexus-Unity-Token", token);
-
-                            var httpTask = httpClient.PostAsync($"http://127.0.0.1:{port}/", requestContent);
-                            var finished = await Task.WhenAny(httpTask, Task.Delay(2000));
-
-                            Assert.AreEqual(httpTask, finished, "HTTP request should respond while WebSocket connection is active");
-                            var response = await httpTask;
-                            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                        }
+                        await VerifyConcurrentHttpRequestAsync(port, token);
 
                         if (ws.State == System.Net.WebSockets.WebSocketState.Open)
                         {
@@ -217,6 +201,26 @@ namespace UnityMCP.Editor.Tests
             finally
             {
                 LogAssert.ignoreFailingMessages = false;
+            }
+        }
+
+        private async Task VerifyConcurrentHttpRequestAsync(int port, string token)
+        {
+            using (var httpClient = new System.Net.Http.HttpClient())
+            {
+                var requestContent = new System.Net.Http.StringContent(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"get_server_status\",\"id\":1}",
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                requestContent.Headers.Add("X-Nexus-Unity-Token", token);
+
+                var httpTask = httpClient.PostAsync($"http://127.0.0.1:{port}/", requestContent);
+                var finished = await Task.WhenAny(httpTask, Task.Delay(2000));
+
+                Assert.AreEqual(httpTask, finished, "HTTP request should respond while WebSocket connection is active");
+                var response = await httpTask;
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             }
         }
 
