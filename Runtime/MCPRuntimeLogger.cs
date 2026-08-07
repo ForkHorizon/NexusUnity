@@ -18,6 +18,7 @@ namespace UnityMCP.Runtime
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Init()
         {
+            Application.logMessageReceivedThreaded -= HandleLog;
             Application.logMessageReceivedThreaded += HandleLog;
         }
 

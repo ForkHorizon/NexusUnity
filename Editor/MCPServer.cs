@@ -133,6 +133,7 @@ namespace UnityMCP.Editor
 
             #if UNITY_EDITOR_OSX
             _postCompileFramesToWait = 15;
+            EditorApplication.update -= HandlePostCompileFocusReturn;
             EditorApplication.update += HandlePostCompileFocusReturn;
             #endif
         }
