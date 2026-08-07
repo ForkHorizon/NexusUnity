@@ -34,9 +34,10 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null || p["component_name"] == null) throw new Exception("instance_id and component_name required");
             var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new Exception("GameObject not found");
-            Type type = FindType(p["component_name"].ToString());
-            if (type == null) throw new Exception($"Type '{p["component_name"]}' not found");
-            return new JObject { ["status"] = "Success", ["message"] = $"Added {p["component_name"]} to {Undo.AddComponent(go, type).name}" };
+            string compName = p["component_name"].ToString();
+            Type type = FindComponentType(compName);
+            if (type == null) throw new Exception($"Type '{compName}' not found or is not a valid attachable Component");
+            return new JObject { ["status"] = "Success", ["message"] = $"Added {compName} to {Undo.AddComponent(go, type).name}" };
         }
 
         private static JToken InspectComponent(JToken p)

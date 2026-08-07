@@ -226,6 +226,33 @@ namespace UnityMCP.Editor.Tests
 #endif
         }
 
+        [Test]
+        public void CreateScriptableObjectAssetRejectsAbstractTypes()
+        {
+            var response = Rpc("create_scriptable_object_asset", new JObject
+            {
+                ["type"] = typeof(AbstractScriptableObjectProbe).FullName,
+                ["path"] = "Assets/AbstractProbe.asset"
+            });
+
+            Assert.IsNotNull(response["error"]);
+            string message = response["error"]["message"]?.ToString();
+            Assert.IsTrue(message.Contains("is abstract and cannot be instantiated"), message);
+        }
+
+        [Test]
+        public void ListFieldsForTypeRejectsAbstractTypes()
+        {
+            var response = Rpc("list_fields_for_type", new JObject
+            {
+                ["type"] = typeof(AbstractScriptableObjectProbe).FullName
+            });
+
+            Assert.IsNotNull(response["error"]);
+            string message = response["error"]["message"]?.ToString();
+            Assert.IsTrue(message.Contains("is abstract and cannot be instantiated"), message);
+        }
+
         private void WriteTestResults(string xml)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_resultPath));
@@ -251,5 +278,9 @@ namespace UnityMCP.Editor.Tests
 
             return JObject.Parse(MCPServerMethods.ProcessJsonRpc(request.ToString(Formatting.None)));
         }
+    }
+
+    public abstract class AbstractScriptableObjectProbe : ScriptableObject
+    {
     }
 }

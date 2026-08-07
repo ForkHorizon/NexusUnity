@@ -59,6 +59,23 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void AuthToken_PersistsAcrossSessionStateReset()
+        {
+            string initialToken = MCPServer.AuthToken;
+            Assert.IsFalse(string.IsNullOrEmpty(initialToken), "Auth token should be non-empty");
+
+            var authTokenField = typeof(MCPServer).GetField("_authToken", BindingFlags.NonPublic | BindingFlags.Static);
+            authTokenField?.SetValue(null, null);
+
+            var sessionKeyField = typeof(MCPServer).GetField("AuthSessionStateKey", BindingFlags.NonPublic | BindingFlags.Static);
+            string sessionKey = (string)sessionKeyField?.GetValue(null) ?? "NexusUnity_AuthToken";
+            SessionState.SetString(sessionKey, string.Empty);
+
+            string restoredToken = MCPServer.AuthToken;
+            Assert.AreEqual(initialToken, restoredToken, "AuthToken should persist across SessionState resets");
+        }
+
+        [Test]
         public void GetPortOwner_IdentifiesProcess()
         {
             TcpListener listener = new TcpListener(IPAddress.Loopback, TEST_PORT);

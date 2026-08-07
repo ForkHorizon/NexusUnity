@@ -83,12 +83,12 @@ namespace UnityMCP.Editor
 
                 return new JObject
                 {
-                    ["status"] = "Success",
-                    ["message"] = $"Test run triggered for {modeStr} (filter: {filter ?? "none"})",
+                    ["status"] = "Submitted",
+                    ["message"] = $"Test run submitted for {modeStr} (filter: {filter ?? "none"})",
                     ["mode"] = modeStr,
                     ["filter"] = filter,
                     ["result_path"] = GetDefaultTestResultsPath(),
-                    ["started_at_utc"] = DateTime.UtcNow.ToString("o")
+                    ["submitted_at_utc"] = DateTime.UtcNow.ToString("o")
                 };
             }
             catch (Exception e)
@@ -219,23 +219,10 @@ namespace UnityMCP.Editor
             if (prop == null) throw new System.Exception($"Property '{p["property_name"]}' not found on {obj.name}");
 
             Undo.RecordObject(obj, $"Set {p["property_name"]}");
-            ApplyValueToSerializedProperty(prop, p["value"]);
+            ApplySimpleJTokenValue(prop, p["value"], "Value type not supported for surgical edit yet");
 
             so.ApplyModifiedProperties();
             return new JObject { ["status"] = "Success", ["message"] = "Property updated" };
-        }
-
-        private static void ApplyValueToSerializedProperty(SerializedProperty prop, JToken val)
-        {
-            if (val.Type == JTokenType.Boolean) prop.boolValue = val.Value<bool>();
-            else if (val.Type == JTokenType.Float) prop.floatValue = val.Value<float>();
-            else if (val.Type == JTokenType.Integer) prop.intValue = val.Value<int>();
-            else if (val.Type == JTokenType.String) prop.stringValue = val.Value<string>();
-            else if (val.Type == JTokenType.Object && val["x"] != null)
-            {
-                prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
-            }
-            else throw new System.Exception("Value type not supported for surgical edit yet");
         }
 
         /// <summary>Returns current editor state flags.</summary>

@@ -216,6 +216,28 @@ import urllib.request
 url = sys.argv[1]
 mode = sys.argv[2]
 
+import os
+
+def get_auth_token():
+    token = os.environ.get("NEXUS_UNITY_AUTH_TOKEN")
+    if token:
+        return token
+    for candidate in (
+        os.path.join(os.getcwd(), "Library", "NexusUnityAuthToken.txt"),
+        os.path.join(os.getcwd(), "..", "..", "Library", "NexusUnityAuthToken.txt"),
+    ):
+        if os.path.isfile(candidate):
+            try:
+                with open(candidate, "r", encoding="utf-8") as handle:
+                    val = handle.read().strip()
+                    if val:
+                        return val
+            except Exception:
+                pass
+    return None
+
+auth_token = get_auth_token()
+
 TRANSIENT_ERRORS = (
     OSError,
     TimeoutError,
@@ -240,13 +262,17 @@ def rpc(method, params=None, timeout=2, retries=0):
         "id": 1,
     }).encode("utf-8")
 
+    headers = {"Content-Type": "application/json"}
+    if auth_token:
+        headers["X-Nexus-Unity-Token"] = auth_token
+
     last_error = None
     for attempt in range(retries + 1):
         try:
             request = urllib.request.Request(
                 url,
                 data=payload,
-                headers={"Content-Type": "application/json"},
+                headers=headers,
             )
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
@@ -342,6 +368,7 @@ check_nexus_server_ready() {
   local unity_project_root="$1"
   python3 - "$unity_project_root" <<'PY'
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -356,11 +383,34 @@ payload = json.dumps({
 }).encode("utf-8")
 deadline = time.time() + 10
 
+def get_auth_token():
+    token = os.environ.get("NEXUS_UNITY_AUTH_TOKEN")
+    if token:
+        return token
+    for candidate in (
+        os.path.join(project_root, "Library", "NexusUnityAuthToken.txt"),
+        os.path.join(os.getcwd(), "Library", "NexusUnityAuthToken.txt"),
+    ):
+        if os.path.isfile(candidate):
+            try:
+                with open(candidate, "r", encoding="utf-8") as handle:
+                    val = handle.read().strip()
+                    if val:
+                        return val
+            except Exception:
+                pass
+    return None
+
+auth_token = get_auth_token()
+
 while time.time() < deadline:
+    headers = {"Content-Type": "application/json"}
+    if auth_token:
+        headers["X-Nexus-Unity-Token"] = auth_token
     request = urllib.request.Request(
         "http://127.0.0.1:8081/",
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(request, timeout=3) as response:

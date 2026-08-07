@@ -197,7 +197,7 @@ class RunTestsWaitTests(unittest.TestCase):
     def test_run_tests_wait_returns_success_when_new_results_appear(self) -> None:
         call_results: list[dict[str, Any]] = [
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
-            {"result": {"result_path": "/tmp/TestResults.xml"}},
+            {"result": {"status": "Submitted", "result_path": "/tmp/TestResults.xml"}},
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:03Z"}},
         ]
 
@@ -218,10 +218,24 @@ class RunTestsWaitTests(unittest.TestCase):
             ]
         )
 
+    def test_run_tests_wait_accepts_legacy_success_trigger(self) -> None:
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Success", "result_path": "/tmp/TestResults.xml"}},
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:03Z"}},
+        ]
+
+        with patch("nexus_bridge.routing.call_unity", side_effect=call_results) as mock_call_unity:
+            with patch("nexus_bridge.routing.time.time", side_effect=[100.0, 100.0, 103.25]):
+                response: dict[str, Any] = routing._run_tests_wait({})
+
+        self.assertEqual("Success", response["result"]["status"])
+        self.assertEqual(3, mock_call_unity.call_count)
+
     def test_run_tests_wait_returns_timeout_when_results_do_not_change(self) -> None:
         call_results: list[dict[str, Any]] = [
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
-            {"result": {"result_path": "/tmp/TestResults.xml"}},
+            {"result": {"status": "Submitted", "result_path": "/tmp/TestResults.xml"}},
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
         ]
 
@@ -235,6 +249,25 @@ class RunTestsWaitTests(unittest.TestCase):
         self.assertEqual(5.1, response["result"]["time_waited_seconds"])
         self.assertEqual("Timed out waiting for a new Unity TestResults XML file.", response["result"]["message"])
         mock_sleep.assert_called_once_with(1.0)
+
+    def test_run_tests_wait_returns_non_submitted_trigger_without_polling(self) -> None:
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Error", "message": "A test run is already active."}},
+        ]
+
+        with patch("nexus_bridge.routing.call_unity", side_effect=call_results) as mock_call_unity:
+            response: dict[str, Any] = routing._run_tests_wait({})
+
+        self.assertEqual("Error", response["result"]["status"])
+        self.assertEqual("A test run is already active.", response["result"]["message"])
+        mock_call_unity.assert_has_calls(
+            [
+                call("get_test_results"),
+                call("run_tests", {"mode": "EditMode"}),
+            ]
+        )
+        self.assertEqual(2, mock_call_unity.call_count)
 
 
 class WaitForCompilationTests(unittest.TestCase):

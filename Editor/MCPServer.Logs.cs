@@ -124,9 +124,6 @@ namespace UnityMCP.Editor
         {
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
-
-            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
-            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;
         }
 
         private static void OnLogMessageReceived(string condition, string stackTrace, LogType type)
