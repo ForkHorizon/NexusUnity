@@ -51,7 +51,8 @@ namespace UnityMCP.Editor
         public static string LastError { get; private set; }
 
         private static HttpListener _listener;
-        private static WebSocket _webSocket;
+        private static readonly System.Collections.Generic.HashSet<WebSocket> _activeWebSockets = new System.Collections.Generic.HashSet<WebSocket>();
+        private static readonly object _webSocketLock = new object();
         private static CancellationTokenSource _cts;
         private static int? _cliPortOverride;
         private const int _MAX_LOGS = 5000;

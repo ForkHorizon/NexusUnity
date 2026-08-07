@@ -53,8 +53,13 @@ namespace UnityMCP.Editor
 
                 var wsContext = await context.AcceptWebSocketAsync(null);
                 socket = wsContext.WebSocket;
-                _webSocket = socket;
-                await ReceiveWebsocketLoop(socket, _cts.Token);
+                lock (_webSocketLock)
+                {
+                    _activeWebSockets.Add(socket);
+                }
+
+                var token = _cts?.Token ?? CancellationToken.None;
+                await ReceiveWebsocketLoop(socket, token);
             }
             catch (ObjectDisposedException) { }
             catch (HttpListenerException) { }
@@ -68,7 +73,10 @@ namespace UnityMCP.Editor
             {
                 if (socket != null)
                 {
-                    if (_webSocket == socket) _webSocket = null;
+                    lock (_webSocketLock)
+                    {
+                        _activeWebSockets.Remove(socket);
+                    }
                     try { socket.Dispose(); } catch { }
                 }
             }
@@ -194,7 +202,7 @@ namespace UnityMCP.Editor
             while (ws.State == WebSocketState.Open && !token.IsCancellationRequested)
             {
                 ms.SetLength(0);
-                WebSocketReceiveResult result;
+                WebSocketReceiveResult result = null;
                 do
                 {
                     result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), token);
@@ -214,7 +222,7 @@ namespace UnityMCP.Editor
                     ms.Write(buffer, 0, result.Count);
                 } while (!result.EndOfMessage && !token.IsCancellationRequested);
 
-                if (ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
+                if (result != null && result.EndOfMessage && ms.Length > 0 && result.MessageType == WebSocketMessageType.Text)
                 {
                     ms.Position = 0;
                     using var reader = new StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true);

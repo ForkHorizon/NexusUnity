@@ -284,11 +284,13 @@ namespace UnityMCP.Editor
             lock (_startLock)
             {
                 _cts?.Cancel();
-                var ws = _webSocket;
-                _webSocket = null;
-                if (ws != null)
+                lock (_webSocketLock)
                 {
-                    try { ws.Dispose(); } catch { }
+                    foreach (var ws in _activeWebSockets)
+                    {
+                        try { ws?.Dispose(); } catch { }
+                    }
+                    _activeWebSockets.Clear();
                 }
                 if (_listener != null)
                 {
