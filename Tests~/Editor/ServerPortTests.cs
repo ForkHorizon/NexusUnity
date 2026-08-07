@@ -97,34 +97,15 @@ namespace UnityMCP.Editor.Tests
         [Test]
         public async Task Start_WithPort0_AssignsDynamicPort()
         {
-            // We expect some background noise from Init() auto-starts in some environments
             LogAssert.ignoreFailingMessages = true;
-
             try
             {
-                // Ensure server is stopped
-                if (MCPServer.State != ServerState.Stopped)
-                {
-                    MCPServer.Stop();
-                    await Task.Delay(200);
-                }
-
-                // Save current port setting
                 int originalPort = MCPSettings.Port;
                 MCPSettings.Port = 0;
 
                 try
                 {
-                    MCPServer.Start();
-                    
-                    // Wait for it to start (it happens async)
-                    int timeout = 50; // 5 seconds max
-                    while (MCPServer.State == ServerState.Starting && timeout-- > 0)
-                    {
-                        await Task.Delay(100);
-                    }
-
-                    Assert.AreEqual(ServerState.Running, MCPServer.State, "Server should be running");
+                    await StartTestServerAsync();
                     Assert.Greater(MCPServer.Port, 0, "Server should have a dynamic port > 0");
                 }
                 finally
@@ -155,25 +136,12 @@ namespace UnityMCP.Editor.Tests
             LogAssert.ignoreFailingMessages = true;
             try
             {
-                if (MCPServer.State != ServerState.Stopped)
-                {
-                    MCPServer.Stop();
-                    await Task.Delay(200);
-                }
-
                 int originalPort = MCPSettings.Port;
                 MCPSettings.Port = 0;
 
                 try
                 {
-                    MCPServer.Start();
-                    int timeout = 50;
-                    while (MCPServer.State == ServerState.Starting && timeout-- > 0)
-                    {
-                        await Task.Delay(100);
-                    }
-
-                    Assert.AreEqual(ServerState.Running, MCPServer.State, "Server should be running");
+                    await StartTestServerAsync();
                     int port = MCPServer.Port;
                     string token = MCPServer.AuthToken;
 
@@ -202,6 +170,24 @@ namespace UnityMCP.Editor.Tests
             {
                 LogAssert.ignoreFailingMessages = false;
             }
+        }
+
+        private async Task StartTestServerAsync()
+        {
+            if (MCPServer.State != ServerState.Stopped)
+            {
+                MCPServer.Stop();
+                await Task.Delay(200);
+            }
+
+            MCPServer.Start();
+            int timeout = 50;
+            while (MCPServer.State == ServerState.Starting && timeout-- > 0)
+            {
+                await Task.Delay(100);
+            }
+
+            Assert.AreEqual(ServerState.Running, MCPServer.State, "Server should be running");
         }
 
         private async Task VerifyConcurrentHttpRequestAsync(int port, string token)
