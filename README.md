@@ -191,7 +191,7 @@ Current development keeps the public API backward-compatible while tightening sc
 - `invoke_method.arguments` is an optional positional JSON array.
 - `click_object_in_game` accepts a documented `instance_id` target and still supports hierarchy `path` lookup.
 - Unity 6.x editor identity differences are handled internally: Nexus keeps JSON `instance_id` values stable while using Unity 6.4+ `EntityId` APIs when available and Unity 6.3-compatible instance ID APIs otherwise.
-- `get_test_results` reads Unity `TestResults*.xml` summaries from the project root or Unity persistent data path, using scoped failure/reason/output messages for non-passing cases; `unity_editor_controller` exposes `run_tests_wait` as a bridge-side polling workflow.
+- `run_tests` returns `Submitted` only after Unity accepts the asynchronous request; use `get_test_results` for completed `TestResults*.xml` summaries or `unity_editor_controller` `run_tests_wait` to poll for completion without blocking Unity's main thread.
 - `get_tool_usage_stats` reports in-memory raw tool counts, durations, and errors since Unity domain load without storing request payloads; `reset_tool_usage_stats` clears that state for scoped diagnostics. Both are also available through `unity_editor_controller`.
 - `ui_get_window_rect`, `ui_set_window_rect`, and `ui_capture_window_snapshot` support automated layout checks for editor windows.
 

@@ -72,33 +72,14 @@ namespace UnityMCP.Editor
 
             if (compact)
             {
-                JArray components = new JArray();
-                using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
-                {
-                    go.GetComponents(comps);
-                    foreach (var comp in comps)
-                    {
-                        if (comp != null) components.Add(GetTypeName(comp.GetType()));
-                    }
-                }
-                node["components"] = components;
+                node["components"] = SerializeComponentNames(go);
             }
             else
             {
                 node["active"] = go.activeSelf;
                 node["tag"] = go.tag;
                 node["layer"] = LayerMask.LayerToName(go.layer);
-
-                JArray componentNodes = new JArray();
-                using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
-                {
-                    go.GetComponents(comps);
-                    foreach (var comp in comps)
-                    {
-                        if (comp != null) componentNodes.Add(SerializeComponentSnapshot(comp, includeAllProperties));
-                    }
-                }
-                node["components"] = componentNodes;
+                node["components"] = SerializeComponentSnapshots(go, includeAllProperties);
             }
 
             if (currentDepth < maxDepth)
@@ -112,6 +93,34 @@ namespace UnityMCP.Editor
             }
 
             return node;
+        }
+
+        private static JArray SerializeComponentNames(GameObject go)
+        {
+            JArray components = new JArray();
+            using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
+            {
+                go.GetComponents(comps);
+                foreach (var comp in comps)
+                {
+                    if (comp != null) components.Add(GetTypeName(comp.GetType()));
+                }
+            }
+            return components;
+        }
+
+        private static JArray SerializeComponentSnapshots(GameObject go, bool includeAllProperties)
+        {
+            JArray componentNodes = new JArray();
+            using (UnityEngine.Pool.ListPool<Component>.Get(out var comps))
+            {
+                go.GetComponents(comps);
+                foreach (var comp in comps)
+                {
+                    if (comp != null) componentNodes.Add(SerializeComponentSnapshot(comp, includeAllProperties));
+                }
+            }
+            return componentNodes;
         }
 
         private static JObject SerializeComponentSnapshot(Component comp, bool includeAllProperties)
@@ -197,52 +206,65 @@ namespace UnityMCP.Editor
                     go.GetComponents(components);
                     foreach (var comp in components)
                     {
-                        if (comp == null) continue;
-
-                        using (var so = new SerializedObject(comp))
-                        {
-                            var prop = so.GetIterator();
-                            bool enterChildren = true;
-                            while (prop.Next(enterChildren))
-                            {
-                                enterChildren = true;
-                                if (prop.propertyType == SerializedPropertyType.ObjectReference)
-                                {
-                                    var target = prop.objectReferenceValue;
-                                    if (target != null && target is GameObject targetGO && targetGO.scene == activeScene)
-                                    {
-                                        var dep = new JObject();
-                                        dep["from_go"] = go.name;
-                                        dep["from_id"] = go.GetRawId();
-                                        dep["component"] = GetTypeName(comp.GetType());
-                                        dep["field"] = prop.name;
-                                        dep["to_go"] = targetGO.name;
-                                        dep["to_id"] = targetGO.GetRawId();
-                                        sceneRefs.Add(dep);
-                                    }
-                                    else if (target != null && target is Component targetComp && targetComp.gameObject.scene == activeScene)
-                                    {
-                                        var dep = new JObject();
-                                        dep["from_go"] = go.name;
-                                        dep["from_id"] = go.GetRawId();
-                                        dep["component"] = GetTypeName(comp.GetType());
-                                        dep["field"] = prop.name;
-                                        dep["to_go"] = targetComp.gameObject.name;
-                                        dep["to_comp"] = GetTypeName(targetComp.GetType());
-                                        dep["to_id"] = targetComp.gameObject.GetRawId();
-                                        sceneRefs.Add(dep);
-                                    }
-                                }
-                            }
-                        }
+                        if (comp != null) CollectComponentReferences(go, comp, activeScene, sceneRefs);
                     }
                 }
             }
 
-            return new JObject 
-            { 
+            return new JObject
+            {
                 ["status"] = "Success",
-                ["dependencies"] = sceneRefs 
+                ["dependencies"] = sceneRefs
+            };
+        }
+
+        // Walks a component's serialized object-reference fields and records any
+        // that point at another object in the active scene.
+        private static void CollectComponentReferences(GameObject go, Component comp, UnityEngine.SceneManagement.Scene activeScene, JArray sceneRefs)
+        {
+            using var so = new SerializedObject(comp);
+            var prop = so.GetIterator();
+            bool enterChildren = true;
+            while (prop.Next(enterChildren))
+            {
+                enterChildren = false;
+                if (prop.propertyType != SerializedPropertyType.ObjectReference) continue;
+
+                JObject dep = BuildSceneReference(go, comp, prop.name, prop.objectReferenceValue, activeScene);
+                if (dep != null) sceneRefs.Add(dep);
+            }
+        }
+
+        private static JObject BuildSceneReference(GameObject go, Component comp, string field, UnityEngine.Object target, UnityEngine.SceneManagement.Scene activeScene)
+        {
+            if (target is GameObject targetGO && targetGO.scene == activeScene)
+            {
+                JObject dep = MakeReferenceHeader(go, comp, field);
+                dep["to_go"] = targetGO.name;
+                dep["to_id"] = targetGO.GetRawId();
+                return dep;
+            }
+
+            if (target is Component targetComp && targetComp.gameObject.scene == activeScene)
+            {
+                JObject dep = MakeReferenceHeader(go, comp, field);
+                dep["to_go"] = targetComp.gameObject.name;
+                dep["to_comp"] = GetTypeName(targetComp.GetType());
+                dep["to_id"] = targetComp.gameObject.GetRawId();
+                return dep;
+            }
+
+            return null;
+        }
+
+        private static JObject MakeReferenceHeader(GameObject go, Component comp, string field)
+        {
+            return new JObject
+            {
+                ["from_go"] = go.name,
+                ["from_id"] = go.GetRawId(),
+                ["component"] = GetTypeName(comp.GetType()),
+                ["field"] = field
             };
         }
     }

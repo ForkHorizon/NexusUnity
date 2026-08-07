@@ -9,7 +9,7 @@ namespace UnityMCP.Editor
     /// </summary>
     /// <remarks>
     /// The window builds a TextField, Button, and Label with stable names. Verification helpers show the window, reset state,
-    /// send UI automation JSON-RPC calls, and assert that UI callbacks update the static test state.
+    /// send UI automation JSON-RPC calls, and assert that UI callbacks update this window's test state.
     /// </remarks>
     public class MCPTestWindow : EditorWindow
     {
@@ -18,15 +18,15 @@ namespace UnityMCP.Editor
         /// <summary>
         /// Stores the last input value for verification.
         /// </summary>
-        public static string LastInputValue = "";
+        public string LastInputValue { get; private set; } = "";
 
         /// <summary>
         /// Tracks if the test button has been clicked.
         /// </summary>
-        public static bool ButtonClicked = false;
+        public bool ButtonClicked { get; private set; }
 
         /// <summary>
-        /// Resets static test flags and clears the UI Toolkit input/label elements in the current visual tree.
+        /// Resets this window's test state and clears the UI Toolkit input/label elements in the current visual tree.
         /// </summary>
         public void ResetState()
         {
@@ -58,16 +58,13 @@ namespace UnityMCP.Editor
         /// Creates named UI Toolkit controls and event handlers used by Nexus Unity UI automation smoke tests.
         /// </summary>
         /// <remarks>
-        /// This method mutates <see cref="EditorWindow.rootVisualElement"/>, resets static test state, registers a text-change
+        /// This method mutates <see cref="EditorWindow.rootVisualElement"/>, preserves instance test state, registers a text-change
         /// callback, and wires the button click to update the label and <see cref="ButtonClicked"/>.
         /// </remarks>
         public void CreateGUI()
         {
             NexusEditorUi.SetupRoot(rootVisualElement);
             rootVisualElement.name = "NexusTestWindowRoot";
-
-            LastInputValue = "";
-            ButtonClicked = false;
 
             var header = NexusEditorUi.Panel("TestWindowHeader");
             header.Add(NexusEditorUi.Label("UI Automation Test", 16, true));
@@ -76,7 +73,7 @@ namespace UnityMCP.Editor
 
             var panel = NexusEditorUi.Panel("TestWindowControls");
 
-            var label = new Label("Initial State");
+            var label = new Label(ButtonClicked ? "Button Clicked!" : "Initial State");
             label.name = "TestLabel";
             label.style.marginBottom = 8;
             label.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -85,8 +82,7 @@ namespace UnityMCP.Editor
             var textField = new TextField("Input:");
             textField.name = "TestInput";
             textField.style.marginBottom = 8;
-            textField.value = "";
-            LastInputValue = textField.value;
+            textField.value = LastInputValue;
             textField.RegisterValueChangedCallback(evt => LastInputValue = evt.newValue);
             panel.Add(textField);
 

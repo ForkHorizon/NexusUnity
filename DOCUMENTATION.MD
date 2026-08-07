@@ -114,7 +114,7 @@ MCP bridge:
 - Manager tools accept common raw-action aliases where agents naturally try them, for example `unity_scene_manager action=list_scenes` and `unity_hierarchy_manager action=create_gameobject`.
 - Invalid manager actions include the valid action names in the error message.
 - `unity_hierarchy_manager` can create primitives with name, parent, transform, and material path; it can also rename, set transforms, and pass through `create_hierarchy`.
-- `unity_editor_controller` includes `run_tests_wait`, which waits in the Python bridge by polling raw `get_test_results` instead of blocking the Unity main thread.
+- Raw `run_tests` returns `Submitted` when Unity accepts the asynchronous request; it does not confirm that execution has begun or completed. `unity_editor_controller` `run_tests_wait` waits in the Python bridge by polling raw `get_test_results` instead of blocking the Unity main thread.
 - `unity_editor_controller` also exposes `get_tool_usage_stats` and `reset_tool_usage_stats` so diagnostics are not split between raw and manager workflows.
 - `unity_ui_automation` passes through `deep` for UI hierarchy reads, `class_name` for queries, and window rect/snapshot actions for layout checks.
 

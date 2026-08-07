@@ -307,5 +307,16 @@ namespace UnityMCP.Editor
             else if (value is string s) prop.stringValue = s;
             else if (value is Vector3 v) prop.vector3Value = v;
         }
+
+        private static void ApplySimpleJTokenValue(SerializedProperty prop, JToken value, string unsupportedMessage)
+        {
+            if (value.Type == JTokenType.Boolean) prop.boolValue = value.Value<bool>();
+            else if (value.Type == JTokenType.Float) prop.floatValue = value.Value<float>();
+            else if (value.Type == JTokenType.Integer) prop.intValue = value.Value<int>();
+            else if (value.Type == JTokenType.String) prop.stringValue = value.Value<string>();
+            else if (value.Type == JTokenType.Object && value["x"] != null)
+                prop.vector3Value = new Vector3(value["x"].Value<float>(), value["y"].Value<float>(), value["z"].Value<float>());
+            else throw new Exception(unsupportedMessage);
+        }
     }
 }

@@ -128,17 +128,21 @@ jobs:
           path: candidate
 
       - name: Run required Ollama documentation and checklist review
+        env:
+          IS_FORK_PR: ${{ github.event.pull_request && github.event.pull_request.head.repo.fork || false }}
         run: |
           set -euo pipefail
           dotnet --version
 
           QUALITY_GATE_PROJECT="trusted/tools~/NexusQualityGate/NexusQualityGate.csproj"
-          if [ ! -f "$QUALITY_GATE_PROJECT" ]; then
-            echo "::notice::Trusted branch does not have NexusQualityGate yet; using candidate tool for bootstrap validation."
-            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
-          elif ! grep -q -- "--checklist-ai" trusted/tools~/NexusQualityGate/QualityGateOptions.cs; then
-            echo "::notice::Trusted NexusQualityGate does not support checklist AI yet; using candidate tool for this bootstrap validation."
-            QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+          if [ ! -f "$QUALITY_GATE_PROJECT" ] || ! grep -q -- "--checklist-ai" trusted/tools~/NexusQualityGate/QualityGateOptions.cs; then
+            if [ "${IS_FORK_PR:-false}" = "true" ]; then
+              echo "::warning::Trusted branch does not support the required NexusQualityGate version, and candidate tool cannot be executed for fork PRs due to security restrictions. Skipping AI documentation check."
+              exit 0
+            else
+              echo "::notice::Trusted branch does not have the required NexusQualityGate version; using candidate tool for bootstrap validation."
+              QUALITY_GATE_PROJECT="candidate/tools~/NexusQualityGate/NexusQualityGate.csproj"
+            fi
           fi
 
           dotnet run --project "$QUALITY_GATE_PROJECT" -- \
@@ -239,6 +243,9 @@ jobs:
           dependencies = manifest.setdefault("dependencies", {})
           dependencies["com.forkhorizon.nexus.unity"] = f"file:{os.environ['GITHUB_WORKSPACE']}"
           dependencies["com.unity.test-framework"] = "1.5.1"
+          testables = manifest.setdefault("testables", [])
+          if "com.forkhorizon.nexus.unity" not in testables:
+              testables.append("com.forkhorizon.nexus.unity")
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           PY
 
@@ -361,7 +368,7 @@ jobs:
             -projectPath "$SMOKE_ROOT" \
             -runTests \
             -testPlatform editmode \
-            -assemblyNames NexusUnity.PackageSmoke.EditorTests \
+            -assemblyNames "NexusUnity.PackageSmoke.EditorTests;UnityMCP.Editor.Tests" \
             -testResults "$SMOKE_TEST_RESULTS" \
             -logFile "$SMOKE_TEST_LOG"; then
             echo "::error::Unity package Editor tests failed."
