@@ -149,6 +149,77 @@ namespace UnityMCP.Editor.Tests
             Assert.That(MCPServer.State, Is.Not.EqualTo(ServerState.Starting), "Should not be stuck in Starting");
         }
 
+        [Test]
+        public async Task WebSocketConnection_DoesNotBlockConcurrentHttpRequests()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            try
+            {
+                if (MCPServer.State != ServerState.Stopped)
+                {
+                    MCPServer.Stop();
+                    await Task.Delay(200);
+                }
+
+                int originalPort = MCPSettings.Port;
+                MCPSettings.Port = 0;
+
+                try
+                {
+                    MCPServer.Start();
+                    int timeout = 50;
+                    while (MCPServer.State == ServerState.Starting && timeout-- > 0)
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    Assert.AreEqual(ServerState.Running, MCPServer.State, "Server should be running");
+                    int port = MCPServer.Port;
+                    string token = MCPServer.AuthToken;
+
+                    using (var ws = new System.Net.WebSockets.ClientWebSocket())
+                    {
+                        ws.Options.SetRequestHeader("X-Nexus-Unity-Token", token);
+                        var connectTask = ws.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/"), CancellationToken.None);
+                        var completedTask = await Task.WhenAny(connectTask, Task.Delay(2000));
+                        Assert.AreEqual(connectTask, completedTask, "WebSocket should connect within 2s");
+
+                        // While WebSocket is connected, issue an HTTP request to prove ServerLoop is accept-capable
+                        using (var httpClient = new System.Net.Http.HttpClient())
+                        {
+                            var requestContent = new System.Net.Http.StringContent(
+                                "{\"jsonrpc\":\"2.0\",\"method\":\"get_server_status\",\"id\":1}",
+                                System.Text.Encoding.UTF8,
+                                "application/json"
+                            );
+                            requestContent.Headers.Add("X-Nexus-Unity-Token", token);
+
+                            var httpTask = httpClient.PostAsync($"http://127.0.0.1:{port}/", requestContent);
+                            var finished = await Task.WhenAny(httpTask, Task.Delay(2000));
+
+                            Assert.AreEqual(httpTask, finished, "HTTP request should respond while WebSocket connection is active");
+                            var response = await httpTask;
+                            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                        }
+
+                        if (ws.State == System.Net.WebSockets.WebSocketState.Open)
+                        {
+                            await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "Test done", CancellationToken.None);
+                        }
+                    }
+                }
+                finally
+                {
+                    MCPServer.Stop();
+                    MCPSettings.Port = originalPort;
+                }
+            }
+            finally
+            {
+                LogAssert.ignoreFailingMessages = false;
+            }
+        }
+
         private object InvokePrivateMethod(string methodName, params object[] args)
         {
             var method = typeof(MCPServer).GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);

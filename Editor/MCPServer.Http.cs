@@ -35,22 +35,43 @@ namespace UnityMCP.Editor
 
         private static async Task ProcessWebSocket(HttpListenerContext context)
         {
-            if (!IsValidOrigin(context))
+            WebSocket socket = null;
+            try
             {
-                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                context.Response.Close();
-                return;
-            }
+                if (!IsValidOrigin(context))
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    context.Response.Close();
+                    return;
+                }
 
-            if (!IsAuthorized(context))
+                if (!IsAuthorized(context))
+                {
+                    RejectUnauthorized(context);
+                    return;
+                }
+
+                var wsContext = await context.AcceptWebSocketAsync(null);
+                socket = wsContext.WebSocket;
+                _webSocket = socket;
+                await ReceiveWebsocketLoop(socket, _cts.Token);
+            }
+            catch (ObjectDisposedException) { }
+            catch (HttpListenerException) { }
+            catch (WebSocketException) { }
+            catch (OperationCanceledException) { }
+            catch (Exception e)
             {
-                RejectUnauthorized(context);
-                return;
+                NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Error handling WebSocket connection: {e.Message}");
             }
-
-            var wsContext = await context.AcceptWebSocketAsync(null);
-            _webSocket = wsContext.WebSocket;
-            await ReceiveWebsocketLoop(_cts.Token);
+            finally
+            {
+                if (socket != null)
+                {
+                    if (_webSocket == socket) _webSocket = null;
+                    try { socket.Dispose(); } catch { }
+                }
+            }
         }
 
         private static void HandleHttpRequest(HttpListenerContext context)
@@ -165,28 +186,28 @@ namespace UnityMCP.Editor
             context.Response.Close();
         }
 
-        private static async Task ReceiveWebsocketLoop(CancellationToken token)
+        private static async Task ReceiveWebsocketLoop(WebSocket ws, CancellationToken token)
         {
             var buffer = new byte[4096];
             using var ms = new MemoryStream();
 
-            while (_webSocket.State == WebSocketState.Open && !token.IsCancellationRequested)
+            while (ws.State == WebSocketState.Open && !token.IsCancellationRequested)
             {
                 ms.SetLength(0);
                 WebSocketReceiveResult result;
                 do
                 {
-                    result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+                    result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), token);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                         return;
                     }
 
                     if (ms.Length + result.Count > MaxPayloadSize)
                     {
                         NexusEditorLog.Error(NexusLogCategory.Server, "[MCP] WebSocket payload exceeded maximum size. Disconnecting.");
-                        await _webSocket.CloseAsync(WebSocketCloseStatus.MessageTooBig, "Payload too large", CancellationToken.None);
+                        await ws.CloseAsync(WebSocketCloseStatus.MessageTooBig, "Payload too large", CancellationToken.None);
                         return;
                     }
 
@@ -198,10 +219,10 @@ namespace UnityMCP.Editor
                     ms.Position = 0;
                     using var reader = new StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true);
                     string response = MCPServerMethods.ProcessJsonRpc(reader);
-                    if (_webSocket.State == WebSocketState.Open)
+                    if (ws.State == WebSocketState.Open)
                     {
                         var respBuffer = Encoding.UTF8.GetBytes(response);
-                        await _webSocket.SendAsync(new ArraySegment<byte>(respBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                        await ws.SendAsync(new ArraySegment<byte>(respBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
                     }
                 }
             }

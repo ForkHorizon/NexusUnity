@@ -62,6 +62,7 @@ Nexus Unity is a local developer tool and should be used only with trusted local
 
 - HTTP and WebSocket requests must target loopback hosts.
 - HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`.
+- WebSocket and HTTP requests are processed asynchronously on background worker threads, ensuring the server accept loop remains non-blocking for concurrent clients.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
 - C# script writes require `confirm: true` before creating or overwriting `.cs` files and triggering Unity compilation.

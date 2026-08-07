@@ -141,7 +141,7 @@ namespace UnityMCP.Editor
                 while (!token.IsCancellationRequested && _listener != null && _listener.IsListening)
                 {
                     var context = await _listener.GetContextAsync();
-                    if (context.Request.IsWebSocketRequest) await ProcessWebSocket(context);
+                    if (context.Request.IsWebSocketRequest) _ = Task.Run(() => ProcessWebSocket(context));
                     else _ = Task.Run(() => HandleHttpRequest(context));
                 }
             }
@@ -284,6 +284,12 @@ namespace UnityMCP.Editor
             lock (_startLock)
             {
                 _cts?.Cancel();
+                var ws = _webSocket;
+                _webSocket = null;
+                if (ws != null)
+                {
+                    try { ws.Dispose(); } catch { }
+                }
                 if (_listener != null)
                 {
                     try { if (_listener.IsListening) _listener.Stop(); } catch { }
