@@ -1,4 +1,5 @@
 """HTTP transport and config helpers for the NexusUnity bridge."""
+# CI approval probe: harmless code-file comment; no runtime behavior change.
 from __future__ import annotations
 
 import json
