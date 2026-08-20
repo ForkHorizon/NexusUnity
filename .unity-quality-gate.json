@@ -1,0 +1,14 @@
+{
+  "project": "",
+  "unity_path": "",
+  "include_paths": [
+    "Runtime/",
+    "Editor/"
+  ],
+  "exclude_paths": [
+    "Tests~/",
+    "tools~/",
+    "Plugins/"
+  ],
+  "warning_exclude_codes": []
+}
