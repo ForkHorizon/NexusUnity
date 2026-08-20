@@ -1,14 +1,14 @@
 {
-  "project": "Assembly-CSharp.csproj",
+  "project": "",
   "unity_path": "",
   "include_paths": [
-    "Assets/"
+    "Runtime/",
+    "Editor/"
   ],
   "exclude_paths": [
-    "Assets/Plugins/",
-    "Assets/Libs/",
-    "Assets/TextMesh Pro/",
-    "Assets/ThirdParty/"
+    "Tests~/",
+    "tools~/",
+    "Plugins/"
   ],
   "warning_exclude_codes": []
 }
