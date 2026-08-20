@@ -13,6 +13,7 @@ All notable public changes to Nexus Unity are documented here.
 - Consolidated duplicate internal Ollama-review and serialized-property write helpers.
 
 ### Fixed
+- Dispatch WebSocket request handling asynchronously in `Task.Run`, ensuring `ServerLoop` remains non-blocking for concurrent HTTP JSON-RPC requests and new connections (#129).
 - `EditorApplication.update` subscription for `HandlePostCompileFocusReturn` is now idempotent (unsubscribes before subscribing), preventing stacked duplicate frame handlers on repeated initialization or domain reloads (#138).
 - `ListPlayerPrefs` now uses `ProcessStartInfo.ArgumentList` and timeout guards for macOS `defaults read` execution, preventing process hangs, alongside regex unhashing for Windows registry keys, Linux XML prefs support, and double-default type verification (#143).
 - Persist authentication tokens across Unity Editor process restarts in Library token file, preventing persistent HTTP 401 Unauthorized errors for external MCP CLI integrations after restarting Unity (#166).
