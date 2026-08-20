@@ -37,7 +37,7 @@ permissions:
 jobs:
   replay:
     name: "Create trusted/pr-${{ inputs.pr_number }} and run CI"
-    runs-on: [self-hosted, macOS, ARM64, ci-scope-broker]
+    runs-on: [self-hosted, macOS, ARM64, ci-scope]
 
     steps:
       # ── 0. Resolve external PR metadata ────────────────────────────────────
