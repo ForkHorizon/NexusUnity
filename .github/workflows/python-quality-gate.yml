@@ -1,0 +1,22 @@
+name: Python Quality Gate
+
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-quality-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-quality-gate:
+    uses: ForkHorizon/ci-gates/.github/workflows/python-quality.yml@main
+    with:
+      runs-on: '["self-hosted", "macOS", "ARM64", "ci-scope", "ci-scope-v2"]'
