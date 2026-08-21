@@ -108,6 +108,8 @@ InitTestScene*.unity*
 .DS_Store
 .jules/
 __pycache__/
+__pycache__.meta
+*.pyc.meta
 *.py[cod]
 *$py.class
 .venv/
@@ -136,3 +138,19 @@ LINT_REPORT.txt
 temp_verify/
 *.tmp
 AUDIT_FINDINGS.md*
+
+# ProjectMem runtime state is local and may contain private work history.
+# Keep only the reviewed project configuration, map, and plan in Git.
+.projectmem/AI_INSTRUCTIONS.md
+.projectmem/events.jsonl
+.projectmem/issues/
+.projectmem/summary.md
+.projectmem/watch.pid
+.projectmem/watch.log
+.projectmem/structure.json
+
+# Claude Code project registration is generated locally and includes the Nexus auth token.
+.mcp.json
+.mcp.json.bak-*
+CLAUDE.md
+AGENTS.md.soma-backup-*
