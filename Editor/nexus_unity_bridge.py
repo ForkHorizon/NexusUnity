@@ -8,8 +8,10 @@ Supports two modes:
 * **MCP mode** — reads newline-delimited JSON-RPC 2.0 requests from stdin and
   writes responses to stdout, acting as a stdio MCP server.
 """
+
 import argparse
 import sys
+
 sys.dont_write_bytecode = True
 
 import json
@@ -24,11 +26,12 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
+
 def _read_package_version() -> str:
     try:
         package_json = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "package.json")
         if os.path.isfile(package_json):
-            with open(package_json, "r", encoding="utf-8") as f:
+            with open(package_json, encoding="utf-8") as f:
                 data = json.load(f)
                 ver = data.get("version")
                 if ver:
@@ -37,7 +40,9 @@ def _read_package_version() -> str:
         pass
     return "1.5.0"
 
+
 BRIDGE_VERSION = _read_package_version()
+
 
 def consume_positional_port_arg() -> None:
     if len(sys.argv) <= 1:
@@ -50,6 +55,7 @@ def consume_positional_port_arg() -> None:
 
     os.environ.setdefault("NEXUS_UNITY_PORT", str(port))
     del sys.argv[1]
+
 
 consume_positional_port_arg()
 
@@ -85,6 +91,7 @@ def read_resource(uri: str) -> dict[str, Any]:
 
     return {"error": {"code": -32000, "message": f"Resource file not found: {filename}"}}
 
+
 def orphan_monitor() -> None:
     """Monitor if the parent process (AI CLI) is still alive."""
     while True:
@@ -119,6 +126,7 @@ def _parse_cli_args(argv: list[str]) -> tuple[str, dict[str, Any]]:
         args[key] = _json_or_string(value)
 
     return ns.tool_name, args
+
 
 def _run_cli_mode() -> None:
     """Direct command execution: `nexus_unity_bridge.py <tool> key=value ...`."""
@@ -199,6 +207,7 @@ def main() -> None:
             sys.stdout.flush()
         except Exception as e:
             logger.error("Error in bridge loop: %s", e)
+
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,5 @@
 """HTTP transport and config helpers for the NexusUnity bridge."""
+
 from __future__ import annotations
 
 import json
@@ -50,6 +51,8 @@ UNITY_URL: str = (
     else f"http://127.0.0.1:{_read_port()}/"
 )
 UNITY_TIMEOUT_SECONDS: float = _read_timeout()
+
+
 def _read_token_file() -> str | None:
     for candidate in (
         os.path.join(os.getcwd(), "Library", "NexusUnityAuthToken.txt"),
@@ -57,7 +60,7 @@ def _read_token_file() -> str | None:
     ):
         if os.path.isfile(candidate):
             try:
-                with open(candidate, "r", encoding="utf-8") as handle:
+                with open(candidate, encoding="utf-8") as handle:
                     val = handle.read().strip()
                     if val:
                         return val
@@ -98,8 +101,7 @@ def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse
     # retry re-reads the file, so normal calls keep the import-time token.
     for attempt in range(2):
         headers: dict[str, str] = {"Content-Type": "application/json"}
-        token = _resolve_auth_token(force_reload=True) if attempt == 1 else (
-            AUTH_TOKEN or _resolve_auth_token())
+        token = _resolve_auth_token(force_reload=True) if attempt == 1 else (AUTH_TOKEN or _resolve_auth_token())
         if token:
             headers["X-Nexus-Unity-Token"] = token
         req: urllib.request.Request = urllib.request.Request(
@@ -115,13 +117,17 @@ def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse
                 continue
             # Distinguish "the server answered and refused" from "unreachable";
             # reporting a 401 as unreachable sends debugging the wrong way.
-            return {"error": {
-                "code": -32000,
-                "message": f"Unity Server returned HTTP {error.code} {error.reason}.",
-            }}
+            return {
+                "error": {
+                    "code": -32000,
+                    "message": f"Unity Server returned HTTP {error.code} {error.reason}.",
+                }
+            }
         except Exception as error:
-            return {"error": {
-                "code": -32000,
-                "message": f"Unity Server unreachable. Error: {error}",
-            }}
+            return {
+                "error": {
+                    "code": -32000,
+                    "message": f"Unity Server unreachable. Error: {error}",
+                }
+            }
     return {"error": {"code": -32000, "message": "Unity Server authorization failed."}}

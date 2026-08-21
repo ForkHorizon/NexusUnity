@@ -108,6 +108,8 @@ InitTestScene*.unity*
 .DS_Store
 .jules/
 __pycache__/
+__pycache__.meta
+*.pyc.meta
 *.py[cod]
 *$py.class
 .venv/

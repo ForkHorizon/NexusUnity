@@ -77,44 +77,58 @@ def main():
     rpc("execute_menu_item", {"item_path": "Window/Nexus Unity"})
     time.sleep(0.5)
 
-    query = bridge_result("ui_automation", {
-        "action": "query",
-        "window_title": "Nexus Unity",
-        "name": "NexusServerWindowRoot",
-    })
-    bridge_result("ui_automation", {
-        "action": "set_window_rect",
-        "window_title": "Nexus Unity",
-        "x": 80,
-        "y": 80,
-        "width": 640,
-        "height": 720,
-    })
-    rect = bridge_result("ui_automation", {
-        "action": "get_window_rect",
-        "window_title": "Nexus Unity",
-    })
-    snapshot = bridge_result("ui_automation", {
-        "action": "capture_window_snapshot",
-        "window_title": "Nexus Unity",
-        "include_image": True,
-        "include_hierarchy": True,
-    })
+    query = bridge_result(
+        "ui_automation",
+        {
+            "action": "query",
+            "window_title": "Nexus Unity",
+            "name": "NexusServerWindowRoot",
+        },
+    )
+    bridge_result(
+        "ui_automation",
+        {
+            "action": "set_window_rect",
+            "window_title": "Nexus Unity",
+            "x": 80,
+            "y": 80,
+            "width": 640,
+            "height": 720,
+        },
+    )
+    rect = bridge_result(
+        "ui_automation",
+        {
+            "action": "get_window_rect",
+            "window_title": "Nexus Unity",
+        },
+    )
+    snapshot = bridge_result(
+        "ui_automation",
+        {
+            "action": "capture_window_snapshot",
+            "window_title": "Nexus Unity",
+            "include_image": True,
+            "include_hierarchy": True,
+        },
+    )
     editor_state = bridge_result("editor_controller", {"action": "get_state"})
     stats = rpc("get_tool_usage_stats")
     success = bool(tools) and server.get("state") and snapshot.get("status") in {None, "Success", "success"}
 
-    summary.update({
-        "success": bool(success),
-        "elapsed_seconds": round(time.time() - started, 2),
-        "server_state": server.get("state"),
-        "editor_state": editor_state,
-        "tool_count": len(tools),
-        "window_query_count": len(query) if isinstance(query, list) else 0,
-        "rect": rect.get("rect"),
-        "snapshot": summarize_snapshot(snapshot),
-        "usage_method_count": len(stats.get("tools", [])),
-    })
+    summary.update(
+        {
+            "success": bool(success),
+            "elapsed_seconds": round(time.time() - started, 2),
+            "server_state": server.get("state"),
+            "editor_state": editor_state,
+            "tool_count": len(tools),
+            "window_query_count": len(query) if isinstance(query, list) else 0,
+            "rect": rect.get("rect"),
+            "snapshot": summarize_snapshot(snapshot),
+            "usage_method_count": len(stats.get("tools", [])),
+        }
+    )
 
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0 if summary["success"] else 1
