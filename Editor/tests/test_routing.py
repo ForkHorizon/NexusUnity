@@ -34,11 +34,36 @@ class RouteToolDispatchTests(unittest.TestCase):
 
     def test_route_tool_dispatches_to_expected_unity_methods(self) -> None:
         test_cases: list[tuple[str, dict[str, Any], str, tuple[Any, ...]]] = [
-            ("scene_manager", {"action": "open", "path": "Assets/TestScene.unity"}, "open_scene", ({"path": "Assets/TestScene.unity"},)),
-            ("hierarchy_manager", {"action": "destroy", "instance_id": 42}, "destroy_game_object", ({"instance_id": 42},)),
-            ("hierarchy_manager", {"action": "set_sibling_index", "instance_id": 42, "index": 2}, "set_sibling_index", ({"instance_id": 42, "index": 2},)),
-            ("component_manager", {"action": "add", "instance_id": 42, "component_name": "BoxCollider"}, "add_component", ({"instance_id": 42, "component_name": "BoxCollider"},)),
-            ("search_manager", {"strategy": "path", "query": "/Canvas/Button"}, "find_by_path", ({"path": "/Canvas/Button"},)),
+            (
+                "scene_manager",
+                {"action": "open", "path": "Assets/TestScene.unity"},
+                "open_scene",
+                ({"path": "Assets/TestScene.unity"},),
+            ),
+            (
+                "hierarchy_manager",
+                {"action": "destroy", "instance_id": 42},
+                "destroy_game_object",
+                ({"instance_id": 42},),
+            ),
+            (
+                "hierarchy_manager",
+                {"action": "set_sibling_index", "instance_id": 42, "index": 2},
+                "set_sibling_index",
+                ({"instance_id": 42, "index": 2},),
+            ),
+            (
+                "component_manager",
+                {"action": "add", "instance_id": 42, "component_name": "BoxCollider"},
+                "add_component",
+                ({"instance_id": 42, "component_name": "BoxCollider"},),
+            ),
+            (
+                "search_manager",
+                {"strategy": "path", "query": "/Canvas/Button"},
+                "find_by_path",
+                ({"path": "/Canvas/Button"},),
+            ),
             ("asset_manager", {"action": "refresh"}, "refresh_asset_database", tuple()),
             ("editor_controller", {"action": "get_state"}, "get_editor_state", tuple()),
             ("ui_automation", {"action": "list_windows"}, "ui_list_windows", tuple()),
@@ -90,7 +115,9 @@ class RouteHandlerTests(unittest.TestCase):
         expected_response: dict[str, Any] = {"result": {"status": "Success"}}
 
         with patch("nexus_bridge.routing._run_tests_wait", return_value=expected_response) as mock_run_tests_wait:
-            response: dict[str, Any] = routing._route_editor_controller({"action": "run_tests_wait", "timeout_seconds": 9})
+            response: dict[str, Any] = routing._route_editor_controller(
+                {"action": "run_tests_wait", "timeout_seconds": 9}
+            )
 
         self.assertEqual(expected_response, response)
         mock_run_tests_wait.assert_called_once_with({"action": "run_tests_wait", "timeout_seconds": 9})
@@ -108,7 +135,9 @@ class RouteHandlerTests(unittest.TestCase):
         create_response: dict[str, Any] = {"result": {"data": {"instance_id": 12}}}
         transform_response: dict[str, Any] = {"result": {"ok": True}}
 
-        with patch("nexus_bridge.routing.call_unity", side_effect=[create_response, transform_response]) as mock_call_unity:
+        with patch(
+            "nexus_bridge.routing.call_unity", side_effect=[create_response, transform_response]
+        ) as mock_call_unity:
             response: dict[str, Any] = routing._route_hierarchy_manager(
                 {"action": "create", "name": "Cube", "position": {"x": 1, "y": 2, "z": 3}}
             )
@@ -169,8 +198,12 @@ class WriteAndCompileTests(unittest.TestCase):
         }
 
         with patch("nexus_bridge.routing.time.time", return_value=10.0):
-            with patch("nexus_bridge.routing.call_unity", side_effect=[None, {"result": {"ok": True}}, log_response]) as mock_call_unity:
-                with patch("nexus_bridge.routing._wait_for_compilation", return_value=wait_response) as mock_wait_for_compilation:
+            with patch(
+                "nexus_bridge.routing.call_unity", side_effect=[None, {"result": {"ok": True}}, log_response]
+            ) as mock_call_unity:
+                with patch(
+                    "nexus_bridge.routing._wait_for_compilation", return_value=wait_response
+                ) as mock_wait_for_compilation:
                     response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
 
         self.assertEqual("Failed", response["result"]["status"])
@@ -197,7 +230,7 @@ class RunTestsWaitTests(unittest.TestCase):
     def test_run_tests_wait_returns_success_when_new_results_appear(self) -> None:
         call_results: list[dict[str, Any]] = [
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
-            {"result": {"result_path": "/tmp/TestResults.xml"}},
+            {"result": {"status": "Submitted", "result_path": "/tmp/TestResults.xml"}},
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:03Z"}},
         ]
 
@@ -218,10 +251,24 @@ class RunTestsWaitTests(unittest.TestCase):
             ]
         )
 
+    def test_run_tests_wait_accepts_legacy_success_trigger(self) -> None:
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Success", "result_path": "/tmp/TestResults.xml"}},
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:03Z"}},
+        ]
+
+        with patch("nexus_bridge.routing.call_unity", side_effect=call_results) as mock_call_unity:
+            with patch("nexus_bridge.routing.time.time", side_effect=[100.0, 100.0, 103.25]):
+                response: dict[str, Any] = routing._run_tests_wait({})
+
+        self.assertEqual("Success", response["result"]["status"])
+        self.assertEqual(3, mock_call_unity.call_count)
+
     def test_run_tests_wait_returns_timeout_when_results_do_not_change(self) -> None:
         call_results: list[dict[str, Any]] = [
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
-            {"result": {"result_path": "/tmp/TestResults.xml"}},
+            {"result": {"status": "Submitted", "result_path": "/tmp/TestResults.xml"}},
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
         ]
 
@@ -235,6 +282,25 @@ class RunTestsWaitTests(unittest.TestCase):
         self.assertEqual(5.1, response["result"]["time_waited_seconds"])
         self.assertEqual("Timed out waiting for a new Unity TestResults XML file.", response["result"]["message"])
         mock_sleep.assert_called_once_with(1.0)
+
+    def test_run_tests_wait_returns_non_submitted_trigger_without_polling(self) -> None:
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Error", "message": "A test run is already active."}},
+        ]
+
+        with patch("nexus_bridge.routing.call_unity", side_effect=call_results) as mock_call_unity:
+            response: dict[str, Any] = routing._run_tests_wait({})
+
+        self.assertEqual("Error", response["result"]["status"])
+        self.assertEqual("A test run is already active.", response["result"]["message"])
+        mock_call_unity.assert_has_calls(
+            [
+                call("get_test_results"),
+                call("run_tests", {"mode": "EditMode"}),
+            ]
+        )
+        self.assertEqual(2, mock_call_unity.call_count)
 
 
 class WaitForCompilationTests(unittest.TestCase):
@@ -306,9 +372,13 @@ class WaitForCompilationTests(unittest.TestCase):
     def test_wait_route_delegates_compilation_condition_to_helper(self) -> None:
         expected_response: dict[str, Any] = {"result": {"status": "Ready", "time_waited_seconds": 4.5}}
 
-        with patch("nexus_bridge.routing._wait_for_compilation", return_value=expected_response) as mock_wait_for_compilation:
+        with patch(
+            "nexus_bridge.routing._wait_for_compilation", return_value=expected_response
+        ) as mock_wait_for_compilation:
             with patch("nexus_bridge.routing.time.time", return_value=55.0):
-                response: dict[str, Any] = routing.route_tool("wait", {"condition": "compilation", "timeout_seconds": 12.0})
+                response: dict[str, Any] = routing.route_tool(
+                    "wait", {"condition": "compilation", "timeout_seconds": 12.0}
+                )
 
         self.assertEqual(expected_response, response)
         mock_wait_for_compilation.assert_called_once_with(timeout=12.0, start_time=55.0)

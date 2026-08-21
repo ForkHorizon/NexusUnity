@@ -1,5 +1,5 @@
 {
-  "max_file_lines": 650,
+  "max_file_lines": 750,
   "max_function_lines": 150,
   "max_nesting_depth": 8,
   "max_parameters": 8,

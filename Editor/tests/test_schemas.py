@@ -49,9 +49,7 @@ class HierarchyManagerSchemaTests(unittest.TestCase):
     def test_rename_variant_requires_instance_id_and_name_or_new_name(self) -> None:
         hierarchy_manager = _get_tool("unity_hierarchy_manager")
         rename_variant = next(
-            variant
-            for variant in hierarchy_manager["inputSchema"]["oneOf"]
-            if "rename" in _action_values(variant)
+            variant for variant in hierarchy_manager["inputSchema"]["oneOf"] if "rename" in _action_values(variant)
         )
 
         self.assertCountEqual(["action", "instance_id"], rename_variant["required"])
@@ -93,9 +91,7 @@ class PlayerPrefsManagerSchemaTests(unittest.TestCase):
     def test_delete_variant_advertises_optional_confirm(self) -> None:
         playerprefs_manager = _get_tool("unity_playerprefs_manager")
         delete_variant = next(
-            variant
-            for variant in playerprefs_manager["inputSchema"]["oneOf"]
-            if "delete" in _action_values(variant)
+            variant for variant in playerprefs_manager["inputSchema"]["oneOf"] if "delete" in _action_values(variant)
         )
 
         self.assertCountEqual(["action", "key"], delete_variant["required"])
