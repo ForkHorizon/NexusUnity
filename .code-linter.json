@@ -1,0 +1,25 @@
+{
+  "max_file_lines": 650,
+  "max_function_lines": 150,
+  "max_nesting_depth": 8,
+  "max_parameters": 8,
+  "max_comment_lines": 15,
+  "max_types_per_file": 6,
+  "include_extensions": [
+    ".cs",
+    ".py"
+  ],
+  "ignore": [
+    ".ci-gates",
+    ".git",
+    "Tests~",
+    "tools~",
+    "Editor/tests",
+    "ThirdParty",
+    "Plugins",
+    "*.designer.cs",
+    "*.generated.*",
+    "*.g.cs"
+  ],
+  "language_overrides": {}
+}

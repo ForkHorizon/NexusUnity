@@ -1,0 +1,34 @@
+name: Code Linter
+
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Files to scan
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - changed
+  schedule:
+    - cron: "0 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-scope-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-linter:
+    uses: ForkHorizon/ci-gates/.github/workflows/code-linter.yml@main
+    with:
+      mode: ${{ inputs.mode || 'auto' }}
+      config: .code-linter.json
+      gates-ref: main
+      runs-on: '["self-hosted", "macOS", "ARM64", "ci-scope", "ci-scope-v2"]'
