@@ -167,7 +167,9 @@ class ReadPortTests(unittest.TestCase):
 
 class ModuleConfigTests(unittest.TestCase):
     def test_unity_url_uses_environment_variable_and_normalizes_trailing_slash(self) -> None:
-        transport: Any = _reload_transport_module({"NEXUS_UNITY_URL": "http://unity-host:9001"}, ["nexus_unity_bridge.py"])
+        transport: Any = _reload_transport_module(
+            {"NEXUS_UNITY_URL": "http://unity-host:9001"}, ["nexus_unity_bridge.py"]
+        )
         self.assertEqual("http://unity-host:9001/", transport.UNITY_URL)
 
     def test_timeout_is_clamped_to_minimum_of_one_second(self) -> None:

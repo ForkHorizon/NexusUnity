@@ -4,10 +4,12 @@
 the ``unity_`` prefix already stripped) and an arguments dict, it forwards the
 call to the appropriate Unity JSON-RPC method via :func:`.client.call_unity`.
 """
+
 from __future__ import annotations
 
 import time
-from typing import Any, Mapping, Sequence
+from typing import Any
+from collections.abc import Mapping, Sequence
 
 from ._transport import call_unity
 from .schemas import STATIC_TOOLS
@@ -49,9 +51,7 @@ def _error_object(response: JsonRpcResponse | None) -> JsonObject | None:
 
 
 def _transform_params(args: JsonObject, instance_id: int | None = None) -> JsonObject:
-    params: JsonObject = {
-        "instance_id": instance_id if instance_id is not None else args.get("instance_id")
-    }
+    params: JsonObject = {"instance_id": instance_id if instance_id is not None else args.get("instance_id")}
     for key in ["position", "rotation", "scale", "eulerAngles", "localScale"]:
         params[key] = args.get(key)
     return _compact(params)
@@ -86,15 +86,15 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
     previous_results_response = call_unity("get_test_results")
     previous_results_payload = _result_object(previous_results_response)
     previous_timestamp = (
-        previous_results_payload.get("timestamp_utc")
-        if previous_results_payload.get("status") == "Success"
-        else None
+        previous_results_payload.get("timestamp_utc") if previous_results_payload.get("status") == "Success" else None
     )
 
-    run_params = _compact({
-        "mode": args.get("mode", "EditMode"),
-        "filter": args.get("filter"),
-    })
+    run_params = _compact(
+        {
+            "mode": args.get("mode", "EditMode"),
+            "filter": args.get("filter"),
+        }
+    )
     trigger_response = call_unity("run_tests", run_params)
     if trigger_response and "error" in trigger_response:
         return trigger_response
@@ -130,9 +130,7 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
     }
     if isinstance(result_path, str):
         timeout_result["result_path"] = result_path
-    return {
-        "result": timeout_result
-    }
+    return {"result": timeout_result}
 
 
 def _wait_for_compilation(timeout: float, start_time: float | None = None) -> JsonRpcResponse:
@@ -157,9 +155,13 @@ def _wait_for_compilation(timeout: float, start_time: float | None = None) -> Js
             time.sleep(2.0)
             editor_state_response = call_unity("get_editor_state")
             editor_state = _result_object(editor_state_response)
-            if editor_state_response and "result" in editor_state_response:
-                if not editor_state.get("is_compiling") and not editor_state.get("is_updating"):
-                    break
+            if (
+                editor_state_response
+                and "result" in editor_state_response
+                and not editor_state.get("is_compiling")
+                and not editor_state.get("is_updating")
+            ):
+                break
         time.sleep(1.0)
     else:
         status = "Timeout"
@@ -168,9 +170,7 @@ def _wait_for_compilation(timeout: float, start_time: float | None = None) -> Js
         "status": status,
         "time_waited_seconds": round(time.time() - start_time, 2),
     }
-    return {
-        "result": wait_result
-    }
+    return {"result": wait_result}
 
 
 def _route_list_tools(_: JsonObject) -> JsonRpcResponse:
@@ -220,23 +220,29 @@ def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
         "time_waited_seconds": time_waited_seconds,
         "compiler_errors": compiler_errors,
     }
-    return {
-        "result": success_result
-    }
+    return {"result": success_result}
 
 
 def _route_scene_manager(args: JsonObject) -> JsonRpcResponse:
     aliases = {"create_scene": "create", "open_scene": "open", "save_scene": "save", "list_scenes": "list"}
     action = _alias(args.get("action"), aliases)
     if action == "create":
-        return call_unity("create_scene", _compact({"name": args.get("name"), "path": args.get("path"), "open_if_exists": args.get("open_if_exists")}))
+        return call_unity(
+            "create_scene",
+            _compact(
+                {"name": args.get("name"), "path": args.get("path"), "open_if_exists": args.get("open_if_exists")}
+            ),
+        )
     if action == "open":
         return call_unity("open_scene", {"path": args.get("path")})
     if action == "save":
         return call_unity("save_scene", {"path": args.get("path")})
     if action == "list":
         return call_unity("list_scenes")
-    return _invalid_action(args.get("action"), ["create", "create_scene", "open", "open_scene", "save", "save_scene", "list", "list_scenes"])
+    return _invalid_action(
+        args.get("action"),
+        ["create", "create_scene", "open", "open_scene", "save", "save_scene", "list", "list_scenes"],
+    )
 
 
 def _route_hierarchy_manager(args: JsonObject) -> JsonRpcResponse:
@@ -249,22 +255,36 @@ def _route_hierarchy_manager(args: JsonObject) -> JsonRpcResponse:
     }
     action = _alias(args.get("action"), aliases)
     if action == "create_empty":
-        response = call_unity("create_game_object", _compact({"name": args.get("name"), "parent_id": args.get("parent_id")}))
+        response = call_unity(
+            "create_game_object", _compact({"name": args.get("name"), "parent_id": args.get("parent_id")})
+        )
         return _apply_created_transform(response, args)
     if action == "create_primitive":
-        return call_unity("create_primitive", _compact({
-            "primitive_type": args.get("primitive_type"),
-            "name": args.get("name"),
-            "parent_id": args.get("parent_id"),
-            "position": args.get("position"),
-            "rotation": args.get("rotation"),
-            "scale": args.get("scale"),
-            "material_path": args.get("material_path"),
-        }))
+        return call_unity(
+            "create_primitive",
+            _compact(
+                {
+                    "primitive_type": args.get("primitive_type"),
+                    "name": args.get("name"),
+                    "parent_id": args.get("parent_id"),
+                    "position": args.get("position"),
+                    "rotation": args.get("rotation"),
+                    "scale": args.get("scale"),
+                    "material_path": args.get("material_path"),
+                }
+            ),
+        )
     if action == "create_hierarchy":
         return call_unity("create_hierarchy", _compact({"tree": args.get("tree"), "parent_id": args.get("parent_id")}))
     if action == "set_name":
-        return call_unity("set_property", {"instance_id": args.get("instance_id"), "property_name": "m_Name", "value": args.get("name") or args.get("new_name")})
+        return call_unity(
+            "set_property",
+            {
+                "instance_id": args.get("instance_id"),
+                "property_name": "m_Name",
+                "value": args.get("name") or args.get("new_name"),
+            },
+        )
     if action == "set_transform":
         return call_unity("set_transform", _transform_params(args))
     if action == "destroy":
@@ -277,26 +297,76 @@ def _route_hierarchy_manager(args: JsonObject) -> JsonRpcResponse:
         return call_unity("set_parent", {"instance_id": args.get("instance_id"), "parent_id": args.get("parent_id")})
     if action == "set_sibling_index":
         return call_unity("set_sibling_index", {"instance_id": args.get("instance_id"), "index": args.get("index")})
-    return _invalid_action(args.get("action"), ["create_empty", "create", "create_gameobject", "create_game_object", "create_primitive", "create_hierarchy", "destroy", "duplicate", "rename", "set_name", "set_transform", "set_active", "set_parent", "set_sibling_index"])
+    return _invalid_action(
+        args.get("action"),
+        [
+            "create_empty",
+            "create",
+            "create_gameobject",
+            "create_game_object",
+            "create_primitive",
+            "create_hierarchy",
+            "destroy",
+            "duplicate",
+            "rename",
+            "set_name",
+            "set_transform",
+            "set_active",
+            "set_parent",
+            "set_sibling_index",
+        ],
+    )
 
 
 def _route_component_manager(args: JsonObject) -> JsonRpcResponse:
     action = args.get("action")
     if action == "add":
-        return call_unity("add_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        return call_unity(
+            "add_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")}
+        )
     if action == "remove":
-        return call_unity("remove_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        return call_unity(
+            "remove_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")}
+        )
     if action == "inspect":
-        return call_unity("inspect_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        return call_unity(
+            "inspect_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")}
+        )
     if action == "get_schema":
-        return call_unity("get_component_schema", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")})
+        return call_unity(
+            "get_component_schema",
+            {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")},
+        )
     if action == "update_properties":
-        return call_unity("update_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name"), "properties": args.get("properties")})
+        return call_unity(
+            "update_component",
+            {
+                "instance_id": args.get("instance_id"),
+                "component_name": args.get("component_name"),
+                "properties": args.get("properties"),
+            },
+        )
     if action == "set_property":
-        return call_unity("set_property", {"instance_id": args.get("instance_id"), "property_name": args.get("property_name"), "value": args.get("value")})
+        return call_unity(
+            "set_property",
+            {
+                "instance_id": args.get("instance_id"),
+                "property_name": args.get("property_name"),
+                "value": args.get("value"),
+            },
+        )
     if action == "set_enabled":
-        return call_unity("set_enabled", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name"), "enabled": args.get("enabled")})
-    return _invalid_action(action, ["add", "remove", "inspect", "get_schema", "update_properties", "set_property", "set_enabled"])
+        return call_unity(
+            "set_enabled",
+            {
+                "instance_id": args.get("instance_id"),
+                "component_name": args.get("component_name"),
+                "enabled": args.get("enabled"),
+            },
+        )
+    return _invalid_action(
+        action, ["add", "remove", "inspect", "get_schema", "update_properties", "set_property", "set_enabled"]
+    )
 
 
 def _route_search_manager(args: JsonObject) -> JsonRpcResponse:
@@ -308,8 +378,15 @@ def _route_search_manager(args: JsonObject) -> JsonRpcResponse:
     if strategy == "semantic":
         return call_unity("semantic_find", {"query": args.get("query")})
     if strategy == "references":
-        return call_unity("find_references", {"target_id": args.get("target_id"), "target_guid": args.get("target_guid")})
-    return {"error": {"code": -32602, "message": f"Invalid strategy: {strategy}. Valid strategies: regex, path, semantic, references"}}
+        return call_unity(
+            "find_references", {"target_id": args.get("target_id"), "target_guid": args.get("target_guid")}
+        )
+    return {
+        "error": {
+            "code": -32602,
+            "message": f"Invalid strategy: {strategy}. Valid strategies: regex, path, semantic, references",
+        }
+    }
 
 
 def _route_asset_manager(args: JsonObject) -> JsonRpcResponse:
@@ -319,13 +396,18 @@ def _route_asset_manager(args: JsonObject) -> JsonRpcResponse:
     if action == "explore":
         return call_unity("explore_asset", {"path": args.get("path")})
     if action == "create_material":
-        return call_unity("create_material", _compact({
-            "name": args.get("name"),
-            "shader": args.get("shader"),
-            "path": args.get("path"),
-            "base_color": args.get("base_color") or args.get("color"),
-            "emission_color": args.get("emission_color") or args.get("emission"),
-        }))
+        return call_unity(
+            "create_material",
+            _compact(
+                {
+                    "name": args.get("name"),
+                    "shader": args.get("shader"),
+                    "path": args.get("path"),
+                    "base_color": args.get("base_color") or args.get("color"),
+                    "emission_color": args.get("emission_color") or args.get("emission"),
+                }
+            ),
+        )
     if action == "import":
         return call_unity("import_asset", {"path": args.get("path")})
     if action == "refresh":
@@ -338,7 +420,20 @@ def _route_asset_manager(args: JsonObject) -> JsonRpcResponse:
         return call_unity("apply_prefab_overrides", {"instance_id": args.get("instance_id")})
     if action == "revert_overrides":
         return call_unity("revert_prefab_overrides", {"instance_id": args.get("instance_id")})
-    return _invalid_action(action, ["search", "explore", "create_material", "import", "refresh", "instantiate_prefab", "create_prefab", "apply_overrides", "revert_overrides"])
+    return _invalid_action(
+        action,
+        [
+            "search",
+            "explore",
+            "create_material",
+            "import",
+            "refresh",
+            "instantiate_prefab",
+            "create_prefab",
+            "apply_overrides",
+            "revert_overrides",
+        ],
+    )
 
 
 def _route_editor_controller(args: JsonObject) -> JsonRpcResponse:
@@ -375,7 +470,27 @@ def _route_editor_controller(args: JsonObject) -> JsonRpcResponse:
         return call_unity("get_tool_usage_stats")
     if action == "reset_tool_usage_stats":
         return call_unity("reset_tool_usage_stats")
-    return _invalid_action(action, ["undo", "redo", "play", "pause", "step", "menu", "read_logs", "clear_logs", "get_state", "get_server_status", "refresh_assets", "run_tests", "get_test_results", "run_tests_wait", "get_tool_usage_stats", "reset_tool_usage_stats"])
+    return _invalid_action(
+        action,
+        [
+            "undo",
+            "redo",
+            "play",
+            "pause",
+            "step",
+            "menu",
+            "read_logs",
+            "clear_logs",
+            "get_state",
+            "get_server_status",
+            "refresh_assets",
+            "run_tests",
+            "get_test_results",
+            "run_tests_wait",
+            "get_tool_usage_stats",
+            "reset_tool_usage_stats",
+        ],
+    )
 
 
 def _route_ui_automation(args: JsonObject) -> JsonRpcResponse:
@@ -383,20 +498,73 @@ def _route_ui_automation(args: JsonObject) -> JsonRpcResponse:
     if action == "list_windows":
         return call_unity("ui_list_windows")
     if action == "get_hierarchy":
-        return call_unity("ui_get_hierarchy", _compact({"window_title": args.get("window_title"), "deep": args.get("deep")}))
+        return call_unity(
+            "ui_get_hierarchy", _compact({"window_title": args.get("window_title"), "deep": args.get("deep")})
+        )
     if action == "query":
-        return call_unity("ui_query_elements", _compact({"window_title": args.get("window_title"), "name": args.get("name"), "text": args.get("text"), "class_name": args.get("class_name")}))
+        return call_unity(
+            "ui_query_elements",
+            _compact(
+                {
+                    "window_title": args.get("window_title"),
+                    "name": args.get("name"),
+                    "text": args.get("text"),
+                    "class_name": args.get("class_name"),
+                }
+            ),
+        )
     if action == "get_window_rect":
         return call_unity("ui_get_window_rect", {"window_title": args.get("window_title")})
     if action == "set_window_rect":
-        return call_unity("ui_set_window_rect", _compact({"window_title": args.get("window_title"), "x": args.get("x"), "y": args.get("y"), "width": args.get("width"), "height": args.get("height")}))
+        return call_unity(
+            "ui_set_window_rect",
+            _compact(
+                {
+                    "window_title": args.get("window_title"),
+                    "x": args.get("x"),
+                    "y": args.get("y"),
+                    "width": args.get("width"),
+                    "height": args.get("height"),
+                }
+            ),
+        )
     if action == "capture_window_snapshot":
-        return call_unity("ui_capture_window_snapshot", _compact({"window_title": args.get("window_title"), "include_image": args.get("include_image"), "include_hierarchy": args.get("include_hierarchy")}))
+        return call_unity(
+            "ui_capture_window_snapshot",
+            _compact(
+                {
+                    "window_title": args.get("window_title"),
+                    "include_image": args.get("include_image"),
+                    "include_hierarchy": args.get("include_hierarchy"),
+                }
+            ),
+        )
     if action == "click":
-        return call_unity("ui_click", {"window_title": args.get("window_title"), "element_name": args.get("element_name")})
+        return call_unity(
+            "ui_click", {"window_title": args.get("window_title"), "element_name": args.get("element_name")}
+        )
     if action == "input":
-        return call_unity("ui_input_text", {"window_title": args.get("window_title"), "element_name": args.get("element_name"), "text": args.get("text")})
-    return _invalid_action(action, ["list_windows", "get_hierarchy", "query", "get_window_rect", "set_window_rect", "capture_window_snapshot", "click", "input"])
+        return call_unity(
+            "ui_input_text",
+            {
+                "window_title": args.get("window_title"),
+                "element_name": args.get("element_name"),
+                "text": args.get("text"),
+            },
+        )
+    return _invalid_action(
+        action,
+        [
+            "list_windows",
+            "get_hierarchy",
+            "query",
+            "get_window_rect",
+            "set_window_rect",
+            "capture_window_snapshot",
+            "click",
+            "input",
+        ],
+    )
 
 
 def _route_playerprefs_manager(args: JsonObject) -> JsonRpcResponse:
@@ -404,7 +572,9 @@ def _route_playerprefs_manager(args: JsonObject) -> JsonRpcResponse:
     if action == "get":
         return call_unity("get_player_pref", {"key": args.get("key"), "type": args.get("type", "string")})
     if action == "set":
-        return call_unity("set_player_pref", {"key": args.get("key"), "value": args.get("value"), "type": args.get("type", "string")})
+        return call_unity(
+            "set_player_pref", {"key": args.get("key"), "value": args.get("value"), "type": args.get("type", "string")}
+        )
     if action == "delete":
         return call_unity("delete_player_pref", _compact({"key": args.get("key"), "confirm": args.get("confirm")}))
     if action == "list":
@@ -425,9 +595,12 @@ def _route_wait(args: JsonObject) -> JsonRpcResponse:
         while time.time() - start_time < timeout:
             editor_state_response = call_unity("get_editor_state")
             editor_state = _result_object(editor_state_response)
-            if editor_state_response and "result" in editor_state_response:
-                if editor_state.get("is_playing") == target_state:
-                    break
+            if (
+                editor_state_response
+                and "result" in editor_state_response
+                and editor_state.get("is_playing") == target_state
+            ):
+                break
             time.sleep(1.0)
         else:
             status = "Timeout"
@@ -435,9 +608,8 @@ def _route_wait(args: JsonObject) -> JsonRpcResponse:
         while time.time() - start_time < timeout:
             import_idle_response = call_unity("is_asset_import_idle")
             import_idle_state = _result_object(import_idle_response)
-            if import_idle_response and "result" in import_idle_response:
-                if import_idle_state.get("is_idle"):
-                    break
+            if import_idle_response and "result" in import_idle_response and import_idle_state.get("is_idle"):
+                break
             time.sleep(1.0)
         else:
             status = "Timeout"
@@ -445,9 +617,8 @@ def _route_wait(args: JsonObject) -> JsonRpcResponse:
         while time.time() - start_time < timeout:
             editor_idle_response = call_unity("is_editor_idle")
             editor_idle_state = _result_object(editor_idle_response)
-            if editor_idle_response and "result" in editor_idle_response:
-                if editor_idle_state.get("is_idle"):
-                    break
+            if editor_idle_response and "result" in editor_idle_response and editor_idle_state.get("is_idle"):
+                break
             time.sleep(1.0)
         else:
             status = "Timeout"

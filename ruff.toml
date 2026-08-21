@@ -1,0 +1,23 @@
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = [
+    "E", "W", "F", "B", "C4", "SIM", "ARG", "PL", "RUF", "UP", "N",
+]
+ignore = [
+    "PLR2004",
+    "PLR0911",
+    "PLR0912",
+    "E501",
+]
+
+[lint.pylint]
+max-args = 6
+max-branches = 16
+max-statements = 50
+
+[lint.per-file-ignores]
+"**/tests/**" = ["ARG", "E402", "N818", "S101", "SIM117", "PLC0415", "PLR0913", "PLR2004", "C408"]
+"**/test_*.py" = ["ARG", "E402", "N818", "S101", "SIM117", "PLC0415", "PLR0913", "PLR2004", "C408"]
+"Editor/nexus_unity_bridge.py" = ["E402"]
