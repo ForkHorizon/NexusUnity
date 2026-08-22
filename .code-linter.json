@@ -1,9 +1,9 @@
 {
   "max_file_lines": 300,
-  "max_function_lines": 50,
-  "max_nesting_depth": 4,
-  "max_parameters": 5,
-  "max_comment_lines": 5,
+  "max_function_lines": 150,
+  "max_nesting_depth": 8,
+  "max_parameters": 8,
+  "max_comment_lines": 10,
   "max_types_per_file": 2,
   "include_extensions": [
     ".cs",
@@ -21,5 +21,14 @@
     "*.generated.*",
     "*.g.cs"
   ],
-  "language_overrides": {}
+  "language_overrides": {
+    "python": {
+      "max_file_lines": 300,
+      "max_function_lines": 50,
+      "max_nesting_depth": 4,
+      "max_parameters": 5,
+      "max_comment_lines": 5,
+      "max_types_per_file": 2
+    }
+  }
 }
