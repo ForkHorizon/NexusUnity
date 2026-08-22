@@ -119,6 +119,19 @@ namespace UnityMCP.Editor.Tests
             Assert.IsFalse(sanitizedWin.Contains(@"C:\Users\Admin"));
             Assert.IsTrue(sanitizedWin.Contains("[path]"));
 
+            var innerEx = new System.ArgumentNullException("paramName", @"Value cannot be null at /usr/local/share/data/config.json");
+            var wrappedTargetEx = new System.Reflection.TargetInvocationException("Exception has been thrown by the target of an invocation.", innerEx);
+            string sanitizedWrapped = MCPServerMethods.SanitizeErrorMessage(wrappedTargetEx, out string errorTypeWrapped);
+            Assert.AreEqual("ArgumentNullException", errorTypeWrapped);
+            Assert.IsFalse(sanitizedWrapped.Contains("/usr/local/share"));
+            Assert.IsTrue(sanitizedWrapped.Contains("[path]"));
+
+            var exOpt = new System.InvalidOperationException("Failed at /opt/unity/cache/temp.txt");
+            string sanitizedOpt = MCPServerMethods.SanitizeErrorMessage(exOpt, out string errorTypeOpt);
+            Assert.AreEqual("InvalidOperationException", errorTypeOpt);
+            Assert.IsFalse(sanitizedOpt.Contains("/opt/unity"));
+            Assert.IsTrue(sanitizedOpt.Contains("[path]"));
+
             string longMsg = new string('x', 300);
             var exLong = new System.Exception(longMsg);
             string sanitizedLong = MCPServerMethods.SanitizeErrorMessage(exLong, out string errorTypeLong);

@@ -187,7 +187,7 @@ Actions: `search`, `explore`, `create_material`, `import`, `refresh`, `instantia
 ### `unity_editor_controller`
 Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_logs`, `get_state`, `get_server_status`, `refresh_assets`, `run_tests`, `get_test_results`, `run_tests_wait`, `get_tool_usage_stats`, `reset_tool_usage_stats`.
 
-Raw `run_tests` returns `status: "Submitted"` after Unity accepts the asynchronous request; it does not claim that execution has begun or completed. `run_tests_wait` triggers `run_tests` and polls raw `get_test_results` from the Python bridge so Unity's main thread is not blocked while the agent waits. If submission is rejected, `run_tests_wait` returns that result without polling.
+`get_tool_usage_stats` returns in-memory call counts, average/total durations, `last_error_type`, and sanitized `last_error` with sensitive paths redacted; `reset_tool_usage_stats` resets the counters. Raw `run_tests` returns `status: "Submitted"` after Unity accepts the asynchronous request; it does not claim that execution has begun or completed. `run_tests_wait` triggers `run_tests` and polls raw `get_test_results` from the Python bridge so Unity's main thread is not blocked while the agent waits. If submission is rejected, `run_tests_wait` returns that result without polling.
 
 ### `unity_ui_automation`
 Actions: `list_windows`, `get_hierarchy`, `query`, `get_window_rect`, `set_window_rect`, `capture_window_snapshot`, `click`, `input`.
