@@ -192,7 +192,7 @@ Actions: `undo`, `redo`, `play`, `pause`, `step`, `menu`, `read_logs`, `clear_lo
 ### `unity_ui_automation`
 Actions: `list_windows`, `get_hierarchy`, `query`, `get_window_rect`, `set_window_rect`, `capture_window_snapshot`, `click`, `input`.
 
-`get_hierarchy` accepts `deep`. `query` accepts `name`, `text`, and `class_name`. Window rect and snapshot actions are intended for resize/layout QA; window snapshots include rect and hierarchy, with best-effort PNG image capture on macOS.
+`get_hierarchy` accepts `deep`, `max_depth`, and `max_elements` (with `children_truncated` and root `truncated` markers when capped). `query` accepts `name`, `text`, `class_name`, `max_depth`, and `max_results`. Window rect and snapshot actions are intended for resize/layout QA; window snapshots include rect and hierarchy (supporting `max_depth` and `max_elements`), with best-effort PNG image capture on macOS.
 
 ### `unity_wait`
 Conditions: `compilation`, `play_mode`, `import`, `editor_idle`.

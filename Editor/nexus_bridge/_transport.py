@@ -53,19 +53,26 @@ UNITY_URL: str = (
 UNITY_TIMEOUT_SECONDS: float = _read_timeout()
 
 
+def _try_read_token(candidate: str) -> str | None:
+    if not os.path.isfile(candidate):
+        return None
+    try:
+        with open(candidate, encoding="utf-8") as handle:
+            val = handle.read().strip()
+            return val or None
+    except Exception:
+        return None
+
+
 def _read_token_file() -> str | None:
-    for candidate in (
+    candidates = (
         os.path.join(os.getcwd(), "Library", "NexusUnityAuthToken.txt"),
         os.path.join(os.getcwd(), "..", "..", "Library", "NexusUnityAuthToken.txt"),
-    ):
-        if os.path.isfile(candidate):
-            try:
-                with open(candidate, encoding="utf-8") as handle:
-                    val = handle.read().strip()
-                    if val:
-                        return val
-            except Exception:
-                pass
+    )
+    for candidate in candidates:
+        token = _try_read_token(candidate)
+        if token:
+            return token
     return None
 
 

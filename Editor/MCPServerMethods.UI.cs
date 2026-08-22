@@ -36,13 +36,36 @@ namespace UnityMCP.Editor
             return new JObject { ["windows"] = arr };
         }
 
+        private const int DefaultMaxHierarchyDepth = 30;
+        private const int DefaultMaxHierarchyElements = 1000;
+        private const int DefaultMaxQueryResults = 100;
+        private const int DefaultMaxQueryTraversedElements = 2000;
+
         private static JToken UIGetHierarchy(JToken p)
         {
             if (p == null || p["window_title"] == null) throw new Exception("window_title is required");
             var w = FindWindow(p["window_title"].ToString());
             if (w == null) throw new Exception("Window not found");
             bool deep = p["deep"] != null && (bool)p["deep"];
-            return SerializeVisualElement(w.rootVisualElement, deep);
+            int maxDepth = p["max_depth"] != null ? Mathf.Max(0, p["max_depth"].Value<int>()) : DefaultMaxHierarchyDepth;
+            int maxElements = p["max_elements"] != null ? Mathf.Max(1, p["max_elements"].Value<int>()) :
+                (p["max_results"] != null ? Mathf.Max(1, p["max_results"].Value<int>()) : DefaultMaxHierarchyElements);
+            return SerializeVisualElement(w.rootVisualElement, deep, maxDepth, maxElements);
+        }
+
+        private sealed class UIElementQueryContext
+        {
+            internal string TextMatch;
+            internal string NameMatch;
+            internal string ClassMatch;
+            internal int MaxResults;
+            internal int MaxTraversed;
+            internal int MaxDepth;
+            internal JArray Results;
+            internal int VisitedCount;
+
+            internal bool ShouldStop(int currentDepth) =>
+                Results.Count >= MaxResults || VisitedCount >= MaxTraversed || currentDepth > MaxDepth;
         }
 
         private static JToken UIQueryElements(JToken p)
@@ -51,13 +74,24 @@ namespace UnityMCP.Editor
             var w = FindWindow(p["window_title"].ToString());
             if (w == null) throw new Exception("Window not found");
 
-            string textMatch = p["text"]?.ToString();
-            string nameMatch = p["name"]?.ToString();
-            string classMatch = p["class_name"]?.ToString();
+            int maxDepth = p["max_depth"] != null ? Mathf.Max(0, p["max_depth"].Value<int>()) : DefaultMaxHierarchyDepth;
+            int maxResults = p["max_results"] != null ? Mathf.Max(1, p["max_results"].Value<int>()) : DefaultMaxQueryResults;
+            int maxTraversed = p["max_elements"] != null ? Mathf.Max(1, p["max_elements"].Value<int>()) :
+                (p["max_traversed"] != null ? Mathf.Max(1, p["max_traversed"].Value<int>()) : DefaultMaxQueryTraversedElements);
 
-            var results = new JArray();
-            QueryVisualElementRecursive(w.rootVisualElement, textMatch, nameMatch, classMatch, results);
-            return results;
+            var ctx = new UIElementQueryContext
+            {
+                TextMatch = p["text"]?.ToString(),
+                NameMatch = p["name"]?.ToString(),
+                ClassMatch = p["class_name"]?.ToString(),
+                MaxDepth = maxDepth,
+                MaxResults = maxResults,
+                MaxTraversed = maxTraversed,
+                Results = new JArray()
+            };
+
+            QueryVisualElementRecursive(w.rootVisualElement, ctx, 0);
+            return ctx.Results;
         }
 
         private static JToken UIGetWindowRect(JToken p)
@@ -118,47 +152,52 @@ namespace UnityMCP.Editor
             return p?[name] != null && p[name].Type != JTokenType.Null;
         }
 
-        private static void QueryVisualElementRecursive(VisualElement el, string textMatch, string nameMatch, string classMatch, JArray results)
+        private static void QueryVisualElementRecursive(VisualElement el, UIElementQueryContext ctx, int currentDepth)
         {
-            if (el == null) return;
+            if (el == null || ctx.ShouldStop(currentDepth)) return;
 
-            bool matches = true;
+            ctx.VisitedCount++;
 
-            if (!string.IsNullOrEmpty(nameMatch) && el.name != nameMatch)
-                matches = false;
+            if (MatchesQuery(el, ctx))
+            {
+                var obj = SerializeVisualElementNode(el, deep: true);
+                if (obj != null) ctx.Results.Add(obj);
+                if (ctx.Results.Count >= ctx.MaxResults) return;
+            }
 
-            if (matches && !string.IsNullOrEmpty(classMatch) && !el.ClassListContains(classMatch))
-                matches = false;
+            if (currentDepth < ctx.MaxDepth)
+            {
+                int childCount = el.childCount;
+                for (int i = 0; i < childCount; i++)
+                {
+                    if (ctx.Results.Count >= ctx.MaxResults || ctx.VisitedCount >= ctx.MaxTraversed) break;
+                    QueryVisualElementRecursive(el[i], ctx, currentDepth + 1);
+                }
+            }
+        }
 
-            if (matches && !string.IsNullOrEmpty(textMatch))
+        private static bool MatchesQuery(VisualElement el, UIElementQueryContext ctx)
+        {
+            if (!string.IsNullOrEmpty(ctx.NameMatch) && el.name != ctx.NameMatch)
+                return false;
+
+            if (!string.IsNullOrEmpty(ctx.ClassMatch) && !el.ClassListContains(ctx.ClassMatch))
+                return false;
+
+            if (!string.IsNullOrEmpty(ctx.TextMatch))
             {
                 if (el is TextElement te)
                 {
-                    if (string.IsNullOrEmpty(te.text) || !te.text.Contains(textMatch, StringComparison.OrdinalIgnoreCase))
-                        matches = false;
+                    if (string.IsNullOrEmpty(te.text) || !te.text.Contains(ctx.TextMatch, StringComparison.OrdinalIgnoreCase))
+                        return false;
                 }
                 else
                 {
-                    matches = false; // Not a text element
+                    return false;
                 }
             }
 
-            // We only add to results if at least one query parameter was provided AND it matched
-            if (matches && (!string.IsNullOrEmpty(textMatch) || !string.IsNullOrEmpty(nameMatch) || !string.IsNullOrEmpty(classMatch)))
-            {
-                // We serialize this element deeply but without its full children tree to avoid massive payloads
-                var obj = SerializeVisualElement(el, true);
-                if (obj is JObject jobj && jobj.ContainsKey("children"))
-                {
-                    jobj.Remove("children"); // Remove deep children for the query result, we just want the matched node
-                }
-                results.Add(obj);
-            }
-
-            foreach (var child in el.Children())
-            {
-                QueryVisualElementRecursive(child, textMatch, nameMatch, classMatch, results);
-            }
+            return !string.IsNullOrEmpty(ctx.TextMatch) || !string.IsNullOrEmpty(ctx.NameMatch) || !string.IsNullOrEmpty(ctx.ClassMatch);
         }
 
         private static JToken UIClick(JToken p)

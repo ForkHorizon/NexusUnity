@@ -15,14 +15,16 @@ namespace UnityMCP.Editor
     /// Audit execution dynamically locates ProjectAuditor assemblies, filters issues for the package or user project,
     /// scans active scene objects for missing scripts/materials, writes Nexus audit logs, and returns a JSON report.
     /// </remarks>
-    public static class ProjectAuditorWrapper
+    public static partial class ProjectAuditorWrapper
     {
         private const string ProjectAuditorRulesPackageName = "com.unity.project-auditor-rules";
 
-        private static readonly List<Component> _componentCache = new List<Component>();
-        private static readonly List<Renderer> _rendererCache = new List<Renderer>();
-        private static readonly List<Material> _materialCache = new List<Material>();
-        private static readonly Stack<string> _pathStackCache = new Stack<string>();
+        private sealed class AuditorScope
+        {
+            internal bool IsSandbox;
+            internal string TargetPath;
+            internal string[] IgnorePatterns;
+        }
 
         /// <summary>
         /// Runs the full audit from a Unity menu context and writes the JSON report to the Nexus audit log channel.
@@ -135,17 +137,22 @@ namespace UnityMCP.Editor
                 return codeIssues;
             }
 
-            string[] sandboxIgnorePatterns = { "Newtonsoft.Json", "allocation", "usage", "System.Reflection", "System.Linq", "System.String.Concat", "ref type", "Closure", "UnityEngine.Object.name", "Debug.Log", "Implicit", "GetEntityId" };
+            var scope = new AuditorScope
+            {
+                IsSandbox = isSandbox,
+                TargetPath = targetPath,
+                IgnorePatterns = new[] { "Newtonsoft.Json", "allocation", "usage", "System.Reflection", "System.Linq", "System.String.Concat", "ref type", "Closure", "UnityEngine.Object.name", "Debug.Log", "Implicit", "GetEntityId" }
+            };
 
             foreach (var issue in allIssues)
             {
-                AddProjectAuditorIssue(codeIssues, issue, isSandbox, targetPath, sandboxIgnorePatterns);
+                AddProjectAuditorIssue(codeIssues, issue, scope);
             }
 
             return codeIssues;
         }
 
-        private static void AddProjectAuditorIssue(JArray codeIssues, object issue, bool isSandbox, string targetPath, string[] sandboxIgnorePatterns)
+        private static void AddProjectAuditorIssue(JArray codeIssues, object issue, AuditorScope scope)
         {
             var t = issue.GetType();
             string category = t.GetProperty("Category")?.GetValue(issue)?.ToString() ?? "Unknown";
@@ -153,7 +160,7 @@ namespace UnityMCP.Editor
             var location = t.GetProperty("Location")?.GetValue(issue);
             string filePath = GetAuditorIssuePath(location);
 
-            if (ShouldSkipAuditorIssue(category, description, filePath, isSandbox, targetPath, sandboxIgnorePatterns))
+            if (ShouldSkipAuditorIssue(category, description, filePath, scope))
             {
                 return;
             }
@@ -173,19 +180,19 @@ namespace UnityMCP.Editor
             return location?.GetType().GetProperty("Path")?.GetValue(location)?.ToString() ?? "";
         }
 
-        private static bool ShouldSkipAuditorIssue(string category, string description, string filePath, bool isSandbox, string targetPath, string[] sandboxIgnorePatterns)
+        private static bool ShouldSkipAuditorIssue(string category, string description, string filePath, AuditorScope scope)
         {
             if (category.Contains("Code"))
             {
-                if (string.IsNullOrEmpty(filePath) || !filePath.StartsWith(targetPath))
+                if (string.IsNullOrEmpty(filePath) || !filePath.StartsWith(scope.TargetPath))
                 {
                     return true;
                 }
 
-                return isSandbox && sandboxIgnorePatterns.Any(pattern => description.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0);
+                return scope.IsSandbox && scope.IgnorePatterns.Any(pattern => description.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0);
             }
 
-            return isSandbox && (string.IsNullOrEmpty(filePath) || (!filePath.Contains("com.forkhorizon.nexus.unity") && !filePath.Contains("Assets/NexusUnity")));
+            return scope.IsSandbox && (string.IsNullOrEmpty(filePath) || (!filePath.Contains("com.forkhorizon.nexus.unity") && !filePath.Contains("Assets/NexusUnity")));
         }
 
         private static void RunNexusStyleAudit(JObject result)
@@ -216,81 +223,5 @@ namespace UnityMCP.Editor
             NexusEditorLog.Log(NexusLogCategory.Audit, $"[Nexus Style Audit] Added {styleIssuesAdded} style issues. Total: {codeIssuesList.Count}", true);
         }
 
-        private static void ScanSceneHealth(JArray issues)
-        {
-            var allGOs = Resources.FindObjectsOfTypeAll<GameObject>()
-                .Where(go => (go.hideFlags & (HideFlags.HideInInspector | HideFlags.HideAndDontSave)) == 0);
-
-            foreach (var go in allGOs)
-            {
-                // In Unity 6, go.scene is a struct. Check for validity and if it's loaded to only scan active scene objects.
-                if (!go.scene.IsValid() || !go.scene.isLoaded) continue;
-
-                int missingScripts = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go);
-                for (int i = 0; i < missingScripts; i++)
-                {
-                    issues.Add(new JObject {
-                        ["type"] = "MissingScript",
-                        ["object"] = go.name,
-                        ["path"] = GetGameObjectPath(go),
-                        ["description"] = "GameObject has a missing script reference."
-                    });
-                }
-
-                go.GetComponents<Renderer>(_rendererCache);
-                foreach (var renderer in _rendererCache)
-                {
-                    renderer.GetSharedMaterials(_materialCache);
-                    foreach (var mat in _materialCache)
-                    {
-                        if (mat == null)
-                        {
-                            issues.Add(new JObject {
-                                ["type"] = "MissingMaterial",
-                                ["object"] = go.name,
-                                ["path"] = GetGameObjectPath(go),
-                                ["description"] = "Renderer has a null material entry."
-                            });
-                        }
-                        else if (mat.shader != null && mat.shader.name == "Hidden/InternalErrorShader")
-                        {
-                            issues.Add(new JObject {
-                                ["type"] = "PinkMaterial",
-                                ["object"] = go.name,
-                                ["path"] = GetGameObjectPath(go),
-                                ["description"] = "Material is using the error shader (Pink)."
-                            });
-                        }
-                    }
-                }
-
-                if (PrefabUtility.IsPartOfPrefabInstance(go))
-                {
-                    var status = PrefabUtility.GetPrefabInstanceStatus(go);
-                    if (status == PrefabInstanceStatus.MissingAsset)
-                    {
-                        issues.Add(new JObject {
-                            ["type"] = "BrokenPrefab",
-                            ["object"] = go.name,
-                            ["path"] = GetGameObjectPath(go),
-                            ["description"] = "Prefab instance is missing its source asset."
-                        });
-                    }
-                }
-            }
-        }
-
-        private static string GetGameObjectPath(GameObject obj)
-        {
-            _pathStackCache.Clear();
-            _pathStackCache.Push(obj.name);
-            var current = obj.transform;
-            while (current.parent != null)
-            {
-                current = current.parent;
-                _pathStackCache.Push(current.name);
-            }
-            return string.Join("/", _pathStackCache);
-        }
     }
 }

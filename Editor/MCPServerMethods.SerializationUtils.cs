@@ -30,8 +30,28 @@ namespace UnityMCP.Editor
             return root.Q(name);
         }
 
-        private static JToken SerializeVisualElement(VisualElement el, bool deep = false)
+        private sealed class VisualElementSerializationState
         {
+            internal int VisitedCount;
+            internal int CurrentDepth;
+            internal readonly int MaxElements;
+            internal readonly int MaxDepth;
+            internal readonly bool Deep;
+            internal bool IsTruncated;
+
+            internal VisualElementSerializationState(int maxDepth, int maxElements, bool deep = false, int currentDepth = 0)
+            {
+                MaxDepth = maxDepth < 0 ? 0 : maxDepth;
+                MaxElements = maxElements <= 0 ? 1 : maxElements;
+                Deep = deep;
+                CurrentDepth = currentDepth;
+            }
+        }
+
+        internal static JObject SerializeVisualElementNode(VisualElement el, bool deep = false)
+        {
+            if (el == null) return null;
+
             var obj = new JObject
             {
                 ["name"] = el.name,
@@ -60,10 +80,57 @@ namespace UnityMCP.Editor
                 obj["computed_style"] = style;
             }
 
-            var children = new JArray();
-            foreach (var child in el.Children()) children.Add(SerializeVisualElement(child, deep));
-            if (children.Count > 0) obj["children"] = children;
             return obj;
+        }
+
+        private static JToken SerializeVisualElement(VisualElement el, VisualElementSerializationState state)
+        {
+            if (el == null) return JValue.CreateNull();
+
+            state.VisitedCount++;
+            var obj = SerializeVisualElementNode(el, state.Deep);
+            if (obj == null) return JValue.CreateNull();
+
+            int childCount = el.childCount;
+            if (childCount > 0)
+            {
+                if (state.CurrentDepth >= state.MaxDepth)
+                {
+                    obj["children_truncated"] = true;
+                    state.IsTruncated = true;
+                }
+                else
+                {
+                    var children = new JArray();
+                    state.CurrentDepth++;
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        if (state.VisitedCount >= state.MaxElements)
+                        {
+                            obj["children_truncated"] = true;
+                            state.IsTruncated = true;
+                            break;
+                        }
+                        children.Add(SerializeVisualElement(el[i], state));
+                    }
+                    state.CurrentDepth--;
+                    if (children.Count > 0) obj["children"] = children;
+                }
+            }
+
+            if (state.CurrentDepth == 0 && state.IsTruncated)
+            {
+                obj["truncated"] = true;
+            }
+
+            return obj;
+        }
+
+        private static JToken SerializeVisualElement(VisualElement el, bool deep = false, int maxDepth = 30, int maxElements = 1000)
+        {
+            if (el == null) return JValue.CreateNull();
+            var state = new VisualElementSerializationState(maxDepth, maxElements, deep, 0);
+            return SerializeVisualElement(el, state);
         }
     }
 }
