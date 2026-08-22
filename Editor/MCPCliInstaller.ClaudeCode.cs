@@ -42,7 +42,7 @@ namespace UnityMCP.Editor
 
         private static bool TryLinkViaClaudeCli(string claudePath, string scriptPath, string pythonPath)
         {
-            bool removedStale = RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "remove", "--scope", "project", "nexus-unity"), claudePath, false, "Claude Code", out string removeError, false);
+            bool removedStale = RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "remove", "--scope", "project", "nexus-unity"), false, "Claude Code", out string removeError, false);
             bool registrationAbsent = !removedStale && IsClaudeCodeRegistrationAbsent(removeError);
 
             if ((removedStale || registrationAbsent) && RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "add", "--transport", "stdio", "--scope", "project", "--env", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, "nexus-unity", "--", pythonPath, scriptPath), claudePath, false, "Claude Code"))

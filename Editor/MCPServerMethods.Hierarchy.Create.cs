@@ -57,16 +57,15 @@ namespace UnityMCP.Editor
                     if (comp == null) continue;
 
                     var data = compPair.Value as JObject;
-                    if (data != null)
+                    if (data == null) continue;
+
+                    SerializedObject so = new SerializedObject(comp);
+                    foreach (var propPair in data)
                     {
-                        SerializedObject so = new SerializedObject(comp);
-                        foreach (var propPair in data)
-                        {
-                            SerializedProperty sp = so.FindProperty(propPair.Key);
-                            if (sp != null) ApplyValueToProperty(sp, propPair.Value);
-                        }
-                        so.ApplyModifiedProperties();
+                        SerializedProperty sp = so.FindProperty(propPair.Key);
+                        if (sp != null) ApplyValueToProperty(sp, propPair.Value);
                     }
+                    so.ApplyModifiedProperties();
                 }
             }
             finally

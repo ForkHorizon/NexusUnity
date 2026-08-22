@@ -151,21 +151,22 @@ namespace UnityMCP.Editor
             else if (value.Type == JTokenType.String) prop.objectReferenceValue = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(value.ToString());
             else if (value.Type == JTokenType.Object)
             {
-                if (value["instance_id"] != null) prop.objectReferenceValue = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(value));
-                else if (value["guid"] != null && value["file_id"] != null)
+                if (value["instance_id"] != null)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(value["guid"].ToString());
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        long fileId = (long)value["file_id"];
-                        var all = AssetDatabase.LoadAllAssetsAtPath(path);
-                        foreach (var asset in all)
-                        {
-                            if (asset == null) continue;
-                            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out _, out long id);
-                            if (id == fileId) { prop.objectReferenceValue = asset; break; }
-                        }
-                    }
+                    prop.objectReferenceValue = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(value));
+                    return;
+                }
+                if (value["guid"] == null || value["file_id"] == null) return;
+                string path = AssetDatabase.GUIDToAssetPath(value["guid"].ToString());
+                if (string.IsNullOrEmpty(path)) return;
+
+                long fileId = (long)value["file_id"];
+                var all = AssetDatabase.LoadAllAssetsAtPath(path);
+                foreach (var asset in all)
+                {
+                    if (asset == null) continue;
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out _, out long id);
+                    if (id == fileId) { prop.objectReferenceValue = asset; break; }
                 }
             }
         }

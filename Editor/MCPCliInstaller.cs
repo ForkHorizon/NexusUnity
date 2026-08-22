@@ -120,13 +120,13 @@ namespace UnityMCP.Editor
                 {
                     string output = p.StandardOutput.ReadToEnd();
                     p.WaitForExit();
-                    if (p.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+                    if (p.ExitCode != 0 || string.IsNullOrWhiteSpace(output)) return null;
+
+                    string[] lines = output.Split('\n');
+                    for (int i = 0; i < lines.Length; i++)
                     {
-                        foreach (string line in output.Split('\n'))
-                        {
-                            string candidate = line.Trim();
-                            if (!string.IsNullOrEmpty(candidate) && File.Exists(candidate)) return candidate;
-                        }
+                        string candidate = lines[i].Trim();
+                        if (!string.IsNullOrEmpty(candidate) && File.Exists(candidate)) return candidate;
                     }
                 }
             }
@@ -217,7 +217,6 @@ namespace UnityMCP.Editor
                     backslashes++;
                     continue;
                 }
-
                 if (c == '"')
                 {
                     result.Append('\\', backslashes * 2 + 1);
@@ -236,12 +235,13 @@ namespace UnityMCP.Editor
 
         private static bool RunInstallerProcess(ProcessStartInfo psi, string cliPath, bool showSuccessDialog, string cliName)
         {
-            return RunInstallerProcess(psi, cliPath, showSuccessDialog, cliName, out _, true);
+            return RunInstallerProcess(psi, showSuccessDialog, cliName, out _, true);
         }
 
-        private static bool RunInstallerProcess(ProcessStartInfo psi, string cliPath, bool showSuccessDialog, string cliName, out string error, bool logFailure)
+        private static bool RunInstallerProcess(ProcessStartInfo psi, bool showSuccessDialog, string cliName, out string error, bool logFailure)
         {
             error = string.Empty;
+            string cliPath = psi.FileName;
             try
             {
                 using (Process p = Process.Start(psi))

@@ -1,8 +1,15 @@
-"""Editor controller, UI automation, and execution tool schemas for NexusUnity."""
+"""Editor controller, wait, and compilation tool schemas for NexusUnity."""
 
 from __future__ import annotations
 
 from typing import Any
+
+from .schemas_diagnostics import (
+    DIAGNOSTIC_TOOLS,
+    PLAYERPREFS_MANAGER_TOOL,
+    STATIC_RESOURCES,
+)
+from .schemas_ui import UI_AUTOMATION_TOOL
 
 JsonObject = dict[str, Any]
 
@@ -106,93 +113,6 @@ EDITOR_CONTROLLER_TOOL: JsonObject = {
     },
 }
 
-UI_AUTOMATION_TOOL: JsonObject = {
-    "name": "unity_ui_automation",
-    "description": "Unified UI Toolkit window automation",
-    "inputSchema": {
-        "type": "object",
-        "oneOf": [
-            {
-                "description": "List all open editor windows",
-                "properties": {"action": {"const": "list_windows"}},
-                "required": ["action"],
-            },
-            {
-                "description": "Get the UI element hierarchy for a window",
-                "properties": {
-                    "action": {"const": "get_hierarchy"},
-                    "window_title": {"type": "string"},
-                    "deep": {"type": "boolean"},
-                    "max_depth": {"type": "integer"},
-                    "max_elements": {"type": "integer"},
-                },
-                "required": ["action", "window_title"],
-            },
-            {
-                "description": "Query UI elements by name, text, or class within a window",
-                "properties": {
-                    "action": {"const": "query"},
-                    "window_title": {"type": "string"},
-                    "name": {"type": "string"},
-                    "text": {"type": "string"},
-                    "class_name": {"type": "string"},
-                    "max_depth": {"type": "integer"},
-                    "max_results": {"type": "integer"},
-                },
-                "required": ["action", "window_title"],
-            },
-            {
-                "description": "Get the screen rect (position and size) of a window",
-                "properties": {"action": {"const": "get_window_rect"}, "window_title": {"type": "string"}},
-                "required": ["action", "window_title"],
-            },
-            {
-                "description": "Reposition and resize a window",
-                "properties": {
-                    "action": {"const": "set_window_rect"},
-                    "window_title": {"type": "string"},
-                    "x": {"type": "number"},
-                    "y": {"type": "number"},
-                    "width": {"type": "number"},
-                    "height": {"type": "number"},
-                },
-                "required": ["action", "window_title"],
-            },
-            {
-                "description": "Capture a screenshot and/or UI hierarchy snapshot of a window",
-                "properties": {
-                    "action": {"const": "capture_window_snapshot"},
-                    "window_title": {"type": "string"},
-                    "include_image": {"type": "boolean"},
-                    "include_hierarchy": {"type": "boolean"},
-                    "max_depth": {"type": "integer"},
-                    "max_elements": {"type": "integer"},
-                },
-                "required": ["action", "window_title"],
-            },
-            {
-                "description": "Click a named UI element inside a window",
-                "properties": {
-                    "action": {"const": "click"},
-                    "window_title": {"type": "string"},
-                    "element_name": {"type": "string"},
-                },
-                "required": ["action", "window_title", "element_name"],
-            },
-            {
-                "description": "Type text into a named UI input element inside a window",
-                "properties": {
-                    "action": {"const": "input"},
-                    "window_title": {"type": "string"},
-                    "element_name": {"type": "string"},
-                    "text": {"type": "string"},
-                },
-                "required": ["action", "window_title", "element_name", "text"],
-            },
-        ],
-    },
-}
-
 WAIT_TOOL: JsonObject = {
     "name": "unity_wait",
     "description": "Wait for specific Unity editor states or events",
@@ -227,49 +147,6 @@ WAIT_TOOL: JsonObject = {
     },
 }
 
-PLAYERPREFS_MANAGER_TOOL: JsonObject = {
-    "name": "unity_playerprefs_manager",
-    "description": "Unified PlayerPrefs management",
-    "inputSchema": {
-        "type": "object",
-        "oneOf": [
-            {
-                "description": "Read a PlayerPref value by key",
-                "properties": {
-                    "action": {"const": "get"},
-                    "key": {"type": "string"},
-                    "type": {"type": "string", "enum": ["string", "int", "float"]},
-                },
-                "required": ["action", "key"],
-            },
-            {
-                "description": "Write a PlayerPref value",
-                "properties": {
-                    "action": {"const": "set"},
-                    "key": {"type": "string"},
-                    "value": {"type": "string"},
-                    "type": {"type": "string", "enum": ["string", "int", "float"]},
-                },
-                "required": ["action", "key", "value"],
-            },
-            {
-                "description": "Delete a PlayerPref entry by key; use key 'all' with confirm true to clear all PlayerPrefs",
-                "properties": {
-                    "action": {"const": "delete"},
-                    "key": {"type": "string"},
-                    "confirm": {"type": "boolean"},
-                },
-                "required": ["action", "key"],
-            },
-            {
-                "description": "List all stored PlayerPref keys and their values",
-                "properties": {"action": {"const": "list"}},
-                "required": ["action"],
-            },
-        ],
-    },
-}
-
 WRITE_AND_COMPILE_TOOL: JsonObject = {
     "name": "unity_write_and_compile",
     "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.",
@@ -293,46 +170,12 @@ WRITE_AND_COMPILE_TOOL: JsonObject = {
     },
 }
 
-DIAGNOSTIC_TOOLS: list[JsonObject] = [
-    {
-        "name": "unity_invoke_method",
-        "description": "Invoke a C# method on a component via reflection",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "instance_id": {"type": "integer"},
-                "component_name": {"type": "string"},
-                "method_name": {"type": "string"},
-                "arguments": {"type": "array"},
-            },
-            "required": ["instance_id", "method_name"],
-        },
-    },
-    {
-        "name": "unity_dump_scene_graph",
-        "description": "Dump recursive tree of active scene with components and key fields",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "root_id": {"type": "integer"},
-                "max_depth": {"type": "integer"},
-                "include_all_properties": {"type": "boolean"},
-            },
-        },
-    },
-    {
-        "name": "unity_get_scene_dependencies",
-        "description": "Return a scene-wide dependency map of cross-object references",
-        "inputSchema": {"type": "object", "properties": {}},
-    },
-    {
-        "name": "unity_lint_project",
-        "description": "Run Roslyn-based C# audit of the entire project",
-        "inputSchema": {"type": "object", "properties": {}},
-    },
-]
-
-STATIC_RESOURCES: list[JsonObject] = [
-    {"uri": "unity://docs/api-reference", "name": "API Reference", "mimeType": "text/markdown"},
-    {"uri": "unity://docs/setup", "name": "Setup Guide", "mimeType": "text/markdown"},
+__all__ = [
+    "DIAGNOSTIC_TOOLS",
+    "EDITOR_CONTROLLER_TOOL",
+    "PLAYERPREFS_MANAGER_TOOL",
+    "STATIC_RESOURCES",
+    "UI_AUTOMATION_TOOL",
+    "WAIT_TOOL",
+    "WRITE_AND_COMPILE_TOOL",
 ]
