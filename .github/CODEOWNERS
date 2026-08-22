@@ -1,0 +1,10 @@
+# Protect CI / Code Quality policy and workflow definitions from unauthorized modifications
+
+# Code Linter & Quality Gate configurations
+/.code-linter.json @daliys
+/.ruff.toml @daliys
+/.unity-quality-gate.json @daliys
+
+# GitHub Actions workflows & ownership definitions
+/.github/workflows/ @daliys
+/.github/CODEOWNERS @daliys
