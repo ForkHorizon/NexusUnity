@@ -80,12 +80,9 @@ namespace UnityMCP.Editor
             IsUpdatingCached = EditorApplication.isUpdating;
             IsPlayingCached = EditorApplication.isPlaying;
             IsPausedCached = EditorApplication.isPaused;
-            // isPlayingOrWillChangePlaymode stays true for the WHOLE play session,
-            // so using it directly reported a permanent "play_mode_transition":
-            // acceptsWriteCommands stayed false and Initialize threw "editor is
-            // busy" for as long as the game ran. A transition is in progress only
-            // while the two flags disagree (entering: will-change but not yet
-            // playing; exiting: still playing but no longer will-change).
+            // isPlayingOrWillChangePlaymode stays true for the whole play session,
+            // so using it directly would permanently block writes. A transition
+            // is active only while the two flags disagree, for both directions.
             IsPlayModeTransitionCached =
                 EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying;
             UnityVersionCached = Application.unityVersion;

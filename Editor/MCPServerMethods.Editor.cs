@@ -45,41 +45,7 @@ namespace UnityMCP.Editor
             {
                 string filter = p?["filter"]?.ToString();
                 string modeStr = p?["mode"]?.ToString() ?? "EditMode";
-                
-                // Reflection to avoid hard dependency on UnityEditor.TestRunner
-                var apiType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.TestRunnerApi");
-
-                if (apiType == null) throw new Exception("UnityEditor.TestRunner.Api not found. Is Test Framework package installed?");
-
-                var settingsType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.ExecutionSettings");
-                
-                var filterType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.Filter");
-
-                var modeType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.TestMode");
-
-                var api = ScriptableObject.CreateInstance(apiType);
-                var filterObj = Activator.CreateInstance(filterType);
-                
-                // Set filter fields
-                var testNamesField = filterType.GetField("testNames");
-                if (!string.IsNullOrEmpty(filter)) testNamesField.SetValue(filterObj, new[] { filter });
-
-                var testModeField = filterType.GetField("testMode");
-                object modeValue = Enum.Parse(modeType, modeStr, true);
-                testModeField.SetValue(filterObj, modeValue);
-
-                var settings = Activator.CreateInstance(settingsType, new[] { filterObj });
-                
-                var executeMethod = apiType.GetMethod("Execute");
-                executeMethod.Invoke(api, new[] { settings });
+                SubmitTests(filter, modeStr);
 
                 return new JObject
                 {
@@ -95,6 +61,31 @@ namespace UnityMCP.Editor
             {
                 return new JObject { ["status"] = "Error", ["message"] = $"Failed to run tests: {e.Message}" };
             }
+        }
+
+        private static void SubmitTests(string filter, string modeStr)
+        {
+            var apiType = FindTestRunnerType("TestRunnerApi");
+            if (apiType == null) throw new Exception("UnityEditor.TestRunner.Api not found. Is Test Framework package installed?");
+
+            var settingsType = FindTestRunnerType("ExecutionSettings");
+            var filterType = FindTestRunnerType("Filter");
+            var modeType = FindTestRunnerType("TestMode");
+            var api = ScriptableObject.CreateInstance(apiType);
+            var filterObject = Activator.CreateInstance(filterType);
+            var testNamesField = filterType.GetField("testNames");
+            if (!string.IsNullOrEmpty(filter)) testNamesField.SetValue(filterObject, new[] { filter });
+            filterType.GetField("testMode").SetValue(filterObject, Enum.Parse(modeType, modeStr, true));
+            var settings = Activator.CreateInstance(settingsType, new[] { filterObject });
+            apiType.GetMethod("Execute").Invoke(api, new[] { settings });
+        }
+
+        private static Type FindTestRunnerType(string typeName)
+        {
+            string fullName = "UnityEditor.TestTools.TestRunner.Api." + typeName;
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(type => type.FullName == fullName);
         }
 
         private static JToken OpenPrefabStage(JToken p)

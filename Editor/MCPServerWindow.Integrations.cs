@@ -43,32 +43,49 @@ namespace UnityMCP.Editor
         private VisualElement BuildIntegrationCard(NexusMcpClientInfo client)
         {
             var card = NexusEditorUi.Panel("NexusIntegrationCard" + client.ElementKey);
+            StyleIntegrationCard(card);
+            card.Add(CreateIntegrationTitle(client));
+            AddIntegrationDetails(card, client);
+            card.Add(CreateIntegrationActions(client));
+            return card;
+        }
+
+        private static void StyleIntegrationCard(VisualElement card)
+        {
             card.style.flexBasis = 260;
             card.style.flexGrow = 1;
             card.style.flexShrink = 1;
             card.style.minWidth = 240;
             card.style.marginRight = 6;
+        }
 
+        private static VisualElement CreateIntegrationTitle(NexusMcpClientInfo client)
+        {
             var titleRow = NexusEditorUi.Row(true, "NexusIntegrationTitle" + client.ElementKey);
             var title = NexusEditorUi.Label(client.DisplayName, 13, true, null, "NexusIntegrationName" + client.ElementKey);
             title.style.flexGrow = 1;
             title.style.minWidth = 130;
             titleRow.Add(title);
             titleRow.Add(NexusEditorUi.Pill(GetIntegrationStatusText(client.Status), GetIntegrationStatusColor(client.Status), "NexusIntegrationStatus" + client.ElementKey));
-            card.Add(titleRow);
+            return titleRow;
+        }
 
-            var detail = NexusEditorUi.Label(client.StatusDetail, 10, false, NexusEditorUi.Muted, "NexusIntegrationDetail" + client.ElementKey);
-            detail.style.marginTop = 4;
-            card.Add(detail);
+        private static void AddIntegrationDetails(VisualElement card, NexusMcpClientInfo client)
+        {
+            AddIntegrationLabel(card, client.StatusDetail, NexusEditorUi.Muted, "NexusIntegrationDetail" + client.ElementKey);
+            AddIntegrationLabel(card, client.Instruction, null, "NexusIntegrationInstruction" + client.ElementKey);
+            AddIntegrationLabel(card, "Config: " + client.ConfigPath, NexusEditorUi.Muted, "NexusIntegrationConfigPath" + client.ElementKey);
+        }
 
-            var instruction = NexusEditorUi.Label(client.Instruction, 10, false, null, "NexusIntegrationInstruction" + client.ElementKey);
-            instruction.style.marginTop = 4;
-            card.Add(instruction);
+        private static void AddIntegrationLabel(VisualElement card, string text, Color? color, string name)
+        {
+            var label = NexusEditorUi.Label(text, 10, false, color, name);
+            label.style.marginTop = 4;
+            card.Add(label);
+        }
 
-            var path = NexusEditorUi.Label("Config: " + client.ConfigPath, 10, false, NexusEditorUi.Muted, "NexusIntegrationConfigPath" + client.ElementKey);
-            path.style.marginTop = 4;
-            card.Add(path);
-
+        private VisualElement CreateIntegrationActions(NexusMcpClientInfo client)
+        {
             var actions = NexusEditorUi.Row(true, "NexusIntegrationActions" + client.ElementKey);
             var autoButton = NexusEditorUi.Button("Auto Setup", () => AutoSetupIntegration(client),
                 client.SupportsAutoSetup ? "Write the Nexus Unity MCP config for this client." : client.AutoSetupDisabledReason,
@@ -90,8 +107,7 @@ namespace UnityMCP.Editor
             if (!canOpen) openButton.tooltip = "This integration is managed by CLI or manual copy/paste.";
             actions.Add(openButton);
 
-            card.Add(actions);
-            return card;
+            return actions;
         }
 
         private void AutoSetupIntegration(NexusMcpClientInfo client)

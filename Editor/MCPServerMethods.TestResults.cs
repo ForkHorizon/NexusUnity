@@ -14,14 +14,7 @@ namespace UnityMCP.Editor
         {
             string resultPath = ResolveTestResultsPath(p);
             if (string.IsNullOrEmpty(resultPath) || !File.Exists(resultPath))
-            {
-                return new JObject
-                {
-                    ["status"] = "NotFound",
-                    ["result_path"] = resultPath ?? GetDefaultTestResultsPath(),
-                    ["message"] = "No Unity TestResults XML file was found."
-                };
-            }
+                return CreateMissingTestResults(resultPath);
 
             try
             {
@@ -29,42 +22,7 @@ namespace UnityMCP.Editor
                 XElement root = document.Root;
                 if (root == null)
                     return new JObject { ["status"] = "Error", ["result_path"] = resultPath, ["message"] = "TestResults XML is empty." };
-
-                var failedTests = new JArray();
-                foreach (XElement testCase in document.Descendants("test-case"))
-                {
-                    string result = Attr(testCase, "result");
-                    if (string.Equals(result, "Passed", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(result, "Skipped", StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    string message = testCase.Element("failure")?.Element("message")?.Value
-                        ?? testCase.Element("reason")?.Element("message")?.Value
-                        ?? testCase.Element("output")?.Value
-                        ?? result;
-                    failedTests.Add(new JObject
-                    {
-                        ["name"] = Attr(testCase, "name"),
-                        ["fullname"] = Attr(testCase, "fullname"),
-                        ["result"] = result,
-                        ["message"] = message
-                    });
-                }
-
-                return new JObject
-                {
-                    ["status"] = "Success",
-                    ["result_path"] = resultPath,
-                    ["timestamp_utc"] = File.GetLastWriteTimeUtc(resultPath).ToString("o"),
-                    ["result"] = Attr(root, "result"),
-                    ["total"] = IntAttr(root, "total"),
-                    ["passed"] = IntAttr(root, "passed"),
-                    ["failed"] = IntAttr(root, "failed"),
-                    ["inconclusive"] = IntAttr(root, "inconclusive"),
-                    ["skipped"] = IntAttr(root, "skipped"),
-                    ["duration"] = DoubleAttr(root, "duration"),
-                    ["failed_tests"] = failedTests
-                };
+                return BuildTestResultsResponse(document, root, resultPath);
             }
             catch (Exception e)
             {
@@ -75,6 +33,66 @@ namespace UnityMCP.Editor
                     ["message"] = $"Failed to parse TestResults XML: {e.Message}"
                 };
             }
+        }
+
+        private static JObject CreateMissingTestResults(string resultPath)
+        {
+            return new JObject
+            {
+                ["status"] = "NotFound",
+                ["result_path"] = resultPath ?? GetDefaultTestResultsPath(),
+                ["message"] = "No Unity TestResults XML file was found."
+            };
+        }
+
+        private static JObject BuildTestResultsResponse(XDocument document, XElement root, string resultPath)
+        {
+            return new JObject
+            {
+                ["status"] = "Success",
+                ["result_path"] = resultPath,
+                ["timestamp_utc"] = File.GetLastWriteTimeUtc(resultPath).ToString("o"),
+                ["result"] = Attr(root, "result"),
+                ["total"] = IntAttr(root, "total"),
+                ["passed"] = IntAttr(root, "passed"),
+                ["failed"] = IntAttr(root, "failed"),
+                ["inconclusive"] = IntAttr(root, "inconclusive"),
+                ["skipped"] = IntAttr(root, "skipped"),
+                ["duration"] = DoubleAttr(root, "duration"),
+                ["failed_tests"] = CollectFailedTests(document)
+            };
+        }
+
+        private static JArray CollectFailedTests(XDocument document)
+        {
+            var failedTests = new JArray();
+            foreach (XElement testCase in document.Descendants("test-case"))
+            {
+                string result = Attr(testCase, "result");
+                if (!IsSuccessfulTestResult(result)) failedTests.Add(CreateFailedTest(testCase, result));
+            }
+            return failedTests;
+        }
+
+        private static bool IsSuccessfulTestResult(string result)
+        {
+            return string.Equals(result, "Passed", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(result, "Skipped", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static JObject CreateFailedTest(XElement testCase, string result)
+        {
+            string message = testCase.Element("failure")?.Element("message")?.Value
+                ?? testCase.Element("reason")?.Element("message")?.Value
+                ?? testCase.Element("output")?.Value
+                ?? result;
+            return new JObject
+            {
+                ["name"] = Attr(testCase, "name"),
+                ["fullname"] = Attr(testCase, "fullname"),
+                ["result"] = result,
+                ["message"] = message
+            };
         }
 
         private static string ResolveTestResultsPath(JToken p)

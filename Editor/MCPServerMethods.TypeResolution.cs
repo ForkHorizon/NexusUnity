@@ -81,54 +81,7 @@ namespace UnityMCP.Editor
             if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(IsAllowedAssembly).ToList();
-            Type resultType = null;
-            
-            // Priority 1: Check Assembly-CSharp
-            var mainAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "Assembly-CSharp");
-            if (mainAsm != null)
-            {
-                resultType = GetTypeFromAssembly(mainAsm, name);
-            }
-
-            // Priority 2: Check UnityEngine CoreModule (Component, Camera, BoxCollider, etc.)
-            if (resultType == null)
-            {
-                var coreAsm = typeof(Component).Assembly;
-                if (IsAllowedAssembly(coreAsm))
-                {
-                    resultType = GetTypeFromAssembly(coreAsm, name);
-                }
-            }
-
-            // Priority 3: Check UnityEngine.UI module if loaded
-            if (resultType == null)
-            {
-                var uiAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "UnityEngine.UI");
-                if (uiAsm != null)
-                {
-                    resultType = GetTypeFromAssembly(uiAsm, name);
-                }
-            }
-
-            // Priority 4: Check Assembly-CSharp-firstpass
-            if (resultType == null)
-            {
-                var firstPassAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "Assembly-CSharp-firstpass");
-                if (firstPassAsm != null)
-                {
-                    resultType = GetTypeFromAssembly(firstPassAsm, name);
-                }
-            }
-
-            // Priority 5: Check all other allowed assemblies
-            if (resultType == null)
-            {
-                foreach (var a in assemblies)
-                {
-                    resultType = GetTypeFromAssembly(a, name);
-                    if (resultType != null) break;
-                }
-            }
+            Type resultType = FindTypeInPriorityAssemblies(assemblies, name);
 
             if (resultType != null && IsAllowedType(resultType))
             {
@@ -136,6 +89,40 @@ namespace UnityMCP.Editor
                 return resultType;
             }
 
+            return null;
+        }
+
+        private static Type FindTypeInPriorityAssemblies(List<Assembly> assemblies, string name)
+        {
+            Type result = FindTypeInNamedAssembly(assemblies, "Assembly-CSharp", name);
+            if (result != null) return result;
+
+            var coreAssembly = typeof(Component).Assembly;
+            if (IsAllowedAssembly(coreAssembly))
+            {
+                result = GetTypeFromAssembly(coreAssembly, name);
+                if (result != null) return result;
+            }
+
+            result = FindTypeInNamedAssembly(assemblies, "UnityEngine.UI", name);
+            if (result != null) return result;
+            result = FindTypeInNamedAssembly(assemblies, "Assembly-CSharp-firstpass", name);
+            return result ?? FindTypeInAssemblies(assemblies, name);
+        }
+
+        private static Type FindTypeInNamedAssembly(List<Assembly> assemblies, string assemblyName, string name)
+        {
+            var assembly = assemblies.FirstOrDefault(item => item.GetName().Name == assemblyName);
+            return assembly == null ? null : GetTypeFromAssembly(assembly, name);
+        }
+
+        private static Type FindTypeInAssemblies(List<Assembly> assemblies, string name)
+        {
+            foreach (var assembly in assemblies)
+            {
+                var result = GetTypeFromAssembly(assembly, name);
+                if (result != null) return result;
+            }
             return null;
         }
 

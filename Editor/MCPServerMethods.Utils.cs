@@ -28,8 +28,8 @@ namespace UnityMCP.Editor
         [DllImport("libc", EntryPoint = "free")]
         private static extern void sys_free(IntPtr ptr);
 
-        [DllImport("kernel32.dll", EntryPoint = "CreateFileW", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern SafeFileHandle CreateFile(
+        [UnmanagedFunctionPointer(CallingConvention.Winapi, CharSet = CharSet.Unicode)]
+        private delegate IntPtr CreateFileDelegate(
             string lpFileName,
             uint dwDesiredAccess,
             uint dwShareMode,
@@ -37,6 +37,12 @@ namespace UnityMCP.Editor
             uint dwCreationDisposition,
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile);
+
+        [DllImport("kernel32.dll", EntryPoint = "LoadLibraryW", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr LoadLibrary(string libraryName);
+
+        [DllImport("kernel32.dll", EntryPoint = "GetProcAddress", CharSet = CharSet.Ansi, SetLastError = true)]
+        private static extern IntPtr GetProcAddress(IntPtr module, string procedureName);
 
         [DllImport("kernel32.dll", EntryPoint = "GetFinalPathNameByHandleW", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern uint GetFinalPathNameByHandle(
@@ -51,6 +57,8 @@ namespace UnityMCP.Editor
         private const uint OPEN_EXISTING = 3;
         private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
         private const uint VOLUME_NAME_DOS = 0x0;
+        private static CreateFileDelegate _createFile;
+        private static IntPtr _kernel32;
 
         private static string ResolveUnixPath(string path)
         {
@@ -71,14 +79,18 @@ namespace UnityMCP.Editor
 
         private static string ResolveWindowsPath(string path)
         {
-            using (SafeFileHandle hFile = CreateFile(
+            var createFile = GetCreateFileDelegate();
+            if (createFile == null) return path;
+
+            IntPtr rawHandle = createFile(
                 path,
                 0,
                 FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                 IntPtr.Zero,
                 OPEN_EXISTING,
                 FILE_FLAG_BACKUP_SEMANTICS,
-                IntPtr.Zero))
+                IntPtr.Zero);
+            using (var hFile = new SafeFileHandle(rawHandle, true))
             {
                 if (hFile.IsInvalid)
                 {
@@ -103,6 +115,17 @@ namespace UnityMCP.Editor
                 }
                 return resolved;
             }
+        }
+
+        private static CreateFileDelegate GetCreateFileDelegate()
+        {
+            if (_createFile != null) return _createFile;
+            _kernel32 = LoadLibrary("kernel32.dll");
+            if (_kernel32 == IntPtr.Zero) return null;
+            IntPtr address = GetProcAddress(_kernel32, "CreateFileW");
+            if (address == IntPtr.Zero) return null;
+            _createFile = (CreateFileDelegate)Marshal.GetDelegateForFunctionPointer(address, typeof(CreateFileDelegate));
+            return _createFile;
         }
 
         private static string ResolveRealPathInternal(string path)

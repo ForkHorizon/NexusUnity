@@ -144,20 +144,22 @@ namespace UnityMCP.Editor
                             bool directMatch = targetInstanceIds.Contains(propId);
                             bool indirectMatch = objRef != null && targetInstanceIds.Contains(objRef.GetId());
 
-                            if (directMatch || indirectMatch)
-                            {
-                                var matchDetail = new JObject
-                                {
-                                    ["component"] = GetTypeName(comp.GetType()),
-                                    ["field"] = prop.propertyPath
-                                };
-                                goMatches.Add(matchDetail);
-                            }
+                            AddReferenceMatch(goMatches, directMatch || indirectMatch, comp, prop);
                         }
                     }
                 }
             }
             return goMatches;
+        }
+
+        private static void AddReferenceMatch(JArray matches, bool isMatch, Component component, SerializedProperty property)
+        {
+            if (!isMatch) return;
+            matches.Add(new JObject
+            {
+                ["component"] = GetTypeName(component.GetType()),
+                ["field"] = property.propertyPath
+            });
         }
     }
 }
