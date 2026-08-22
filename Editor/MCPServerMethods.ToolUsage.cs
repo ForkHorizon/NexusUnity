@@ -11,6 +11,12 @@ namespace UnityMCP.Editor
         private static readonly Dictionary<string, ToolUsageStat> _toolUsageStats = new Dictionary<string, ToolUsageStat>();
         private static DateTime _toolUsageStartedUtc = DateTime.UtcNow;
 
+        private static readonly System.Text.RegularExpressions.Regex _windowsPathRegex =
+            new System.Text.RegularExpressions.Regex(@"[a-zA-Z]:[\\/][^\s""'<>]+", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        private static readonly System.Text.RegularExpressions.Regex _unixPathRegex =
+            new System.Text.RegularExpressions.Regex(@"/(?:Users|home|root|var|tmp|etc|private|Applications|Volumes)/[^\s""'<>]+", System.Text.RegularExpressions.RegexOptions.Compiled);
+
         private sealed class ToolUsageStat
         {
             public int Count;
@@ -20,7 +26,82 @@ namespace UnityMCP.Editor
             public DateTime LastCallUtc;
             public DateTime? LastSuccessUtc;
             public DateTime? LastErrorUtc;
+            public string LastErrorType;
             public string LastError;
+        }
+
+        /// <summary>
+        /// Sanitizes raw exception messages before storing them in in-memory tool usage metrics.
+        /// </summary>
+        /// <param name="failure">The caught exception, or null.</param>
+        /// <param name="errorType">Outputs the exception type name.</param>
+        /// <returns>A sanitized single-line summary with sensitive paths redacted.</returns>
+        internal static string SanitizeErrorMessage(Exception failure, out string errorType)
+        {
+            if (failure == null)
+            {
+                errorType = null;
+                return null;
+            }
+
+            errorType = failure.GetType().Name;
+            string raw = failure.Message ?? string.Empty;
+
+            string firstLine = raw.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+            firstLine = firstLine.Trim();
+
+            if (string.IsNullOrEmpty(firstLine))
+            {
+                return errorType;
+            }
+
+            try
+            {
+                string projectPath = UnityEngine.Application.dataPath;
+                if (!string.IsNullOrEmpty(projectPath))
+                {
+                    string parent = System.IO.Directory.GetParent(projectPath)?.FullName;
+                    if (!string.IsNullOrEmpty(parent))
+                    {
+                        firstLine = firstLine.Replace(parent, "[project]");
+                        firstLine = firstLine.Replace(parent.Replace('\\', '/'), "[project]");
+                        firstLine = firstLine.Replace(parent.Replace('/', '\\'), "[project]");
+                    }
+                    firstLine = firstLine.Replace(projectPath, "[project]/Assets");
+                    firstLine = firstLine.Replace(projectPath.Replace('\\', '/'), "[project]/Assets");
+                    firstLine = firstLine.Replace(projectPath.Replace('/', '\\'), "[project]/Assets");
+                }
+            }
+            catch
+            {
+                // Ignore environment resolution errors in headless or unit test contexts
+            }
+
+            try
+            {
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (!string.IsNullOrEmpty(userProfile) && userProfile.Length > 1)
+                {
+                    firstLine = firstLine.Replace(userProfile, "[user]");
+                    firstLine = firstLine.Replace(userProfile.Replace('\\', '/'), "[user]");
+                    firstLine = firstLine.Replace(userProfile.Replace('/', '\\'), "[user]");
+                }
+            }
+            catch
+            {
+                // Ignore environment resolution errors
+            }
+
+            firstLine = _windowsPathRegex.Replace(firstLine, "[path]");
+            firstLine = _unixPathRegex.Replace(firstLine, "[path]");
+
+            const int maxLen = 160;
+            if (firstLine.Length > maxLen)
+            {
+                firstLine = firstLine.Substring(0, maxLen - 3) + "...";
+            }
+
+            return firstLine;
         }
 
         private static void RecordToolUsage(string method, double durationMs, Exception failure)
@@ -49,7 +130,8 @@ namespace UnityMCP.Editor
 
                 stat.ErrorCount++;
                 stat.LastErrorUtc = now;
-                stat.LastError = failure.Message;
+                stat.LastError = SanitizeErrorMessage(failure, out string errorType);
+                stat.LastErrorType = errorType;
             }
         }
 
@@ -77,6 +159,8 @@ namespace UnityMCP.Editor
                         item["last_success_utc"] = stat.LastSuccessUtc.Value.ToString("o");
                     if (stat.LastErrorUtc.HasValue)
                         item["last_error_utc"] = stat.LastErrorUtc.Value.ToString("o");
+                    if (!string.IsNullOrEmpty(stat.LastErrorType))
+                        item["last_error_type"] = stat.LastErrorType;
                     if (!string.IsNullOrEmpty(stat.LastError))
                         item["last_error"] = stat.LastError;
 

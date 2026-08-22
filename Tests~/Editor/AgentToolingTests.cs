@@ -97,8 +97,34 @@ namespace UnityMCP.Editor.Tests
             Assert.GreaterOrEqual(editorState["count"].Value<int>(), 1);
             Assert.IsNotNull(missing);
             Assert.GreaterOrEqual(missing["error_count"].Value<int>(), 1);
+            Assert.AreEqual("Exception", missing["last_error_type"]?.ToString());
+            Assert.IsTrue(missing["last_error"]?.ToString().Contains("agent_tooling_missing_method"));
             CollectionAssert.DoesNotContain(missing.Properties().Select(p => p.Name).ToArray(), "secret_payload");
             CollectionAssert.DoesNotContain(missing.Properties().Select(p => p.Name).ToArray(), "payload");
+        }
+
+        [Test]
+        public void ToolUsageStatsSanitizesRawExceptionPathsAndDetails()
+        {
+            var exUnix = new System.InvalidOperationException("Failed to load /Users/daliys/SecretProjects/MyProject/Assets/Secret.cs\nStack trace line 1\nStack trace line 2");
+            string sanitizedUnix = MCPServerMethods.SanitizeErrorMessage(exUnix, out string errorTypeUnix);
+            Assert.AreEqual("InvalidOperationException", errorTypeUnix);
+            Assert.IsFalse(sanitizedUnix.Contains("/Users/daliys"));
+            Assert.IsFalse(sanitizedUnix.Contains("Stack trace"));
+            Assert.IsTrue(sanitizedUnix.Contains("[path]") || sanitizedUnix.Contains("[project]"));
+
+            var exWin = new System.IO.FileNotFoundException(@"Missing file at C:\Users\Admin\Documents\Unity\Secret.asset");
+            string sanitizedWin = MCPServerMethods.SanitizeErrorMessage(exWin, out string errorTypeWin);
+            Assert.AreEqual("FileNotFoundException", errorTypeWin);
+            Assert.IsFalse(sanitizedWin.Contains(@"C:\Users\Admin"));
+            Assert.IsTrue(sanitizedWin.Contains("[path]"));
+
+            string longMsg = new string('x', 300);
+            var exLong = new System.Exception(longMsg);
+            string sanitizedLong = MCPServerMethods.SanitizeErrorMessage(exLong, out string errorTypeLong);
+            Assert.AreEqual("Exception", errorTypeLong);
+            Assert.LessOrEqual(sanitizedLong.Length, 160);
+            Assert.IsTrue(sanitizedLong.EndsWith("..."));
         }
 
         [Test]
