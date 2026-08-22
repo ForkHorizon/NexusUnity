@@ -1,8 +1,8 @@
+using System;
+using System.IO;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
-using System.IO;
-using System;
-using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
 {
@@ -15,9 +15,7 @@ namespace UnityMCP.Editor
         /// <remarks>
         /// Prefers the official <c>claude</c> CLI (<c>claude mcp add --scope project</c>, which itself writes
         /// <c>.mcp.json</c>). When the CLI is unavailable or fails, it falls back to writing <c>.mcp.json</c> directly.
-        /// Either path produces the same project-root <c>.mcp.json</c> that the Integrations tab tracks. This is distinct
-        /// from the Claude Desktop app config, which is handled by the generic JSON-config codepath in
-        /// <see cref="NexusMcpConfigGenerator"/> instead of a dedicated CLI installer.
+        /// Either path produces the same project-root <c>.mcp.json</c> that the Integrations tab tracks.
         /// </remarks>
         public static void LinkToClaudeCode()
         {
@@ -31,45 +29,43 @@ namespace UnityMCP.Editor
         private static void ExecuteClaudeCodeLinkSequence(string scriptPath, string pythonPath)
         {
             string claudePath = ResolveExecutablePath("claude");
-
-            // Preferred path: the official claude CLI writes the project-scoped .mcp.json for us.
             if (!string.IsNullOrEmpty(claudePath) && claudePath != "claude")
             {
-                // 1. Remove any stale registration so re-running is idempotent.
-                // A missing registration is expected on first setup and is safe to add over.
-                bool removedStaleRegistration = RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "remove", "--scope", "project", "nexus-unity"), claudePath, false, "Claude Code", out string removeError, false);
-                bool registrationWasAbsent = !removedStaleRegistration && IsClaudeCodeRegistrationAbsent(removeError);
-
-                // 2. Add the server at project scope only when the prior state is known to be clear.
-                if ((removedStaleRegistration || registrationWasAbsent) && RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "add", "--transport", "stdio", "--scope", "project", "--env", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, "nexus-unity", "--", pythonPath, scriptPath), claudePath, false, "Claude Code"))
+                if (TryLinkViaClaudeCli(claudePath, scriptPath, pythonPath))
                 {
-                    NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Claude Code via '" + claudePath + "'.", true);
-                    EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to Claude Code.\n\nRun /mcp inside Claude Code (or restart it) to load the server.", "OK");
                     return;
                 }
-
-                NexusEditorLog.Warning(NexusLogCategory.Integrations, (removedStaleRegistration || registrationWasAbsent)
-                    ? "[MCP] Claude Code CLI add command failed at '" + claudePath + "'. Falling back to direct .mcp.json edit."
-                    : "[MCP] Claude Code CLI could not remove the existing registration at '" + claudePath + "': " + removeError + ". Skipping CLI add and falling back to direct .mcp.json edit.");
             }
 
-            // Fallback: write the project-root .mcp.json directly.
+            WriteClaudeCodeDirectJson(scriptPath, pythonPath);
+        }
+
+        private static bool TryLinkViaClaudeCli(string claudePath, string scriptPath, string pythonPath)
+        {
+            bool removedStale = RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "remove", "--scope", "project", "nexus-unity"), claudePath, false, "Claude Code", out string removeError, false);
+            bool registrationAbsent = !removedStale && IsClaudeCodeRegistrationAbsent(removeError);
+
+            if ((removedStale || registrationAbsent) && RunInstallerProcess(CreateProcessStartInfo(claudePath, "mcp", "add", "--transport", "stdio", "--scope", "project", "--env", MCPServer.AuthTokenEnvironmentVariable + "=" + MCPServer.AuthToken, "nexus-unity", "--", pythonPath, scriptPath), claudePath, false, "Claude Code"))
+            {
+                NexusEditorLog.Log(NexusLogCategory.Integrations, "[MCP] Successfully linked Nexus Unity to Claude Code via '" + claudePath + "'.", true);
+                EditorUtility.DisplayDialog("MCP Success", "Successfully linked Nexus Unity to Claude Code.\n\nRun /mcp inside Claude Code (or restart it) to load the server.", "OK");
+                return true;
+            }
+
+            NexusEditorLog.Warning(NexusLogCategory.Integrations, (removedStale || registrationAbsent)
+                ? "[MCP] Claude Code CLI add command failed at '" + claudePath + "'. Falling back to direct .mcp.json edit."
+                : "[MCP] Claude Code CLI could not remove the existing registration at '" + claudePath + "': " + removeError + ". Skipping CLI add and falling back to direct .mcp.json edit.");
+            return false;
+        }
+
+        private static void WriteClaudeCodeDirectJson(string scriptPath, string pythonPath)
+        {
             try
             {
                 string projectRoot = Path.GetDirectoryName(Application.dataPath);
                 string configPath = Path.Combine(projectRoot, ".mcp.json");
 
-                JObject config;
-                if (File.Exists(configPath))
-                {
-                    try { config = JObject.Parse(File.ReadAllText(configPath)); }
-                    catch { config = new JObject(); }
-                }
-                else
-                {
-                    config = new JObject();
-                }
-
+                JObject config = LoadOrCreateJsonObject(configPath);
                 if (config["mcpServers"] == null) config["mcpServers"] = new JObject();
                 JObject servers = (JObject)config["mcpServers"];
 
@@ -91,6 +87,16 @@ namespace UnityMCP.Editor
                 NexusEditorLog.Error(NexusLogCategory.Integrations, "[MCP] Failed to link Claude Code: " + e.Message);
                 EditorUtility.DisplayDialog("MCP Error", "Failed to write .mcp.json for Claude Code.\n\n" + e.Message, "OK");
             }
+        }
+
+        private static JObject LoadOrCreateJsonObject(string path)
+        {
+            if (File.Exists(path))
+            {
+                try { return JObject.Parse(File.ReadAllText(path)); }
+                catch { return new JObject(); }
+            }
+            return new JObject();
         }
 
         internal static bool IsClaudeCodeRegistrationAbsent(string error)

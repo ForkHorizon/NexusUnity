@@ -14,6 +14,7 @@ All notable public changes to Nexus Unity are documented here.
 - Consolidated duplicate internal Ollama-review and serialized-property write helpers.
 
 ### Fixed
+- Add traversal depth and element/result bounds to UI Toolkit hierarchy serialization and element queries (`ui_get_hierarchy`, `ui_query_elements`, and `ui_capture_window_snapshot`), preventing editor stalls and payload bloat on complex UI windows, with `children_truncated` and `truncated` markers on partial hierarchy responses (#126).
 - Dispatch WebSocket request handling asynchronously in `Task.Run`, ensuring `ServerLoop` remains non-blocking for concurrent HTTP JSON-RPC requests and new connections (#129).
 - `EditorApplication.update` subscription for `HandlePostCompileFocusReturn` is now idempotent (unsubscribes before subscribing), preventing stacked duplicate frame handlers on repeated initialization or domain reloads (#138).
 - `ListPlayerPrefs` now uses `ProcessStartInfo.ArgumentList` and timeout guards for macOS `defaults read` execution, preventing process hangs, alongside regex unhashing for Windows registry keys, Linux XML prefs support, and double-default type verification (#143).

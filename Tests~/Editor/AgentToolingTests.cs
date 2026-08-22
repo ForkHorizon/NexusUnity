@@ -266,6 +266,82 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void UiGetHierarchyRespectsDepthAndElementCaps()
+        {
+            MCPTestWindow window = MCPTestWindow.ShowWindow();
+            window.ResetState();
+
+            JObject shallow = RpcResult("ui_get_hierarchy", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["max_depth"] = 0
+            });
+            Assert.AreEqual(true, shallow["truncated"]?.Value<bool>());
+            Assert.AreEqual(true, shallow["children_truncated"]?.Value<bool>());
+            Assert.IsNull(shallow["children"]);
+
+            JObject cappedElements = RpcResult("ui_get_hierarchy", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["max_elements"] = 1
+            });
+            Assert.AreEqual(true, cappedElements["truncated"]?.Value<bool>());
+            Assert.AreEqual(true, cappedElements["children_truncated"]?.Value<bool>());
+
+            JObject full = RpcResult("ui_get_hierarchy", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["max_depth"] = 30,
+                ["max_elements"] = 1000
+            });
+            Assert.IsNull(full["truncated"]);
+            Assert.IsNotNull(full["children"]);
+        }
+
+        [Test]
+        public void UiQueryElementsRespectsMaxResultsAndMaxDepth()
+        {
+            MCPTestWindow window = MCPTestWindow.ShowWindow();
+            window.ResetState();
+
+            // Query by broad match (empty text or common name)
+            var response = Rpc("ui_query_elements", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["name"] = "TestButton",
+                ["max_results"] = 1
+            });
+            Assert.IsNull(response["error"]);
+            JArray results = (JArray)response["result"];
+            Assert.AreEqual(1, results.Count);
+            Assert.AreEqual("TestButton", results[0]?["name"]?.ToString());
+            Assert.IsNull(results[0]?["children"]);
+            Assert.IsNull(results[0]?["truncated"]);
+
+            // Depth cap preventing reaching nested elements
+            var depthZeroResponse = Rpc("ui_query_elements", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["name"] = "TestButton",
+                ["max_depth"] = 0
+            });
+            Assert.IsNull(depthZeroResponse["error"]);
+            JArray depthZeroResults = (JArray)depthZeroResponse["result"];
+            Assert.AreEqual(0, depthZeroResults.Count);
+
+            // Traversal cap preventing reaching nested elements even with large max_results
+            var cappedTraversalResponse = Rpc("ui_query_elements", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["name"] = "TestButton",
+                ["max_elements"] = 1
+            });
+            Assert.IsNull(cappedTraversalResponse["error"]);
+            JArray cappedTraversalResults = (JArray)cappedTraversalResponse["result"];
+            Assert.AreEqual(0, cappedTraversalResults.Count);
+        }
+
+        [Test]
         public void CreateScriptableObjectAssetRejectsAbstractTypes()
         {
             var response = Rpc("create_scriptable_object_asset", new JObject

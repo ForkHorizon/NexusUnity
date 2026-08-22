@@ -69,7 +69,13 @@ namespace UnityMCP.Editor
         private static void AddUITools(JArray tools)
         {
             tools.Add(CreateTool("ui_list_windows", "List Editor Windows", new JObject { }));
-            tools.Add(CreateTool("ui_get_hierarchy", "Inspect Window UI", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
+            tools.Add(CreateTool("ui_get_hierarchy", "Inspect Window UI", new JObject
+            {
+                ["window_title"] = new JObject { ["type"] = "string" },
+                ["deep"] = new JObject { ["type"] = "boolean" },
+                ["max_depth"] = new JObject { ["type"] = "integer" },
+                ["max_elements"] = new JObject { ["type"] = "integer" }
+            }, "window_title"));
             tools.Add(CreateTool("ui_get_window_rect", "Get an EditorWindow position and size for layout QA", new JObject { ["window_title"] = new JObject { ["type"] = "string" } }, "window_title"));
             tools.Add(CreateTool("ui_set_window_rect", "Set an EditorWindow position and size for layout QA", new JObject
             {
@@ -83,14 +89,18 @@ namespace UnityMCP.Editor
             {
                 ["window_title"] = new JObject { ["type"] = "string" },
                 ["include_image"] = new JObject { ["type"] = "boolean" },
-                ["include_hierarchy"] = new JObject { ["type"] = "boolean" }
+                ["include_hierarchy"] = new JObject { ["type"] = "boolean" },
+                ["max_depth"] = new JObject { ["type"] = "integer" },
+                ["max_elements"] = new JObject { ["type"] = "integer" }
             }, "window_title"));
             tools.Add(CreateTool("ui_query_elements", "Find UI Toolkit elements by text, name, or USS class", new JObject
             {
                 ["window_title"] = new JObject { ["type"] = "string" },
                 ["name"] = new JObject { ["type"] = "string" },
                 ["text"] = new JObject { ["type"] = "string" },
-                ["class_name"] = new JObject { ["type"] = "string" }
+                ["class_name"] = new JObject { ["type"] = "string" },
+                ["max_depth"] = new JObject { ["type"] = "integer" },
+                ["max_results"] = new JObject { ["type"] = "integer" }
             }, "window_title"));
             tools.Add(CreateTool("ui_click", "Simulate UI Click", new JObject { ["window_title"] = new JObject { ["type"] = "string" }, ["element_name"] = new JObject { ["type"] = "string" } }, "window_title", "element_name"));
             tools.Add(CreateTool("ui_input_text", "Type into UI field", new JObject { ["window_title"] = new JObject { ["type"] = "string" }, ["element_name"] = new JObject { ["type"] = "string" }, ["text"] = new JObject { ["type"] = "string" } }, "window_title", "element_name", "text"));
