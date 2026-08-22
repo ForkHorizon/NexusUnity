@@ -41,6 +41,7 @@ namespace UnityMCP.Editor
             }
 
             MCPServer.RefreshMainThreadCachedState();
+            CacheEnvironmentPaths();
             NexusEditorLog.Log(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init starting...");
             _methods.Clear();
             ClearCache();
