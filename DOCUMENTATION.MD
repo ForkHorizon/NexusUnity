@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.5.0`
+Version: `1.6.0`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -207,7 +207,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.5.0`.
+- Public release version: `1.6.0`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -219,12 +219,12 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.5.0` for the package version, `v1.5.0` for tags, and `1.5.0` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.6.0` for the package version, `v1.6.0` for tags, and `1.6.0` for release titles.
 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.5.0` unless the change is part of a release-preparation commit.
+- Do not change `package.json` from `1.6.0` unless the change is part of a release-preparation commit.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
@@ -232,4 +232,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.5.0` for package version `1.5.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.6.0` for package version `1.6.0`.

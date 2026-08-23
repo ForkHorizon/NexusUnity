@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.5.0)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.6.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,13 +8,13 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.5.0`
+- Version: `1.6.0`
 - License: `MIT`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
 
-Active public release. Current version: `1.5.0`.
+Active public release. Current version: `1.6.0`.
 
 The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
@@ -48,7 +48,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.5.0
+https://github.com/ForkHorizon/NexusUnity.git#v1.6.0
 ```
 
 Nexus Unity does not declare Unity Project Auditor packages. Its lint tool always runs Nexus style and scene checks, and only includes Unity Project Auditor findings when the host project explicitly has compatible Project Auditor rules installed.
@@ -265,9 +265,9 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.5.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.6.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.5.0` and `v1.5.0`. Reserve patch bumps for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.6.0` and `v1.6.0`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 
@@ -276,6 +276,8 @@ Please use GitHub Issues for reproducible bugs and focused feature requests. Sec
 To support ongoing development, use the repository Sponsor button configured through GitHub Sponsors.
 
 ## Release Notes
+
+The `1.6.0` release improves safe, reliable AI-driven Unity Editor automation. It adds bounded UI hierarchy and query traversal, non-blocking WebSocket request handling, persistent MCP authentication tokens, resilient PlayerPrefs support, safer asset and type handling, and better scene dependency, test-result, and editor-focus behavior. It also hardens destructive asset actions and trusted replay of external pull requests. See the complete change list in the `1.6.0` changelog entry.
 
 The `1.5.0` release relicenses Nexus Unity under MIT and hardens the public local-automation surface: every HTTP/WebSocket request now requires the session token; script writes and bulk PlayerPrefs deletion have explicit confirmation gates; raw batches are bounded; and readiness reports are safe during import and Play Mode transitions. It also improves cheap GameObject read-back, primitive validation, bridge resources, current MCP client setup, path-security coverage, test-result reporting, and cross-platform CLI launch reliability. See the complete, migration-relevant detail in the `1.5.0` changelog entry.
 
