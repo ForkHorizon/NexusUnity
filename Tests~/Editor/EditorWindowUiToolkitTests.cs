@@ -85,6 +85,13 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void IntegrationLookupReturnsNullWhenTheClientIsNoLongerAvailable()
+        {
+            Assert.IsNull(MCPServerWindow.FindIntegrationByKind(
+                Enumerable.Empty<NexusMcpClientInfo>(), NexusMcpClientKind.Codex));
+        }
+
+        [Test]
         public void VerificationWindowBuildsNamedControls()
         {
             var window = ScriptableObject.CreateInstance<MCPVerificationWindow>();
@@ -116,6 +123,29 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsNotNull(window.rootVisualElement.Q<TextField>("TestInput"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Button>("TestButton"));
                 Assert.IsNotNull(window.rootVisualElement.Q<Label>("TestLabel"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(window);
+            }
+        }
+
+        [Test]
+        public void TestWindowPreservesVerificationStateWhenRebuilt()
+        {
+            var window = ScriptableObject.CreateInstance<MCPTestWindow>();
+            try
+            {
+                window.CreateGUI();
+                window.rootVisualElement.Q<TextField>("TestInput").value = "Persisted";
+                window.rootVisualElement.Q<Button>("TestButton").Click();
+
+                window.CreateGUI();
+
+                Assert.AreEqual("Persisted", window.LastInputValue);
+                Assert.IsTrue(window.ButtonClicked);
+                Assert.AreEqual("Persisted", window.rootVisualElement.Q<TextField>("TestInput").value);
+                Assert.AreEqual("Button Clicked!", window.rootVisualElement.Q<Label>("TestLabel").text);
             }
             finally
             {

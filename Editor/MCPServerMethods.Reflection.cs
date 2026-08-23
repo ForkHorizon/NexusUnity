@@ -3,10 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using UnityEditor;
-using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace UnityMCP.Editor
 {
@@ -18,37 +16,11 @@ namespace UnityMCP.Editor
         private static bool _isIndexing = false;
         private static object _indexLock = new object();
 
-        /// <summary>
-        /// Identifies the kind of reflected C# symbol returned by the Unity editor symbol index.
-        /// </summary>
-        /// <remarks>
-        /// Class entries describe compiled types, Method entries describe invocable members exposed for editor inspection,
-        /// and Field entries describe reflected fields discovered while scanning Unity assemblies and project scripts.
-        /// </remarks>
-        public enum SymbolType { Class, Method, Field }
-
-        /// <summary>
-        /// Carries reflected C# symbol metadata used by Nexus Unity search and method invocation tools.
-        /// </summary>
-        /// <remarks>
-        /// Values are populated from Unity's loaded assemblies on a background indexing task. Metadata stores serialized
-        /// reflection details used by editor search results and JSON-RPC method invocation, so consumers should treat it
-        /// as protocol data rather than user-authored text.
-        /// </remarks>
-        public struct SymbolInfo
-        {
-            public string Name;
-            public string Namespace;
-            public string DeclaringType;
-            public SymbolType Type;
-            public string Metadata;
-        }
-
         private static void RegisterReflectionMethods()
         {
             _methods["symbol_index"] = SymbolIndex;
             _methods["invoke_method"] = InvokeMethod;
-            
+
             // Trigger initial scan
             StartIndexing();
         }
@@ -58,13 +30,13 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("symbol_index", "Index and search all compiled symbols (Classes, Methods, Fields)", new JObject
             {
                 ["query"] = new JObject { ["type"] = "string", ["description"] = "Fuzzy or Regex search query" },
-                ["type_filter"] = new JObject { 
-                    ["type"] = "string", 
+                ["type_filter"] = new JObject {
+                    ["type"] = "string",
                     ["enum"] = new JArray("Class", "Method", "Field"),
                     ["description"] = "Optional: Filter by symbol type"
                 }
             }));
-            
+
             tools.Add(CreateTool("invoke_method", "Invoke a C# method on a component", new JObject
             {
                 ["instance_id"] = new JObject { ["type"] = "integer" },
@@ -72,160 +44,6 @@ namespace UnityMCP.Editor
                 ["method_name"] = new JObject { ["type"] = "string" },
                 ["arguments"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "any" } }
             }, "instance_id", "method_name"));
-        }
-
-        private static void StartIndexing()
-        {
-            lock (_indexLock)
-            {
-                if (_isIndexing) return;
-                _isIndexing = true;
-            }
-
-            ThreadPool.QueueUserWorkItem(_ => {
-                try
-                {
-                    var newIndex = BuildSymbolIndex();
-                    lock (_indexLock)
-                    {
-                        _symbolIndex = newIndex;
-                        _isIndexing = false;
-                    }
-                }
-                catch (Exception)
-                {
-                    lock (_indexLock) { _isIndexing = false; }
-                }
-            });
-        }
-
-        private static List<SymbolInfo> BuildSymbolIndex()
-        {
-            var newIndex = new List<SymbolInfo>(100000);
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            foreach (var assembly in assemblies)
-            {
-                AddAssemblySymbols(assembly, newIndex);
-            }
-            return newIndex;
-        }
-
-        private static void AddAssemblySymbols(Assembly assembly, List<SymbolInfo> index)
-        {
-            string asmName = assembly.GetName().Name;
-            if (asmName.StartsWith("System") || asmName.StartsWith("Microsoft") || asmName.StartsWith("mscorlib") || asmName.StartsWith("netstandard"))
-                return;
-
-            Type[] types;
-            try { types = assembly.GetTypes(); }
-            catch { return; }
-
-            foreach (var type in types)
-            {
-                if (type == null) continue;
-
-                index.Add(new SymbolInfo
-                {
-                    Name = type.Name,
-                    Namespace = type.Namespace,
-                    DeclaringType = type.FullName,
-                    Type = SymbolType.Class,
-                    Metadata = type.BaseType?.Name
-                });
-
-                var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
-
-                foreach (var method in type.GetMethods(flags))
-                {
-                    if (method.IsSpecialName) continue;
-                    
-                    var parameters = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
-                    index.Add(new SymbolInfo
-                    {
-                        Name = method.Name,
-                        Namespace = type.Namespace,
-                        DeclaringType = type.FullName,
-                        Type = SymbolType.Method,
-                        Metadata = $"({parameters})"
-                    });
-                }
-
-                foreach (var field in type.GetFields(flags))
-                {
-                    index.Add(new SymbolInfo
-                    {
-                        Name = field.Name,
-                        Namespace = type.Namespace,
-                        DeclaringType = type.FullName,
-                        Type = SymbolType.Field,
-                        Metadata = field.FieldType.Name
-                    });
-                }
-            }
-        }
-
-        private static JToken SymbolIndex(JToken p)
-        {
-            string query = p?["query"]?.ToString();
-            string typeFilterStr = p?["type_filter"]?.ToString();
-            
-            SymbolType? typeFilter = null;
-            if (!string.IsNullOrEmpty(typeFilterStr))
-            {
-                if (Enum.TryParse<SymbolType>(typeFilterStr, true, out var result))
-                    typeFilter = result;
-            }
-
-            List<SymbolInfo> currentSnapshot;
-            lock (_indexLock)
-            {
-                currentSnapshot = _symbolIndex;
-            }
-
-            if (currentSnapshot == null || currentSnapshot.Count == 0)
-            {
-                return new JObject { 
-                    ["status"] = "Success", 
-                    ["symbols"] = new JArray(),
-                    ["message"] = _isIndexing ? "Index is being built..." : "Index is empty"
-                };
-            }
-
-            IEnumerable<SymbolInfo> results = currentSnapshot;
-
-            if (typeFilter.HasValue)
-                results = results.Where(s => s.Type == typeFilter.Value);
-
-            if (!string.IsNullOrEmpty(query))
-            {
-                try
-                {
-                    var regex = new System.Text.RegularExpressions.Regex(query, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                    results = results.Where(s => regex.IsMatch(s.Name) || (s.Namespace != null && regex.IsMatch(s.Namespace)));
-                }
-                catch (ArgumentException)
-                {
-                    // Fallback to simple contains if regex is invalid
-                    results = results.Where(s => s.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 || 
-                                               (s.Namespace != null && s.Namespace.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0));
-                }
-            }
-
-            var resultList = results.Take(500).Select(s => new JObject {
-                ["name"] = s.Name,
-                ["namespace"] = s.Namespace,
-                ["declaring_type"] = s.DeclaringType,
-                ["type"] = s.Type.ToString(),
-                ["metadata"] = s.Metadata
-            }).ToList();
-
-            return new JObject { 
-                ["status"] = "Success", 
-                ["symbols"] = new JArray(resultList),
-                ["count"] = resultList.Count,
-                ["is_indexing"] = _isIndexing
-            };
         }
 
         internal static string GetTypeName(Type type)
@@ -238,48 +56,15 @@ namespace UnityMCP.Editor
             return name;
         }
 
-        internal static Type FindType(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return null;
-            if (_typeCache.TryGetValue(name, out var cachedType)) return cachedType;
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            Type resultType = null;
-            
-            // Priority 1: Check Assembly-CSharp
-            var mainAsm = assemblies.FirstOrDefault(a => a.GetName().Name == "Assembly-CSharp");
-            if (mainAsm != null)
-            {
-                resultType = mainAsm.GetType(name) ?? mainAsm.GetTypes().FirstOrDefault(x => x.Name == name);
-            }
-
-            // Priority 2: Check all other assemblies
-            if (resultType == null)
-            {
-                foreach (var a in assemblies)
-                {
-                    try 
-                    {
-                        resultType = a.GetType(name) ?? a.GetTypes().FirstOrDefault(x => x.Name == name);
-                        if (resultType != null) break;
-                    }
-                    catch { }
-                }
-            }
-
-            _typeCache[name] = resultType;
-            return resultType;
-        }
-
         private static JToken InvokeMethod(JToken p)
         {
-            if (p == null || p["instance_id"] == null || p["method_name"] == null) 
+            if (p == null || p["instance_id"] == null || p["method_name"] == null)
                 throw new Exception("instance_id and method_name required");
 
             object target = ResolveTarget(p);
             string methodName = p["method_name"].ToString();
             var argsArray = p["arguments"] as JArray ?? new JArray();
-            
+
             var method = ResolveMethod(target, methodName, argsArray);
             var invokeArgs = PrepareArguments(method, argsArray);
 
@@ -321,7 +106,6 @@ namespace UnityMCP.Editor
 
             if (candidates.Count > 1)
             {
-                // Try to narrow down by type matching
                 var filtered = candidates.Where(m => CanMapArguments(m.GetParameters(), argsArray)).ToList();
                 if (filtered.Count == 1) return filtered[0];
                 if (filtered.Count > 1) candidates = filtered;
@@ -345,23 +129,26 @@ namespace UnityMCP.Editor
                     continue;
                 }
 
-                switch (jsonValue.Type)
-                {
-                    case JTokenType.Integer:
-                        if (paramType != typeof(int) && paramType != typeof(long) && paramType != typeof(float) && paramType != typeof(double) && paramType != typeof(short) && paramType != typeof(byte)) return false;
-                        break;
-                    case JTokenType.Float:
-                        if (paramType != typeof(float) && paramType != typeof(double)) return false;
-                        break;
-                    case JTokenType.Boolean:
-                        if (paramType != typeof(bool)) return false;
-                        break;
-                    case JTokenType.String:
-                        if (paramType != typeof(string) && !paramType.IsEnum) return false;
-                        break;
-                }
+                if (!IsMatchingJsonType(paramType, jsonValue.Type)) return false;
             }
             return true;
+        }
+
+        private static bool IsMatchingJsonType(Type paramType, JTokenType jsonType)
+        {
+            switch (jsonType)
+            {
+                case JTokenType.Integer:
+                    return paramType == typeof(int) || paramType == typeof(long) || paramType == typeof(float) || paramType == typeof(double) || paramType == typeof(short) || paramType == typeof(byte);
+                case JTokenType.Float:
+                    return paramType == typeof(float) || paramType == typeof(double);
+                case JTokenType.Boolean:
+                    return paramType == typeof(bool);
+                case JTokenType.String:
+                    return paramType == typeof(string) || paramType.IsEnum;
+                default:
+                    return true;
+            }
         }
 
         private static object[] PrepareArguments(MethodInfo method, JArray argsArray)
@@ -377,19 +164,7 @@ namespace UnityMCP.Editor
 
                 try
                 {
-                    if (jsonValue.Type == JTokenType.Null)
-                    {
-                        invokeArgs[i] = null;
-                    }
-                    else if (expectedType == typeof(int)) invokeArgs[i] = (int)jsonValue;
-                    else if (expectedType == typeof(float)) invokeArgs[i] = (float)jsonValue;
-                    else if (expectedType == typeof(double)) invokeArgs[i] = (double)jsonValue;
-                    else if (expectedType == typeof(bool)) invokeArgs[i] = (bool)jsonValue;
-                    else if (expectedType == typeof(string)) invokeArgs[i] = (string)jsonValue;
-                    else
-                    {
-                        invokeArgs[i] = jsonValue.ToObject(expectedType);
-                    }
+                    invokeArgs[i] = ConvertJsonArgument(expectedType, jsonValue);
                 }
                 catch (Exception ex)
                 {
@@ -397,6 +172,17 @@ namespace UnityMCP.Editor
                 }
             }
             return invokeArgs;
+        }
+
+        private static object ConvertJsonArgument(Type expectedType, JToken jsonValue)
+        {
+            if (jsonValue.Type == JTokenType.Null) return null;
+            if (expectedType == typeof(int)) return (int)jsonValue;
+            if (expectedType == typeof(float)) return (float)jsonValue;
+            if (expectedType == typeof(double)) return (double)jsonValue;
+            if (expectedType == typeof(bool)) return (bool)jsonValue;
+            if (expectedType == typeof(string)) return (string)jsonValue;
+            return jsonValue.ToObject(expectedType);
         }
 
         private static JToken FormatResult(MethodInfo method, object result)

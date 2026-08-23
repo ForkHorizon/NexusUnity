@@ -97,8 +97,47 @@ namespace UnityMCP.Editor.Tests
             Assert.GreaterOrEqual(editorState["count"].Value<int>(), 1);
             Assert.IsNotNull(missing);
             Assert.GreaterOrEqual(missing["error_count"].Value<int>(), 1);
+            Assert.AreEqual("Exception", missing["last_error_type"]?.ToString());
+            Assert.IsTrue(missing["last_error"]?.ToString().Contains("agent_tooling_missing_method"));
             CollectionAssert.DoesNotContain(missing.Properties().Select(p => p.Name).ToArray(), "secret_payload");
             CollectionAssert.DoesNotContain(missing.Properties().Select(p => p.Name).ToArray(), "payload");
+        }
+
+        [Test]
+        public void ToolUsageStatsSanitizesRawExceptionPathsAndDetails()
+        {
+            var exUnix = new System.InvalidOperationException("Failed to load /Users/daliys/SecretProjects/MyProject/Assets/Secret.cs\nStack trace line 1\nStack trace line 2");
+            string sanitizedUnix = MCPServerMethods.SanitizeErrorMessage(exUnix, out string errorTypeUnix);
+            Assert.AreEqual("InvalidOperationException", errorTypeUnix);
+            Assert.IsFalse(sanitizedUnix.Contains("/Users/daliys"));
+            Assert.IsFalse(sanitizedUnix.Contains("Stack trace"));
+            Assert.IsTrue(sanitizedUnix.Contains("[path]") || sanitizedUnix.Contains("[project]"));
+
+            var exWin = new System.IO.FileNotFoundException(@"Missing file at C:\Users\Admin\Documents\Unity\Secret.asset");
+            string sanitizedWin = MCPServerMethods.SanitizeErrorMessage(exWin, out string errorTypeWin);
+            Assert.AreEqual("FileNotFoundException", errorTypeWin);
+            Assert.IsFalse(sanitizedWin.Contains(@"C:\Users\Admin"));
+            Assert.IsTrue(sanitizedWin.Contains("[path]"));
+
+            var innerEx = new System.ArgumentNullException("paramName", @"Value cannot be null at /usr/local/share/data/config.json");
+            var wrappedTargetEx = new System.Reflection.TargetInvocationException("Exception has been thrown by the target of an invocation.", innerEx);
+            string sanitizedWrapped = MCPServerMethods.SanitizeErrorMessage(wrappedTargetEx, out string errorTypeWrapped);
+            Assert.AreEqual("ArgumentNullException", errorTypeWrapped);
+            Assert.IsFalse(sanitizedWrapped.Contains("/usr/local/share"));
+            Assert.IsTrue(sanitizedWrapped.Contains("[path]"));
+
+            var exOpt = new System.InvalidOperationException("Failed at /opt/unity/cache/temp.txt");
+            string sanitizedOpt = MCPServerMethods.SanitizeErrorMessage(exOpt, out string errorTypeOpt);
+            Assert.AreEqual("InvalidOperationException", errorTypeOpt);
+            Assert.IsFalse(sanitizedOpt.Contains("/opt/unity"));
+            Assert.IsTrue(sanitizedOpt.Contains("[path]"));
+
+            string longMsg = new string('x', 300);
+            var exLong = new System.Exception(longMsg);
+            string sanitizedLong = MCPServerMethods.SanitizeErrorMessage(exLong, out string errorTypeLong);
+            Assert.AreEqual("Exception", errorTypeLong);
+            Assert.LessOrEqual(sanitizedLong.Length, 160);
+            Assert.IsTrue(sanitizedLong.EndsWith("..."));
         }
 
         [Test]
@@ -226,6 +265,109 @@ namespace UnityMCP.Editor.Tests
 #endif
         }
 
+        [Test]
+        public void UiGetHierarchyRespectsDepthAndElementCaps()
+        {
+            MCPTestWindow window = MCPTestWindow.ShowWindow();
+            window.ResetState();
+
+            JObject shallow = RpcResult("ui_get_hierarchy", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["max_depth"] = 0
+            });
+            Assert.AreEqual(true, shallow["truncated"]?.Value<bool>());
+            Assert.AreEqual(true, shallow["children_truncated"]?.Value<bool>());
+            Assert.IsNull(shallow["children"]);
+
+            JObject cappedElements = RpcResult("ui_get_hierarchy", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["max_elements"] = 1
+            });
+            Assert.AreEqual(true, cappedElements["truncated"]?.Value<bool>());
+            Assert.AreEqual(true, cappedElements["children_truncated"]?.Value<bool>());
+
+            JObject full = RpcResult("ui_get_hierarchy", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["max_depth"] = 30,
+                ["max_elements"] = 1000
+            });
+            Assert.IsNull(full["truncated"]);
+            Assert.IsNotNull(full["children"]);
+        }
+
+        [Test]
+        public void UiQueryElementsRespectsMaxResultsAndMaxDepth()
+        {
+            MCPTestWindow window = MCPTestWindow.ShowWindow();
+            window.ResetState();
+
+            // Query by broad match (empty text or common name)
+            var response = Rpc("ui_query_elements", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["name"] = "TestButton",
+                ["max_results"] = 1
+            });
+            Assert.IsNull(response["error"]);
+            JArray results = (JArray)response["result"];
+            Assert.AreEqual(1, results.Count);
+            Assert.AreEqual("TestButton", results[0]?["name"]?.ToString());
+            Assert.IsNull(results[0]?["children"]);
+            Assert.IsNull(results[0]?["truncated"]);
+
+            // Depth cap preventing reaching nested elements
+            var depthZeroResponse = Rpc("ui_query_elements", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["name"] = "TestButton",
+                ["max_depth"] = 0
+            });
+            Assert.IsNull(depthZeroResponse["error"]);
+            JArray depthZeroResults = (JArray)depthZeroResponse["result"];
+            Assert.AreEqual(0, depthZeroResults.Count);
+
+            // Traversal cap preventing reaching nested elements even with large max_results
+            var cappedTraversalResponse = Rpc("ui_query_elements", new JObject
+            {
+                ["window_title"] = MCPTestWindow.WindowTitle,
+                ["name"] = "TestButton",
+                ["max_elements"] = 1
+            });
+            Assert.IsNull(cappedTraversalResponse["error"]);
+            JArray cappedTraversalResults = (JArray)cappedTraversalResponse["result"];
+            Assert.AreEqual(0, cappedTraversalResults.Count);
+        }
+
+        [Test]
+        public void CreateScriptableObjectAssetRejectsAbstractTypes()
+        {
+            var response = Rpc("create_scriptable_object_asset", new JObject
+            {
+                ["type"] = typeof(AbstractScriptableObjectProbe).FullName,
+                ["path"] = "Assets/AbstractProbe.asset"
+            });
+
+            Assert.IsNotNull(response["error"]);
+            string message = response["error"]["message"]?.ToString();
+            Assert.IsTrue(message.Contains("is abstract and cannot be instantiated"), message);
+        }
+
+        [Test]
+        public void ListFieldsForTypeRejectsAbstractTypes()
+        {
+            var response = Rpc("list_fields_for_type", new JObject
+            {
+                ["type"] = typeof(AbstractScriptableObjectProbe).FullName
+            });
+
+            Assert.IsNotNull(response["error"]);
+            string message = response["error"]["message"]?.ToString();
+            Assert.IsTrue(message.Contains("is abstract and cannot be instantiated"), message);
+        }
+
         private void WriteTestResults(string xml)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_resultPath));
@@ -251,5 +393,9 @@ namespace UnityMCP.Editor.Tests
 
             return JObject.Parse(MCPServerMethods.ProcessJsonRpc(request.ToString(Formatting.None)));
         }
+    }
+
+    public abstract class AbstractScriptableObjectProbe : ScriptableObject
+    {
     }
 }

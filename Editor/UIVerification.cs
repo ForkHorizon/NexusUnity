@@ -21,12 +21,12 @@ namespace UnityMCP.Editor
         public static void Verify()
         {
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "Starting UI Verification...", true);
-            
+
             var wnd = MCPTestWindow.ShowWindow();
             wnd.ResetState();
-            
+
             TestListAndHierarchy();
-            TestInputAndClick();
+            TestInputAndClick(wnd);
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "VERIFICATION SUCCESS", true);
         }
 
@@ -38,13 +38,13 @@ namespace UnityMCP.Editor
             if (!hier.Contains("TestButton")) throw new System.Exception("Hierarchy failed");
         }
 
-        private static void TestInputAndClick()
+        private static void TestInputAndClick(MCPTestWindow wnd)
         {
             string txt = "Test";
             Call("ui_input_text", new JObject { ["window_title"] = MCPTestWindow.WindowTitle, ["element_name"] = "TestInput", ["text"] = txt });
-            if (MCPTestWindow.LastInputValue != txt) throw new System.Exception($"Input failed: expected '{txt}' but got '{MCPTestWindow.LastInputValue}'");
+            if (wnd.LastInputValue != txt) throw new System.Exception($"Input failed: expected '{txt}' but got '{wnd.LastInputValue}'");
             Call("ui_click", new JObject { ["window_title"] = MCPTestWindow.WindowTitle, ["element_name"] = "TestButton" });
-            if (!MCPTestWindow.ButtonClicked) throw new System.Exception("Click failed");
+            if (!wnd.ButtonClicked) throw new System.Exception("Click failed");
         }
 
         private static string Call(string m, JObject p)

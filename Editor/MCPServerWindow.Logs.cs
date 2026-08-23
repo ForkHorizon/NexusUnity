@@ -17,7 +17,14 @@ namespace UnityMCP.Editor
         {
             var section = NexusEditorUi.Section("Server", "Local HTTP bridge status and lifecycle controls.", "NexusServerSection");
             var panel = NexusEditorUi.Panel("NexusServerControl");
+            AddServerStatus(panel);
+            AddServerActions(panel);
+            section.Add(panel);
+            _content.Add(section);
+        }
 
+        private void AddServerStatus(VisualElement panel)
+        {
             var statusRow = NexusEditorUi.Row(true, "NexusServerStatusRow");
             _stateLabel = NexusEditorUi.Label("State: Unknown", 12, true, null, "NexusServerStateLabel");
             _stateLabel.style.marginRight = 12;
@@ -42,7 +49,10 @@ namespace UnityMCP.Editor
             _errorLabel.style.marginTop = 4;
             _errorLabel.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_errorLabel);
+        }
 
+        private void AddServerActions(VisualElement panel)
+        {
             var actions = NexusEditorUi.Row(true, "NexusServerActions");
             _startButton = NexusEditorUi.Button("Start Server", () =>
             {
@@ -69,9 +79,6 @@ namespace UnityMCP.Editor
             actions.Add(NexusEditorUi.Button("Copy URL", CopyServerUrl, "Copy the local server URL to clipboard", false, "NexusServerCopyUrlButton"));
             StretchActionButtons(actions, 84);
             panel.Add(actions);
-
-            section.Add(panel);
-            _content.Add(section);
         }
 
         private void DrawBridgeSummary()

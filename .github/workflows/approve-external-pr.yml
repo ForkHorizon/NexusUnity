@@ -29,6 +29,11 @@ on:
         description: "External PR number to replay (e.g. 30)"
         required: true
         type: string
+      acknowledge_critical_files:
+        description: "Set true only after reviewing the diff, to proceed even though the PR touches .github/workflows, .githooks, or scripts"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write        # push the trusted/pr-N branch
@@ -77,6 +82,70 @@ jobs:
           if [ "$PR_STATE" != "open" ]; then
             echo "::error::PR #${{ inputs.pr_number }} is $PR_STATE — only open PRs can be replayed."
             exit 1
+          fi
+
+      # ── 0.1. Authorize maintainer actor ─────────────────────────────────────
+      - name: Verify maintainer authorization
+        env:
+          ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          echo "Verifying authorization for actor @$ACTOR..."
+
+          # Explicit maintainer bypass
+          if [ "$ACTOR" = "Daliys" ]; then
+            echo "Actor @$ACTOR is authorized maintainer."
+            exit 0
+          fi
+
+          # Check collaborator permission via GitHub API
+          PERM=$(gh api "repos/$REPOSITORY/collaborators/$ACTOR/permission" --jq '.permission' 2>/dev/null || echo "none")
+          case "$PERM" in
+            admin|write)
+              echo "Actor @$ACTOR authorized with permission: $PERM"
+              ;;
+            *)
+              echo "::error::Actor @$ACTOR does not have maintainer authorization (permission: $PERM)."
+              exit 1
+              ;;
+          esac
+
+      # ── 0.2. Content & Security Pre-scan ────────────────────────────────────
+      - name: Run security pre-scan on PR files
+        env:
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          ACKNOWLEDGE: ${{ inputs.acknowledge_critical_files }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          echo "Scanning changed files in PR #$PR_NUMBER..."
+          FILES=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
+
+          SUSPICIOUS_COUNT=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            case "$file" in
+              .github/workflows/*|.githooks/*|scripts/*)
+                echo "::warning::PR #$PR_NUMBER modifies critical CI/script file: $file"
+                SUSPICIOUS_COUNT=$((SUSPICIOUS_COUNT + 1))
+                ;;
+            esac
+          done <<< "$FILES"
+
+          if [ "$SUSPICIOUS_COUNT" -gt 0 ]; then
+            echo "::notice::PR #$PR_NUMBER modifies $SUSPICIOUS_COUNT critical file(s)."
+            if [ "$ACKNOWLEDGE" != "true" ]; then
+              echo "::error::Refusing to replay PR #$PR_NUMBER: it modifies critical CI/script file(s) (see warnings above). Review the diff, then re-run this workflow with 'acknowledge_critical_files' set to true if it's safe to proceed."
+              exit 1
+            fi
+            echo "Critical file changes acknowledged by @${{ github.actor }} — proceeding."
+          else
+            echo "Content pre-scan passed cleanly: no critical CI/workflow files modified."
           fi
 
       # ── 1. Create trusted branch with the fork's commits ───────────────────

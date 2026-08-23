@@ -45,50 +45,16 @@ namespace UnityMCP.Editor
             {
                 string filter = p?["filter"]?.ToString();
                 string modeStr = p?["mode"]?.ToString() ?? "EditMode";
-                
-                // Reflection to avoid hard dependency on UnityEditor.TestRunner
-                var apiType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.TestRunnerApi");
-
-                if (apiType == null) throw new Exception("UnityEditor.TestRunner.Api not found. Is Test Framework package installed?");
-
-                var settingsType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.ExecutionSettings");
-                
-                var filterType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.Filter");
-
-                var modeType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => a.GetTypes())
-                    .FirstOrDefault(t => t.FullName == "UnityEditor.TestTools.TestRunner.Api.TestMode");
-
-                var api = ScriptableObject.CreateInstance(apiType);
-                var filterObj = Activator.CreateInstance(filterType);
-                
-                // Set filter fields
-                var testNamesField = filterType.GetField("testNames");
-                if (!string.IsNullOrEmpty(filter)) testNamesField.SetValue(filterObj, new[] { filter });
-
-                var testModeField = filterType.GetField("testMode");
-                object modeValue = Enum.Parse(modeType, modeStr, true);
-                testModeField.SetValue(filterObj, modeValue);
-
-                var settings = Activator.CreateInstance(settingsType, new[] { filterObj });
-                
-                var executeMethod = apiType.GetMethod("Execute");
-                executeMethod.Invoke(api, new[] { settings });
+                SubmitTests(filter, modeStr);
 
                 return new JObject
                 {
-                    ["status"] = "Success",
-                    ["message"] = $"Test run triggered for {modeStr} (filter: {filter ?? "none"})",
+                    ["status"] = "Submitted",
+                    ["message"] = $"Test run submitted for {modeStr} (filter: {filter ?? "none"})",
                     ["mode"] = modeStr,
                     ["filter"] = filter,
                     ["result_path"] = GetDefaultTestResultsPath(),
-                    ["started_at_utc"] = DateTime.UtcNow.ToString("o")
+                    ["submitted_at_utc"] = DateTime.UtcNow.ToString("o")
                 };
             }
             catch (Exception e)
@@ -97,21 +63,46 @@ namespace UnityMCP.Editor
             }
         }
 
+        private static void SubmitTests(string filter, string modeStr)
+        {
+            var apiType = FindTestRunnerType("TestRunnerApi");
+            if (apiType == null) throw new Exception("UnityEditor.TestRunner.Api not found. Is Test Framework package installed?");
+
+            var settingsType = FindTestRunnerType("ExecutionSettings");
+            var filterType = FindTestRunnerType("Filter");
+            var modeType = FindTestRunnerType("TestMode");
+            var api = ScriptableObject.CreateInstance(apiType);
+            var filterObject = Activator.CreateInstance(filterType);
+            var testNamesField = filterType.GetField("testNames");
+            if (!string.IsNullOrEmpty(filter)) testNamesField.SetValue(filterObject, new[] { filter });
+            filterType.GetField("testMode").SetValue(filterObject, Enum.Parse(modeType, modeStr, true));
+            var settings = Activator.CreateInstance(settingsType, new[] { filterObject });
+            apiType.GetMethod("Execute").Invoke(api, new[] { settings });
+        }
+
+        private static Type FindTestRunnerType(string typeName)
+        {
+            string fullName = "UnityEditor.TestTools.TestRunner.Api." + typeName;
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(type => type.FullName == fullName);
+        }
+
         private static JToken OpenPrefabStage(JToken p)
         {
             if (p == null || p["path"] == null) throw new System.Exception("path is required");
             string path = ValidateAssetPath(p["path"].ToString());
-            
+
             var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefabAsset == null) throw new System.Exception($"Prefab not found at {path}");
 
             AssetDatabase.OpenAsset(prefabAsset);
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
-            
+
             if (stage != null)
             {
-                return new JObject { 
-                    ["status"] = "Success", 
+                return new JObject {
+                    ["status"] = "Success",
                     ["message"] = $"Opened Prefab Stage for {prefabAsset.name}",
                     ["stage_path"] = stage.assetPath
                 };
@@ -123,7 +114,7 @@ namespace UnityMCP.Editor
         {
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
             if (stage == null) return new JObject { ["status"] = "Failed", ["message"] = "No Prefab Stage is currently open" };
-            
+
             StageUtility.GoToMainStage();
             return new JObject { ["status"] = "Success", ["message"] = "Returned to Main Stage" };
         }
@@ -156,11 +147,11 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_ids"] == null) throw new System.Exception("instance_ids (array) is required");
             var ids = p["instance_ids"] as JArray;
             if (ids == null) throw new System.Exception("instance_ids must be an array");
-            
+
             var objects = ids.Select(token => MCPServerMethods.IdToObject(MCPServerMethods.ExtractIdFromToken(token)))
                              .Where(o => o != null)
                              .ToArray();
-            
+
             Selection.objects = objects;
             return new JObject { ["status"] = "Success", ["message"] = $"Selected {objects.Length} objects" };
         }
@@ -215,27 +206,14 @@ namespace UnityMCP.Editor
 
             SerializedObject so = new SerializedObject(obj);
             SerializedProperty prop = so.FindProperty(p["property_name"].ToString());
-            
+
             if (prop == null) throw new System.Exception($"Property '{p["property_name"]}' not found on {obj.name}");
 
             Undo.RecordObject(obj, $"Set {p["property_name"]}");
-            ApplyValueToSerializedProperty(prop, p["value"]);
+            ApplySimpleJTokenValue(prop, p["value"], "Value type not supported for surgical edit yet");
 
             so.ApplyModifiedProperties();
             return new JObject { ["status"] = "Success", ["message"] = "Property updated" };
-        }
-
-        private static void ApplyValueToSerializedProperty(SerializedProperty prop, JToken val)
-        {
-            if (val.Type == JTokenType.Boolean) prop.boolValue = val.Value<bool>();
-            else if (val.Type == JTokenType.Float) prop.floatValue = val.Value<float>();
-            else if (val.Type == JTokenType.Integer) prop.intValue = val.Value<int>();
-            else if (val.Type == JTokenType.String) prop.stringValue = val.Value<string>();
-            else if (val.Type == JTokenType.Object && val["x"] != null)
-            {
-                prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
-            }
-            else throw new System.Exception("Value type not supported for surgical edit yet");
         }
 
         /// <summary>Returns current editor state flags.</summary>

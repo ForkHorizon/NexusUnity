@@ -4,6 +4,32 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-08-23
+
+### Security
+- Sanitize and redact sensitive exception messages in tool usage stats (`get_tool_usage_stats` and `RecordToolUsage`), replacing absolute filesystem paths, user directories, and multiline frames with generic placeholders and safe truncated summaries, and exposing `last_error_type` (#142).
+- Require explicit confirmation (`confirm: true`) for `delete_asset`, enforce `AssetDatabase.MoveAssetToTrash` for OS trash recovery, and block creation, modification, moving, or deletion of `ProjectSettings/` and `Packages/` paths across all asset tools (#140).
+- Hardened external PR replay workflow (`approve-external-pr.yml`) with an in-workflow actor authorization gate and a PR content security pre-scan to prevent unauthorized execution and flag critical CI modifications on self-hosted runners (#144).
+- The content pre-scan now blocks the replay when a PR touches `.github/workflows/*`, `.githooks/*`, or `scripts/*`, requiring the maintainer to re-run with `acknowledge_critical_files: true` after reviewing the diff, instead of only logging a warning (#144).
+
+### Changed
+- Consolidated duplicate internal Ollama-review and serialized-property write helpers.
+
+### Fixed
+- Add traversal depth and element/result bounds to UI Toolkit hierarchy serialization and element queries (`ui_get_hierarchy`, `ui_query_elements`, and `ui_capture_window_snapshot`), preventing editor stalls and payload bloat on complex UI windows, with `children_truncated` and `truncated` markers on partial hierarchy responses (#126).
+- Dispatch WebSocket request handling asynchronously in `Task.Run`, ensuring `ServerLoop` remains non-blocking for concurrent HTTP JSON-RPC requests and new connections (#129).
+- `EditorApplication.update` subscription for `HandlePostCompileFocusReturn` is now idempotent (unsubscribes before subscribing), preventing stacked duplicate frame handlers on repeated initialization or domain reloads (#138).
+- `ListPlayerPrefs` now uses `ProcessStartInfo.ArgumentList` and timeout guards for macOS `defaults read` execution, preventing process hangs, alongside regex unhashing for Windows registry keys, Linux XML prefs support, and double-default type verification (#143).
+- Persist authentication tokens across Unity Editor process restarts in Library token file, preventing persistent HTTP 401 Unauthorized errors for external MCP CLI integrations after restarting Unity (#166).
+- `get_scene_dependencies` now uses `enterChildren = false` after the initial property iteration step, preventing deep recursive traversal into child properties and eliminating duplicated dependency references (#71).
+- `find_objects` now safely constructs name search regexes with a 100ms match timeout and falls back gracefully to literal substring search on invalid regex patterns or match timeouts (#119).
+- Restrict type resolution (`FindType`) to user project assemblies and standard public `UnityEngine` assemblies, disallow internal system/editor assemblies and namespaces, and enforce strict type allowlist constraints for component and ScriptableObject creation/inspection tools (#139).
+- Resolve symlinks and directory junctions to their real filesystem targets in `ValidatePath` before checking project boundaries to prevent path traversal.
+- Reject abstract ScriptableObject types before calling `CreateInstance` in `create_scriptable_object_asset` and `list_fields_for_type`.
+- `TriggerSafeAssetRefresh` callback is now tracked to prevent callback leaks, duplicate refresh hooks, and memory leaks across assembly reload/shutdown boundaries, with a fail-safe 15-second timeout guard.
+- `run_tests` now reports `Submitted` rather than `Success` after Unity accepts its asynchronous request, and `run_tests_wait` now returns rejected submissions immediately instead of polling until timeout.
+- Auto Setup now reports a clear refresh-and-retry message if a client is unavailable after the integration list is regenerated, instead of throwing an exception.
+
 ## [1.5.0] - 2026-07-12
 
 ### Changed
