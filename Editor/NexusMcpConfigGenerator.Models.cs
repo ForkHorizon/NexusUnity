@@ -2,40 +2,6 @@ using System;
 
 namespace UnityMCP.Editor
 {
-    internal enum NexusMcpClientKind
-    {
-        Codex,
-        ClaudeDesktop,
-        ClaudeCode,
-        Gemini,
-        Antigravity,
-        Cursor,
-        VsCode,
-        Cline,
-        RooCode,
-        Windsurf,
-        GenericJson
-    }
-
-    internal enum NexusMcpClientStatus
-    {
-        Detected,
-        NotFound,
-        Configured,
-        Outdated,
-        NeedsRestart,
-        Error
-    }
-
-    internal enum NexusMcpConfigFormat
-    {
-        CodexToml,
-        JsonMcpServers,
-        JsonServers,
-        ManualOnly,
-        CliManaged
-    }
-
     internal sealed class NexusMcpClientInfo
     {
         internal NexusMcpClientKind Kind { get; set; }

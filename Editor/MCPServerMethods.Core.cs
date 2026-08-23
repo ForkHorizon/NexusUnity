@@ -20,6 +20,16 @@ namespace UnityMCP.Editor
         private const int MaxBatchExecuteRequests = 50;
         private static int _batchExecuteDepth;
 
+        private sealed class PrimitiveCreationOptions
+        {
+            internal string Name;
+            internal Transform Parent;
+            internal Material Material;
+            internal Vector3? Position;
+            internal Vector3? Rotation;
+            internal Vector3? Scale;
+        }
+
         private static void RegisterCoreMethods()
         {
             _methods["initialize"] = Initialize;
@@ -74,51 +84,14 @@ namespace UnityMCP.Editor
 
         private static JToken CreatePrimitive(JToken p)
         {
-            if (p == null || p["primitive_type"] == null) throw new Exception("primitive_type is required");
-            if (!Enum.TryParse(typeof(PrimitiveType), p["primitive_type"].ToString(), true, out var type)) throw new Exception("Invalid primitive");
-
-            string name = p["name"]?.ToString();
-            Transform parentTransform = null;
-            if (p["parent_id"] != null)
-            {
-                var parent = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p, "parent_id")) as GameObject;
-                if (parent == null) throw new Exception("parent_id does not resolve to a GameObject");
-                parentTransform = parent.transform;
-            }
-
-            Vector3? position = p["position"] != null ? ParseVector3(p["position"]) : null;
-            JToken rotationToken = p["rotation"] ?? p["eulerAngles"];
-            Vector3? rotation = rotationToken != null ? ParseVector3(rotationToken) : null;
-            JToken scaleToken = p["scale"] ?? p["localScale"];
-            Vector3? scale = scaleToken != null ? ParseVector3(scaleToken) : null;
-
-            Material material = null;
-            string materialPath = p["material_path"]?.ToString();
-            if (!string.IsNullOrWhiteSpace(materialPath))
-            {
-                materialPath = ValidateAssetPath(materialPath);
-                material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
-                if (material == null) throw new Exception($"Material not found at {materialPath}");
-            }
+            PrimitiveType type = ParsePrimitiveType(p);
+            var options = ReadPrimitiveOptions(p);
 
             GameObject go = null;
             try
             {
                 go = GameObject.CreatePrimitive((PrimitiveType)type);
-                Undo.RegisterCreatedObjectUndo(go, "Create Primitive");
-
-                if (!string.IsNullOrWhiteSpace(name)) go.name = name;
-
-                if (parentTransform != null) go.transform.SetParent(parentTransform, false);
-
-                if (position.HasValue) go.transform.position = position.Value;
-                if (rotation.HasValue) go.transform.eulerAngles = rotation.Value;
-                if (scale.HasValue) go.transform.localScale = scale.Value;
-
-                var renderer = go.GetComponent<Renderer>();
-                if (renderer != null && material != null) renderer.sharedMaterial = material;
-
-                Selection.activeGameObject = go;
+                ConfigurePrimitive(go, options);
                 return new JObject { ["status"] = "Success", ["data"] = SerializeGameObject(go) };
             }
             catch
@@ -126,6 +99,69 @@ namespace UnityMCP.Editor
                 if (go != null) UnityEngine.Object.DestroyImmediate(go);
                 throw;
             }
+        }
+
+        private static PrimitiveCreationOptions ReadPrimitiveOptions(JToken p)
+        {
+            return new PrimitiveCreationOptions
+            {
+                Name = p["name"]?.ToString(),
+                Parent = ResolvePrimitiveParent(p),
+                Material = LoadPrimitiveMaterial(p),
+                Position = ParseOptionalVector3(p["position"]),
+                Rotation = ParseOptionalVector3(p["rotation"] ?? p["eulerAngles"]),
+                Scale = ParseOptionalVector3(p["scale"] ?? p["localScale"])
+            };
+        }
+
+        private static Vector3? ParseOptionalVector3(JToken token)
+        {
+            return token == null ? (Vector3?)null : ParseVector3(token);
+        }
+
+        private static PrimitiveType ParsePrimitiveType(JToken p)
+        {
+            if (p == null || p["primitive_type"] == null) throw new Exception("primitive_type is required");
+            if (!Enum.TryParse(typeof(PrimitiveType), p["primitive_type"].ToString(), true, out var type))
+                throw new Exception("Invalid primitive");
+            return (PrimitiveType)type;
+        }
+
+        private static Transform ResolvePrimitiveParent(JToken p)
+        {
+            if (p["parent_id"] == null) return null;
+            var parent = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p, "parent_id")) as GameObject;
+            if (parent == null) throw new Exception("parent_id does not resolve to a GameObject");
+            return parent.transform;
+        }
+
+        private static Material LoadPrimitiveMaterial(JToken p)
+        {
+            string materialPath = p["material_path"]?.ToString();
+            if (string.IsNullOrWhiteSpace(materialPath)) return null;
+            materialPath = ValidateAssetPath(materialPath);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (material == null) throw new Exception($"Material not found at {materialPath}");
+            return material;
+        }
+
+        private static void ConfigurePrimitive(GameObject go, PrimitiveCreationOptions options)
+        {
+            Undo.RegisterCreatedObjectUndo(go, "Create Primitive");
+            if (!string.IsNullOrWhiteSpace(options.Name)) go.name = options.Name;
+            if (options.Parent != null) go.transform.SetParent(options.Parent, false);
+
+            ApplyPrimitiveTransform(go, options);
+            var renderer = go.GetComponent<Renderer>();
+            if (renderer != null && options.Material != null) renderer.sharedMaterial = options.Material;
+            Selection.activeGameObject = go;
+        }
+
+        private static void ApplyPrimitiveTransform(GameObject go, PrimitiveCreationOptions options)
+        {
+            if (options.Position.HasValue) go.transform.position = options.Position.Value;
+            if (options.Rotation.HasValue) go.transform.eulerAngles = options.Rotation.Value;
+            if (options.Scale.HasValue) go.transform.localScale = options.Scale.Value;
         }
 
         private static JToken AttachScript(JToken p)
@@ -163,7 +199,7 @@ namespace UnityMCP.Editor
             bool structured = p?["structured"]?.Value<bool>() ?? false;
 
             var logs = MCPServer.GetLogsSince(cursor, severities, searchText);
-            
+
             if (structured)
             {
                 logs = CollapseLogs(logs);
@@ -179,10 +215,10 @@ namespace UnityMCP.Editor
         }
 
         private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return new JObject { ["status"] = "Success", ["message"] = "Logs cleared" }; }
-        private static JToken TestCoroutine(JToken p) { 
+        private static JToken TestCoroutine(JToken p) {
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[MCP_EXECUTE] test_coroutine");
             EditorApplication.delayCall += () => NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[MCP] Delay call complete");
-            return new JObject { ["status"] = "Success", ["message"] = "Started" }; 
+            return new JObject { ["status"] = "Success", ["message"] = "Started" };
         }
 
         // Cache the tool definitions since they are static and do not change during the session.

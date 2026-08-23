@@ -28,12 +28,12 @@ namespace UnityMCP.Editor
 
         internal static void Init()
         {
-            if (_mainThreadId == -1) 
+            if (_mainThreadId == -1)
             {
                 _mainThreadId = Thread.CurrentThread.ManagedThreadId;
                 NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] Main Thread ID captured: {_mainThreadId}");
             }
-            
+
             if (!_isMainThread)
             {
                 NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init called from non-main thread. Registration skipped to avoid state corruption.");
@@ -41,6 +41,7 @@ namespace UnityMCP.Editor
             }
 
             MCPServer.RefreshMainThreadCachedState();
+            CacheEnvironmentPaths();
             NexusEditorLog.Log(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init starting...");
             _methods.Clear();
             ClearCache();
@@ -113,7 +114,7 @@ namespace UnityMCP.Editor
             JToken id = request["id"];
             string method = request["method"]?.ToString();
             if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
-            
+
             // Fast-path health checks run on the listener/current thread.
             // Handlers here must only read cached or thread-safe process state.
             if (method == "get_server_status" || method == "attach_existing_session" || method == "wait_for_asset_import_idle" || method == "wait_for_editor_idle") {
@@ -154,8 +155,8 @@ namespace UnityMCP.Editor
             using (var signal = new ManualResetEventSlim(false))
             {
                 MCPServer.Enqueue(() => {
-                    try { 
-                        result = ExecuteMethod(method, requestParams); 
+                    try {
+                        result = ExecuteMethod(method, requestParams);
                     }
                     catch (Exception e) { caughtException = e; }
                     finally { signal.Set(); }

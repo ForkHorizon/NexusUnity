@@ -42,17 +42,17 @@ namespace UnityMCP.Editor
         {
             SyncWithUnityConsole();
             var query = _logs.AsEnumerable().Where(l => l.Id > cursor);
-            
+
             if (severities != null && severities.Length > 0)
             {
                 query = query.Where(l => severities.Any(s => l.Type.Equals(s, StringComparison.OrdinalIgnoreCase)));
             }
-            
+
             if (!string.IsNullOrEmpty(searchText))
             {
                 query = query.Where(l => l.Message.Contains(searchText) || l.StackTrace.Contains(searchText));
             }
-            
+
             return query.ToList();
         }
 
@@ -65,7 +65,7 @@ namespace UnityMCP.Editor
 
                 var getCountMethod = type.GetMethod("GetCount");
                 var getEntryMethod = type.GetMethod("GetEntryInternal");
-                
+
                 if (getCountMethod == null || getEntryMethod == null) return;
 
                 int count = (int)getCountMethod.Invoke(null, null);
@@ -83,7 +83,7 @@ namespace UnityMCP.Editor
                     string msg = (string)messageField.GetValue(entry);
                     string stack = (string)stackField.GetValue(entry);
                     int mode = (int)typeField.GetValue(entry);
-                    
+
                     LogType logType = LogType.Log;
                     if ((mode & 1) != 0) logType = LogType.Error;
                     else if ((mode & 2) != 0) logType = LogType.Warning;
@@ -124,9 +124,6 @@ namespace UnityMCP.Editor
         {
             Application.logMessageReceivedThreaded -= OnLogMessageReceived;
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
-
-            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived -= OnLogMessageReceived;
-            UnityMCP.Runtime.MCPRuntimeLogger.OnLogReceived += OnLogMessageReceived;
         }
 
         private static void OnLogMessageReceived(string condition, string stackTrace, LogType type)

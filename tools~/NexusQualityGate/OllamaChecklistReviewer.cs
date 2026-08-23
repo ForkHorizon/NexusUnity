@@ -11,7 +11,7 @@ public sealed class OllamaChecklistReviewer
     private const string RubricVersion = "2026-05-27-pr-checklist-review-v1";
 
     private readonly QualityGateOptions _options;
-    private readonly HttpClient _client = new();
+    private readonly HttpClient _client;
     private readonly Dictionary<string, CachedChecklistVerdict> _cache;
     private readonly string _cachePath;
     private bool _contactedOllama;
@@ -19,10 +19,9 @@ public sealed class OllamaChecklistReviewer
     public OllamaChecklistReviewer(QualityGateOptions options)
     {
         _options = options;
-        _client.Timeout = TimeSpan.FromSeconds(Math.Max(1, options.AiTimeoutSeconds));
-        Directory.CreateDirectory(options.CacheDirectory);
-        _cachePath = Path.Combine(options.CacheDirectory, "ollama-checklist-verdicts.json");
-        _cache = LoadCache(_cachePath);
+        _client = OllamaReviewSupport.CreateClient(options);
+        _cachePath = OllamaReviewSupport.GetCachePath(options, "ollama-checklist-verdicts.json");
+        _cache = OllamaReviewSupport.LoadCache<CachedChecklistVerdict>(_cachePath);
     }
 
     public async Task<IReadOnlyList<QualityGateIssue>> ReviewAsync()
@@ -69,7 +68,7 @@ public sealed class OllamaChecklistReviewer
         }
 
         await Task.WhenAll(tasks);
-        SaveCache(_cachePath, _cache);
+        OllamaReviewSupport.SaveCache(_cachePath, _cache);
         return issues.OrderBy(issue => issue.File, StringComparer.Ordinal).ThenBy(issue => issue.Line).ToList();
     }
 
@@ -146,7 +145,7 @@ public sealed class OllamaChecklistReviewer
 
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         _contactedOllama = true;
-        using HttpResponseMessage response = await _client.PostAsync(BuildOllamaEndpoint(), content);
+        using HttpResponseMessage response = await _client.PostAsync(OllamaReviewSupport.BuildChatEndpoint(_options), content);
         string responseBody = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
 
@@ -171,9 +170,9 @@ public sealed class OllamaChecklistReviewer
             };
 
             using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            using HttpResponseMessage response = await _client.PostAsync(BuildOllamaGenerateEndpoint(), content);
+            using HttpResponseMessage response = await _client.PostAsync(OllamaReviewSupport.BuildGenerateEndpoint(_options), content);
             string responseBody = await response.Content.ReadAsStringAsync();
-            return response.IsSuccessStatusCode ? null : $"{(int)response.StatusCode} {response.ReasonPhrase}: {TrimForLog(responseBody)}";
+            return response.IsSuccessStatusCode ? null : $"{(int)response.StatusCode} {response.ReasonPhrase}: {OllamaReviewSupport.TrimForLog(responseBody)}";
         }
         catch (Exception ex)
         {
@@ -407,13 +406,9 @@ public sealed class OllamaChecklistReviewer
         return terms.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
-    private Uri BuildOllamaEndpoint() => new(_options.OllamaUrl.TrimEnd('/') + "/api/chat");
-
-    private Uri BuildOllamaGenerateEndpoint() => new(_options.OllamaUrl.TrimEnd('/') + "/api/generate");
-
     private CachedChecklistVerdict ParseModelVerdict(string content)
     {
-        string json = ExtractJsonObject(content);
+        string json = OllamaReviewSupport.ExtractJsonObject(content);
         AiChecklistVerdict verdict = JsonSerializer.Deserialize<AiChecklistVerdict>(json, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -424,16 +419,6 @@ public sealed class OllamaChecklistReviewer
             string.IsNullOrWhiteSpace(verdict.Severity) ? "error" : verdict.Severity.Trim().ToLowerInvariant(),
             string.IsNullOrWhiteSpace(verdict.Reason) ? "AI model rejected the checklist item without a reason." : verdict.Reason.Trim(),
             verdict.NextAction?.Trim() ?? string.Empty);
-    }
-
-    private static string ExtractJsonObject(string content)
-    {
-        int start = content.IndexOf('{', StringComparison.Ordinal);
-        int end = content.LastIndexOf('}');
-        if (start < 0 || end <= start)
-            throw new InvalidOperationException("Model did not return a JSON object.");
-
-        return content[start..(end + 1)];
     }
 
     private QualityGateIssue? ToIssue(ChecklistItem item, CachedChecklistVerdict verdict)
@@ -457,36 +442,6 @@ public sealed class OllamaChecklistReviewer
         string input = RubricVersion + "\n" + _options.Model + "\n" + item.File + "\n" + item.Line + "\n" + item.Text + "\n" + evidence;
         byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(hash);
-    }
-
-    private static Dictionary<string, CachedChecklistVerdict> LoadCache(string path)
-    {
-        if (!File.Exists(path))
-            return new Dictionary<string, CachedChecklistVerdict>(StringComparer.Ordinal);
-
-        try
-        {
-            return JsonSerializer.Deserialize<Dictionary<string, CachedChecklistVerdict>>(File.ReadAllText(path))
-                ?? new Dictionary<string, CachedChecklistVerdict>(StringComparer.Ordinal);
-        }
-        catch
-        {
-            return new Dictionary<string, CachedChecklistVerdict>(StringComparer.Ordinal);
-        }
-    }
-
-    private static void SaveCache(string path, Dictionary<string, CachedChecklistVerdict> cache)
-    {
-        string tempPath = path + ".tmp";
-        File.WriteAllText(tempPath, JsonSerializer.Serialize(cache, new JsonSerializerOptions { WriteIndented = true }));
-        File.Move(tempPath, path, true);
-    }
-
-    private static string TrimForLog(string value)
-    {
-        const int maxLength = 500;
-        value = value.ReplaceLineEndings(" ").Trim();
-        return value.Length <= maxLength ? value : value[..maxLength] + "...";
     }
 
     private sealed record CachedChecklistVerdict(bool Pass, string Severity, string Reason, string NextAction);

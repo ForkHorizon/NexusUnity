@@ -34,9 +34,10 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_id"] == null || p["component_name"] == null) throw new Exception("instance_id and component_name required");
             var go = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(p)) as GameObject;
             if (go == null) throw new Exception("GameObject not found");
-            Type type = FindType(p["component_name"].ToString());
-            if (type == null) throw new Exception($"Type '{p["component_name"]}' not found");
-            return new JObject { ["status"] = "Success", ["message"] = $"Added {p["component_name"]} to {Undo.AddComponent(go, type).name}" };
+            string compName = p["component_name"].ToString();
+            Type type = FindComponentType(compName);
+            if (type == null) throw new Exception($"Type '{compName}' not found or is not a valid attachable Component");
+            return new JObject { ["status"] = "Success", ["message"] = $"Added {compName} to {Undo.AddComponent(go, type).name}" };
         }
 
         private static JToken InspectComponent(JToken p)
@@ -47,7 +48,7 @@ namespace UnityMCP.Editor
 
             bool detailed = p["detailed"]?.Value<bool>() ?? false;
             JArray fieldsFilter = p["fields"] as JArray;
-            
+
             SerializedObject so = new SerializedObject(comp);
             JObject result = new JObject();
 
@@ -59,7 +60,7 @@ namespace UnityMCP.Editor
                     var prop = FindPropertyFuzzy(so, fieldName);
                     if (prop != null)
                     {
-                        try { result[fieldName] = SerializeProperty(prop, detailed); } 
+                        try { result[fieldName] = SerializeProperty(prop, detailed); }
                         catch (Exception e) { NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Serialization error for {fieldName}: {e.Message}"); }
                     }
                 }
@@ -71,7 +72,7 @@ namespace UnityMCP.Editor
                 while (prop.Next(enterChildren))
                 {
                     enterChildren = false; // Only enter children for the root
-                    try { result[prop.name] = SerializeProperty(prop, detailed); } 
+                    try { result[prop.name] = SerializeProperty(prop, detailed); }
                     catch (Exception e) { NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Serialization error for {prop.name}: {e.Message}"); }
                 }
             }
@@ -96,7 +97,7 @@ namespace UnityMCP.Editor
                 var prop = FindPropertyFuzzy(so, fieldName);
                 if (prop != null)
                 {
-                    try { result[fieldName] = SerializeProperty(prop, false); } 
+                    try { result[fieldName] = SerializeProperty(prop, false); }
                     catch (Exception e) { NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Serialization error for {fieldName}: {e.Message}"); }
                 }
                 else
@@ -152,9 +153,9 @@ namespace UnityMCP.Editor
             int updatedCount = UpdateComponentProperties(so, data, errors);
 
             so.ApplyModifiedProperties();
-            
-            return new JObject 
-            { 
+
+            return new JObject
+            {
                 ["status"] = errors.Count == 0 ? "Success" : (updatedCount > 0 ? "Partial" : "Failed"),
                 ["updated_count"] = updatedCount,
                 ["errors"] = errors

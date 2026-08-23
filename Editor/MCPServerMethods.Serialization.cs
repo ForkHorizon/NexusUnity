@@ -30,7 +30,7 @@ namespace UnityMCP.Editor
 
             bool detailed = p["detailed"]?.Value<bool>() ?? false;
             var so = new SerializedObject(obj);
-            
+
             JObject result = new JObject();
             var prop = so.GetIterator();
             bool enterChildren = true;
@@ -44,98 +44,8 @@ namespace UnityMCP.Editor
             result["type"] = obj.GetType().Name;
             result["name"] = obj.name;
             result["instance_id"] = obj.GetRawId();
-            
+
             return result;
-        }
-
-        private static JToken SerializeProperty(SerializedProperty prop, bool detailed = false)
-        {
-            JToken value = JValue.CreateNull();
-            switch (prop.propertyType)
-            {
-                case SerializedPropertyType.Integer: value = prop.intValue; break;
-                case SerializedPropertyType.Boolean: value = prop.boolValue; break;
-                case SerializedPropertyType.Float: value = prop.floatValue; break;
-                case SerializedPropertyType.String: value = prop.stringValue; break;
-                case SerializedPropertyType.Color: value = "#" + ColorUtility.ToHtmlStringRGBA(prop.colorValue); break;
-                case SerializedPropertyType.Enum: value = prop.enumNames.Length > 0 && prop.enumValueIndex >= 0 && prop.enumValueIndex < prop.enumNames.Length ? prop.enumNames[prop.enumValueIndex] : prop.enumValueIndex.ToString(); break;
-                case SerializedPropertyType.Vector2: value = new JObject { ["x"] = prop.vector2Value.x, ["y"] = prop.vector2Value.y }; break;
-                case SerializedPropertyType.Vector3: value = new JObject { ["x"] = prop.vector3Value.x, ["y"] = prop.vector3Value.y, ["z"] = prop.vector3Value.z }; break;
-                case SerializedPropertyType.Vector4: value = new JObject { ["x"] = prop.vector4Value.x, ["y"] = prop.vector4Value.y, ["z"] = prop.vector4Value.z, ["w"] = prop.vector4Value.w }; break;
-                case SerializedPropertyType.Quaternion: value = new JObject { ["x"] = prop.quaternionValue.x, ["y"] = prop.quaternionValue.y, ["z"] = prop.quaternionValue.z, ["w"] = prop.quaternionValue.w }; break;
-                case SerializedPropertyType.Rect: value = new JObject { ["x"] = prop.rectValue.x, ["y"] = prop.rectValue.y, ["width"] = prop.rectValue.width, ["height"] = prop.rectValue.height }; break;
-                case SerializedPropertyType.Bounds: value = new JObject { ["center"] = new JObject { ["x"] = prop.boundsValue.center.x, ["y"] = prop.boundsValue.center.y, ["z"] = prop.boundsValue.center.z }, ["size"] = new JObject { ["x"] = prop.boundsValue.size.x, ["y"] = prop.boundsValue.size.y, ["z"] = prop.boundsValue.size.z } }; break;
-                case SerializedPropertyType.ObjectReference:
-                    var obj = prop.objectReferenceValue;
-                    if (obj != null) value = new JObject { ["instance_id"] = obj.GetRawId(), ["name"] = obj.name, ["type"] = obj.GetType().Name };
-                    break;
-                case SerializedPropertyType.ManagedReference:
-                    value = SerializeManagedReference(prop, detailed);
-                    break;
-                default: value = SerializeComplexProperty(prop, detailed); break;
-            }
-
-            if (detailed)
-            {
-                return new JObject
-                {
-                    ["value"] = value,
-                    ["type"] = prop.type,
-                    ["propertyType"] = prop.propertyType.ToString(),
-                    ["displayName"] = prop.displayName,
-                    ["tooltip"] = prop.tooltip
-                };
-            }
-            return value;
-        }
-
-        private static JToken SerializeManagedReference(SerializedProperty prop, bool detailed)
-        {
-            if (prop.managedReferenceValue == null) return JValue.CreateNull();
-            
-            JObject result = new JObject();
-            result["_type"] = prop.managedReferenceFullTypename;
-            
-            SerializedProperty child = prop.Copy();
-            SerializedProperty end = prop.GetEndProperty();
-            if (child.Next(true))
-            {
-                while (!SerializedProperty.EqualContents(child, end))
-                {
-                    result[child.name] = SerializeProperty(child, detailed);
-                    if (!child.Next(false)) break;
-                }
-            }
-            return result;
-        }
-
-        private static JToken SerializeComplexProperty(SerializedProperty prop, bool detailed)
-        {
-            if (prop.isArray && prop.propertyType != SerializedPropertyType.String)
-            {
-                JArray arr = new JArray();
-                for (int i = 0; i < prop.arraySize; i++)
-                {
-                    arr.Add(SerializeProperty(prop.GetArrayElementAtIndex(i), detailed));
-                }
-                return arr;
-            }
-
-            if (prop.propertyType == SerializedPropertyType.Generic)
-            {
-                JObject dict = new JObject();
-                SerializedProperty childProp = prop.Copy();
-                SerializedProperty endProp = childProp.GetEndProperty();
-                bool enter = true;
-                while (childProp.Next(enter) && !SerializedProperty.EqualContents(childProp, endProp))
-                {
-                    enter = false;
-                    dict[childProp.name] = SerializeProperty(childProp, detailed);
-                }
-                return dict;
-            }
-
-            return prop.propertyType.ToString();
         }
 
         private static int UpdateComponentProperties(SerializedObject so, JObject data, JArray errors)
@@ -241,21 +151,22 @@ namespace UnityMCP.Editor
             else if (value.Type == JTokenType.String) prop.objectReferenceValue = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(value.ToString());
             else if (value.Type == JTokenType.Object)
             {
-                if (value["instance_id"] != null) prop.objectReferenceValue = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(value));
-                else if (value["guid"] != null && value["file_id"] != null)
+                if (value["instance_id"] != null)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(value["guid"].ToString());
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        long fileId = (long)value["file_id"];
-                        var all = AssetDatabase.LoadAllAssetsAtPath(path);
-                        foreach (var asset in all)
-                        {
-                            if (asset == null) continue;
-                            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out _, out long id);
-                            if (id == fileId) { prop.objectReferenceValue = asset; break; }
-                        }
-                    }
+                    prop.objectReferenceValue = MCPServerMethods.IdToObject(MCPServerMethods.ExtractId(value));
+                    return;
+                }
+                if (value["guid"] == null || value["file_id"] == null) return;
+                string path = AssetDatabase.GUIDToAssetPath(value["guid"].ToString());
+                if (string.IsNullOrEmpty(path)) return;
+
+                long fileId = (long)value["file_id"];
+                var all = AssetDatabase.LoadAllAssetsAtPath(path);
+                foreach (var asset in all)
+                {
+                    if (asset == null) continue;
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out _, out long id);
+                    if (id == fileId) { prop.objectReferenceValue = asset; break; }
                 }
             }
         }
@@ -306,6 +217,17 @@ namespace UnityMCP.Editor
             else if (value is float f) prop.floatValue = f;
             else if (value is string s) prop.stringValue = s;
             else if (value is Vector3 v) prop.vector3Value = v;
+        }
+
+        private static void ApplySimpleJTokenValue(SerializedProperty prop, JToken value, string unsupportedMessage)
+        {
+            if (value.Type == JTokenType.Boolean) prop.boolValue = value.Value<bool>();
+            else if (value.Type == JTokenType.Float) prop.floatValue = value.Value<float>();
+            else if (value.Type == JTokenType.Integer) prop.intValue = value.Value<int>();
+            else if (value.Type == JTokenType.String) prop.stringValue = value.Value<string>();
+            else if (value.Type == JTokenType.Object && value["x"] != null)
+                prop.vector3Value = new Vector3(value["x"].Value<float>(), value["y"].Value<float>(), value["z"].Value<float>());
+            else throw new Exception(unsupportedMessage);
         }
     }
 }

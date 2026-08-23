@@ -28,7 +28,12 @@ namespace UnityMCP.Editor
             };
 
             if (includeHierarchy)
-                result["ui_hierarchy"] = SerializeVisualElement(window.rootVisualElement, true);
+            {
+                int maxDepth = p["max_depth"] != null ? Mathf.Max(0, p["max_depth"].Value<int>()) : DefaultMaxHierarchyDepth;
+                int maxElements = p["max_elements"] != null ? Mathf.Max(1, p["max_elements"].Value<int>()) :
+                    (p["max_results"] != null ? Mathf.Max(1, p["max_results"].Value<int>()) : DefaultMaxHierarchyElements);
+                result["ui_hierarchy"] = SerializeVisualElement(window.rootVisualElement, true, maxDepth, maxElements);
+            }
 
             if (includeImage)
                 AddWindowImage(window, result);
@@ -39,6 +44,16 @@ namespace UnityMCP.Editor
         private static void AddWindowImage(EditorWindow window, JObject result)
         {
 #if UNITY_EDITOR_OSX
+            CaptureOSXWindowScreenshot(window, result);
+#else
+            result["status"] = "PartialSuccess";
+            result["message"] = "Window image capture is currently supported on macOS only.";
+#endif
+        }
+
+#if UNITY_EDITOR_OSX
+        private static void CaptureOSXWindowScreenshot(EditorWindow window, JObject result)
+        {
             string tempPath = Path.Combine(Path.GetTempPath(), $"nexus_window_{DateTime.UtcNow.Ticks}.png");
             try
             {
@@ -84,10 +99,7 @@ namespace UnityMCP.Editor
             {
                 if (File.Exists(tempPath)) File.Delete(tempPath);
             }
-#else
-            result["status"] = "PartialSuccess";
-            result["message"] = "Window image capture is currently supported on macOS only.";
-#endif
         }
+#endif
     }
 }

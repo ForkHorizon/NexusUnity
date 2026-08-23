@@ -111,44 +111,13 @@ namespace UnityMCP.Editor
 
             try
             {
-                UnityEngine.Object target = go;
-                if (!string.IsNullOrEmpty(compName))
-                {
-                    target = go.GetComponent(compName);
-                    if (target == null) throw new Exception($"Component {compName} not found on prefab");
-                }
-
+                UnityEngine.Object target = ResolvePrefabEditTarget(go, compName);
                 SerializedObject so = new SerializedObject(target);
                 JArray errors = new JArray();
-                int updatedCount = 0;
-
-                foreach (var propPair in data)
-                {
-                    SerializedProperty prop = so.FindProperty(propPair.Key);
-                    if (prop == null)
-                    {
-                        string cleanName = propPair.Key.StartsWith("m_") ? propPair.Key : "m_" + char.ToUpper(propPair.Key[0]) + propPair.Key.Substring(1);
-                        prop = so.FindProperty(cleanName);
-                    }
-
-                    if (prop != null)
-                    {
-                        try { ApplyValueToSerializedPropertyAsset(prop, propPair.Value); updatedCount++; }
-                        catch (Exception e) { errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = e.Message }); }
-                    }
-                    else { errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = "Property not found" }); }
-                }
-
+                int updatedCount = ApplyPrefabPropertyEdits(so, data, errors);
                 so.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(go, path);
-
-                return new JObject
-                {
-                    ["status"] = errors.Count == 0 ? "Success" : (updatedCount > 0 ? "Partial" : "Failed"),
-                    ["updated_count"] = updatedCount,
-                    ["errors"] = errors,
-                    ["message"] = "Prefab asset updated directly"
-                };
+                return CreatePrefabEditResult(errors, updatedCount);
             }
             finally
             {
@@ -156,20 +125,57 @@ namespace UnityMCP.Editor
             }
         }
 
-
-        private static void ApplyValueToSerializedPropertyAsset(SerializedProperty prop, JToken val)
+        private static UnityEngine.Object ResolvePrefabEditTarget(GameObject prefab, string componentName)
         {
-            if (val.Type == JTokenType.Boolean) prop.boolValue = val.Value<bool>();
-            else if (val.Type == JTokenType.Float) prop.floatValue = val.Value<float>();
-            else if (val.Type == JTokenType.Integer) prop.intValue = val.Value<int>();
-            else if (val.Type == JTokenType.String) prop.stringValue = val.Value<string>();
-            else if (val.Type == JTokenType.Object && val["x"] != null)
-            {
-                prop.vector3Value = new Vector3(val["x"].Value<float>(), val["y"].Value<float>(), val["z"].Value<float>());
-            }
-            else throw new Exception("Value type not supported for surgical asset edit yet");
+            if (string.IsNullOrEmpty(componentName)) return prefab;
+            var component = prefab.GetComponent(componentName);
+            if (component == null) throw new Exception($"Component {componentName} not found on prefab");
+            return component;
         }
 
+        private static int ApplyPrefabPropertyEdits(SerializedObject serializedObject, JObject data, JArray errors)
+        {
+            int updatedCount = 0;
+            foreach (var propPair in data)
+            {
+                var property = FindPrefabProperty(serializedObject, propPair.Key);
+                if (property == null)
+                {
+                    errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = "Property not found" });
+                    continue;
+                }
+
+                try
+                {
+                    ApplySimpleJTokenValue(property, propPair.Value, "Value type not supported for surgical asset edit yet");
+                    updatedCount++;
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new JObject { ["field"] = propPair.Key, ["error"] = e.Message });
+                }
+            }
+            return updatedCount;
+        }
+
+        private static SerializedProperty FindPrefabProperty(SerializedObject serializedObject, string propertyName)
+        {
+            var property = serializedObject.FindProperty(propertyName);
+            if (property != null || propertyName.StartsWith("m_")) return property;
+            string cleanName = "m_" + char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+            return serializedObject.FindProperty(cleanName);
+        }
+
+        private static JObject CreatePrefabEditResult(JArray errors, int updatedCount)
+        {
+            return new JObject
+            {
+                ["status"] = errors.Count == 0 ? "Success" : (updatedCount > 0 ? "Partial" : "Failed"),
+                ["updated_count"] = updatedCount,
+                ["errors"] = errors,
+                ["message"] = "Prefab asset updated directly"
+            };
+        }
 
     }
 }

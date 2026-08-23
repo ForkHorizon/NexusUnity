@@ -128,11 +128,11 @@ namespace UnityMCP.Editor.Tests {
             else if (managerName == "unity_ui_automation") {
                 string action = args["action"]?.ToString();
                 if (action == "list_windows") { mappedMethod = "ui_list_windows"; mappedParams = new JObject(); }
-                else if (action == "get_hierarchy") { mappedMethod = "ui_get_hierarchy"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["deep"] = args["deep"] }; }
-                else if (action == "query") { mappedMethod = "ui_query_elements"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["name"] = args["name"], ["text"] = args["text"], ["class_name"] = args["class_name"] }; }
+                else if (action == "get_hierarchy") { mappedMethod = "ui_get_hierarchy"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["deep"] = args["deep"], ["max_depth"] = args["max_depth"], ["max_elements"] = args["max_elements"] ?? args["max_results"] }; }
+                else if (action == "query") { mappedMethod = "ui_query_elements"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["name"] = args["name"], ["text"] = args["text"], ["class_name"] = args["class_name"], ["max_depth"] = args["max_depth"], ["max_results"] = args["max_results"] ?? args["max_elements"], ["max_elements"] = args["max_elements"] }; }
                 else if (action == "get_window_rect") { mappedMethod = "ui_get_window_rect"; mappedParams = new JObject { ["window_title"] = args["window_title"] }; }
                 else if (action == "set_window_rect") { mappedMethod = "ui_set_window_rect"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["x"] = args["x"], ["y"] = args["y"], ["width"] = args["width"], ["height"] = args["height"] }; }
-                else if (action == "capture_window_snapshot") { mappedMethod = "ui_capture_window_snapshot"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["include_image"] = args["include_image"], ["include_hierarchy"] = args["include_hierarchy"] }; }
+                else if (action == "capture_window_snapshot") { mappedMethod = "ui_capture_window_snapshot"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["include_image"] = args["include_image"], ["include_hierarchy"] = args["include_hierarchy"], ["max_depth"] = args["max_depth"], ["max_elements"] = args["max_elements"] ?? args["max_results"] }; }
                 else if (action == "click") { mappedMethod = "ui_click"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["element_name"] = args["element_name"] }; }
                 else if (action == "input") { mappedMethod = "ui_input_text"; mappedParams = new JObject { ["window_title"] = args["window_title"], ["element_name"] = args["element_name"], ["text"] = args["text"] }; }
             }

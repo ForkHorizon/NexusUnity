@@ -19,64 +19,6 @@ namespace UnityMCP.Editor
                 MCPCliInstaller.GetProjectRootForUi(), GetHomeDirectory(), MCPCliInstaller.GetSourceBridgePathForUi());
         }
 
-        internal static List<NexusMcpClientInfo> BuildAll(string bridgePath, string pythonPath, string projectRoot, string homeDir, string sourceBridgePath = null)
-        {
-            string normalizedBridgePath = NormalizePath(bridgePath);
-            string normalizedSourceBridgePath = NormalizePath(sourceBridgePath);
-            string sourceBridgeVersion = ReadBridgeVersion(normalizedSourceBridgePath);
-            string deployedBridgeVersion = ReadBridgeVersion(normalizedBridgePath);
-
-            var geminiClient = CreateCliClient(NexusMcpClientKind.Gemini, "Gemini", "gemini",
-                "Run Auto Setup, then restart or reopen Gemini CLI sessions.", normalizedBridgePath, pythonPath);
-            geminiClient.CustomAutoSetup = MCPCliInstaller.LinkToGemini;
-
-            var claudeCodeClient = CreateClaudeCode(projectRoot, normalizedBridgePath, pythonPath);
-            claudeCodeClient.CustomAutoSetup = MCPCliInstaller.LinkToClaudeCode;
-
-            var clients = new List<NexusMcpClientInfo>
-            {
-                CreateCodex(normalizedBridgePath, pythonPath, homeDir),
-                CreateClaude(normalizedBridgePath, pythonPath),
-                claudeCodeClient,
-                geminiClient
-            };
-
-            // Plain JSON-config clients - one row per tool, no client-specific behavior beyond path/format.
-            var jsonClients = new[]
-            {
-                (NexusMcpClientKind.Antigravity, "Antigravity", Path.Combine(projectRoot, ".agents", "mcp_config.json"),
-                    "Paste into .agents/mcp_config.json, then restart or reload Antigravity sessions.", "mcpServers"),
-                (NexusMcpClientKind.Cursor, "Cursor", Path.Combine(projectRoot, ".cursor", "mcp.json"),
-                    "Paste into .cursor/mcp.json or use Auto Setup for this Unity project.", "mcpServers"),
-                (NexusMcpClientKind.VsCode, "VS Code", Path.Combine(projectRoot, ".vscode", "mcp.json"),
-                    "Paste into .vscode/mcp.json, then restart VS Code's built-in MCP support.", "servers"),
-                (NexusMcpClientKind.RooCode, "Roo Code", Path.Combine(projectRoot, ".roo", "mcp.json"),
-                    "Paste into .roo/mcp.json, then restart Roo Code.", "mcpServers"),
-                (NexusMcpClientKind.Cline, "Cline", GetClineConfigPath(homeDir),
-                    "Paste into Cline's global MCP settings, then restart Cline.", "mcpServers"),
-                (NexusMcpClientKind.Windsurf, "Windsurf", Path.Combine(homeDir, ".codeium", "windsurf", "mcp_config.json"),
-                    "Paste into the Windsurf MCP config, then restart Windsurf.", "mcpServers"),
-            };
-            foreach (var (kind, name, path, instruction, rootKey) in jsonClients)
-            {
-                clients.Add(CreateJsonClient(kind, name, path, instruction, normalizedBridgePath, pythonPath, rootKey));
-            }
-
-            clients.Add(CreateManual(normalizedBridgePath, pythonPath));
-
-            foreach (var client in clients)
-            {
-                ApplyBridgeVersions(client, normalizedSourceBridgePath, sourceBridgeVersion, deployedBridgeVersion);
-            }
-
-            foreach (var client in clients)
-            {
-                ApplyDeploymentDriftStatus(client);
-            }
-
-            return clients;
-        }
-
         internal static NexusMcpSetupResult WriteConfig(NexusMcpClientInfo info)
         {
             if (info == null)
@@ -131,102 +73,6 @@ namespace UnityMCP.Editor
             if (File.Exists(backup)) backup = backup + "-" + DateTime.Now.Ticks;
             File.Copy(path, backup, false);
             return backup;
-        }
-
-        private static NexusMcpClientInfo CreateCodex(string bridgePath, string pythonPath, string homeDir)
-        {
-            string path = Path.Combine(homeDir, ".codex", "config.toml");
-            var info = BaseInfo(NexusMcpClientKind.Codex, "Codex", bridgePath, pythonPath);
-            info.Format = NexusMcpConfigFormat.CodexToml;
-            info.ConfigPath = path;
-            info.ConfigText = BuildCodexToml(bridgePath, pythonPath);
-            info.Instruction = "Paste into ~/.codex/config.toml, then restart Codex CLI sessions.";
-            info.SupportsAutoSetup = true;
-            ApplyTomlStatus(info, "codex");
-            return info;
-        }
-
-        private static NexusMcpClientInfo CreateClaude(string bridgePath, string pythonPath)
-        {
-            string path = GetClaudeDesktopConfigPath();
-            var info = CreateJsonClient(NexusMcpClientKind.ClaudeDesktop, "Claude Desktop", path,
-                "Paste into claude_desktop_config.json, then restart Claude Desktop.", bridgePath, pythonPath, "mcpServers");
-            bool supportedPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            if (supportedPlatform)
-            {
-                info.SupportsAutoSetup = true;
-            }
-            else
-            {
-                info.SupportsAutoSetup = false;
-                info.AutoSetupDisabledReason = "Claude Desktop Auto Setup is only supported on macOS and Windows. Use Copy Config and paste it into Claude Desktop's settings manually.";
-            }
-            return info;
-        }
-
-        private static NexusMcpClientInfo CreateClaudeCode(string projectRoot, string bridgePath, string pythonPath)
-        {
-            string path = Path.Combine(projectRoot, ".mcp.json");
-            var info = CreateJsonClient(NexusMcpClientKind.ClaudeCode, "Claude Code", path,
-                "Writes .mcp.json in the project root (uses the claude CLI when available). Run /mcp or restart Claude Code afterwards.",
-                bridgePath, pythonPath, "mcpServers");
-            return info;
-        }
-
-        private static NexusMcpClientInfo CreateJsonClient(NexusMcpClientKind kind, string name, string path,
-            string instruction, string bridgePath, string pythonPath, string rootKey)
-        {
-            var info = BaseInfo(kind, name, bridgePath, pythonPath);
-            info.Format = rootKey == "servers" ? NexusMcpConfigFormat.JsonServers : NexusMcpConfigFormat.JsonMcpServers;
-            info.ConfigPath = path;
-            info.RootKey = rootKey;
-            info.Instruction = instruction;
-            info.ConfigText = BuildJsonConfig(rootKey, bridgePath, pythonPath);
-            info.SupportsAutoSetup = true;
-            ApplyJsonStatus(info);
-            return info;
-        }
-
-        private static NexusMcpClientInfo CreateCliClient(NexusMcpClientKind kind, string name, string command,
-            string instruction, string bridgePath, string pythonPath)
-        {
-            var info = BaseInfo(kind, name, bridgePath, pythonPath);
-            info.Format = NexusMcpConfigFormat.CliManaged;
-            info.Instruction = instruction;
-            info.ConfigPath = "Managed by " + command + " CLI";
-            info.ConfigText = BuildJsonConfig("mcpServers", bridgePath, pythonPath);
-            bool found = IsExecutableResolved(command);
-            info.SupportsAutoSetup = found;
-            info.Status = found ? NexusMcpClientStatus.Detected : NexusMcpClientStatus.NotFound;
-            info.StatusDetail = found ? command + " CLI detected." : command + " CLI was not found on PATH.";
-            if (!found) info.AutoSetupDisabledReason = info.StatusDetail;
-            return info;
-        }
-
-        private static NexusMcpClientInfo CreateManual(string bridgePath, string pythonPath)
-        {
-            var info = BaseInfo(NexusMcpClientKind.GenericJson, "Generic MCP JSON", bridgePath, pythonPath);
-            info.Format = NexusMcpConfigFormat.ManualOnly;
-            info.Instruction = "Paste this JSON into any MCP client that accepts mcpServers.";
-            info.ConfigPath = "Manual setup";
-            info.ConfigText = BuildJsonConfig("mcpServers", bridgePath, pythonPath);
-            info.Status = NexusMcpClientStatus.Detected;
-            info.StatusDetail = "Manual config is always available.";
-            info.SupportsAutoSetup = false;
-            info.AutoSetupDisabledReason = "Generic MCP JSON is manual copy/paste only.";
-            return info;
-        }
-
-        private static NexusMcpClientInfo BaseInfo(NexusMcpClientKind kind, string name, string bridgePath, string pythonPath)
-        {
-            return new NexusMcpClientInfo
-            {
-                Kind = kind,
-                ElementKey = kind.ToString(),
-                DisplayName = name,
-                BridgePath = NormalizePath(bridgePath),
-                PythonPath = NormalizePath(pythonPath)
-            };
         }
 
         private static void ApplyTomlStatus(NexusMcpClientInfo info, string executable)
@@ -417,8 +263,6 @@ namespace UnityMCP.Editor
             return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
 
-        // Claude Desktop reads ~/Library/Application Support/Claude on macOS and %APPDATA%\Claude on Windows.
-        // SpecialFolder.ApplicationData maps to ~/.config (XDG) under Mono on macOS, so resolve macOS explicitly.
         private static string GetClaudeDesktopConfigPath()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -429,8 +273,6 @@ namespace UnityMCP.Editor
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Claude", "claude_desktop_config.json");
         }
 
-        // Cline (VS Code extension saoudrizwan.claude-dev) stores MCP settings in VS Code's global storage,
-        // not in the workspace - same layout on macOS/Windows/Linux, rooted at the OS config dir for VS Code.
         private static string GetClineConfigPath(string homeDir)
         {
             return Path.Combine(homeDir, ".cline", "data", "settings", "cline_mcp_settings.json");

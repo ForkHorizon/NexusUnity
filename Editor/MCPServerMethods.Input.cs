@@ -43,19 +43,38 @@ namespace UnityMCP.Editor
             if (gameView != null) gameView.Focus();
         }
 
+        // A click's release is deferred ~100ms so the button is observably held for
+        // at least one frame. Without tracking that pending release, a second click
+        // issued inside the window queued a press while the button was still down,
+        // so it produced no press edge and was silently lost. Flush any pending
+        // release before starting a new click.
+        private static Action _pendingMouseRelease;
+
+        private static void FlushPendingMouseRelease()
+        {
+            var pending = _pendingMouseRelease;
+            if (pending == null) return;
+            _pendingMouseRelease = null;
+            pending();
+        }
+
         private static void QueueCrossFrameMouseClick(Mouse mouse, MouseState state, MouseButton button)
         {
+            FlushPendingMouseRelease();
+
             // Immediate press
             InputSystem.QueueStateEvent(mouse, state.WithButton(button, true));
             NexusEditorLog.Log(NexusLogCategory.UiAutomation, $"[MCP] Queued mouse {button} PRESS at {state.position}");
 
             // Use a simple timer to release after 100ms
             double releaseTime = EditorApplication.timeSinceStartup + 0.1;
-            
+
             EditorApplication.CallbackFunction releaseAction = null;
-            releaseAction = () => {
-                if (EditorApplication.timeSinceStartup < releaseTime) return;
-                
+            bool released = false;
+
+            Action doRelease = () => {
+                if (released) return;
+                released = true;
                 EditorApplication.update -= releaseAction;
                 if (!EditorApplication.isPlaying) return;
 
@@ -63,6 +82,13 @@ namespace UnityMCP.Editor
                 NexusEditorLog.Log(NexusLogCategory.UiAutomation, $"[MCP] Queued mouse {button} RELEASE at {state.position}");
             };
 
+            releaseAction = () => {
+                if (EditorApplication.timeSinceStartup < releaseTime) return;
+                _pendingMouseRelease = null;
+                doRelease();
+            };
+
+            _pendingMouseRelease = doRelease;
             EditorApplication.update += releaseAction;
         }
 
@@ -70,8 +96,8 @@ namespace UnityMCP.Editor
         {
             var mouse = Mouse.current;
             if (mouse == null) throw new Exception("No active mouse device found.");
-            
-            string action = p["action"]?.ToString() ?? "click"; 
+
+            string action = p["action"]?.ToString() ?? "click";
             Vector2 pos = GetScreenPosition(p);
             int buttonIdx = p["button"]?.Value<int>() ?? 0;
 
@@ -106,7 +132,7 @@ namespace UnityMCP.Editor
         private static JToken SimulateTouch(JToken p)
         {
             var touch = Touchscreen.current;
-            if (touch == null) 
+            if (touch == null)
             {
                 touch = InputSystem.AddDevice<Touchscreen>();
             }
@@ -163,9 +189,9 @@ namespace UnityMCP.Editor
 
             QueueCrossFrameMouseClick(mouse, state, MouseButton.Left);
 
-            return new JObject 
-            { 
-                ["status"] = "Success", 
+            return new JObject
+            {
+                ["status"] = "Success",
                 ["screen_position"] = new JObject { ["x"] = finalPos.x, ["y"] = finalPos.y },
                 ["object_name"] = target.name
             };
