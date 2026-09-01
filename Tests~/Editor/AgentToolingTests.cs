@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -237,6 +238,44 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void CaptureGameViewScreenshotReturnsStructuredPng()
+        {
+            Assume.That(Application.platform, Is.EqualTo(RuntimePlatform.OSXEditor), "Screenshot acceptance is validated on macOS.");
+            Assume.That(!Application.isBatchMode, "Screenshot capture requires a visible editor window.");
+            EditorWindow gameView = OpenEditorWindow("UnityEditor.GameView", "Game");
+
+            try
+            {
+                gameView.position = new Rect(80, 80, 640, 360);
+                JObject result = RpcResult("capture_game_view_screenshot");
+                AssertStructuredPng(result);
+            }
+            finally
+            {
+                gameView.Close();
+            }
+        }
+
+        [Test]
+        public void CaptureInspectorScreenshotReturnsStructuredPng()
+        {
+            Assume.That(Application.platform, Is.EqualTo(RuntimePlatform.OSXEditor), "Screenshot acceptance is validated on macOS.");
+            Assume.That(!Application.isBatchMode, "Screenshot capture requires a visible editor window.");
+            EditorWindow inspector = OpenEditorWindow("UnityEditor.InspectorWindow", "Inspector");
+
+            try
+            {
+                inspector.position = new Rect(80, 80, 420, 620);
+                JObject result = RpcResult("capture_inspector_screenshot");
+                AssertStructuredPng(result);
+            }
+            finally
+            {
+                inspector.Close();
+            }
+        }
+
+        [Test]
         public void UiCaptureWindowSnapshotReturnsRectHierarchyAndBestEffortImage()
         {
             MCPTestWindow window = MCPTestWindow.ShowWindow();
@@ -379,6 +418,32 @@ namespace UnityMCP.Editor.Tests
             JObject response = Rpc(method, parameters);
             Assert.IsNull(response["error"], response.ToString(Formatting.None));
             return (JObject)response["result"];
+        }
+
+        private static EditorWindow OpenEditorWindow(string typeName, string title)
+        {
+            System.Type windowType = typeof(EditorWindow).Assembly.GetType(typeName);
+            Assert.IsNotNull(windowType, $"Unity editor window type not found: {typeName}");
+            EditorWindow window = EditorWindow.GetWindow(windowType, false, title, true);
+            Assert.IsNotNull(window, $"Unable to open editor window: {typeName}");
+            return window;
+        }
+
+        private static void AssertStructuredPng(JObject result)
+        {
+            Assert.IsTrue(result["success"]?.Value<bool>() ?? false, result.ToString(Formatting.None));
+            Assert.IsFalse(string.IsNullOrEmpty(result["message"]?.ToString()));
+            Assert.GreaterOrEqual(result["duration_ms"]?.Value<double>() ?? -1, 0);
+
+            JObject data = (JObject)result["data"];
+            Assert.IsNotNull(data);
+            Assert.AreEqual("png", data["format"]?.ToString());
+            Assert.Greater(data["width"]?.Value<int>() ?? 0, 0);
+            Assert.Greater(data["height"]?.Value<int>() ?? 0, 0);
+
+            byte[] image = Convert.FromBase64String(data["image_base64"]?.ToString() ?? string.Empty);
+            CollectionAssert.AreEqual(new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }, image.Take(8));
+            Assert.Greater(image.Length, 5 * 1024);
         }
 
         private static JObject Rpc(string method, JObject parameters = null)

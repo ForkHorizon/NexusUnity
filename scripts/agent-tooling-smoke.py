@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import base64
 import json
 import os
 import sys
@@ -37,6 +38,39 @@ def summarize_snapshot(snapshot: dict) -> dict:
         "has_hierarchy": "ui_hierarchy" in snapshot,
         "rect": snapshot.get("rect"),
         "message": snapshot.get("message"),
+    }
+
+
+def validate_png(result: dict) -> dict:
+    data = result.get("data", result)
+    try:
+        image = base64.b64decode(data.get("image_base64", ""), validate=True)
+    except (ValueError, TypeError):
+        image = b""
+    return {
+        "success": result.get("success") is True,
+        "png": image.startswith(b"\x89PNG\r\n\x1a\n"),
+        "bytes": len(image),
+        "width": data.get("width"),
+        "height": data.get("height"),
+        "duration_ms": result.get("duration_ms"),
+        "message": result.get("message"),
+    }
+
+
+def capture_screenshot_series(method: str, attempts: int = 20) -> dict:
+    captures = []
+    for _ in range(attempts):
+        try:
+            captures.append(validate_png(rpc(method)))
+        except RuntimeError as error:
+            captures.append({"success": False, "png": False, "bytes": 0, "message": str(error)})
+    valid = [capture for capture in captures if capture["success"] and capture["png"] and capture["bytes"] > 5 * 1024]
+    return {
+        "attempts": attempts,
+        "valid": len(valid),
+        "ok": len(valid) >= attempts - 1,
+        "captures": captures,
     }
 
 
@@ -83,10 +117,18 @@ def main() -> int:
     rpc("reset_tool_usage_stats")
 
     query, rect, snapshot = _run_ui_smoke()
+    rpc("execute_menu_item", {"item_path": "Window/General/Game"})
+    game_screenshots = capture_screenshot_series("capture_game_view_screenshot")
+    rpc("execute_menu_item", {"item_path": "Window/General/Inspector"})
+    inspector_screenshots = capture_screenshot_series("capture_inspector_screenshot")
     editor_state = bridge_result("editor_controller", {"action": "get_state"})
     stats = rpc("get_tool_usage_stats")
     success = (
-        bool(tools) and server.get("state") and snapshot.get("status") in {None, "Success", "success", "PartialSuccess"}
+        bool(tools)
+        and server.get("state")
+        and snapshot.get("status") in {None, "Success", "success", "PartialSuccess"}
+        and game_screenshots["ok"]
+        and inspector_screenshots["ok"]
     )
 
     summary = {
@@ -99,6 +141,8 @@ def main() -> int:
         "window_query_count": len(query) if isinstance(query, list) else 0,
         "rect": rect.get("rect"),
         "snapshot": summarize_snapshot(snapshot),
+        "game_screenshots": game_screenshots,
+        "inspector_screenshots": inspector_screenshots,
         "usage_method_count": len(stats.get("tools", [])),
     }
 

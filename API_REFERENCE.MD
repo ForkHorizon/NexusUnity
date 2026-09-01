@@ -159,6 +159,10 @@ Schema compatibility notes:
 
 `batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls.
 
+### Screenshot results
+
+`capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format: "png"`, and `image_base64`. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
+
 ## MCP Bridge Tools
 
 The MCP bridge is the recommended AI-client surface. It exposes 14 tools and two static read-only resources through `resources/list` and `resources/read`.

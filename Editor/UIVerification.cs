@@ -27,6 +27,7 @@ namespace UnityMCP.Editor
             
             TestListAndHierarchy();
             TestInputAndClick(wnd);
+            TestScreenshots();
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "VERIFICATION SUCCESS", true);
         }
 
@@ -45,6 +46,28 @@ namespace UnityMCP.Editor
             if (wnd.LastInputValue != txt) throw new System.Exception($"Input failed: expected '{txt}' but got '{wnd.LastInputValue}'");
             Call("ui_click", new JObject { ["window_title"] = MCPTestWindow.WindowTitle, ["element_name"] = "TestButton" });
             if (!wnd.ButtonClicked) throw new System.Exception("Click failed");
+        }
+
+        private static void TestScreenshots()
+        {
+            Call("execute_menu_item", new JObject { ["item_path"] = "Window/General/Game" });
+            AssertScreenshot(Call("capture_game_view_screenshot", null), "Game View");
+
+            Call("execute_menu_item", new JObject { ["item_path"] = "Window/General/Inspector" });
+            AssertScreenshot(Call("capture_inspector_screenshot", null), "Inspector");
+        }
+
+        private static void AssertScreenshot(string response, string windowName)
+        {
+            JObject result = JObject.Parse(response);
+            if (result["success"]?.Value<bool>() != true)
+                throw new System.Exception($"{windowName} screenshot failed: {result.ToString(Newtonsoft.Json.Formatting.None)}");
+
+            JObject data = (JObject)result["data"];
+            byte[] image = System.Convert.FromBase64String(data?["image_base64"]?.ToString() ?? string.Empty);
+            byte[] signature = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+            if (image.Length <= 5 * 1024 || image.Length < signature.Length || !image.Take(signature.Length).SequenceEqual(signature))
+                throw new System.Exception($"{windowName} screenshot is not a non-trivial PNG.");
         }
 
         private static string Call(string m, JObject p)

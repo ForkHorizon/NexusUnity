@@ -172,8 +172,8 @@ namespace UnityMCP.Editor
 
         private static void AddHighValueTools(JArray tools)
         {
-            tools.Add(CreateTool("capture_inspector_screenshot", "Capture PNG of Inspector (macOS only)", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }));
-            tools.Add(CreateTool("capture_game_view_screenshot", "Capture PNG of Game View", new JObject { }));
+            tools.Add(CreateTool("capture_inspector_screenshot", "Capture Inspector as a structured PNG result", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }));
+            tools.Add(CreateTool("capture_game_view_screenshot", "Capture Game View as a structured PNG result", new JObject { }));
             tools.Add(CreateTool("generate_mermaid_diagram", "Generate Mermaid diagram of scene", new JObject { }));
             tools.Add(CreateTool("semantic_find", "Find objects by semantic meaning", new JObject { ["query"] = new JObject { ["type"] = "string" } }, "query"));
         }

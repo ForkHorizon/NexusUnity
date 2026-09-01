@@ -169,6 +169,7 @@ Root-deployed path:
 - `unity_asset_manager`: search, import, refresh, and manage prefab assets.
 - `unity_editor_controller`: play mode, menus, undo/redo, logs, editor state, asset refresh, and test-result polling.
 - `unity_ui_automation`: query and operate Unity Editor UI Toolkit windows, including window rects for resize QA.
+- `capture_game_view_screenshot` and `capture_inspector_screenshot`: structured PNG data with dimensions, base64 image bytes, and capture duration.
 
 See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 
