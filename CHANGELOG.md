@@ -4,6 +4,10 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- Reworked Game View and Inspector screenshot capture to use Unity's native editor surface readback instead of macOS `screencapture`, with one repaint/frame retry and structured PNG metadata including dimensions and capture duration. Legacy successful response fields remain compatible.
+
+## [1.6.0] - 2026-08-23
 ### Security
 - Sanitize and redact sensitive exception messages in tool usage stats (`get_tool_usage_stats` and `RecordToolUsage`), replacing absolute filesystem paths, user directories, and multiline frames with generic placeholders and safe truncated summaries, and exposing `last_error_type` (#142).
 - Require explicit confirmation (`confirm: true`) for `delete_asset`, enforce `AssetDatabase.MoveAssetToTrash` for OS trash recovery, and block creation, modification, moving, or deletion of `ProjectSettings/` and `Packages/` paths across all asset tools (#140).
