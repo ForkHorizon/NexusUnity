@@ -76,6 +76,14 @@ Maintainers run the required GitHub Actions gate on a self-hosted Mac runner lab
 
 The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
 
+### Unified Checks (CI Scope / Checks)
+
+`code-linter`, `python-quality` (for `scripts/`), and `slop-review` no longer run as separate
+workflow files — they run as one job (`.github/workflows/ci-scope-checks.yml`) driven by the
+`.ci-scope.json` manifest against ForkHorizon/ci-gates' shared `run-checks.py` executor, on the
+`ci-scope-unified` runner label. `unity-quality-gate.yml` stays separate for now: the unified
+executor has no Unity adapter yet.
+
 External fork pull requests are welcome for review. The current policy emits a warning for fork PRs and continues the CI pipeline; maintainers should review forked code carefully before merge. If an internal rerun is needed, a maintainer can trigger `Approve external PR for CI` to copy a reviewed fork PR to `trusted/pr-N` and run validation from that trusted branch.
 
 ### Optional Local Pre-Push Hook
