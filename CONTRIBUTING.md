@@ -78,11 +78,7 @@ The AI job checks whether XML documentation matches the implementation and menti
 
 ### Unified Checks (CI Scope / Checks)
 
-`code-linter`, `python-quality` (for `scripts/`), and `slop-review` no longer run as separate
-workflow files — they run as one job (`.github/workflows/ci-scope-checks.yml`) driven by the
-`.ci-scope.json` manifest against ForkHorizon/ci-gates' shared `run-checks.py` executor, on the
-`ci-scope-unified` runner label. `unity-quality-gate.yml` stays separate for now: the unified
-executor has no Unity adapter yet.
+`code-linter`, `python-quality` (for `scripts/`) and `slop-review` run as one action, `CI Scope / Checks` (`.github/workflows/ci-scope-checks.yml`); the old per-gate workflow files are gone. What it runs is defined by `.ci-scope.json` and the gate configs in this repo, executed by ForkHorizon/ci-gates. `unity-quality-gate.yml` stays separate: the unified executor has no Unity adapter yet.
 
 External fork pull requests are welcome for review. The current policy emits a warning for fork PRs and continues the CI pipeline; maintainers should review forked code carefully before merge. If an internal rerun is needed, a maintainer can trigger `Approve external PR for CI` to copy a reviewed fork PR to `trusted/pr-N` and run validation from that trusted branch.
 
