@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityMCP.Editor.Runtime;
 
 namespace UnityMCP.Editor
 {
@@ -11,8 +12,34 @@ namespace UnityMCP.Editor
         private void DrawSettingsTab()
         {
             var section = NexusEditorUi.Section("Settings", "Local Nexus Unity editor preferences.", "NexusSettingsSection");
+            DrawRuntimeSettings(section);
             DrawConsoleLoggingSettings(section);
             _content.Add(section);
+        }
+
+        private void DrawRuntimeSettings(VisualElement section)
+        {
+            var panel = NexusEditorUi.Panel("NexusRuntimePanel");
+            panel.Add(NexusEditorUi.Label("Runtime", 13, true, null, "NexusRuntimeTitle"));
+            panel.Add(NexusEditorUi.Label(
+                "auto prefers Pipeline on eligible installs and Legacy otherwise. Set Mode to Legacy to force HTTP immediately. Legacy HTTP remains fully supported; a sunset timeline is published, and removal is not scheduled.",
+                11, false, NexusEditorUi.Muted, "NexusRuntimeDescription"));
+
+            var modeField = new EnumField("Mode", MCPSettings.RuntimeMode)
+            {
+                name = "NexusRuntimeModeField",
+                tooltip = "Requested transport runtime. Default is auto."
+            };
+            modeField.style.marginTop = 8;
+            modeField.RegisterValueChangedCallback(evt =>
+            {
+                MCPSettings.RuntimeMode = (NexusRuntimeMode)evt.newValue;
+            });
+            panel.Add(modeField);
+            panel.Add(NexusEditorUi.Label(
+                "Effective: " + NexusRuntimeSelector.ToWireName(NexusRuntimeHost.EffectiveMode),
+                11, false, NexusEditorUi.Muted, "NexusRuntimeEffective"));
+            section.Add(panel);
         }
 
         private void DrawConsoleLoggingSettings(VisualElement section)

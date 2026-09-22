@@ -43,63 +43,35 @@ namespace UnityMCP.Editor
 
         private static void AddWindowImage(EditorWindow window, JObject result)
         {
-#if UNITY_EDITOR_OSX
-            CaptureOSXWindowScreenshot(window, result);
-#else
-            result["status"] = "PartialSuccess";
-            result["message"] = "Window image capture is currently supported on macOS only.";
-#endif
-        }
+            if (window == null) return;
 
-#if UNITY_EDITOR_OSX
-        private static void CaptureOSXWindowScreenshot(EditorWindow window, JObject result)
-        {
-            string tempPath = Path.Combine(Path.GetTempPath(), $"nexus_window_{DateTime.UtcNow.Ticks}.png");
-            try
+            string windowName = window.titleContent?.text ?? window.GetType().Name;
+
+            // 1. In-engine UI Toolkit VisualElement capture
+            byte[] inEnginePng = TryCaptureVisualElement(window.rootVisualElement, out var veSize);
+            if (inEnginePng != null)
             {
-                Rect rect = window.position;
-                int x = Mathf.RoundToInt(rect.x);
-                int y = Mathf.RoundToInt(rect.y);
-                int width = Mathf.RoundToInt(rect.width);
-                int height = Mathf.RoundToInt(rect.height);
+                result["image_base64"] = Convert.ToBase64String(inEnginePng);
+                result["format"] = "png";
+                return;
+            }
 
-                var startInfo = new System.Diagnostics.ProcessStartInfo
+            // 2. Fallback to surface pixel read
+            var size = new Vector2Int(Mathf.RoundToInt(window.position.width), Mathf.RoundToInt(window.position.height));
+            if (size.x > 0 && size.y > 0)
+            {
+                byte[] surfacePng = TryReadSurfacePixels(window.position.position, size, windowName, 0);
+                if (surfacePng != null)
                 {
-                    FileName = "screencapture",
-                    Arguments = $"-x -R{x},{y},{width},{height} {tempPath}",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true
-                };
-
-                using (var process = System.Diagnostics.Process.Start(startInfo))
-                {
-                    process.WaitForExit();
-                    string error = process.StandardError.ReadToEnd();
-                    if (process.ExitCode != 0)
-                    {
-                        result["status"] = "PartialSuccess";
-                        result["message"] = $"screencapture failed with exit code {process.ExitCode}: {error}";
-                        return;
-                    }
-                }
-
-                if (!File.Exists(tempPath))
-                {
-                    result["status"] = "PartialSuccess";
-                    result["message"] = "Window screenshot failed or was blocked by OS permissions.";
+                    result["image_base64"] = Convert.ToBase64String(surfacePng);
+                    result["format"] = "png";
                     return;
                 }
+            }
 
-                result["image_base64"] = Convert.ToBase64String(File.ReadAllBytes(tempPath));
-                result["format"] = "png";
-            }
-            finally
-            {
-                if (File.Exists(tempPath)) File.Delete(tempPath);
-            }
+            bool hasHierarchy = result["ui_hierarchy"] != null && result["ui_hierarchy"].Type != JTokenType.Null;
+            result["status"] = hasHierarchy ? "PartialSuccess" : "Failed";
+            result["message"] = "Window image capture could not be read from the editor surface.";
         }
-#endif
     }
 }

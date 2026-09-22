@@ -120,6 +120,7 @@ namespace UnityMCP.Editor
             AppNapBypass.Enable();
             #endif
             MCPServerMethods.Init();
+            Runtime.NexusRuntimeHost.OnEditorInit();
             InitTimeline();
 
             SubscribeEditorEvents();

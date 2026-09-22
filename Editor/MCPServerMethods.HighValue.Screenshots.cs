@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityMCP.Editor
 {
@@ -12,130 +15,172 @@ namespace UnityMCP.Editor
     {
         private const int ScreenshotAttempts = 2;
 
-        private static JToken CaptureGameViewScreenshot(JToken p)
-        {
-            var gameView = Resources.FindObjectsOfTypeAll<EditorWindow>()
-                .FirstOrDefault(window => window.GetType().Name == "GameView");
-            if (gameView == null) throw new Exception("Game View window not found or not open.");
-
-            return CaptureEditorWindowScreenshot(gameView, "Game View");
-        }
-
+        /// <summary>
+        /// Captures the Inspector Editor window. Uses UI Toolkit capture when possible, otherwise
+        /// <see cref="Capture.EditorWindowPixelCapture"/> (not Game View Capture V2).
+        /// </summary>
         private static JToken CaptureInspectorScreenshot(JToken p)
         {
             SelectInspectorTarget(p);
             var inspector = Resources.FindObjectsOfTypeAll<EditorWindow>()
-                .FirstOrDefault(window => window.titleContent.text == "Inspector");
+                .FirstOrDefault(window => window != null && (window.GetType().Name == "InspectorWindow" || window.titleContent?.text == "Inspector"));
             if (inspector == null) throw new Exception("Inspector window not found or not open.");
 
-            return CaptureEditorWindowScreenshot(inspector, "Inspector", SerializeVisualElement(inspector.rootVisualElement, true));
-        }
-
-        private static JObject CaptureEditorWindowScreenshot(EditorWindow window, string windowName, JToken layout = null)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            window.Focus();
-            window.Repaint();
+            inspector.Focus();
+            if (p?["instance_id"] != null)
+            {
+                ActiveEditorTracker.sharedTracker?.ForceRebuild();
+            }
+            inspector.Repaint();
             InternalEditorUtility.RepaintAllViews();
 
-            var size = new Vector2Int(Mathf.RoundToInt(window.position.width), Mathf.RoundToInt(window.position.height));
+            var stopwatch = Stopwatch.StartNew();
+            var layout = SerializeVisualElement(inspector.rootVisualElement, true);
+
+            var size = new Vector2Int(Mathf.RoundToInt(inspector.position.width), Mathf.RoundToInt(inspector.position.height));
             if (size.x <= 0 || size.y <= 0)
             {
                 stopwatch.Stop();
-                var fail = CreateScreenshotResult(false, windowName + " window has no capturable area.", null,
-                    new Vector2Int(Mathf.Max(0, size.x), Mathf.Max(0, size.y)), stopwatch.Elapsed.TotalMilliseconds);
-                if (layout != null) fail["ui_layout"] = layout;
-                return fail;
+                return CreateScreenshotResult(false, "Inspector window has no capturable area.", null,
+                    new Vector2Int(Mathf.Max(0, size.x), Mathf.Max(0, size.y)), stopwatch.Elapsed.TotalMilliseconds, layout);
             }
 
+            // 1. In-engine UI Toolkit VisualElement capture
+            byte[] visualElementPng = TryCaptureVisualElement(inspector.rootVisualElement, out var veSize);
+            if (visualElementPng != null)
+            {
+                stopwatch.Stop();
+                return CreateScreenshotResult(true, "Inspector screenshot captured.", visualElementPng, veSize,
+                    stopwatch.Elapsed.TotalMilliseconds, layout);
+            }
+
+            // 2. Fallback to surface pixel read
             for (int attempt = 0; attempt < ScreenshotAttempts; attempt++)
             {
                 if (attempt > 0) WaitForCaptureFrame();
 
-                byte[] png = TryReadSurfacePixels(window.position.position, size, windowName, attempt);
+                byte[] png = TryReadSurfacePixels(inspector.position.position, size, "Inspector", attempt);
                 if (png == null) continue;
 
                 stopwatch.Stop();
-                var success = CreateScreenshotResult(true, windowName + " screenshot captured.", png, size,
-                    stopwatch.Elapsed.TotalMilliseconds);
-                if (layout != null) success["ui_layout"] = layout;
-                return success;
+                return CreateScreenshotResult(true, "Inspector screenshot captured.", png, size,
+                    stopwatch.Elapsed.TotalMilliseconds, layout);
             }
 
             stopwatch.Stop();
-            var result = CreateScreenshotResult(false, windowName + " screenshot could not be read from the editor surface.",
-                null, size, stopwatch.Elapsed.TotalMilliseconds);
-            if (layout != null) result["ui_layout"] = layout;
-            return result;
+            return CreateScreenshotResult(false, "Inspector screenshot could not be read from the editor surface.",
+                null, size, stopwatch.Elapsed.TotalMilliseconds, layout);
         }
 
-        private static byte[] TryReadSurfacePixels(Vector2 screenPosition, Vector2Int size, string windowName, int attempt)
+        private static byte[] TryCaptureVisualElement(VisualElement element, out Vector2Int size)
         {
+            size = Vector2Int.zero;
+            if (element == null) return null;
+
             try
             {
-                Color[] pixels = InternalEditorUtility.ReadScreenPixel(screenPosition, size.x, size.y);
-                if (pixels == null || pixels.Length != size.x * size.y) return null;
+                var candidateTypes = GetVisualElementCaptureTypes();
+                foreach (var extType in candidateTypes)
+                {
+                    if (extType == null) continue;
 
-                var texture = new Texture2D(size.x, size.y, TextureFormat.RGBA32, false);
-                try
-                {
-                    texture.SetPixels(pixels);
-                    byte[] png = texture.EncodeToPNG();
-                    return png != null && png.Length >= 8 && IsPng(png) ? png : null;
-                }
-                finally
-                {
-                    UnityEngine.Object.DestroyImmediate(texture);
+                    // 1. Try CaptureToRenderTexture(VisualElement)
+                    var captureMethod = extType.GetMethod("CaptureToRenderTexture",
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(VisualElement) }, null);
+                    if (captureMethod != null)
+                    {
+                        var rt = captureMethod.Invoke(null, new object[] { element }) as RenderTexture;
+                        if (rt != null)
+                        {
+                            try
+                            {
+                                size = new Vector2Int(rt.width, rt.height);
+                                return EncodeRenderTextureToPng(rt);
+                            }
+                            finally
+                            {
+                                rt.Release();
+                                UnityEngine.Object.DestroyImmediate(rt);
+                            }
+                        }
+                    }
+
+                    // 2. Try TryCaptureIntoRenderTexture(VisualElement, RenderTexture)
+                    var tryCaptureMethod = extType.GetMethod("TryCaptureIntoRenderTexture",
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(VisualElement), typeof(RenderTexture) }, null);
+                    if (tryCaptureMethod != null)
+                    {
+                        float ppp = EditorGUIUtility.pixelsPerPoint;
+                        float rawWidth = float.IsNaN(element.layout.width) || element.layout.width <= 0
+                            ? (float.IsNaN(element.worldBound.width) ? 0 : element.worldBound.width)
+                            : element.layout.width;
+                        float rawHeight = float.IsNaN(element.layout.height) || element.layout.height <= 0
+                            ? (float.IsNaN(element.worldBound.height) ? 0 : element.worldBound.height)
+                            : element.layout.height;
+
+                        int width = Mathf.Max(1, Mathf.RoundToInt(rawWidth * ppp));
+                        int height = Mathf.Max(1, Mathf.RoundToInt(rawHeight * ppp));
+                        var tempRt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+                        tempRt.Create();
+                        try
+                        {
+                            bool success = (bool)tryCaptureMethod.Invoke(null, new object[] { element, tempRt });
+                            if (success)
+                            {
+                                size = new Vector2Int(width, height);
+                                return EncodeRenderTextureToPng(tempRt);
+                            }
+                        }
+                        finally
+                        {
+                            tempRt.Release();
+                            UnityEngine.Object.DestroyImmediate(tempRt);
+                        }
+                    }
                 }
             }
             catch (Exception e)
             {
                 NexusEditorLog.Warning(NexusLogCategory.UiAutomation,
-                    $"[MCP_SCREENSHOT] {windowName} capture attempt {attempt + 1} failed: {e.Message}");
-                return null;
+                    $"[MCP_SCREENSHOT] VisualElement capture failed: {e.Message}");
             }
+
+            return null;
+        }
+
+        private static Type[] GetVisualElementCaptureTypes()
+        {
+            var types = new List<Type>();
+            void AddType(Type t) { if (t != null && !types.Contains(t)) types.Add(t); }
+
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    Type t = asm.GetType("UnityEngine.UIElements.VisualElementCaptureExtensions")
+                        ?? asm.GetType("UnityEditor.UIElements.VisualElementCaptureEditorExtensions");
+                    if (t != null) AddType(t);
+                }
+                catch { }
+            }
+
+            return types.ToArray();
+        }
+
+        private static byte[] EncodeRenderTextureToPng(RenderTexture rt)
+        {
+            return Capture.EditorWindowPixelCapture.EncodeRenderTextureToPng(rt);
+        }
+
+        private static byte[] TryReadSurfacePixels(Vector2 screenPosition, Vector2Int size, string windowName, int attempt)
+        {
+            return Capture.EditorWindowPixelCapture.TryReadSurfacePixels(screenPosition, size, windowName, attempt);
         }
 
         private static void WaitForCaptureFrame()
         {
             EditorApplication.QueuePlayerLoopUpdate();
             InternalEditorUtility.RepaintAllViews();
-            System.Threading.Thread.Sleep(16);
-        }
-
-        private static JObject CreateScreenshotResult(bool success, string message, byte[] png, Vector2Int size,
-            double durationMs)
-        {
-            string imageBase64 = png == null ? string.Empty : Convert.ToBase64String(png);
-            var data = new JObject
-            {
-                ["width"] = size.x,
-                ["height"] = size.y,
-                ["format"] = "png",
-                ["image_base64"] = imageBase64
-            };
-            var result = new JObject
-            {
-                ["status"] = success ? "Success" : "PartialSuccess",
-                ["success"] = success,
-                ["message"] = message,
-                ["duration_ms"] = Math.Round(durationMs, 3),
-                ["data"] = data
-            };
-
-            // Keep the original top-level fields for existing raw JSON-RPC clients.
-            if (success)
-            {
-                result["image_base64"] = imageBase64;
-                result["format"] = "png";
-            }
-            return result;
-        }
-
-        private static bool IsPng(byte[] bytes)
-        {
-            return bytes.Length >= 8 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4e &&
-                bytes[3] == 0x47 && bytes[4] == 0x0d && bytes[5] == 0x0a && bytes[6] == 0x1a && bytes[7] == 0x0a;
         }
 
         private static void SelectInspectorTarget(JToken p)

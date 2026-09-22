@@ -2,10 +2,27 @@
 
 All notable public changes to Nexus Unity are documented here.
 
-## [Unreleased]
+## [1.7.0] - Unreleased
+
+### Added
+- Canonical Nexus commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (HTTP aliases `nexus_*`) share one handler and description each. When `com.unity.pipeline` is installed, optional `[CliCommand]` wrappers in `UnityMCP.Editor.Pipeline` project the same handlers; Pipeline is not a package dependency.
+- Runtime setting `legacy` / `pipeline` / `auto` (default `auto`). `auto` prefers Unity Pipeline on eligible installs (Unity 6000, Pipeline package, registered Nexus commands, healthy session) and Legacy otherwise. Explicit `legacy` forces HTTP immediately. HTTP remains the fallback and is not removed.
+- Published a Legacy HTTP sunset timeline: Legacy remains fully supported. Removal is not scheduled until Unity CLI 1.0 stable, non-experimental `com.unity.pipeline`, and one Nexus stable release after Pipeline-primary `auto`. `get_server_status.runtime.legacy` reports that ledger.
+
+### Changed
+- Package EditMode tests live under a single `Tests/Editor` suite (`package.json` `testables`). Historical `Tests~/Editor` was merged into that suite and removed. The test asmdef uses Unity's `overrideReferences` + `Newtonsoft.Json.dll` / `nunit.framework.dll`.
+- Runtime `get_server_status` now returns a main-thread-published snapshot. Requested mode is cached so the HTTP listener does not read EditorPrefs off-thread.
+- Inspector/window screenshots use `EditorWindowPixelCapture` (ReadPixels). Game View remains Capture V2 DriverOwnedReadback only.
+- Research reports and spike scripts live under `Research~/` and are not compiled.
+- Extracted Game View capture into a transport-independent Capture V2 gateway (`ICaptureGateway`) using `AsyncGPUReadback.Request` plus `GetData<byte>()` (DriverOwnedReadback). Legacy `capture_game_view_screenshot` keeps its structured PNG JSON schema by default and now accepts optional `format`, `quality` / `jpeg_quality`, `width`, `height`, `max_long_edge`, and `include_telemetry` parameters. Canonical `nexus.capture_game_view` uses that same gateway with a JPEG default matching the hybrid proof of concept.
+- Pipeline `[CliCommand]` Game View capture now returns `Task<NexusCaptureResult>` so Unity Pipeline can await GPU completion off the main thread. Production capture never calls `WaitForCompletion` or `.GetResult()` on the Unity main thread.
+- `list_tools` can filter by profile (`core`, `visual`, `scene`, `compat`). Canonical ids are advertised once; transport aliases remain dispatchable.
+- Pipeline health probing validates session PID liveness and Unity-like process identity, caches last-healthy state across domain reload, and reports `runtime.unity_cli` / `runtime.pipeline.detected|experimental|supported` without shelling out to the Unity CLI.
 
 ### Fixed
-- Reworked Game View and Inspector screenshot capture to use Unity's native editor surface readback instead of macOS `screencapture`, with one repaint/frame retry and structured PNG metadata including dimensions and capture duration. Legacy successful response fields remain compatible.
+- Reworked Game View, Inspector, and UI window screenshot capture to use Unity-native in-engine render textures and VisualElement captures with safe surface readback fallback instead of macOS `screencapture`.
+- Added synchronous editor tracker rebuild for targeted Inspector captures (`instance_id`), resolved MSAA render textures, guarded against background desktop screen scraping via `isApplicationActive`, and provided structured PNG results while preserving legacy client compatibility.
+- Added comprehensive screenshot stress-test tooling (`scripts/screenshot-stress-test.py`) and in-engine regression tests (`CaptureScreenshotStressTestRapidChurn`) covering rapid burst captures, multi-threaded swarms, selection churn invariants, and dynamic window geometry resizes.
 
 ## [1.6.0] - 2026-08-23
 ### Security

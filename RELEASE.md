@@ -7,7 +7,8 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `MIT`
-- Current public version: `1.5.0`
+- Latest public version: `1.6.0`
+- Current development target: `1.7.0`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning
@@ -23,11 +24,11 @@ Public contribution flow:
 
 Use `CHANGELOG.md` as the source of truth during development:
 
-- Add user-visible behavior, API, documentation, and validation changes under `[Unreleased]`.
+- Add user-visible behavior, API, documentation, and validation changes under `[1.7.0] - Unreleased`.
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.5.0`. GitHub release tags, titles, and announcements use the same semantic version: `v1.5.0` for tags and `1.5.0` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.7.0`. GitHub release tags, titles, and announcements use the same semantic version: `v1.7.0` for the next release.
 
 When preparing the release, choose the version by semantic versioning:
 
@@ -39,7 +40,7 @@ When preparing the release, choose the version by semantic versioning:
 
 1. Verify `Assets/NexusUnity/package.json`:
    - `name` is `com.forkhorizon.nexus.unity`.
-   - `version` matches the Unity package version, such as `1.5.0`.
+   - `version` matches the Unity package version, currently `1.7.0`.
    - `license` is `MIT`.
    - Repository, documentation, changelog, and license URLs point to the public repository.
 2. Verify docs:

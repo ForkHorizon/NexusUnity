@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.5.0`
+Version: `1.7.0` (development)
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -104,7 +104,10 @@ Raw HTTP JSON-RPC:
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
 - Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, `create_scene` accepts `path` / `open_if_exists`, `create_primitive` accepts transform/material fields, and `create_material` accepts an optional explicit asset `path` plus visible color fields.
-- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries with scoped non-passing test messages, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA. `capture_game_view_screenshot` and `capture_inspector_screenshot` return structured PNG data with dimensions, base64 image bytes, and capture duration while preserving legacy successful fields.
+- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries with scoped non-passing test messages, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA. `capture_game_view_screenshot` and `capture_inspector_screenshot` return structured image data with dimensions, base64 image bytes, and capture duration while preserving legacy successful fields. Game View defaults to PNG and optionally accepts JPEG, quality, and downscale parameters.
+- Experimental canonical commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` are available over Legacy HTTP. If `com.unity.pipeline` is installed, the same handlers are also registered as optional `[CliCommand]`s for `unity mcp` / `unity command`. Pipeline remains optional; Nexus compiles and runs without it.
+- **Support matrix:** Unity 6000.0+. With a healthy `com.unity.pipeline` session, runtime `auto` prefers Pipeline / persistent `unity mcp`. Without Pipeline, Legacy HTTP/MCP on loopback is the compatibility backend. `com.unity.pipeline` is not a package dependency. Runtime mode (`legacy` / `pipeline` / `auto`) is in Project Settings > Nexus Unity. Set `legacy` to force HTTP. Explicit `pipeline` does not fall back to HTTP. Legacy HTTP remains fully supported until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release.
+- Legacy HTTP sunset: Legacy remains fully supported. It is not fully deprecated while Unity CLI is pre-release and `com.unity.pipeline` is experimental. Removal is not scheduled until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release after Pipeline-primary `auto`.
 - `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls.
 
 MCP bridge:
@@ -207,7 +210,8 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.5.0`.
+- Latest public release: `1.6.0`.
+- Current development target: `1.7.0`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -219,17 +223,17 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.5.0` for the package version, `v1.5.0` for tags, and `1.5.0` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The current development package line is `1.7.0`; the latest released tag is `v1.6.0`.
 
 During normal development:
 
-- Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.5.0` unless the change is part of a release-preparation commit.
+- Add all user-visible API, behavior, docs, and validation changes to `[1.7.0] - Unreleased` in `CHANGELOG.md`.
+- Keep `package.json` and visible docs on `1.7.0` throughout this release-preparation line.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
 
 - Choose the next semantic version based on accumulated changes.
-- Move `[Unreleased]` entries into the new dated release section.
+- Move `[1.7.0] - Unreleased` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.5.0` for package version `1.5.0`.
+- Tag the release with the matching semantic GitHub version, `v1.7.0` for package version `1.7.0`.

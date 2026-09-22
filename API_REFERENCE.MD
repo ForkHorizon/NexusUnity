@@ -1,10 +1,10 @@
 # Nexus Unity API Reference
 
-Version: `1.5.0`
+Version: `1.7.0` (development)
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 117 Unity Editor methods returned by `list_tools`.
+- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the current 1.7.0 development schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`.
 
 ## Raw HTTP JSON-RPC
@@ -74,6 +74,9 @@ Schema compatibility notes:
 - `list_player_prefs` / `unity_list_player_prefs`
 - `capture_inspector_screenshot` / `unity_capture_inspector_screenshot`
 - `capture_game_view_screenshot` / `unity_capture_game_view_screenshot`
+- `nexus.project_map` / `unity_nexus.project_map`
+- `nexus.group_compile_errors` / `unity_nexus.group_compile_errors`
+- `nexus.capture_game_view` / `unity_nexus.capture_game_view`
 - `generate_mermaid_diagram` / `unity_generate_mermaid_diagram`
 - `semantic_find` / `unity_semantic_find`
 - `enforce_forced_defaults` / `unity_enforce_forced_defaults`
@@ -161,7 +164,15 @@ Schema compatibility notes:
 
 ### Screenshot results
 
-`capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format: "png"`, and `image_base64`. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
+`capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format`, and `image_base64`. The default Game View format remains `png`. Optional Game View parameters are `format` (`png` or `jpg`/`jpeg`), `quality` / `jpeg_quality` (1–100, JPEG only), `width`, `height`, `max_long_edge`, and `include_telemetry`. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
+
+Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (and their `nexus_*` aliases) share one handler and description per command. `nexus.capture_game_view` defaults to JPEG and returns `encoding`, `bytes`, `base64`, `source`, and stage timings. These three commands are also exposed as experimental Unity Pipeline `[CliCommand]`s when `com.unity.pipeline` is installed; that package is optional and is not a Nexus dependency.
+
+`get_server_status` includes an additive `runtime` object: `requested` and `effective` are `legacy`, `pipeline`, or `auto`; `eligible` is true when Unity 6000, the Pipeline package, Nexus command registration, a session port file, and a healthy loopback probe all pass. The Project Settings **Runtime** mode defaults to `auto`, which prefers Pipeline on eligible installs and Legacy otherwise. Set the mode to `legacy` to force HTTP immediately. Explicit `pipeline` does not silently fall back to HTTP. HTTP remains supported and is not removed.
+
+`runtime.legacy` publishes the sunset ledger: `deprecated` is false until maturity gates pass, `still_supported` is true, `sunset_status` is `announced`, and `removal` is `not_scheduled`. Removal requires Unity CLI 1.0 stable, non-experimental `com.unity.pipeline`, and one Nexus stable release after Pipeline-primary `auto`. `runtime.unity_cli` is informational (`detected`, `version`, `prerelease`, `stable_1_0_or_newer`); the Editor does not shell out to `unity --version`. `runtime.pipeline` includes `detected`, `version`, `experimental`, `supported`, plus health/session fields. `runtime.legacy_unavailable_reason` is `foreign_project` when another Unity project owns port 8081.
+
+`list_tools` accepts optional `profile`: `core`, `visual`, `scene`, or `compat`. Canonical command ids are listed once; `nexus_*` aliases stay dispatchable without being advertised twice.
 
 ## MCP Bridge Tools
 
