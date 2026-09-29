@@ -1,0 +1,292 @@
+{
+  "tool": "nexus_raw",
+  "protocol": "C1-C12",
+  "n": 10,
+  "scenarios": {
+    "C7": {
+      "cold": {
+        "ms": 24.538,
+        "ok": true,
+        "payload_B": 243,
+        "accepted_ms": 22.1,
+        "compiled": true,
+        "compile_ms": 24.538,
+        "calls": [
+          {
+            "method": "write_file",
+            "params": {
+              "path": "Assets/NexusBenchScript.cs",
+              "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+              "confirm": true
+            },
+            "ms": 22.1,
+            "ok": true,
+            "payload_B": 78,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 1852727808,
+              "result": {
+                "status": "Success",
+                "message": "OK"
+              }
+            }
+          },
+          {
+            "method": "wait_for_editor_idle",
+            "params": {
+              "timeout_seconds": 5
+            },
+            "ms": 2.335,
+            "ok": true,
+            "payload_B": 87,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 1874883808,
+              "result": {
+                "status": "Ready",
+                "time_waited_seconds": 0.0
+              }
+            }
+          },
+          {
+            "method": "delete_asset",
+            "params": {
+              "path": "Assets/NexusBenchScript.cs",
+              "confirm": true
+            },
+            "ms": 192.481,
+            "ok": true,
+            "payload_B": 78,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 1877265808,
+              "result": {
+                "status": "Success",
+                "message": "OK"
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 4,
+        "min_ms": 24.538,
+        "p50_ms": 98.914,
+        "p95_ms": 98.914,
+        "max_ms": 128.533,
+        "ok_percent": 75.0,
+        "payload_B_p50": 239.5
+      },
+      "samples": [
+        {
+          "ms": 24.538,
+          "ok": true,
+          "payload_B": 243,
+          "accepted_ms": 22.1,
+          "compiled": true,
+          "compile_ms": 24.538,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 22.1,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1852727808,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 2.335,
+              "ok": true,
+              "payload_B": 87,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1874883808,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 192.481,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1877265808,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 98.914,
+          "ok": true,
+          "payload_B": 239,
+          "accepted_ms": 98.159,
+          "compiled": true,
+          "compile_ms": 98.914,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 98.159,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 2069798808,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.603,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 20552160,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 172.647,
+              "ok": true,
+              "payload_B": 76,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 21230160,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 128.533,
+          "ok": true,
+          "payload_B": 240,
+          "accepted_ms": 127.621,
+          "compiled": true,
+          "compile_ms": 128.533,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 127.621,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 193939160,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.74,
+              "ok": true,
+              "payload_B": 86,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 321662160,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 192.35,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 322472160,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": null,
+          "ok": false,
+          "payload_B": 0,
+          "error": "JSONDecodeError('Expecting value: line 1 column 1 (char 0)')"
+        }
+      ]
+    }
+  },
+  "unsupported": {
+    "C11": "Nexus raw JSON-RPC has no execute_code-equivalent per protocol."
+  },
+  "harness_fixes": [
+    "dump_scene_graph uses max_depth, not maxDepth",
+    "find_objects uses name, not search",
+    "create_primitive uses primitive_type, not primitive",
+    "wait_for_editor_idle uses timeout_seconds, not timeoutSeconds",
+    "destroy_game_object requires instance_id, not name"
+  ]
+}

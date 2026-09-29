@@ -1,0 +1,1350 @@
+{
+  "tool": "nexus_bridge",
+  "n": 10,
+  "tools_list": {
+    "count": 14,
+    "schema_chars": 19655,
+    "approx_tokens": 4913
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "unity_editor_controller(action=get_server_status)",
+    "C3": "unity_search_manager(strategy=path)",
+    "C4": "not supported by static bridge surface",
+    "C5": "unity_search_manager(strategy=regex)",
+    "C6": "unity_hierarchy_manager",
+    "C7": "unity_write_and_compile",
+    "C8": "unity_ui_automation(capture_window_snapshot)",
+    "C9": "not supported by static bridge surface",
+    "C10": "unity_editor_controller(action=run_tests_wait)",
+    "C11": "not supported",
+    "C12": "editor_controller + ui_automation closest equivalents"
+  },
+  "scenarios": {
+    "C12": {
+      "cold": {
+        "ms": 107.381,
+        "ok": false,
+        "payload_B": 15263,
+        "calls": [
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "unity_editor_controller",
+              "arguments": {
+                "action": "play",
+                "state": true
+              }
+            },
+            "ms": 17.26,
+            "ok": true,
+            "payload_B": 129,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 2,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"status\": \"Success\", \"is_playing\": true}"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "unity_ui_automation",
+              "arguments": {
+                "action": "click",
+                "window_title": "Game",
+                "element_name": "Main Camera"
+              }
+            },
+            "ms": 3.66,
+            "ok": false,
+            "payload_B": 748,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 3,
+              "error": {
+                "code": -32000,
+                "message": "Element not found",
+                "data": {
+                  "stackTrace": "  at UnityMCP.Editor.MCPServerMethods.UIClick (Newtonsoft.Json.Linq.JToken p) [0x0008d] in ./Library/PackageCache/com.forkhorizon.nexus.unity@b7f1c369188f/Editor/MCPServerMethods.UI.cs:210 \n  at UnityMCP.Editor.MCPServerMethods.ExecuteMethod (System.String method, Newtonsoft.Json.Linq.JToken p, System.Boolean logExecution) [0x00048] in ./Library/PackageCache/com.forkhorizon.nexus.unity@b7f1c369188f/Editor/MCPServerMethods.cs:238 \n  at UnityMCP.Editor.MCPServerMethods+<>c__DisplayClass412_0.<ExecuteOnMainThread>b__0 () [0x00000] in ./Library/PackageCache/com.forkhorizon.nexus.unity@b7f1c369188f/Editor/MCPServerMethods.cs:159 "
+                }
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "unity_ui_automation",
+              "arguments": {
+                "action": "capture_window_snapshot",
+                "window_title": "Game",
+                "include_image": true,
+                "include_hierarchy": false
+              }
+            },
+            "ms": 67.703,
+            "ok": true,
+            "payload_B": 403,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 4,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"status\": \"PartialSuccess\", \"window_title\": \"Game\", \"rect\": {\"x\": 693.5, \"y\": 97.0, \"width\": 330.0, \"height\": 480.0, \"min_width\": 200.0, \"min_height\": 200.0, \"max_width\": 4000.0, \"max_height\": 4000.0}, \"message\": \"screencapture failed with exit code 1: could not create image from rect\\n\"}"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "unity_editor_controller",
+              "arguments": {
+                "action": "read_logs",
+                "count": 20
+              }
+            },
+            "ms": 10.313,
+            "ok": true,
+            "payload_B": 13854,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 5,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"logs\": [{\"Id\": 163, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 162, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 161, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 160, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 159, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 158, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 157, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 156, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 155, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 154, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 153, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupWithTestDataTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 152, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupWithTestDataTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 151, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 150, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 149, \"Message\": \"InvalidOperationException: This cannot be used during play mode.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo (System.String message) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorSceneManager.cs:56)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.SaveModifiedSceneTask+<Execute>d__1.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/SaveModifiedSceneTask.cs:13)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 148, \"Message\": \"InvalidOperationException: This cannot be used during play mode.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo (System.String message) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorSceneManager.cs:56)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.SaveModifiedSceneTask+<Execute>d__1.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/SaveModifiedSceneTask.cs:13)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 147, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}, {\"Id\": 146, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}, {\"Id\": 145, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}, {\"Id\": 144, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}]}"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "unity_editor_controller",
+              "arguments": {
+                "action": "play",
+                "state": false
+              }
+            },
+            "ms": 8.326,
+            "ok": true,
+            "payload_B": 129,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 6,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"status\": \"Success\", \"is_playing\": true}"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 0.74,
+        "p50_ms": 0.929,
+        "p95_ms": 107.381,
+        "max_ms": 444.665,
+        "ok_percent": 0.0,
+        "payload_B_p50": 740.0
+      },
+      "samples": [
+        {
+          "ms": 107.381,
+          "ok": false,
+          "payload_B": 15263,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 17.26,
+              "ok": true,
+              "payload_B": 129,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"status\": \"Success\", \"is_playing\": true}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 3.66,
+              "ok": false,
+              "payload_B": 748,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "error": {
+                  "code": -32000,
+                  "message": "Element not found",
+                  "data": {
+                    "stackTrace": "  at UnityMCP.Editor.MCPServerMethods.UIClick (Newtonsoft.Json.Linq.JToken p) [0x0008d] in ./Library/PackageCache/com.forkhorizon.nexus.unity@b7f1c369188f/Editor/MCPServerMethods.UI.cs:210 \n  at UnityMCP.Editor.MCPServerMethods.ExecuteMethod (System.String method, Newtonsoft.Json.Linq.JToken p, System.Boolean logExecution) [0x00048] in ./Library/PackageCache/com.forkhorizon.nexus.unity@b7f1c369188f/Editor/MCPServerMethods.cs:238 \n  at UnityMCP.Editor.MCPServerMethods+<>c__DisplayClass412_0.<ExecuteOnMainThread>b__0 () [0x00000] in ./Library/PackageCache/com.forkhorizon.nexus.unity@b7f1c369188f/Editor/MCPServerMethods.cs:159 "
+                  }
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 67.703,
+              "ok": true,
+              "payload_B": 403,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"status\": \"PartialSuccess\", \"window_title\": \"Game\", \"rect\": {\"x\": 693.5, \"y\": 97.0, \"width\": 330.0, \"height\": 480.0, \"min_width\": 200.0, \"min_height\": 200.0, \"max_width\": 4000.0, \"max_height\": 4000.0}, \"message\": \"screencapture failed with exit code 1: could not create image from rect\\n\"}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 10.313,
+              "ok": true,
+              "payload_B": 13854,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"logs\": [{\"Id\": 163, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 162, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 161, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 160, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.171\", \"Count\": 1}, {\"Id\": 159, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 158, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 157, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 156, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 155, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 154, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 153, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupWithTestDataTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 152, \"Message\": \"Exception: Test tree is not available for PostbuildCleanupWithTestDataTask.\", \"StackTrace\": \"UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1+<Execute>d__7[T].MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:38)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 151, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 150, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 149, \"Message\": \"InvalidOperationException: This cannot be used during play mode.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo (System.String message) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorSceneManager.cs:56)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.SaveModifiedSceneTask+<Execute>d__1.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/SaveModifiedSceneTask.cs:13)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 148, \"Message\": \"InvalidOperationException: This cannot be used during play mode.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo (System.String message) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorSceneManager.cs:56)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.SaveModifiedSceneTask+<Execute>d__1.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/SaveModifiedSceneTask.cs:13)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:09:02.170\", \"Count\": 1}, {\"Id\": 147, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}, {\"Id\": 146, \"Message\": \"An unexpected error happened while running tests.\", \"StackTrace\": \"UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Error\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}, {\"Id\": 145, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}, {\"Id\": 144, \"Message\": \"InvalidOperationException: This cannot be used during play mode, please use SceneManager.CreateScene() instead.\", \"StackTrace\": \"UnityEditor.SceneManagement.EditorSceneManager.NewScene (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at <d6226ddc5a6c4b1bb40b3abef370e1fb>:0)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<>c.<.ctor>b__2_0 (UnityEditor.SceneManagement.NewSceneSetup setup, UnityEditor.SceneManagement.NewSceneMode mode) (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:10)\\nUnityEditor.TestTools.TestRunner.TestRun.Tasks.Scene.RestoreSceneSetupTask+<Execute>d__3.MoveNext () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/Tasks/Scene/RestoreSceneSetupTask.cs:27)\\nUnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@76560ee600cb/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)\\nUnityEditor.EditorApplication:Internal_CallUpdateFunctions() (at /Users/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:401)\\n\", \"Type\": \"Exception\", \"Timestamp\": \"14:08:41.668\", \"Count\": 1}]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 8.326,
+              "ok": true,
+              "payload_B": 129,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"status\": \"Success\", \"is_playing\": true}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 444.665,
+          "ok": false,
+          "payload_B": 716,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 349.261,
+              "ok": true,
+              "payload_B": 130,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"status\": \"Success\", \"is_playing\": false}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 94.707,
+              "ok": false,
+              "payload_B": 143,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: Expecting value: line 1 column 1 (char 0)"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.3,
+              "ok": false,
+              "payload_B": 147,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.181,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.142,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 11,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.89,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.232,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.188,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 13,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.142,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 14,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.139,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 15,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.145,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 16,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.748,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.117,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 17,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.116,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 18,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.124,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 19,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.204,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 20,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.156,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 21,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.74,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.138,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 22,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.153,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 23,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.164,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 24,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.128,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 25,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.12,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 26,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 1.033,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.225,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 27,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.201,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 28,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.203,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 29,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.16,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 30,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.2,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 31,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.984,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.177,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 32,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.208,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 33,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.172,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 34,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.255,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 35,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.13,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 36,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.827,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.154,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 37,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.141,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 38,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.148,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 39,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.151,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 40,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.192,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 41,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.968,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.181,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 42,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.159,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 43,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.211,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 44,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.189,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 45,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.187,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 46,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 0.827,
+          "ok": false,
+          "payload_B": 740,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": true
+                }
+              },
+              "ms": 0.174,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 47,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "click",
+                  "window_title": "Game",
+                  "element_name": "Main Camera"
+                }
+              },
+              "ms": 0.172,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 48,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_ui_automation",
+                "arguments": {
+                  "action": "capture_window_snapshot",
+                  "window_title": "Game",
+                  "include_image": true,
+                  "include_hierarchy": false
+                }
+              },
+              "ms": 0.182,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 49,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "read_logs",
+                  "count": 20
+                }
+              },
+              "ms": 0.131,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 50,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "unity_editor_controller",
+                "arguments": {
+                  "action": "play",
+                  "state": false
+                }
+              },
+              "ms": 0.133,
+              "ok": false,
+              "payload_B": 148,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 51,
+                "error": {
+                  "code": -32000,
+                  "message": "Unity Server unreachable. Error: <urlopen error [Errno 61] Connection refused>"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "unsupported": {
+    "C4": "No scene graph route in bridge",
+    "C9": "No batch route in bridge",
+    "C11": "No execute_code route in bridge"
+  }
+}

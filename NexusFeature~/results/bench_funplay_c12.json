@@ -1,0 +1,871 @@
+{
+  "tool": "funplay",
+  "url": "http://127.0.0.1:27015/",
+  "n": 10,
+  "tools_list": {
+    "count": 34,
+    "schema_chars": 28271,
+    "approx_tokens": 7067
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "get_editor_state",
+    "C3": "get_hierarchy(root_name=Main Camera)",
+    "C4": "get_hierarchy(depth=3)",
+    "C5": "find_game_objects",
+    "C6": "execute_code (create + destroy)",
+    "C7": "execute_code (in-memory compile; no disk file)",
+    "C8": "capture_game_view",
+    "C9": "not supported by HTTP MCP surface",
+    "C10": "not supported in core tool exposure",
+    "C11": "execute_code",
+    "C12": "enter_play_mode + simulate_mouse_click + capture_game_view + get_console_logs + exit_play_mode"
+  },
+  "unsupported": {
+    "C9": "No batch JSON-RPC operation exposed by Funplay HTTP MCP.",
+    "C10": "core tools/list exposes no run_tests/get_test_job tool."
+  },
+  "scenarios": {
+    "C12": {
+      "cold": {
+        "ms": 175.942,
+        "ok": false,
+        "payload_B": 418,
+        "calls": [
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "enter_play_mode",
+              "arguments": {}
+            },
+            "ms": 110.61,
+            "ok": true,
+            "payload_B": 340,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 2,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"Entering play mode\",\"data\":{\"wasPlaying\":false,\"transitionRequested\":true,\"domain_reload_expected\":true,\"next\":\"Wait for the MCP backend to reconnect after domain reload, then poll get_editor_state until isPlaying=true.\"}}"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "simulate_mouse_click",
+              "arguments": {
+                "x": 858,
+                "y": 337,
+                "button": "left"
+              }
+            },
+            "ms": 64.621,
+            "ok": false,
+            "payload_B": 78,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 3,
+              "error": {
+                "code": -32000,
+                "message": "Request cancelled"
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "capture_game_view",
+              "arguments": {
+                "width": 320,
+                "height": 240
+              }
+            },
+            "ms": null,
+            "ok": false,
+            "payload_B": 0,
+            "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "get_console_logs",
+              "arguments": {
+                "count": 20,
+                "group_duplicates": true
+              }
+            },
+            "ms": null,
+            "ok": false,
+            "payload_B": 0,
+            "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "exit_play_mode",
+              "arguments": {}
+            },
+            "ms": null,
+            "ok": false,
+            "payload_B": 0,
+            "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+          }
+        ]
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 0.279,
+        "p50_ms": 0.499,
+        "p95_ms": 0.742,
+        "max_ms": 175.942,
+        "ok_percent": 0.0,
+        "payload_B_p50": 0.0
+      },
+      "samples": [
+        {
+          "ms": 175.942,
+          "ok": false,
+          "payload_B": 418,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": 110.61,
+              "ok": true,
+              "payload_B": 340,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Entering play mode\",\"data\":{\"wasPlaying\":false,\"transitionRequested\":true,\"domain_reload_expected\":true,\"next\":\"Wait for the MCP backend to reconnect after domain reload, then poll get_editor_state until isPlaying=true.\"}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": 64.621,
+              "ok": false,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "error": {
+                  "code": -32000,
+                  "message": "Request cancelled"
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.742,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.637,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.694,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.424,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.481,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.509,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.49,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.317,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        },
+        {
+          "ms": 0.279,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "enter_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "simulate_mouse_click",
+                "arguments": {
+                  "x": 858,
+                  "y": 337,
+                  "button": "left"
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "capture_game_view",
+                "arguments": {
+                  "width": 320,
+                  "height": 240
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "get_console_logs",
+                "arguments": {
+                  "count": 20,
+                  "group_duplicates": true
+                }
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "exit_play_mode",
+                "arguments": {}
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "recorded_at": "2026-09-01",
+  "host": {
+    "model_identifier": "Mac17,2",
+    "chip": "Apple M5",
+    "macos": "27.0",
+    "timezone": "Europe/Madrid"
+  },
+  "unity": {
+    "version": "6000.4.3f1",
+    "revision": "39d1a88d4dd1"
+  },
+  "project": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+  "nexus": {
+    "package": "com.forkhorizon.nexus.unity",
+    "package_hash": "b7f1c369188f2c71fe5cb3749663e9228d20b386",
+    "raw_port": 8081,
+    "auth_token_file": "Library/NexusUnityAuthToken.txt"
+  },
+  "benchmark_packages": {
+    "funplay": {
+      "version": "0.6.4",
+      "source": "https://github.com/FunplayAI/funplay-unity-mcp.git",
+      "http_port": 27015
+    },
+    "coplay": {
+      "version": "10.1.2",
+      "source": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+      "http_port": 8090,
+      "note": "8080 was occupied by an unrelated local process"
+    },
+    "ivanmurzak": {
+      "package_version": "0.90.0",
+      "server_version": "9.2.5.0",
+      "source": "https://github.com/IvanMurzak/Unity-MCP.git?path=/Unity-MCP-Plugin/Packages/com.ivanmurzak.unity.mcp#main",
+      "stdio_port": 29185
+    }
+  },
+  "protocol": "/Users/daliys/Daliys/NexusFeature/BENCHMARK_PROTOCOL.md",
+  "competitors_readme_fetched": [
+    "FunplayAI/funplay-unity-mcp",
+    "CoplayDev/unity-mcp",
+    "IvanMurzak/Unity-MCP"
+  ]
+}

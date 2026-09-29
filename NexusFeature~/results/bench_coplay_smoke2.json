@@ -1,0 +1,464 @@
+{
+  "tool": "coplay",
+  "url": "http://127.0.0.1:8090/mcp",
+  "n": 1,
+  "tools_list": {
+    "count": 48,
+    "schema_chars": 115822,
+    "approx_tokens": 28955
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "read_console",
+    "C3": "find_gameobjects + resources/read gameobject",
+    "C4": "manage_scene(get_hierarchy)",
+    "C5": "find_gameobjects",
+    "C6": "manage_gameobject(create + delete)",
+    "C7": "create_script + refresh_unity + delete_script",
+    "C8": "manage_camera(screenshot)",
+    "C9": "batch_execute(10 find_gameobjects)",
+    "C10": "run_tests + get_test_job",
+    "C11": "not run per protocol competitor rule",
+    "C12": "partial: play + screenshot + read_console + stop; no input automation"
+  },
+  "unsupported": {
+    "C11": "Protocol specifies execute-code equivalent for Funplay only; Coplay C11 marked no.",
+    "C12": "No Coplay tool for simulate mouse click; measured partial sequence only."
+  },
+  "scenarios": {
+    "C3": {
+      "cold": {
+        "ms": 543.121,
+        "ok": true,
+        "payload_B": 1311,
+        "calls": [
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "find_gameobjects",
+              "arguments": {
+                "search_term": "Main Camera",
+                "search_method": "by_name",
+                "page_size": 10
+              }
+            },
+            "ms": 435.17,
+            "ok": true,
+            "payload_B": 458,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 4,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"Found GameObjects\",\"data\":{\"instanceIDs\":[49596],\"pageSize\":10,\"cursor\":0,\"nextCursor\":null,\"totalCount\":1,\"hasMore\":false}}"
+                  }
+                ],
+                "structuredContent": {
+                  "success": true,
+                  "message": "Found GameObjects",
+                  "data": {
+                    "instanceIDs": [
+                      49596
+                    ],
+                    "pageSize": 10,
+                    "cursor": 0,
+                    "nextCursor": null,
+                    "totalCount": 1,
+                    "hasMore": false
+                  }
+                },
+                "isError": false
+              }
+            }
+          },
+          {
+            "method": "resources/read",
+            "params": {
+              "uri": "mcpforunity://scene/gameobject/49596"
+            },
+            "ms": 107.951,
+            "ok": true,
+            "payload_B": 853,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 5,
+              "result": {
+                "contents": [
+                  {
+                    "uri": "mcpforunity://scene/gameobject/49596",
+                    "mimeType": "text/plain",
+                    "text": "{\"success\":true,\"message\":null,\"error\":null,\"data\":{\"instanceID\":49596,\"name\":\"Main Camera\",\"tag\":\"MainCamera\",\"layer\":0,\"layerName\":\"Default\",\"active\":true,\"activeInHierarchy\":true,\"isStatic\":false,\"transform\":{\"position\":{\"x\":0.0,\"y\":1.0,\"z\":-10.0},\"localPosition\":{\"x\":0.0,\"y\":1.0,\"z\":-10.0},\"rotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"localRotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"scale\":{\"x\":1.0,\"y\":1.0,\"z\":1.0},\"lossyScale\":{\"x\":1.0,\"y\":1.0,\"z\":1.0}},\"parent\":null,\"children\":[],\"componentTypes\":[\"Transform\",\"Camera\",\"AudioListener\",\"UniversalAdditionalCameraData\"],\"path\":\"Main Camera\"},\"hint\":null}"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 1,
+        "min_ms": 543.121,
+        "p50_ms": 543.121,
+        "p95_ms": 543.121,
+        "max_ms": 543.121,
+        "ok_percent": 100.0,
+        "payload_B_p50": 1311
+      },
+      "samples": [
+        {
+          "ms": 543.121,
+          "ok": true,
+          "payload_B": 1311,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "find_gameobjects",
+                "arguments": {
+                  "search_term": "Main Camera",
+                  "search_method": "by_name",
+                  "page_size": 10
+                }
+              },
+              "ms": 435.17,
+              "ok": true,
+              "payload_B": 458,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Found GameObjects\",\"data\":{\"instanceIDs\":[49596],\"pageSize\":10,\"cursor\":0,\"nextCursor\":null,\"totalCount\":1,\"hasMore\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Found GameObjects",
+                    "data": {
+                      "instanceIDs": [
+                        49596
+                      ],
+                      "pageSize": 10,
+                      "cursor": 0,
+                      "nextCursor": null,
+                      "totalCount": 1,
+                      "hasMore": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "resources/read",
+              "params": {
+                "uri": "mcpforunity://scene/gameobject/49596"
+              },
+              "ms": 107.951,
+              "ok": true,
+              "payload_B": 853,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "contents": [
+                    {
+                      "uri": "mcpforunity://scene/gameobject/49596",
+                      "mimeType": "text/plain",
+                      "text": "{\"success\":true,\"message\":null,\"error\":null,\"data\":{\"instanceID\":49596,\"name\":\"Main Camera\",\"tag\":\"MainCamera\",\"layer\":0,\"layerName\":\"Default\",\"active\":true,\"activeInHierarchy\":true,\"isStatic\":false,\"transform\":{\"position\":{\"x\":0.0,\"y\":1.0,\"z\":-10.0},\"localPosition\":{\"x\":0.0,\"y\":1.0,\"z\":-10.0},\"rotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"localRotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"scale\":{\"x\":1.0,\"y\":1.0,\"z\":1.0},\"lossyScale\":{\"x\":1.0,\"y\":1.0,\"z\":1.0}},\"parent\":null,\"children\":[],\"componentTypes\":[\"Transform\",\"Camera\",\"AudioListener\",\"UniversalAdditionalCameraData\"],\"path\":\"Main Camera\"},\"hint\":null}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "C6": {
+      "cold": {
+        "ms": 1337.379,
+        "ok": true,
+        "payload_B": 2108,
+        "calls": [
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "manage_gameobject",
+              "arguments": {
+                "action": "create",
+                "name": "CoplayBenchCube",
+                "primitive_type": "Cube"
+              }
+            },
+            "ms": 692.183,
+            "ok": true,
+            "payload_B": 1690,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 6,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"GameObject 'CoplayBenchCube' created successfully in scene.\",\"data\":{\"name\":\"CoplayBenchCube\",\"instanceID\":-3952,\"tag\":\"Untagged\",\"layer\":0,\"activeSelf\":true,\"activeInHierarchy\":true,\"isStatic\":false,\"scenePath\":\"Assets/Scenes/SampleScene.unity\",\"transform\":{\"position\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"localPosition\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"rotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"localRotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"scale\":{\"x\":1.0,\"y\":1.0,\"z\":1.0},\"forward\":{\"x\":0.0,\"y\":0.0,\"z\":1.0},\"up\":{\"x\":0.0,\"y\":1.0,\"z\":0.0},\"right\":{\"x\":1.0,\"y\":0.0,\"z\":0.0}},\"parentInstanceID\":0,\"componentNames\":[\"UnityEngine.Transform\",\"UnityEngine.MeshFilter\",\"UnityEngine.BoxCollider\",\"UnityEngine.MeshRenderer\"]}}"
+                  }
+                ],
+                "structuredContent": {
+                  "success": true,
+                  "message": "GameObject 'CoplayBenchCube' created successfully in scene.",
+                  "data": {
+                    "name": "CoplayBenchCube",
+                    "instanceID": -3952,
+                    "tag": "Untagged",
+                    "layer": 0,
+                    "activeSelf": true,
+                    "activeInHierarchy": true,
+                    "isStatic": false,
+                    "scenePath": "Assets/Scenes/SampleScene.unity",
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "localPosition": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "localRotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      },
+                      "forward": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 1.0
+                      },
+                      "up": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": 0.0
+                      },
+                      "right": {
+                        "x": 1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      }
+                    },
+                    "parentInstanceID": 0,
+                    "componentNames": [
+                      "UnityEngine.Transform",
+                      "UnityEngine.MeshFilter",
+                      "UnityEngine.BoxCollider",
+                      "UnityEngine.MeshRenderer"
+                    ]
+                  }
+                },
+                "isError": false
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "manage_gameobject",
+              "arguments": {
+                "action": "delete",
+                "target": "-3952",
+                "search_method": "by_id"
+              }
+            },
+            "ms": 645.196,
+            "ok": true,
+            "payload_B": 418,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 7,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"GameObject 'CoplayBenchCube' deleted successfully.\",\"data\":[{\"name\":\"CoplayBenchCube\",\"instanceID\":-3952}]}"
+                  }
+                ],
+                "structuredContent": {
+                  "success": true,
+                  "message": "GameObject 'CoplayBenchCube' deleted successfully.",
+                  "data": [
+                    {
+                      "name": "CoplayBenchCube",
+                      "instanceID": -3952
+                    }
+                  ]
+                },
+                "isError": false
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 1,
+        "min_ms": 1337.379,
+        "p50_ms": 1337.379,
+        "p95_ms": 1337.379,
+        "max_ms": 1337.379,
+        "ok_percent": 100.0,
+        "payload_B_p50": 2108
+      },
+      "samples": [
+        {
+          "ms": 1337.379,
+          "ok": true,
+          "payload_B": 2108,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "manage_gameobject",
+                "arguments": {
+                  "action": "create",
+                  "name": "CoplayBenchCube",
+                  "primitive_type": "Cube"
+                }
+              },
+              "ms": 692.183,
+              "ok": true,
+              "payload_B": 1690,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"GameObject 'CoplayBenchCube' created successfully in scene.\",\"data\":{\"name\":\"CoplayBenchCube\",\"instanceID\":-3952,\"tag\":\"Untagged\",\"layer\":0,\"activeSelf\":true,\"activeInHierarchy\":true,\"isStatic\":false,\"scenePath\":\"Assets/Scenes/SampleScene.unity\",\"transform\":{\"position\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"localPosition\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"rotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"localRotation\":{\"x\":0.0,\"y\":0.0,\"z\":0.0},\"scale\":{\"x\":1.0,\"y\":1.0,\"z\":1.0},\"forward\":{\"x\":0.0,\"y\":0.0,\"z\":1.0},\"up\":{\"x\":0.0,\"y\":1.0,\"z\":0.0},\"right\":{\"x\":1.0,\"y\":0.0,\"z\":0.0}},\"parentInstanceID\":0,\"componentNames\":[\"UnityEngine.Transform\",\"UnityEngine.MeshFilter\",\"UnityEngine.BoxCollider\",\"UnityEngine.MeshRenderer\"]}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "GameObject 'CoplayBenchCube' created successfully in scene.",
+                    "data": {
+                      "name": "CoplayBenchCube",
+                      "instanceID": -3952,
+                      "tag": "Untagged",
+                      "layer": 0,
+                      "activeSelf": true,
+                      "activeInHierarchy": true,
+                      "isStatic": false,
+                      "scenePath": "Assets/Scenes/SampleScene.unity",
+                      "transform": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "localPosition": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "localRotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        },
+                        "forward": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 1.0
+                        },
+                        "up": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": 0.0
+                        },
+                        "right": {
+                          "x": 1.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        }
+                      },
+                      "parentInstanceID": 0,
+                      "componentNames": [
+                        "UnityEngine.Transform",
+                        "UnityEngine.MeshFilter",
+                        "UnityEngine.BoxCollider",
+                        "UnityEngine.MeshRenderer"
+                      ]
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "manage_gameobject",
+                "arguments": {
+                  "action": "delete",
+                  "target": "-3952",
+                  "search_method": "by_id"
+                }
+              },
+              "ms": 645.196,
+              "ok": true,
+              "payload_B": 418,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"GameObject 'CoplayBenchCube' deleted successfully.\",\"data\":[{\"name\":\"CoplayBenchCube\",\"instanceID\":-3952}]}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "GameObject 'CoplayBenchCube' deleted successfully.",
+                    "data": [
+                      {
+                        "name": "CoplayBenchCube",
+                        "instanceID": -3952
+                      }
+                    ]
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

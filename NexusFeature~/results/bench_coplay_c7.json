@@ -1,0 +1,1363 @@
+{
+  "tool": "coplay",
+  "url": "http://127.0.0.1:8090/mcp",
+  "n": 10,
+  "tools_list": {
+    "count": 48,
+    "schema_chars": 115822,
+    "approx_tokens": 28955
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "read_console",
+    "C3": "find_gameobjects + resources/read gameobject",
+    "C4": "manage_scene(get_hierarchy)",
+    "C5": "find_gameobjects",
+    "C6": "manage_gameobject(create + delete)",
+    "C7": "create_script + refresh_unity + delete_script",
+    "C8": "manage_camera(screenshot)",
+    "C9": "batch_execute(10 find_gameobjects)",
+    "C10": "run_tests + get_test_job",
+    "C11": "not run per protocol competitor rule",
+    "C12": "partial: play + screenshot + read_console + stop; no input automation"
+  },
+  "unsupported": {
+    "C11": "Protocol specifies execute-code equivalent for Funplay only; Coplay C11 marked no.",
+    "C12": "No Coplay tool for simulate mouse click; measured partial sequence only."
+  },
+  "scenarios": {
+    "C7": {
+      "cold": {
+        "ms": 13206.394,
+        "ok": true,
+        "payload_B": 2212,
+        "calls": [
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "create_script",
+              "arguments": {
+                "path": "Assets/CoplayBenchScript.cs",
+                "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+              }
+            },
+            "ms": 716.344,
+            "ok": true,
+            "payload_B": 791,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 4,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                  }
+                ],
+                "structuredContent": {
+                  "success": true,
+                  "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                  "data": {
+                    "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                    "scheduledRefresh": false
+                  }
+                },
+                "isError": false
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "refresh_unity",
+              "arguments": {
+                "mode": "if_dirty",
+                "scope": "scripts",
+                "compile": "request",
+                "wait_for_ready": true
+              }
+            },
+            "ms": 6489.824,
+            "ok": true,
+            "payload_B": 816,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 5,
+              "result": {
+                "_meta": {
+                  "fastmcp": {
+                    "wrap_result": true
+                  }
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                  }
+                ],
+                "structuredContent": {
+                  "result": {
+                    "success": true,
+                    "message": "Refresh requested.",
+                    "error": null,
+                    "data": {
+                      "refresh_triggered": false,
+                      "compile_requested": true,
+                      "resulting_state": "compiling",
+                      "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                    },
+                    "hint": null
+                  }
+                },
+                "isError": false
+              }
+            }
+          },
+          {
+            "method": "tools/call",
+            "params": {
+              "name": "delete_script",
+              "arguments": {
+                "uri": "Assets/CoplayBenchScript.cs"
+              }
+            },
+            "ms": 6000.226,
+            "ok": true,
+            "payload_B": 605,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 6,
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                  }
+                ],
+                "structuredContent": {
+                  "success": true,
+                  "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                  "data": {
+                    "deleted": true
+                  }
+                },
+                "isError": false
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 12899.612,
+        "p50_ms": 13402.699,
+        "p95_ms": 16399.774,
+        "max_ms": 22502.029,
+        "ok_percent": 100.0,
+        "payload_B_p50": 2215.0
+      },
+      "samples": [
+        {
+          "ms": 13206.394,
+          "ok": true,
+          "payload_B": 2212,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 716.344,
+              "ok": true,
+              "payload_B": 791,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6489.824,
+              "ok": true,
+              "payload_B": 816,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6000.226,
+              "ok": true,
+              "payload_B": 605,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 13199.51,
+          "ok": true,
+          "payload_B": 2212,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 707.424,
+              "ok": true,
+              "payload_B": 791,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6592.457,
+              "ok": true,
+              "payload_B": 816,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 5899.629,
+              "ok": true,
+              "payload_B": 605,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 13101.325,
+          "ok": true,
+          "payload_B": 2215,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 690.915,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6408.695,
+              "ok": true,
+              "payload_B": 817,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 11,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6001.715,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 22502.029,
+          "ok": true,
+          "payload_B": 2205,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 5900.608,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 13,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 7599.912,
+              "ok": true,
+              "payload_B": 807,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 14,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"idle\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "idle",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 9001.509,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 15,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 13697.208,
+          "ok": true,
+          "payload_B": 2215,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 712.115,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 16,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6683.022,
+              "ok": true,
+              "payload_B": 817,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 17,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6302.071,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 18,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 13200.685,
+          "ok": true,
+          "payload_B": 2215,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 716.486,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 19,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6476.192,
+              "ok": true,
+              "payload_B": 817,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 20,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6008.007,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 21,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 13599.004,
+          "ok": true,
+          "payload_B": 2215,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 712.616,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 22,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6786.246,
+              "ok": true,
+              "payload_B": 817,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 23,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6100.142,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 24,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 13600.252,
+          "ok": true,
+          "payload_B": 2215,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 789.609,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 25,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 6610.443,
+              "ok": true,
+              "payload_B": 817,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 26,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6200.2,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 27,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 16399.774,
+          "ok": true,
+          "payload_B": 2215,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 716.724,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 28,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 9481.834,
+              "ok": true,
+              "payload_B": 817,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 29,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"compiling\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "compiling",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6201.216,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 30,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 12899.612,
+          "ok": true,
+          "payload_B": 2205,
+          "calls": [
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "create_script",
+                "arguments": {
+                  "path": "Assets/CoplayBenchScript.cs",
+                  "contents": "using UnityEngine; public class CoplayBenchScript : MonoBehaviour {}\n"
+                }
+              },
+              "ms": 5898.112,
+              "ok": true,
+              "payload_B": 792,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 31,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.\",\"data\":{\"uri\":\"mcpforunity://path/Assets/CoplayBenchScript.cs\",\"scheduledRefresh\":false}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' created successfully at 'Assets/CoplayBenchScript.cs'.",
+                    "data": {
+                      "uri": "mcpforunity://path/Assets/CoplayBenchScript.cs",
+                      "scheduledRefresh": false
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "refresh_unity",
+                "arguments": {
+                  "mode": "if_dirty",
+                  "scope": "scripts",
+                  "compile": "request",
+                  "wait_for_ready": true
+                }
+              },
+              "ms": 729.384,
+              "ok": true,
+              "payload_B": 807,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 32,
+                "result": {
+                  "_meta": {
+                    "fastmcp": {
+                      "wrap_result": true
+                    }
+                  },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Refresh requested.\",\"error\":null,\"data\":{\"refresh_triggered\":false,\"compile_requested\":true,\"resulting_state\":\"idle\",\"hint\":\"If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true.\"},\"hint\":null}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "result": {
+                      "success": true,
+                      "message": "Refresh requested.",
+                      "error": null,
+                      "data": {
+                        "refresh_triggered": false,
+                        "compile_requested": true,
+                        "resulting_state": "idle",
+                        "hint": "If Unity enters compilation/domain reload, poll the mcpforunity://editor/state resource until data.advice.ready_for_tools is true."
+                      },
+                      "hint": null
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            },
+            {
+              "method": "tools/call",
+              "params": {
+                "name": "delete_script",
+                "arguments": {
+                  "uri": "Assets/CoplayBenchScript.cs"
+                }
+              },
+              "ms": 6272.116,
+              "ok": true,
+              "payload_B": 606,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 33,
+                "result": {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "{\"success\":true,\"message\":\"Script 'CoplayBenchScript.cs' moved to trash successfully.\",\"data\":{\"deleted\":true}}"
+                    }
+                  ],
+                  "structuredContent": {
+                    "success": true,
+                    "message": "Script 'CoplayBenchScript.cs' moved to trash successfully.",
+                    "data": {
+                      "deleted": true
+                    }
+                  },
+                  "isError": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

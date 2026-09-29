@@ -1,0 +1,5990 @@
+{
+  "tool": "nexus_raw",
+  "protocol": "C1-C12",
+  "n": 10,
+  "scenarios": {
+    "C2": {
+      "cold": {
+        "method": "get_server_status",
+        "params": {},
+        "ms": 0.536,
+        "ok": true,
+        "payload_B": 624,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 357832464,
+          "result": {
+            "serverAlive": true,
+            "state": "Running",
+            "busyReason": "idle",
+            "lastError": null,
+            "port": 8081,
+            "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+            "processId": 6400,
+            "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+            "unityVersion": "6000.4.3f1",
+            "editorConnected": true,
+            "mainThreadResponsive": true,
+            "editorState": {
+              "isPlaying": false,
+              "isCompiling": false,
+              "isImporting": false,
+              "isPaused": false,
+              "isPlayModeTransition": false
+            },
+            "commandState": {
+              "acceptsReadCommands": true,
+              "acceptsWriteCommands": true,
+              "busyReason": "idle"
+            },
+            "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+            "sessionGeneration": 1
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 0.388,
+        "p50_ms": 0.529,
+        "p95_ms": 0.607,
+        "max_ms": 0.619,
+        "ok_percent": 100.0,
+        "payload_B_p50": 624.0
+      },
+      "samples": [
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.536,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 357832464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.607,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 358415464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.619,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 359044464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.567,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 359679464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.505,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 360260464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.522,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 360778464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.546,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 361317464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.516,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 361887464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.388,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 362420464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        },
+        {
+          "method": "get_server_status",
+          "params": {},
+          "ms": 0.399,
+          "ok": true,
+          "payload_B": 624,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 362822464,
+            "result": {
+              "serverAlive": true,
+              "state": "Running",
+              "busyReason": "idle",
+              "lastError": null,
+              "port": 8081,
+              "sessionId": "a40fa56edddc42738da52fcbeb5c0d72",
+              "processId": 6400,
+              "projectPath": "/Users/daliys/Daliys/UnityProjects/NexusMetricsTest",
+              "unityVersion": "6000.4.3f1",
+              "editorConnected": true,
+              "mainThreadResponsive": true,
+              "editorState": {
+                "isPlaying": false,
+                "isCompiling": false,
+                "isImporting": false,
+                "isPaused": false,
+                "isPlayModeTransition": false
+              },
+              "commandState": {
+                "acceptsReadCommands": true,
+                "acceptsWriteCommands": true,
+                "busyReason": "idle"
+              },
+              "lastHeartbeatUtc": "2026-09-01T11:57:53.0294170Z",
+              "sessionGeneration": 1
+            }
+          }
+        }
+      ]
+    },
+    "C3": {
+      "cold": {
+        "method": "find_by_path",
+        "params": {
+          "path": "Main Camera"
+        },
+        "ms": 181.291,
+        "ok": true,
+        "payload_B": 717,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 363253464,
+          "result": {
+            "status": "Success",
+            "data": {
+              "name": "Main Camera",
+              "instance_id": 48478,
+              "transform": {
+                "position": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -10.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                }
+              },
+              "components": [
+                {
+                  "type": "Transform",
+                  "instance_id": 48484,
+                  "properties": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  }
+                },
+                {
+                  "type": "Camera",
+                  "instance_id": 48482,
+                  "enabled": true,
+                  "properties": {
+                    "fov": 60.0,
+                    "orthographic": false,
+                    "nearClip": 0.3,
+                    "farClip": 1000.0
+                  }
+                },
+                {
+                  "type": "AudioListener",
+                  "instance_id": 48480,
+                  "enabled": true,
+                  "properties": {}
+                },
+                {
+                  "type": "UniversalAdditionalCameraData",
+                  "instance_id": 48486,
+                  "enabled": true,
+                  "properties": {}
+                }
+              ]
+            }
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 87.809,
+        "p50_ms": 199.328,
+        "p95_ms": 200.237,
+        "max_ms": 212.268,
+        "ok_percent": 100.0,
+        "payload_B_p50": 718.0
+      },
+      "samples": [
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 181.291,
+          "ok": true,
+          "payload_B": 717,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 363253464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 192.379,
+          "ok": true,
+          "payload_B": 717,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 544619464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 199.454,
+          "ok": true,
+          "payload_B": 717,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 737154464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 199.47,
+          "ok": true,
+          "payload_B": 717,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 936770464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 212.268,
+          "ok": true,
+          "payload_B": 718,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1136362464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 87.809,
+          "ok": true,
+          "payload_B": 718,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1348747464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 199.202,
+          "ok": true,
+          "payload_B": 718,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1436684464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 100.172,
+          "ok": true,
+          "payload_B": 718,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1636035464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 200.147,
+          "ok": true,
+          "payload_B": 718,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1736366464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "method": "find_by_path",
+          "params": {
+            "path": "Main Camera"
+          },
+          "ms": 200.237,
+          "ok": true,
+          "payload_B": 718,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1936688464,
+            "result": {
+              "status": "Success",
+              "data": {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "C4": {
+      "cold": {
+        "method": "dump_scene_graph",
+        "params": {
+          "max_depth": 3
+        },
+        "ms": 204.81,
+        "ok": true,
+        "payload_B": 1529,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2137131464,
+          "result": {
+            "status": "Success",
+            "scene_name": "SampleScene",
+            "hierarchy": [
+              {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "active": true,
+                "tag": "MainCamera",
+                "layer": "Default",
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              },
+              {
+                "name": "Directional Light",
+                "instance_id": 48488,
+                "active": true,
+                "tag": "Untagged",
+                "layer": "Default",
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48492,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 3.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 50.0,
+                        "y": 330.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Light",
+                    "instance_id": 48490,
+                    "enabled": true,
+                    "properties": {
+                      "type": "Directional",
+                      "color": "#FFFFFFFF",
+                      "intensity": 2.0,
+                      "range": 10.0
+                    }
+                  },
+                  {
+                    "type": "UniversalAdditionalLightData",
+                    "instance_id": 48494,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              },
+              {
+                "name": "Global Volume",
+                "instance_id": 48496,
+                "active": true,
+                "tag": "Untagged",
+                "layer": "Default",
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48500,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Volume",
+                    "instance_id": 48498,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 87.775,
+        "p50_ms": 149.812,
+        "p95_ms": 200.055,
+        "max_ms": 204.81,
+        "ok_percent": 100.0,
+        "payload_B_p50": 1528.0
+      },
+      "samples": [
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 204.81,
+          "ok": true,
+          "payload_B": 1529,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 2137131464,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 106.595,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 194595816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 87.775,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 301287816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 99.609,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 389247816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 200.055,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 489045816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 101.147,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 689295816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 199.32,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 790675816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 198.651,
+          "ok": true,
+          "payload_B": 1528,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 990160816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 112.133,
+          "ok": true,
+          "payload_B": 1529,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1188953816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "dump_scene_graph",
+          "params": {
+            "max_depth": 3
+          },
+          "ms": 187.492,
+          "ok": true,
+          "payload_B": 1529,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1301201816,
+            "result": {
+              "status": "Success",
+              "scene_name": "SampleScene",
+              "hierarchy": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "active": true,
+                  "tag": "MainCamera",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Directional Light",
+                  "instance_id": 48488,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48492,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 3.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 50.0,
+                          "y": 330.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Light",
+                      "instance_id": 48490,
+                      "enabled": true,
+                      "properties": {
+                        "type": "Directional",
+                        "color": "#FFFFFFFF",
+                        "intensity": 2.0,
+                        "range": 10.0
+                      }
+                    },
+                    {
+                      "type": "UniversalAdditionalLightData",
+                      "instance_id": 48494,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                },
+                {
+                  "name": "Global Volume",
+                  "instance_id": 48496,
+                  "active": true,
+                  "tag": "Untagged",
+                  "layer": "Default",
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48500,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Volume",
+                      "instance_id": 48498,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C5": {
+      "cold": {
+        "method": "find_objects",
+        "params": {
+          "name": "Camera"
+        },
+        "ms": 103.433,
+        "ok": true,
+        "payload_B": 704,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 1488928816,
+          "result": {
+            "objects": [
+              {
+                "name": "Main Camera",
+                "instance_id": 48478,
+                "transform": {
+                  "position": {
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": -10.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                  }
+                },
+                "components": [
+                  {
+                    "type": "Transform",
+                    "instance_id": 48484,
+                    "properties": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 1.0,
+                        "z": -10.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    }
+                  },
+                  {
+                    "type": "Camera",
+                    "instance_id": 48482,
+                    "enabled": true,
+                    "properties": {
+                      "fov": 60.0,
+                      "orthographic": false,
+                      "nearClip": 0.3,
+                      "farClip": 1000.0
+                    }
+                  },
+                  {
+                    "type": "AudioListener",
+                    "instance_id": 48480,
+                    "enabled": true,
+                    "properties": {}
+                  },
+                  {
+                    "type": "UniversalAdditionalCameraData",
+                    "instance_id": 48486,
+                    "enabled": true,
+                    "properties": {}
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 103.433,
+        "p50_ms": 199.571,
+        "p95_ms": 211.828,
+        "max_ms": 212.659,
+        "ok_percent": 100.0,
+        "payload_B_p50": 703.5
+      },
+      "samples": [
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 103.433,
+          "ok": true,
+          "payload_B": 704,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1488928816,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 196.23,
+          "ok": true,
+          "payload_B": 704,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1592537816,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 200.965,
+          "ok": true,
+          "payload_B": 704,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1788937816,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 198.643,
+          "ok": true,
+          "payload_B": 704,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1990084816,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 211.828,
+          "ok": true,
+          "payload_B": 702,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 41380168,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 187.71,
+          "ok": true,
+          "payload_B": 703,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 253327168,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 200.499,
+          "ok": true,
+          "payload_B": 703,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 441187168,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 200.998,
+          "ok": true,
+          "payload_B": 703,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 641862168,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 198.468,
+          "ok": true,
+          "payload_B": 703,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 843060168,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "find_objects",
+          "params": {
+            "name": "Camera"
+          },
+          "ms": 212.659,
+          "ok": true,
+          "payload_B": 704,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1041679168,
+            "result": {
+              "objects": [
+                {
+                  "name": "Main Camera",
+                  "instance_id": 48478,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 1.0,
+                      "z": -10.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": 48484,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 1.0,
+                          "z": -10.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "Camera",
+                      "instance_id": 48482,
+                      "enabled": true,
+                      "properties": {
+                        "fov": 60.0,
+                        "orthographic": false,
+                        "nearClip": 0.3,
+                        "farClip": 1000.0
+                      }
+                    },
+                    {
+                      "type": "AudioListener",
+                      "instance_id": 48480,
+                      "enabled": true,
+                      "properties": {}
+                    },
+                    {
+                      "type": "UniversalAdditionalCameraData",
+                      "instance_id": 48486,
+                      "enabled": true,
+                      "properties": {}
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C6": {
+      "cold": {
+        "ms": 395.288,
+        "ok": true,
+        "payload_B": 706,
+        "calls": [
+          {
+            "method": "create_primitive",
+            "params": {
+              "primitive_type": "Cube",
+              "name": "BenchCube",
+              "position": [
+                0,
+                0,
+                0
+              ]
+            },
+            "ms": 195.978,
+            "ok": true,
+            "payload_B": 621,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 1254524168,
+              "result": {
+                "status": "Success",
+                "data": {
+                  "name": "BenchCube",
+                  "instance_id": -2596,
+                  "transform": {
+                    "position": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "rotation": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "scale": {
+                      "x": 1.0,
+                      "y": 1.0,
+                      "z": 1.0
+                    }
+                  },
+                  "components": [
+                    {
+                      "type": "Transform",
+                      "instance_id": -2598,
+                      "properties": {
+                        "position": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "rotation": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "scale": {
+                          "x": 1.0,
+                          "y": 1.0,
+                          "z": 1.0
+                        }
+                      }
+                    },
+                    {
+                      "type": "MeshFilter",
+                      "instance_id": -2600,
+                      "properties": {
+                        "mesh": "Cube"
+                      }
+                    },
+                    {
+                      "type": "BoxCollider",
+                      "instance_id": -2602,
+                      "properties": {}
+                    },
+                    {
+                      "type": "MeshRenderer",
+                      "instance_id": -2604,
+                      "properties": {
+                        "materials": [
+                          "Lit"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "method": "destroy_game_object",
+            "params": {
+              "instance_id": -2596
+            },
+            "ms": 199.31,
+            "ok": true,
+            "payload_B": 85,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 1450644168,
+              "result": {
+                "status": "Success",
+                "message": "Destroyed"
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 169.277,
+        "p50_ms": 300.127,
+        "p95_ms": 400.838,
+        "max_ms": 428.438,
+        "ok_percent": 100.0,
+        "payload_B_p50": 706.0
+      },
+      "samples": [
+        {
+          "ms": 395.288,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 195.978,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1254524168,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2596,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2598,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2600,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2602,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2604,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2596
+              },
+              "ms": 199.31,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1450644168,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 191.93,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 92.813,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1650085168,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2616,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2618,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2620,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2622,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2624,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2616
+              },
+              "ms": 99.117,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1743072168,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 299.938,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 200.048,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1842356168,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2636,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2638,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2640,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2642,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2644,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2636
+              },
+              "ms": 99.89,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 2042533168,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 399.596,
+          "ok": true,
+          "payload_B": 705,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 216.086,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 2142502168,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2656,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2658,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2660,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2662,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2664,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2656
+              },
+              "ms": 183.51,
+              "ok": true,
+              "payload_B": 84,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 211192520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 300.316,
+          "ok": true,
+          "payload_B": 704,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 200.259,
+              "ok": true,
+              "payload_B": 620,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 394810520,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2676,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2678,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2680,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2682,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2684,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2676
+              },
+              "ms": 100.057,
+              "ok": true,
+              "payload_B": 84,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 595220520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 400.838,
+          "ok": true,
+          "payload_B": 704,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 199.08,
+              "ok": true,
+              "payload_B": 620,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 695416520,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2696,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2698,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2700,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2702,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2704,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2696
+              },
+              "ms": 201.758,
+              "ok": true,
+              "payload_B": 84,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 894640520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 428.438,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 210.081,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1096505520,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2716,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2718,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2720,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2722,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2724,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2716
+              },
+              "ms": 218.357,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1306711520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 169.277,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 68.947,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1525221520,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2736,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2738,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2740,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2742,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2744,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2736
+              },
+              "ms": 100.33,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1594277520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 200.189,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 99.673,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1694746520,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2756,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2758,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2760,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2762,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2764,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2756
+              },
+              "ms": 100.516,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1794565520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 299.432,
+          "ok": true,
+          "payload_B": 706,
+          "calls": [
+            {
+              "method": "create_primitive",
+              "params": {
+                "primitive_type": "Cube",
+                "name": "BenchCube",
+                "position": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "ms": 199.944,
+              "ok": true,
+              "payload_B": 621,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1895189520,
+                "result": {
+                  "status": "Success",
+                  "data": {
+                    "name": "BenchCube",
+                    "instance_id": -2776,
+                    "transform": {
+                      "position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                      }
+                    },
+                    "components": [
+                      {
+                        "type": "Transform",
+                        "instance_id": -2778,
+                        "properties": {
+                          "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          },
+                          "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                          }
+                        }
+                      },
+                      {
+                        "type": "MeshFilter",
+                        "instance_id": -2780,
+                        "properties": {
+                          "mesh": "Cube"
+                        }
+                      },
+                      {
+                        "type": "BoxCollider",
+                        "instance_id": -2782,
+                        "properties": {}
+                      },
+                      {
+                        "type": "MeshRenderer",
+                        "instance_id": -2784,
+                        "properties": {
+                          "materials": [
+                            "Lit"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "method": "destroy_game_object",
+              "params": {
+                "instance_id": -2776
+              },
+              "ms": 99.488,
+              "ok": true,
+              "payload_B": 85,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 2095306520,
+                "result": {
+                  "status": "Success",
+                  "message": "Destroyed"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "C7": {
+      "cold": {
+        "ms": 220.019,
+        "ok": true,
+        "payload_B": 239,
+        "accepted_ms": 216.737,
+        "compiled": true,
+        "compile_ms": 220.019,
+        "calls": [
+          {
+            "method": "write_file",
+            "params": {
+              "path": "Assets/NexusBenchScript.cs",
+              "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+              "confirm": true
+            },
+            "ms": 216.737,
+            "ok": true,
+            "payload_B": 76,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 47553872,
+              "result": {
+                "status": "Success",
+                "message": "OK"
+              }
+            }
+          },
+          {
+            "method": "wait_for_editor_idle",
+            "params": {
+              "timeout_seconds": 5
+            },
+            "ms": 2.989,
+            "ok": true,
+            "payload_B": 86,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 264429872,
+              "result": {
+                "status": "Ready",
+                "time_waited_seconds": 0.0
+              }
+            }
+          },
+          {
+            "method": "delete_asset",
+            "params": {
+              "path": "Assets/NexusBenchScript.cs",
+              "confirm": true
+            },
+            "ms": 304.592,
+            "ok": true,
+            "payload_B": 77,
+            "response": {
+              "jsonrpc": "2.0",
+              "id": 267573872,
+              "result": {
+                "status": "Success",
+                "message": "OK"
+              }
+            }
+          }
+        ]
+      },
+      "stats": {
+        "n": 7,
+        "min_ms": 65.838,
+        "p50_ms": 89.352,
+        "p95_ms": 212.342,
+        "max_ms": 220.019,
+        "ok_percent": 85.7,
+        "payload_B_p50": 240
+      },
+      "samples": [
+        {
+          "ms": 220.019,
+          "ok": true,
+          "payload_B": 239,
+          "accepted_ms": 216.737,
+          "compiled": true,
+          "compile_ms": 220.019,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 216.737,
+              "ok": true,
+              "payload_B": 76,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 47553872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 2.989,
+              "ok": true,
+              "payload_B": 86,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 264429872,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 304.592,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 267573872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 74.446,
+          "ok": true,
+          "payload_B": 240,
+          "accepted_ms": 73.587,
+          "compiled": true,
+          "compile_ms": 74.446,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 73.587,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 572395872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.634,
+              "ok": true,
+              "payload_B": 86,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 646107872,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 206.403,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 646840872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 92.673,
+          "ok": true,
+          "payload_B": 240,
+          "accepted_ms": 92.147,
+          "compiled": true,
+          "compile_ms": 92.673,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 92.147,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 853303872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.44,
+              "ok": true,
+              "payload_B": 86,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 945499872,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 168.056,
+              "ok": true,
+              "payload_B": 77,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 945976872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 212.342,
+          "ok": true,
+          "payload_B": 243,
+          "accepted_ms": 211.557,
+          "compiled": true,
+          "compile_ms": 212.342,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 211.557,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1114078872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.681,
+              "ok": true,
+              "payload_B": 87,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1325698872,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 115.078,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1326419872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 86.031,
+          "ok": true,
+          "payload_B": 243,
+          "accepted_ms": 85.176,
+          "compiled": true,
+          "compile_ms": 86.031,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 85.176,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1441630872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.717,
+              "ok": true,
+              "payload_B": 87,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1526877872,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 70.696,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1527661872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": 65.838,
+          "ok": true,
+          "payload_B": 243,
+          "accepted_ms": 65.19,
+          "compiled": true,
+          "compile_ms": 65.838,
+          "calls": [
+            {
+              "method": "write_file",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBenchScript : MonoBehaviour {}\n",
+                "confirm": true
+              },
+              "ms": 65.19,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1598412872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            },
+            {
+              "method": "wait_for_editor_idle",
+              "params": {
+                "timeout_seconds": 5
+              },
+              "ms": 0.517,
+              "ok": true,
+              "payload_B": 87,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1663669872,
+                "result": {
+                  "status": "Ready",
+                  "time_waited_seconds": 0.0
+                }
+              }
+            },
+            {
+              "method": "delete_asset",
+              "params": {
+                "path": "Assets/NexusBenchScript.cs",
+                "confirm": true
+              },
+              "ms": 752.629,
+              "ok": true,
+              "payload_B": 78,
+              "response": {
+                "jsonrpc": "2.0",
+                "id": 1664251872,
+                "result": {
+                  "status": "Success",
+                  "message": "OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ms": null,
+          "ok": false,
+          "payload_B": 0,
+          "error": "JSONDecodeError('Expecting value: line 1 column 1 (char 0)')"
+        }
+      ]
+    },
+    "C8": {
+      "cold": {
+        "ms": null,
+        "ok": false,
+        "payload_B": 0,
+        "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+      },
+      "stats": {
+        "n": 1,
+        "ok_percent": 0
+      },
+      "samples": [
+        {
+          "ms": null,
+          "ok": false,
+          "payload_B": 0,
+          "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+        }
+      ]
+    },
+    "C9": {
+      "cold": {
+        "ms": null,
+        "ok": false,
+        "payload_B": 0,
+        "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+      },
+      "stats": {
+        "n": 1,
+        "ok_percent": 0
+      },
+      "samples": [
+        {
+          "ms": null,
+          "ok": false,
+          "payload_B": 0,
+          "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+        }
+      ]
+    },
+    "C10": {
+      "cold": {
+        "ms": null,
+        "ok": false,
+        "payload_B": 0,
+        "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+      },
+      "stats": {
+        "n": 1,
+        "ok_percent": 0
+      },
+      "samples": [
+        {
+          "ms": null,
+          "ok": false,
+          "payload_B": 0,
+          "error": "URLError(ConnectionRefusedError(61, 'Connection refused'))"
+        }
+      ]
+    },
+    "C12": {
+      "cold": {
+        "ms": 0,
+        "ok": false,
+        "payload_B": 0,
+        "calls": [
+          {
+            "method": "toggle_play_mode",
+            "params": {
+              "value": true
+            },
+            "ms": null,
+            "ok": false,
+            "payload_B": 0,
+            "error": "<urlopen error [Errno 61] Connection refused>"
+          }
+        ]
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 0,
+        "p50_ms": 0.0,
+        "p95_ms": 0,
+        "max_ms": 0,
+        "ok_percent": 0.0,
+        "payload_B_p50": 0.0
+      },
+      "samples": [
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        },
+        {
+          "ms": 0,
+          "ok": false,
+          "payload_B": 0,
+          "calls": [
+            {
+              "method": "toggle_play_mode",
+              "params": {
+                "value": true
+              },
+              "ms": null,
+              "ok": false,
+              "payload_B": 0,
+              "error": "<urlopen error [Errno 61] Connection refused>"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "unsupported": {
+    "C11": "Nexus raw JSON-RPC has no execute_code-equivalent per protocol."
+  },
+  "harness_fixes": [
+    "dump_scene_graph uses max_depth, not maxDepth",
+    "find_objects uses name, not search",
+    "create_primitive uses primitive_type, not primitive",
+    "wait_for_editor_idle uses timeout_seconds, not timeoutSeconds",
+    "destroy_game_object requires instance_id, not name"
+  ]
+}

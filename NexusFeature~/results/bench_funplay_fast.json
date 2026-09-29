@@ -1,0 +1,1448 @@
+{
+  "tool": "funplay",
+  "url": "http://127.0.0.1:27015/",
+  "n": 10,
+  "tools_list": {
+    "count": 34,
+    "schema_chars": 28271,
+    "approx_tokens": 7067
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "get_editor_state",
+    "C3": "get_hierarchy(root_name=Main Camera)",
+    "C4": "get_hierarchy(depth=3)",
+    "C5": "find_game_objects",
+    "C6": "execute_code (create + destroy)",
+    "C7": "execute_code (in-memory compile; no disk file)",
+    "C8": "capture_game_view",
+    "C9": "not supported by HTTP MCP surface",
+    "C10": "not supported in core tool exposure",
+    "C11": "execute_code",
+    "C12": "enter_play_mode + simulate_mouse_click + capture_game_view + get_console_logs + exit_play_mode"
+  },
+  "unsupported": {
+    "C9": "No batch JSON-RPC operation exposed by Funplay HTTP MCP.",
+    "C10": "core tools/list exposes no run_tests/get_test_job tool."
+  },
+  "scenarios": {
+    "C2": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "get_editor_state",
+          "arguments": {}
+        },
+        "ms": 269.217,
+        "ok": true,
+        "payload_B": 388,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":183.605075083,\"unityVersion\":\"6000.4.3f1\"}}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 123.161,
+        "p50_ms": 124.688,
+        "p95_ms": 151.78,
+        "max_ms": 269.217,
+        "ok_percent": 100.0,
+        "payload_B_p50": 388.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 269.217,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":183.605075083,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 123.161,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":183.868362958,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 124.979,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":183.993273208,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 124.277,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.118015625,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 150.93,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.268471041,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 124.625,
+          "ok": true,
+          "payload_B": 386,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.3934405,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 124.402,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.518197416,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 151.78,
+          "ok": true,
+          "payload_B": 388,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.668916083,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 124.272,
+          "ok": true,
+          "payload_B": 389,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.793562791,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_editor_state",
+            "arguments": {}
+          },
+          "ms": 124.75,
+          "ok": true,
+          "payload_B": 389,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Editor state\",\"data\":{\"isPlaying\":false,\"isPaused\":false,\"isCompiling\":false,\"isUpdating\":false,\"isPlayingOrWillChange\":false,\"applicationPath\":\"/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app\",\"timeSinceStartup\":184.918563875,\"unityVersion\":\"6000.4.3f1\"}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C3": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "get_hierarchy",
+          "arguments": {
+            "root_name": "Main Camera",
+            "depth": 1,
+            "include_components": true
+          }
+        },
+        "ms": 162.098,
+        "ok": true,
+        "payload_B": 193,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 12,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 112.619,
+        "p50_ms": 125.272,
+        "p95_ms": 150.164,
+        "max_ms": 162.098,
+        "ok_percent": 100.0,
+        "payload_B_p50": 193.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 162.098,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 112.619,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 124.911,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 149.779,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 125.632,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 124.255,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 17,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 150.164,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 18,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 124.274,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 124.328,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 20,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "root_name": "Main Camera",
+              "depth": 1,
+              "include_components": true
+            }
+          },
+          "ms": 150.03,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Main Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\n\"}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C4": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "get_hierarchy",
+          "arguments": {
+            "depth": 3,
+            "include_components": true
+          }
+        },
+        "ms": 125.125,
+        "ok": true,
+        "payload_B": 297,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 22,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 124.38,
+        "p50_ms": 125.255,
+        "p95_ms": 149.658,
+        "max_ms": 150.116,
+        "ok_percent": 100.0,
+        "payload_B_p50": 297.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 125.125,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 125.386,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 148.898,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 24,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 125.634,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 25,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 124.998,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 26,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 149.658,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 27,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 124.884,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 28,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 124.491,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 29,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 150.116,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 30,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "get_hierarchy",
+            "arguments": {
+              "depth": 3,
+              "include_components": true
+            }
+          },
+          "ms": 124.38,
+          "ok": true,
+          "payload_B": 297,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 31,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Scene: SampleScene\\nMain Camera tag=MainCamera [Camera, AudioListener, UniversalAdditionalCameraData]\\nDirectional Light [Light, UniversalAdditionalLightData]\\nGlobal Volume [Volume]\\n\"}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C5": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "find_game_objects",
+          "arguments": {
+            "query": "Camera",
+            "find_method": "by_name"
+          }
+        },
+        "ms": 138.0,
+        "ok": true,
+        "payload_B": 139,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 32,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 124.002,
+        "p50_ms": 125.261,
+        "p95_ms": 149.825,
+        "max_ms": 151.357,
+        "ok_percent": 100.0,
+        "payload_B_p50": 139.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 138.0,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 32,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 137.465,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 33,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 124.429,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 34,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 124.002,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 35,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 151.357,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 36,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 124.19,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 37,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 125.167,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 38,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 149.825,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 39,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 124.534,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 40,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "find_game_objects",
+            "arguments": {
+              "query": "Camera",
+              "find_method": "by_name"
+            }
+          },
+          "ms": 125.355,
+          "ok": true,
+          "payload_B": 139,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 41,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Found 0 object(s).\",\"data\":[]}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C6": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "execute_code",
+          "arguments": {
+            "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+            "safety_checks": false
+          }
+        },
+        "ms": 4933.776,
+        "ok": true,
+        "payload_B": 205,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 42,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 4593.655,
+        "p50_ms": 4739.294,
+        "p95_ms": 4904.555,
+        "max_ms": 4933.776,
+        "ok_percent": 100.0,
+        "payload_B_p50": 205.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4933.776,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 42,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4806.288,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 43,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4704.697,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4764.067,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 45,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4684.458,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 46,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4593.655,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 47,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4670.066,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 48,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4830.588,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 49,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4714.522,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 50,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC6 { public static string Run() { var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = \"FunplayBenchCube\"; Object.DestroyImmediate(go); return \"created_and_destroyed\"; } }",
+              "safety_checks": false
+            }
+          },
+          "ms": 4904.555,
+          "ok": true,
+          "payload_B": 205,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 51,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"created_and_destroyed\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

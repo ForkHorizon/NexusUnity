@@ -1,0 +1,373 @@
+{
+  "tool": "nexus_bridge",
+  "n": 10,
+  "tools_list": {
+    "count": 14,
+    "schema_chars": 19655,
+    "approx_tokens": 4913
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "unity_editor_controller(action=get_server_status)",
+    "C3": "unity_search_manager(strategy=path)",
+    "C4": "not supported by static bridge surface",
+    "C5": "unity_search_manager(strategy=regex)",
+    "C6": "unity_hierarchy_manager",
+    "C7": "unity_write_and_compile",
+    "C8": "unity_ui_automation(capture_window_snapshot)",
+    "C9": "not supported by static bridge surface",
+    "C10": "unity_editor_controller(action=run_tests_wait)",
+    "C11": "not supported",
+    "C12": "editor_controller + ui_automation closest equivalents"
+  },
+  "scenarios": {
+    "C7": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "unity_write_and_compile",
+          "arguments": {
+            "files": [
+              {
+                "path": "Assets/NexusBridgeBenchScript.cs",
+                "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+              }
+            ],
+            "confirm": true
+          }
+        },
+        "ms": 7675.496,
+        "ok": true,
+        "payload_B": 161,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 7.64, \"compiler_errors\": []}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 7506.725,
+        "p50_ms": 8511.751,
+        "p95_ms": 8543.551,
+        "max_ms": 8549.206,
+        "ok_percent": 100.0,
+        "payload_B_p50": 161.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 7675.496,
+          "ok": true,
+          "payload_B": 161,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 7.64, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 8507.079,
+          "ok": true,
+          "payload_B": 160,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 8.5, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 7569.361,
+          "ok": true,
+          "payload_B": 161,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 7.56, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 7506.725,
+          "ok": true,
+          "payload_B": 160,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 7.5, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 8516.422,
+          "ok": true,
+          "payload_B": 161,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 8.51, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 8549.206,
+          "ok": true,
+          "payload_B": 161,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 8.54, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 7517.879,
+          "ok": true,
+          "payload_B": 161,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 7.51, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 8533.47,
+          "ok": true,
+          "payload_B": 161,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 8.53, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 8543.551,
+          "ok": true,
+          "payload_B": 162,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 8.54, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "unity_write_and_compile",
+            "arguments": {
+              "files": [
+                {
+                  "path": "Assets/NexusBridgeBenchScript.cs",
+                  "content": "using UnityEngine; public class NexusBridgeBenchScript : MonoBehaviour {}\n"
+                }
+              ],
+              "confirm": true
+            }
+          },
+          "ms": 8525.41,
+          "ok": true,
+          "payload_B": 162,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"status\": \"Ready\", \"time_waited_seconds\": 8.52, \"compiler_errors\": []}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "unsupported": {
+    "C4": "No scene graph route in bridge",
+    "C9": "No batch route in bridge",
+    "C11": "No execute_code route in bridge"
+  }
+}

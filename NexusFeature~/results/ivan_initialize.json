@@ -1,0 +1,23 @@
+{
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {
+      "logging": {},
+      "prompts": {
+        "listChanged": true
+      },
+      "resources": {
+        "listChanged": true
+      },
+      "tools": {
+        "listChanged": true
+      }
+    },
+    "serverInfo": {
+      "name": "gamedev-mcp-server",
+      "version": "9.2.5.0"
+    }
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
+}

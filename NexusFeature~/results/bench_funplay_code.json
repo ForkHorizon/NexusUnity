@@ -1,0 +1,606 @@
+{
+  "tool": "funplay",
+  "url": "http://127.0.0.1:27015/",
+  "n": 10,
+  "tools_list": {
+    "count": 34,
+    "schema_chars": 28271,
+    "approx_tokens": 7067
+  },
+  "mapping": {
+    "C1": "initialize + tools/list",
+    "C2": "get_editor_state",
+    "C3": "get_hierarchy(root_name=Main Camera)",
+    "C4": "get_hierarchy(depth=3)",
+    "C5": "find_game_objects",
+    "C6": "execute_code (create + destroy)",
+    "C7": "execute_code (in-memory compile; no disk file)",
+    "C8": "capture_game_view",
+    "C9": "not supported by HTTP MCP surface",
+    "C10": "not supported in core tool exposure",
+    "C11": "execute_code",
+    "C12": "enter_play_mode + simulate_mouse_click + capture_game_view + get_console_logs + exit_play_mode"
+  },
+  "unsupported": {
+    "C9": "No batch JSON-RPC operation exposed by Funplay HTTP MCP.",
+    "C10": "core tools/list exposes no run_tests/get_test_job tool."
+  },
+  "scenarios": {
+    "C7": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "execute_code",
+          "arguments": {
+            "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+            "safety_checks": true
+          }
+        },
+        "ms": 5120.749,
+        "ok": true,
+        "payload_B": 193,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 4556.888,
+        "p50_ms": 4624.193,
+        "p95_ms": 4894.991,
+        "max_ms": 5120.749,
+        "ok_percent": 100.0,
+        "payload_B_p50": 193.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 5120.749,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4894.991,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4647.133,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4861.246,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4717.238,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4556.888,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4585.316,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4601.252,
+          "ok": true,
+          "payload_B": 193,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4587.655,
+          "ok": true,
+          "payload_B": 194,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC7 { public static string Run() { return Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4571.289,
+          "ok": true,
+          "payload_B": 194,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "C11": {
+      "cold": {
+        "method": "tools/call",
+        "params": {
+          "name": "execute_code",
+          "arguments": {
+            "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+            "safety_checks": true
+          }
+        },
+        "ms": 4809.7,
+        "ok": true,
+        "payload_B": 210,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 12,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+              }
+            ]
+          }
+        }
+      },
+      "stats": {
+        "n": 10,
+        "min_ms": 4565.867,
+        "p50_ms": 4735.627,
+        "p95_ms": 4843.042,
+        "max_ms": 4975.336,
+        "ok_percent": 100.0,
+        "payload_B_p50": 210.0
+      },
+      "samples": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4809.7,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4794.551,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4753.324,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4634.867,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4565.867,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4843.042,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 17,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4975.336,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 18,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4717.929,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4664.438,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 20,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "execute_code",
+            "arguments": {
+              "code": "using UnityEngine; public static class FunplayBenchC11 { public static string Run() { return \"execute_code_ok:\" + Application.unityVersion; } }",
+              "safety_checks": true
+            }
+          },
+          "ms": 4581.849,
+          "ok": true,
+          "payload_B": 210,
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Executed (legacy Run()).\",\"data\":{\"result\":\"execute_code_ok:6000.4.3f1\",\"compiler\":\"Roslyn\"}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
