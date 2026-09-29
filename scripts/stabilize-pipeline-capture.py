@@ -31,6 +31,7 @@ def run_cmd(args: list[str], timeout: int = 60) -> dict:
         text=True,
         env=env,
         timeout=timeout + 10,
+        check=False,
     )
     raw = (proc.stdout or proc.stderr or "").strip()
     try:

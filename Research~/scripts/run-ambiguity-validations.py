@@ -15,7 +15,7 @@ import os
 import subprocess
 import time
 import urllib.request
-from typing import Any, Dict, List, Tuple
+from typing import Any
 from PIL import Image
 
 print = functools.partial(print, flush=True)
@@ -30,13 +30,13 @@ NEXUS_PORT = 8081
 
 def get_auth_token() -> str:
     if os.path.exists(TOKEN_PATH):
-        with open(TOKEN_PATH, "r", encoding="utf-8") as f:
+        with open(TOKEN_PATH, encoding="utf-8") as f:
             return f.read().strip()
     return ""
 
 AUTH_TOKEN = get_auth_token()
 
-def call_nexus_http(method: str, params: Dict[str, Any] = None, timeout: float = 30.0) -> Tuple[Dict[str, Any], float, int]:
+def call_nexus_http(method: str, params: dict[str, Any] | None = None, timeout: float = 30.0) -> tuple[dict[str, Any], float, int]:
     payload = {
         "jsonrpc": "2.0",
         "id": int(time.time() * 1000) % 1000000,
@@ -82,13 +82,13 @@ class PersistentUnityMcp:
         self.send(init_req)
         self.read_response(self.req_id)
 
-    def send(self, msg: Dict[str, Any]):
+    def send(self, msg: dict[str, Any]):
         if self.proc.poll() is not None:
             self._start_proc()
         self.proc.stdin.write(json.dumps(msg) + "\n")
         self.proc.stdin.flush()
 
-    def read_response(self, req_id: int, timeout: float = 30.0) -> Dict[str, Any]:
+    def read_response(self, req_id: int, timeout: float = 30.0) -> dict[str, Any]:
         t0 = time.time()
         while True:
             if time.time() - t0 > timeout:
@@ -96,7 +96,7 @@ class PersistentUnityMcp:
             line = self.proc.stdout.readline()
             if not line:
                 if self.proc.poll() is not None:
-                    raise IOError("unity mcp terminated unexpectedly")
+                    raise OSError("unity mcp terminated unexpectedly")
                 time.sleep(0.01)
                 continue
             try:
@@ -106,7 +106,7 @@ class PersistentUnityMcp:
             if data.get("id") == req_id:
                 return data
 
-    def call_tool(self, tool_name: str, arguments: Dict[str, Any] = None, timeout: float = 30.0) -> Tuple[Dict[str, Any], float, int]:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any] | None = None, timeout: float = 30.0) -> tuple[dict[str, Any], float, int]:
         for attempt in range(2):
             try:
                 if self.proc.poll() is not None:
@@ -140,7 +140,7 @@ class PersistentUnityMcp:
         except Exception:
             pass
 
-def compute_stats(values: List[float]) -> Dict[str, float]:
+def compute_stats(values: list[float]) -> dict[str, float]:
     if not values:
         return {"count": 0, "min": 0, "p50": 0, "mean": 0, "p95": 0, "p99": 0, "max": 0}
     vals = sorted(values)
@@ -159,7 +159,7 @@ def compute_stats(values: List[float]) -> Dict[str, float]:
         "max": vals[-1]
     }
 
-def main():
+def main():  # noqa: PLR0915
     print("======================================================================")
     print("AUTHORITATIVE AMBIGUITY VALIDATION SUITE")
     print("======================================================================")
@@ -190,7 +190,7 @@ def main():
         # 100-sample benchmark of the actual production candidate (measured baseline)
         print("Loading 100-sample benchmark of production candidate (visible_focused)...")
         bench_json_path = os.path.join(PACKAGE_ROOT, "architecture-benchmark-results.json")
-        with open(bench_json_path, "r", encoding="utf-8") as f:
+        with open(bench_json_path, encoding="utf-8") as f:
             bench_data = json.load(f)
         t1_data = bench_data.get("t1_anomaly", {}).get("conditions", {}).get("visible_focused", {})
         test1_benchmark = {

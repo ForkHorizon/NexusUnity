@@ -13,7 +13,7 @@ import platform
 import subprocess
 import sys
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 sys.dont_write_bytecode = True
 
@@ -25,7 +25,7 @@ if EDITOR_DIR not in sys.path:
 from nexus_bridge._transport import call_unity  # noqa: E402
 
 
-def wait_for_server(timeout_sec: float = 30.0) -> Dict[str, Any]:
+def wait_for_server(timeout_sec: float = 30.0) -> dict[str, Any]:
     """Wait for the Unity MCP server to be responsive."""
     start = time.time()
     while time.time() - start < timeout_sec:
@@ -39,7 +39,7 @@ def wait_for_server(timeout_sec: float = 30.0) -> Dict[str, Any]:
     raise RuntimeError("Timed out waiting for Unity MCP server")
 
 
-def call_or_fail(method: str, params: Optional[Dict[str, Any]] = None) -> Any:
+def call_or_fail(method: str, params: dict[str, Any] | None = None) -> Any:
     """Execute a JSON-RPC call and assert success."""
     res = call_unity(method, params or {})
     if "error" in res:
@@ -48,8 +48,8 @@ def call_or_fail(method: str, params: Optional[Dict[str, Any]] = None) -> Any:
 
 
 def bootstrap_ci_95(
-    data: List[float], resamples: int = 1000
-) -> Dict[str, float]:
+    data: list[float], resamples: int = 1000
+) -> dict[str, float]:
     """Calculate 95% bootstrap confidence interval for the mean."""
     if not data:
         return {"ci_low": 0.0, "ci_high": 0.0}
@@ -57,7 +57,7 @@ def bootstrap_ci_95(
     if n == 1:
         return {"ci_low": data[0], "ci_high": data[0]}
 
-    import random
+    import random  # noqa: PLC0415
 
     rng = random.Random(42)
     means = []
@@ -70,7 +70,7 @@ def bootstrap_ci_95(
     return {"ci_low": means[low_idx], "ci_high": means[high_idx]}
 
 
-def compute_python_stats(samples: List[float]) -> Dict[str, Any]:
+def compute_python_stats(samples: list[float]) -> dict[str, Any]:
     """Compute standard summary statistics for a sample list."""
     if not samples:
         return {
@@ -104,7 +104,7 @@ def compute_python_stats(samples: List[float]) -> Dict[str, Any]:
     }
 
 
-def get_hardware_environment() -> Dict[str, Any]:
+def get_hardware_environment() -> dict[str, Any]:
     """Collect host machine, OS, and GPU environment details."""
     env = {
         "os_version": platform.platform(),
@@ -129,7 +129,7 @@ def get_hardware_environment() -> Dict[str, Any]:
     return env
 
 
-def main():
+def main():  # noqa: PLR0915
     print("=" * 80)
     print(" NEXUS CAPTURE V2 — FULL VALIDATION & MEASUREMENT PROGRAM")
     print("=" * 80)
@@ -144,7 +144,7 @@ def main():
     print(f"Server Port     : {server_status.get('port')}")
     print("=" * 80)
 
-    results: Dict[str, Any] = {
+    results: dict[str, Any] = {
         "environment": {
             "hardware": hw_env,
             "unity_version": server_status.get("unityVersion"),
@@ -416,7 +416,7 @@ def main():
         python_roundtrips = []
         unity_metrics = None
 
-        for batch in range(5):  # 5 batches of 20 = 100 samples
+        for _batch in range(5):  # 5 batches of 20 = 100 samples
             t0 = time.perf_counter()
             u_res = call_or_fail("benchmark_pipeline", {
                 "pipeline": pipe,
@@ -487,7 +487,7 @@ def main():
     for artifact_file in [json_path, csv_path]:
         meta_file = artifact_file + ".meta"
         if not os.path.exists(meta_file):
-            import uuid
+            import uuid  # noqa: PLC0415
             guid_hex = uuid.uuid4().hex
             with open(meta_file, "w", encoding="utf-8") as mf:
                 mf.write(f"fileFormatVersion: 2\nguid: {guid_hex}\n")

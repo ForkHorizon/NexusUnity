@@ -14,10 +14,9 @@ import os
 import shutil
 import functools
 import subprocess
-import sys
 import time
 import urllib.request
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 print = functools.partial(print, flush=True)
 
@@ -34,13 +33,13 @@ PIPELINE_PORT = 7800
 
 def get_auth_token() -> str:
     if os.path.exists(TOKEN_PATH):
-        with open(TOKEN_PATH, "r", encoding="utf-8") as f:
+        with open(TOKEN_PATH, encoding="utf-8") as f:
             return f.read().strip()
     return ""
 
 AUTH_TOKEN = get_auth_token()
 
-def call_nexus_http(method: str, params: Dict[str, Any] = None, timeout: float = 30.0) -> Tuple[Dict[str, Any], float, int]:
+def call_nexus_http(method: str, params: dict[str, Any] | None = None, timeout: float = 30.0) -> tuple[dict[str, Any], float, int]:
     """Sends a JSON-RPC request to Nexus HTTP loopback server."""
     payload = {
         "jsonrpc": "2.0",
@@ -61,11 +60,11 @@ def call_nexus_http(method: str, params: Dict[str, Any] = None, timeout: float =
     parsed = json.loads(resp_data.decode("utf-8"))
     return parsed, elapsed_ms, len(resp_data)
 
-def call_unity_cli(args: List[str], timeout: float = 30.0) -> Tuple[Dict[str, Any], float, int]:
+def call_unity_cli(args: list[str], timeout: float = 30.0) -> tuple[dict[str, Any], float, int]:
     """Executes a one-shot cold Unity CLI invocation."""
-    cmd = ["unity"] + args + ["--json"]
+    cmd = ["unity", *args, "--json"]
     t0 = time.perf_counter()
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
     out = proc.stdout.strip()
     try:
@@ -88,7 +87,7 @@ class UnityShellSession:
             text=True
         )
 
-    def call(self, command_name: str, args: List[str] = None) -> Tuple[Dict[str, Any], float, int]:
+    def call(self, command_name: str, args: list[str] | None = None) -> tuple[dict[str, Any], float, int]:
         if self.proc.poll() is not None:
             self._start_proc()
         req = {"command": command_name, "args": args or []}
@@ -99,7 +98,7 @@ class UnityShellSession:
             self.proc.stdin.flush()
             resp_line = self.proc.stdout.readline()
             if not resp_line:
-                raise IOError("unity shell process terminated unexpectedly")
+                raise OSError("unity shell process terminated unexpectedly")
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
             parsed = json.loads(resp_line)
             if "envelope" in parsed:
@@ -145,17 +144,17 @@ class UnityMcpSession:
         self.send(init_req)
         self.read_response(self.req_id)
 
-    def send(self, msg: Dict[str, Any]):
+    def send(self, msg: dict[str, Any]):
         if self.proc.poll() is not None:
             self._start_proc()
         self.proc.stdin.write(json.dumps(msg) + "\n")
         self.proc.stdin.flush()
 
-    def read_response(self, req_id: int) -> Dict[str, Any]:
+    def read_response(self, req_id: int) -> dict[str, Any]:
         while True:
             line = self.proc.stdout.readline()
             if not line:
-                raise IOError("MCP server terminated")
+                raise OSError("MCP server terminated")
             try:
                 data = json.loads(line)
             except Exception:
@@ -163,7 +162,7 @@ class UnityMcpSession:
             if data.get("id") == req_id:
                 return data
 
-    def call_tool(self, tool_name: str, arguments: Dict[str, Any] = None) -> Tuple[Dict[str, Any], float, int]:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any] | None = None) -> tuple[dict[str, Any], float, int]:
         self.req_id += 1
         current_id = self.req_id
         req = {
@@ -201,7 +200,7 @@ class UnityMcpSession:
         except Exception:
             pass
 
-def compute_stats(values: List[float]) -> Dict[str, float]:
+def compute_stats(values: list[float]) -> dict[str, float]:
     if not values:
         return {"count": 0, "min": 0, "p50": 0, "mean": 0, "p95": 0, "p99": 0, "max": 0}
     vals = sorted(values)
@@ -220,13 +219,12 @@ def compute_stats(values: List[float]) -> Dict[str, float]:
         "max": vals[-1]
     }
 
-def main():
+def main():  # noqa: PLR0915
     print("======================================================================")
     print("NEXUS UNITY VS UNITY CLI / PIPELINE ARCHITECTURAL BENCHMARK")
     print("======================================================================")
     os.makedirs(CAPTURES_DIR, exist_ok=True)
     all_results = {}
-    csv_rows = []
 
     shell_session = UnityShellSession()
     mcp_session = None
@@ -271,7 +269,7 @@ def main():
         # -----------------------------------------------------------------
         print("\n--- PHASE 5: Game View Capture Matrix ---")
         capture_matrix = {}
-        
+
         # Candidate 1: Nexus V2 R1 + JPEG Q85
         print("Benchmarking Nexus V2 R1 + JPEG Q85...")
         nexus_v2_times, nexus_v2_bytes = [], []
@@ -420,19 +418,19 @@ def main():
             times_nexus, bytes_nexus = [], []
             for _ in range(15):
                 if op_key == "op1_cheap_status":
-                    r, ms, b = call_nexus_http("get_editor_state")
+                    _r, ms, b = call_nexus_http("get_editor_state")
                 elif op_key == "op2_medium_query":
-                    r, ms, b = call_nexus_http("find_objects", {"name": "Main Camera"})
+                    _r, ms, b = call_nexus_http("find_objects", {"name": "Main Camera"})
                 elif op_key == "op3_heavy_query":
-                    r, ms, b = call_nexus_http("nexus_project_map")
+                    _r, ms, b = call_nexus_http("nexus_project_map")
                 elif op_key == "op4_mutation":
-                    r, ms, b = call_nexus_http("set_transform", {"instance_id": 48372, "position": [0, 1, -10]})
+                    _r, ms, b = call_nexus_http("set_transform", {"instance_id": 48372, "position": [0, 1, -10]})
                 elif op_key == "op5_play_control":
-                    r, ms, b = call_nexus_http("get_editor_state")
+                    _r, ms, b = call_nexus_http("get_editor_state")
                 elif op_key == "op6_logs":
-                    r, ms, b = call_nexus_http("read_logs", {"count": 50})
+                    _r, ms, b = call_nexus_http("read_logs", {"count": 50})
                 elif op_key == "op7_screenshot":
-                    r, ms, b = call_nexus_http("nexus_capture_game_view", {"quality": 85})
+                    _r, ms, b = call_nexus_http("nexus_capture_game_view", {"quality": 85})
                 times_nexus.append(ms)
                 bytes_nexus.append(b)
             op_data["nexus_http_warm"] = {
@@ -444,19 +442,19 @@ def main():
             times_mcp, bytes_mcp = [], []
             for _ in range(15):
                 if op_key == "op1_cheap_status":
-                    r, ms, b = mcp_session.call_tool("editor_status")
+                    _r, ms, b = mcp_session.call_tool("editor_status")
                 elif op_key == "op2_medium_query":
-                    r, ms, b = mcp_session.call_tool("find_gameobjects", {"name": "Main Camera"})
+                    _r, ms, b = mcp_session.call_tool("find_gameobjects", {"name": "Main Camera"})
                 elif op_key == "op3_heavy_query":
-                    r, ms, b = mcp_session.call_tool("nexus_project_map")
+                    _r, ms, b = mcp_session.call_tool("nexus_project_map")
                 elif op_key == "op4_mutation":
-                    r, ms, b = mcp_session.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 1.0, -10.0]})
+                    _r, ms, b = mcp_session.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 1.0, -10.0]})
                 elif op_key == "op5_play_control":
-                    r, ms, b = mcp_session.call_tool("editor_status")
+                    _r, ms, b = mcp_session.call_tool("editor_status")
                 elif op_key == "op6_logs":
-                    r, ms, b = mcp_session.call_tool("console", {"tail": 50})
+                    _r, ms, b = mcp_session.call_tool("console", {"tail": 50})
                 elif op_key == "op7_screenshot":
-                    r, ms, b = mcp_session.call_tool("nexus_capture_game_view", {"quality": 85})
+                    _r, ms, b = mcp_session.call_tool("nexus_capture_game_view", {"quality": 85})
                 times_mcp.append(ms)
                 bytes_mcp.append(b)
             op_data["unity_mcp_warm"] = {
@@ -468,19 +466,19 @@ def main():
             times_shell, bytes_shell = [], []
             for _ in range(15):
                 if op_key == "op1_cheap_status":
-                    r, ms, b = shell_session.call("command", ["editor_status"])
+                    _r, ms, b = shell_session.call("command", ["editor_status"])
                 elif op_key == "op2_medium_query":
-                    r, ms, b = shell_session.call("command", ["find_gameobjects", "--name", "Main Camera"])
+                    _r, ms, b = shell_session.call("command", ["find_gameobjects", "--name", "Main Camera"])
                 elif op_key == "op3_heavy_query":
-                    r, ms, b = shell_session.call("command", ["nexus_project_map"])
+                    _r, ms, b = shell_session.call("command", ["nexus_project_map"])
                 elif op_key == "op4_mutation":
-                    r, ms, b = shell_session.call("command", ["set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"])
+                    _r, ms, b = shell_session.call("command", ["set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"])
                 elif op_key == "op5_play_control":
-                    r, ms, b = shell_session.call("command", ["editor_status"])
+                    _r, ms, b = shell_session.call("command", ["editor_status"])
                 elif op_key == "op6_logs":
-                    r, ms, b = shell_session.call("command", ["console", "--tail", "50"])
+                    _r, ms, b = shell_session.call("command", ["console", "--tail", "50"])
                 elif op_key == "op7_screenshot":
-                    r, ms, b = shell_session.call("command", ["nexus_capture_game_view", "--quality", "85"])
+                    _r, ms, b = shell_session.call("command", ["nexus_capture_game_view", "--quality", "85"])
                 times_shell.append(ms)
                 bytes_shell.append(b)
             op_data["unity_shell_warm"] = {
@@ -492,19 +490,19 @@ def main():
             times_cold, bytes_cold = [], []
             for _ in range(3):
                 if op_key == "op1_cheap_status":
-                    r, ms, b = call_unity_cli(["command", "editor_status"])
+                    _r, ms, b = call_unity_cli(["command", "editor_status"])
                 elif op_key == "op2_medium_query":
-                    r, ms, b = call_unity_cli(["command", "find_gameobjects", "--name", "Main Camera"])
+                    _r, ms, b = call_unity_cli(["command", "find_gameobjects", "--name", "Main Camera"])
                 elif op_key == "op3_heavy_query":
-                    r, ms, b = call_unity_cli(["command", "nexus_project_map"])
+                    _r, ms, b = call_unity_cli(["command", "nexus_project_map"])
                 elif op_key == "op4_mutation":
-                    r, ms, b = call_unity_cli(["command", "set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"])
+                    _r, ms, b = call_unity_cli(["command", "set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"])
                 elif op_key == "op5_play_control":
-                    r, ms, b = call_unity_cli(["command", "editor_status"])
+                    _r, ms, b = call_unity_cli(["command", "editor_status"])
                 elif op_key == "op6_logs":
-                    r, ms, b = call_unity_cli(["command", "console", "--tail", "50"])
+                    _r, ms, b = call_unity_cli(["command", "console", "--tail", "50"])
                 elif op_key == "op7_screenshot":
-                    r, ms, b = call_unity_cli(["command", "nexus_capture_game_view", "--quality", "85"])
+                    _r, ms, b = call_unity_cli(["command", "nexus_capture_game_view", "--quality", "85"])
                 times_cold.append(ms)
                 bytes_cold.append(b)
             op_data["unity_cli_cold"] = {

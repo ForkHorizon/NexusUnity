@@ -13,7 +13,7 @@ import os
 import subprocess
 import time
 import urllib.request
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 print = functools.partial(print, flush=True)
 
@@ -26,13 +26,13 @@ NEXUS_PORT = 8081
 
 def get_auth_token() -> str:
     if os.path.exists(TOKEN_PATH):
-        with open(TOKEN_PATH, "r", encoding="utf-8") as f:
+        with open(TOKEN_PATH, encoding="utf-8") as f:
             return f.read().strip()
     return ""
 
 AUTH_TOKEN = get_auth_token()
 
-def call_nexus_http(method: str, params: Dict[str, Any] = None) -> Tuple[Dict[str, Any], float, int]:
+def call_nexus_http(method: str, params: dict[str, Any] | None = None) -> tuple[dict[str, Any], float, int]:
     payload = {
         "jsonrpc": "2.0",
         "id": int(time.time() * 1000) % 1000000,
@@ -77,17 +77,17 @@ class UnityMcpSession:
         self.send(init_req)
         self.read_response(self.req_id)
 
-    def send(self, msg: Dict[str, Any]):
+    def send(self, msg: dict[str, Any]):
         if self.proc.poll() is not None:
             self._start_proc()
         self.proc.stdin.write(json.dumps(msg) + "\n")
         self.proc.stdin.flush()
 
-    def read_response(self, req_id: int) -> Dict[str, Any]:
+    def read_response(self, req_id: int) -> dict[str, Any]:
         while True:
             line = self.proc.stdout.readline()
             if not line:
-                raise IOError("MCP server terminated")
+                raise OSError("MCP server terminated")
             try:
                 data = json.loads(line)
             except Exception:
@@ -95,7 +95,7 @@ class UnityMcpSession:
             if data.get("id") == req_id:
                 return data
 
-    def call_tool(self, tool_name: str, arguments: Dict[str, Any] = None) -> Tuple[Dict[str, Any], float, int]:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any] | None = None) -> tuple[dict[str, Any], float, int]:
         self.req_id += 1
         current_id = self.req_id
         req = {
@@ -121,7 +121,7 @@ class UnityMcpSession:
         except Exception:
             pass
 
-def main():
+def main():  # noqa: PLR0915
     print("======================================================================")
     print("AGENT HIGH-LEVEL TASKS BENCHMARK (TASKS 1-5)")
     print("======================================================================")
@@ -136,7 +136,7 @@ def main():
         print("\n--- Running Task 1: Project Context & Scene Structure ---")
         # Arch A (Nexus HTTP)
         t0 = time.perf_counter()
-        r1_a, ms1_a, b1_a = call_nexus_http("nexus_project_map")
+        _r1_a, _ms1_a, b1_a = call_nexus_http("nexus_project_map")
         total_ms_a = (time.perf_counter() - t0) * 1000.0
         task1_a = {
             "roundtrips": 1,
@@ -147,10 +147,10 @@ def main():
 
         # Arch B (Official Unity MCP)
         t0 = time.perf_counter()
-        r1_b, ms1_b, b1_b = mcp.call_tool("editor_status")
-        r2_b, ms2_b, b2_b = mcp.call_tool("list_open_scenes")
-        r3_b, ms3_b, b3_b = mcp.call_tool("get_scene_hierarchy")
-        r4_b, ms4_b, b4_b = mcp.call_tool("package_list")
+        _r1_b, _ms1_b, b1_b = mcp.call_tool("editor_status")
+        _r2_b, _ms2_b, b2_b = mcp.call_tool("list_open_scenes")
+        _r3_b, _ms3_b, b3_b = mcp.call_tool("get_scene_hierarchy")
+        _r4_b, _ms4_b, b4_b = mcp.call_tool("package_list")
         total_ms_b = (time.perf_counter() - t0) * 1000.0
         task1_b = {
             "roundtrips": 4,
@@ -161,7 +161,7 @@ def main():
 
         # Arch C (Hybrid via Unity MCP)
         t0 = time.perf_counter()
-        r1_c, ms1_c, b1_c = mcp.call_tool("nexus_project_map")
+        _r1_c, _ms1_c, b1_c = mcp.call_tool("nexus_project_map")
         total_ms_c = (time.perf_counter() - t0) * 1000.0
         task1_c = {
             "roundtrips": 1,
@@ -182,7 +182,7 @@ def main():
         print("--- Running Task 2: Diagnose Compiler Errors ---")
         # Arch A
         t0 = time.perf_counter()
-        r1_a, ms1_a, b1_a = call_nexus_http("nexus_group_compile_errors", {"max_logs": 50})
+        _r1_a, _ms1_a, b1_a = call_nexus_http("nexus_group_compile_errors", {"max_logs": 50})
         total_ms_a = (time.perf_counter() - t0) * 1000.0
         task2_a = {
             "roundtrips": 1,
@@ -193,7 +193,7 @@ def main():
 
         # Arch B
         t0 = time.perf_counter()
-        r1_b, ms1_b, b1_b = mcp.call_tool("console", {"tail": 50})
+        _r1_b, _ms1_b, b1_b = mcp.call_tool("console", {"tail": 50})
         total_ms_b = (time.perf_counter() - t0) * 1000.0
         task2_b = {
             "roundtrips": 1,
@@ -204,7 +204,7 @@ def main():
 
         # Arch C
         t0 = time.perf_counter()
-        r1_c, ms1_c, b1_c = mcp.call_tool("nexus_group_compile_errors", {"max_logs": 50})
+        _r1_c, _ms1_c, b1_c = mcp.call_tool("nexus_group_compile_errors", {"max_logs": 50})
         total_ms_c = (time.perf_counter() - t0) * 1000.0
         task2_c = {
             "roundtrips": 1,
@@ -225,9 +225,9 @@ def main():
         print("--- Running Task 3: Inspect & Modify Transform ---")
         # Arch A
         t0 = time.perf_counter()
-        r1_a, ms1_a, b1_a = call_nexus_http("find_objects", {"name": "Main Camera"})
-        r2_a, ms2_a, b2_a = call_nexus_http("set_transform", {"instance_id": 48372, "position": [0, 2, -10]})
-        r3_a, ms3_a, b3_a = call_nexus_http("set_transform", {"instance_id": 48372, "position": [0, 1, -10]})
+        _r1_a, _ms1_a, b1_a = call_nexus_http("find_objects", {"name": "Main Camera"})
+        _r2_a, _ms2_a, b2_a = call_nexus_http("set_transform", {"instance_id": 48372, "position": [0, 2, -10]})
+        _r3_a, _ms3_a, b3_a = call_nexus_http("set_transform", {"instance_id": 48372, "position": [0, 1, -10]})
         total_ms_a = (time.perf_counter() - t0) * 1000.0
         task3_a = {
             "roundtrips": 3,
@@ -238,9 +238,9 @@ def main():
 
         # Arch B
         t0 = time.perf_counter()
-        r1_b, ms1_b, b1_b = mcp.call_tool("find_gameobjects", {"name": "Main Camera"})
-        r2_b, ms2_b, b2_b = mcp.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 2.0, -10.0]})
-        r3_b, ms3_b, b3_b = mcp.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 1.0, -10.0]})
+        _r1_b, _ms1_b, b1_b = mcp.call_tool("find_gameobjects", {"name": "Main Camera"})
+        _r2_b, _ms2_b, b2_b = mcp.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 2.0, -10.0]})
+        _r3_b, _ms3_b, b3_b = mcp.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 1.0, -10.0]})
         total_ms_b = (time.perf_counter() - t0) * 1000.0
         task3_b = {
             "roundtrips": 3,
@@ -269,8 +269,8 @@ def main():
         print("--- Running Task 4: Play Mode & Verify Logs ---")
         # Arch A
         t0 = time.perf_counter()
-        r1_a, ms1_a, b1_a = call_nexus_http("get_editor_state")
-        r2_a, ms2_a, b2_a = call_nexus_http("read_logs", {"count": 20})
+        _r1_a, _ms1_a, b1_a = call_nexus_http("get_editor_state")
+        _r2_a, _ms2_a, b2_a = call_nexus_http("read_logs", {"count": 20})
         total_ms_a = (time.perf_counter() - t0) * 1000.0
         task4_a = {
             "roundtrips": 2,
@@ -281,8 +281,8 @@ def main():
 
         # Arch B
         t0 = time.perf_counter()
-        r1_b, ms1_b, b1_b = mcp.call_tool("editor_status")
-        r2_b, ms2_b, b2_b = mcp.call_tool("console", {"tail": 20})
+        _r1_b, _ms1_b, b1_b = mcp.call_tool("editor_status")
+        _r2_b, _ms2_b, b2_b = mcp.call_tool("console", {"tail": 20})
         total_ms_b = (time.perf_counter() - t0) * 1000.0
         task4_b = {
             "roundtrips": 2,
@@ -311,7 +311,7 @@ def main():
         print("--- Running Task 5: Capture Game View & UI Verification ---")
         # Arch A (Nexus V2 R1 JPEG Q85)
         t0 = time.perf_counter()
-        r1_a, ms1_a, b1_a = call_nexus_http("nexus_capture_game_view", {"quality": 85, "format": "jpg"})
+        _r1_a, _ms1_a, b1_a = call_nexus_http("nexus_capture_game_view", {"quality": 85, "format": "jpg"})
         total_ms_a = (time.perf_counter() - t0) * 1000.0
         task5_a = {
             "roundtrips": 1,
@@ -322,7 +322,7 @@ def main():
 
         # Arch B (Official capture_game_view camera PNG)
         t0 = time.perf_counter()
-        r1_b, ms1_b, b1_b = mcp.call_tool("capture_game_view")
+        _r1_b, _ms1_b, b1_b = mcp.call_tool("capture_game_view")
         total_ms_b = (time.perf_counter() - t0) * 1000.0
         task5_b = {
             "roundtrips": 1,
@@ -333,7 +333,7 @@ def main():
 
         # Arch C (Nexus V2 via Unity MCP)
         t0 = time.perf_counter()
-        r1_c, ms1_c, b1_c = mcp.call_tool("nexus_capture_game_view", {"quality": 85, "format": "jpg"})
+        _r1_c, _ms1_c, b1_c = mcp.call_tool("nexus_capture_game_view", {"quality": 85, "format": "jpg"})
         total_ms_c = (time.perf_counter() - t0) * 1000.0
         task5_c = {
             "roundtrips": 1,

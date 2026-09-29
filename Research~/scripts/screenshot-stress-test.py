@@ -31,6 +31,7 @@ if EDITOR_DIR not in sys.path:
 
 from nexus_bridge._transport import UNITY_URL, call_unity  # noqa: E402
 from nexus_bridge.routing import route_tool  # noqa: E402
+import contextlib  # noqa: E402
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
@@ -95,7 +96,7 @@ class LatencyStats:
 
 def validate_screenshot_payload(
     res: dict[str, Any],
-    tool_name: str,
+    tool_name: str,  # noqa: ARG001
     min_bytes: int = 1024,
 ) -> tuple[bool, str, int, int]:
     """Validate that the response conforms to the screenshot contract."""
@@ -143,7 +144,7 @@ def run_phase1_burst_stress(iterations: int) -> tuple[bool, LatencyStats, Latenc
         dt_ms = (time.perf_counter() - t0) * 1000.0
         game_stats.record(dt_ms)
 
-        valid, err, w, h = validate_screenshot_payload(game_res, "capture_game_view_screenshot")
+        valid, err, _w, _h = validate_screenshot_payload(game_res, "capture_game_view_screenshot")
         if not valid:
             print(f"  [FAIL] Iteration {i+1} Game View: {err}")
             success = False
@@ -155,7 +156,7 @@ def run_phase1_burst_stress(iterations: int) -> tuple[bool, LatencyStats, Latenc
         dt_ms = (time.perf_counter() - t0) * 1000.0
         inspector_stats.record(dt_ms)
 
-        valid, err, w, h = validate_screenshot_payload(inspector_res, "capture_inspector_screenshot")
+        valid, err, _w, _h = validate_screenshot_payload(inspector_res, "capture_inspector_screenshot")
         if not valid:
             print(f"  [FAIL] Iteration {i+1} Inspector: {err}")
             success = False
@@ -179,7 +180,6 @@ def run_phase2_concurrent_swarm(
     success = True
     errors: list[str] = []
 
-    tasks = []
     # Interleave methods across tasks
     methods = [
         ("capture_game_view_screenshot", {}),
@@ -306,7 +306,7 @@ def run_phase4_window_geometry_stress() -> tuple[bool, LatencyStats]:
     ]
 
     try:
-        for idx, geom in enumerate(test_geometries):
+        for _idx, geom in enumerate(test_geometries):
             bridge_call("ui_automation", {
                 "action": "set_window_rect",
                 "window_title": "Nexus Unity",
@@ -341,7 +341,7 @@ def run_phase4_window_geometry_stress() -> tuple[bool, LatencyStats]:
 
     finally:
         # Restore original window rect
-        try:
+        with contextlib.suppress(Exception):
             bridge_call("ui_automation", {
                 "action": "set_window_rect",
                 "window_title": "Nexus Unity",
@@ -350,8 +350,6 @@ def run_phase4_window_geometry_stress() -> tuple[bool, LatencyStats]:
                 "width": orig_rect.get("width", 640),
                 "height": orig_rect.get("height", 720),
             })
-        except Exception:
-            pass
 
     print(f"  Window Resize Latency: {resize_stats.summary()}")
     return success, resize_stats
@@ -398,7 +396,7 @@ def main() -> int:
     print("================================================================")
     print("      NexusUnity Screenshot Feature Stress Test Suite")
     print(f"  Target: {UNITY_URL}")
-    print(f"  PID / Session: probing Unity server...")
+    print("  PID / Session: probing Unity server...")
     print("================================================================")
 
     # Pre-flight check
@@ -419,22 +417,22 @@ def main() -> int:
     all_passed = True
 
     # Phase 1: Burst
-    p1_ok, game_burst, insp_burst = run_phase1_burst_stress(args.burst_count)
+    p1_ok, _game_burst, _insp_burst = run_phase1_burst_stress(args.burst_count)
     all_passed = all_passed and p1_ok
 
     # Phase 2: Concurrent Swarm
     if not args.skip_concurrency:
-        p2_ok, swarm_stats = run_phase2_concurrent_swarm(args.concurrency, args.concurrent_tasks)
+        p2_ok, _swarm_stats = run_phase2_concurrent_swarm(args.concurrency, args.concurrent_tasks)
         all_passed = all_passed and p2_ok
 
     # Phase 3: Selection Churn
     if not args.skip_churn:
-        p3_ok, churn_stats = run_phase3_selection_churn_stress(args.churn_cycles)
+        p3_ok, _churn_stats = run_phase3_selection_churn_stress(args.churn_cycles)
         all_passed = all_passed and p3_ok
 
     # Phase 4: Dynamic Resize
     if not args.skip_resize:
-        p4_ok, resize_stats = run_phase4_window_geometry_stress()
+        p4_ok, _resize_stats = run_phase4_window_geometry_stress()
         all_passed = all_passed and p4_ok
 
     # Phase 5: Boundary & Recovery

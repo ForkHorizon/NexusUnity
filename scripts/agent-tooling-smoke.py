@@ -58,7 +58,7 @@ def validate_png(result: dict) -> dict:
     }
 
 
-def capture_screenshot_series(method: str, params: dict = None, attempts: int = 20) -> dict:
+def capture_screenshot_series(method: str, params: dict | None = None, attempts: int = 20) -> dict:
     captures = []
     for _ in range(attempts):
         try:

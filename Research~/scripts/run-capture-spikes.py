@@ -34,9 +34,9 @@ def call_or_fail(method, params=None):
     return res.get("result", res)
 
 
-def run_all_spikes():
+def run_all_spikes():  # noqa: PLR0915
     print("=" * 80)
-    print(" NEXUS CAPTURE V2 — EXPERIMENTAL SPIKES A–E BENCHMARK SUITE")
+    print(" NEXUS CAPTURE V2 — EXPERIMENTAL SPIKES A-E BENCHMARK SUITE")
     print("=" * 80)
 
     server_status = wait_for_server()
@@ -72,7 +72,7 @@ def run_all_spikes():
     print(f"{'Lifecycle Stage':<38} | {'Thread ID':<10} | {'Timing / Notes'}")
     print("-" * 80)
     for name, tid, timing in stages:
-        print(f"{name:<38} | {str(tid):<10} | {timing}")
+        print(f"{name:<38} | {tid!s:<10} | {timing}")
     print("-" * 80)
     print(f"Proof: Main thread never blocked (.Wait/.Result) : {trace_a.get('proof_main_thread_never_blocked')}")
     print(f"Proof: Continuation ran on worker thread         : {trace_a.get('proof_continuation_off_thread')} (Thread {trace_a.get('continuation_thread_id')} != {trace_a.get('main_action_thread_id')})")
@@ -197,7 +197,7 @@ def run_all_spikes():
         ("Candidate 2c: Native JPG 95", spike_d.get("candidate2_jpg_95", {})),
     ]
     for name, c in candidates:
-        print(f"{name:<28} | {c.get('median_ms', 0):<10.2f} | {c.get('min_ms', 0):<10.2f} | {c.get('max_ms', 0):<10.2f} | {str(c.get('gc_alloc_bytes_per_call', 0)):<10} | {c.get('output_bytes', 0)}")
+        print(f"{name:<28} | {c.get('median_ms', 0):<10.2f} | {c.get('min_ms', 0):<10.2f} | {c.get('max_ms', 0):<10.2f} | {c.get('gc_alloc_bytes_per_call', 0)!s:<10} | {c.get('output_bytes', 0)}")
     print("-" * 90)
 
     cand1 = spike_d.get("candidate1_native_png", {})
@@ -229,7 +229,7 @@ def run_all_spikes():
     print(f"{'GC Alloc per Capture (bytes)':<34} | {r1.get('gc_alloc_bytes_per_capture', 0):<24} | {r2.get('gc_alloc_bytes_per_capture', 0):<24}")
     get_data_str = f"{r1.get('get_data_avg_ms', 0):.4f} ms"
     print(f"{'GetData<byte>() Avg Duration':<34} | {get_data_str:<24} | {'N/A':<24}")
-    print(f"{'GetData is Zero-Alloc View?':<34} | {str(r1.get('get_data_is_zero_alloc_view')):<24} | {'N/A':<24}")
+    print(f"{'GetData is Zero-Alloc View?':<34} | {r1.get('get_data_is_zero_alloc_view')!s:<24} | {'N/A':<24}")
     print("-" * 88)
 
     print("\n" + "-" * 88)
