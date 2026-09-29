@@ -281,15 +281,11 @@ namespace UnityMCP.Editor.Tests
             Assert.IsNotNull(result["rect"]);
             Assert.IsNotNull(result["ui_hierarchy"]);
 
-#if UNITY_EDITOR_OSX
+            // In-engine capture is cross-platform, so image capture may legitimately succeed anywhere.
             if (status == "Success")
                 Assert.IsFalse(string.IsNullOrEmpty(result["image_base64"]?.ToString()));
             else
                 Assert.IsFalse(string.IsNullOrEmpty(result["message"]?.ToString()));
-#else
-            Assert.AreEqual("PartialSuccess", status);
-            Assert.IsNull(result["image_base64"]);
-#endif
         }
 
         [Test]
@@ -373,6 +369,30 @@ namespace UnityMCP.Editor.Tests
             Directory.CreateDirectory(Path.GetDirectoryName(_resultPath));
             File.WriteAllText(_resultPath, xml);
         }
+
+        [Test]
+        public void CreateScriptableObjectAssetRejectsAbstractTypes()
+        {
+            var response = Rpc("create_scriptable_object_asset", new JObject
+            {
+                ["type"] = typeof(AbstractScriptableObjectProbe).FullName,
+                ["path"] = "Assets/AbstractProbe.asset"
+            });
+
+            Assert.IsNotNull(response["error"]);
+        }
+
+        [Test]
+        public void ListFieldsForTypeRejectsAbstractTypes()
+        {
+            var response = Rpc("list_fields_for_type", new JObject
+            {
+                ["type"] = typeof(AbstractScriptableObjectProbe).FullName
+            });
+
+            Assert.IsNotNull(response["error"]);
+        }
+
 
         private static JObject RpcResult(string method, JObject parameters = null)
         {

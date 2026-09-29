@@ -15,6 +15,8 @@ namespace UnityMCP.Editor.Capture
             .GetType("UnityEditor.GameView")
             ?.GetField("m_RenderTexture", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private const int MaxEdgeLimit = 8192;
+
         internal static EditorWindow FindOpenGameView()
         {
             return Resources.FindObjectsOfTypeAll<EditorWindow>()
@@ -33,7 +35,7 @@ namespace UnityMCP.Editor.Capture
         {
             int width = request.RequestedWidth > 0 ? request.RequestedWidth : sourceWidth;
             int height = request.RequestedHeight > 0 ? request.RequestedHeight : sourceHeight;
-            int maxEdge = request.MaxLongEdge;
+            int maxEdge = request.MaxLongEdge > 0 ? Mathf.Min(request.MaxLongEdge, MaxEdgeLimit) : MaxEdgeLimit;
             int longest = Mathf.Max(width, height);
             if (maxEdge > 0 && longest > maxEdge)
             {

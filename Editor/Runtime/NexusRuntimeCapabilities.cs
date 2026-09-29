@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEditor.PackageManager;
@@ -22,7 +23,10 @@ namespace UnityMCP.Editor.Runtime
         internal const string LastHealthyKey = "Nexus_PipelineLastHealthy";
         internal const string FailStreakKey = "Nexus_PipelineFailStreak";
 
+        private const int ProbeAttempts = 4;
+        private const int ProbeRetryDelayMs = 1500;
         private static readonly object Sync = new object();
+        private static int _probeToken;
         private RuntimeCapabilitySnapshot _current = new RuntimeCapabilitySnapshot { HealthUnknown = true };
 
         /// <summary>Shared capability source for this Editor domain.</summary>
@@ -42,7 +46,8 @@ namespace UnityMCP.Editor.Runtime
             int generation = MCPServer.SessionGeneration;
             RuntimeCapabilitySnapshot seed = CaptureMetadata(generation);
             lock (Sync) _current = seed;
-            Task.Run(() => ProbeAndStore(seed));
+            int token = Interlocked.Increment(ref _probeToken);
+            Task.Run(() => ProbeAndStore(seed, token));
         }
 
         /// <summary>
@@ -85,7 +90,9 @@ namespace UnityMCP.Editor.Runtime
         internal static bool IsUnityVersionSupported()
         {
             string version = Application.unityVersion;
-            return !string.IsNullOrEmpty(version) && version.StartsWith("6000.", StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(version)) return false;
+            int dot = version.IndexOf('.');
+            return int.TryParse(dot > 0 ? version.Substring(0, dot) : version, out int major) && major >= 6000;
         }
 
         internal static bool AreNexusPipelineCommandsRegistered()
@@ -200,16 +207,33 @@ namespace UnityMCP.Editor.Runtime
             }
         }
 
-        private void ProbeAndStore(RuntimeCapabilitySnapshot seed)
+        private void ProbeAndStore(RuntimeCapabilitySnapshot seed, int token)
         {
             try
             {
                 var working = Clone(seed);
                 RefreshPortFile(working);
                 RuntimeCapabilitySnapshot result = Probe(working);
+                // Pipeline often writes its port file / starts listening shortly after Editor init.
+                // ponytail: fixed short retry, not a watcher; changing Mode in settings re-probes.
+                for (int i = 1; i < ProbeAttempts && result.PipelinePackagePresent && !result.PipelineHealthy; i++)
+                {
+                    Thread.Sleep(ProbeRetryDelayMs);
+                    if (Volatile.Read(ref _probeToken) != token) return; // superseded by a newer probe
+                    lock (Sync)
+                    {
+                        if (_current.SessionGeneration != seed.SessionGeneration) return;
+                    }
+
+                    working = Clone(seed);
+                    RefreshPortFile(working);
+                    result = Probe(working);
+                }
+
                 lock (Sync)
                 {
                     if (_current.SessionGeneration != result.SessionGeneration) return;
+                    if (Volatile.Read(ref _probeToken) != token) return;
                     _current = result;
                 }
 
@@ -288,7 +312,7 @@ namespace UnityMCP.Editor.Runtime
                 return result;
             }
 
-            result.PipelineHealthy = ProbeTcp(result.PipelinePort.Value, 50);
+            result.PipelineHealthy = ProbeTcp(result.PipelinePort.Value, 250);
             result.Detail = result.PipelineHealthy
                 ? "Pipeline loopback port accepted a TCP connection."
                 : "Pipeline session port did not accept a TCP connection.";

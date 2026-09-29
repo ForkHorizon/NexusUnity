@@ -15,7 +15,7 @@ from pathlib import Path
 
 PROJ = Path(__file__).resolve().parents[3]  # Unity project root from Assets/NexusUnity/scripts
 if not (PROJ / "Assets").exists():
-    PROJ = Path("/Users/daliys/Daliys/UnityProjects/UnityTestForNexus")
+    sys.exit("Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at " + str(PROJ) + ").")
 
 WARMUPS = 20
 MEASURED = 100

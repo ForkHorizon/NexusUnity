@@ -290,6 +290,9 @@ namespace UnityMCP.Editor
                     return func(p);
                 }
 
+                if (method != null && _asyncMethods.ContainsKey(method))
+                    throw new Exception($"'{method}' is asynchronous and cannot run inside batch_execute or a synchronous dispatch. Call it directly.");
+
                 throw new Exception($"Method not found: {method}");
             }
             catch (Exception e)

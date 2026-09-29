@@ -35,7 +35,7 @@ removal = not_scheduled
 
 # B. Unity Test Runner
 
-Assembly `UnityMCP.Editor.Tests` is now imported from `Tests/Editor` (Unity-visible). `package.json` lists it in `testables`. The asmdef uses `overrideReferences` + `Newtonsoft.Json.dll` / `nunit.framework.dll` (standard Unity test-assembly setup; no copied DLLs, no absolute paths).
+Assembly `UnityMCP.Editor.Tests` is now imported from `Tests/Editor` (Unity-visible). Consumers enable it through their own `Packages/manifest.json` `testables`. The asmdef uses `overrideReferences` + `Newtonsoft.Json.dll` / `nunit.framework.dll` (standard Unity test-assembly setup; no copied DLLs, no absolute paths).
 
 A first run hung because `MissingGameViewFailsWithDomainError` called `.GetResult()` on the Unity main thread while Game View could still exist. That test is now a `[UnityTest]` coroutine. The Editor was restarted to recover the deadlock.
 
@@ -205,7 +205,7 @@ Production compile does not call CaptureSpikes / CaptureValidation / T1T2. Resea
 
 # I. Changes made (acceptance and final cleanup)
 
-- Visible EditMode assembly: `Tests/Editor` + `package.json` `testables`; asmdef `Newtonsoft.Json.dll` + `nunit.framework.dll`.
+- Visible EditMode assembly: `Tests/Editor` (guarded by `UNITY_INCLUDE_TESTS`); asmdef `Newtonsoft.Json.dll` + `nunit.framework.dll`.
 - `MissingGameViewFailsWithDomainError` converted to `[UnityTest]` (no main-thread `.GetResult()`).
 - `OpenSourceApiContractTests` locates `nexus_bridge/*.py` on disk; API_REFERENCE lists canonical ids in the raw `unity_` contract form.
 - `NexusCaptureReloadProbe`, overlay marker evidence, and `editor_ticks_submit_to_done` telemetry.

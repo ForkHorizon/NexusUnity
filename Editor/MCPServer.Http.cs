@@ -102,7 +102,7 @@ namespace UnityMCP.Editor
 
                 if (!TryReadRequestBody(context, out string requestJson)) return;
 
-                bool isProbeMethod = !string.IsNullOrEmpty(requestJson) && (requestJson.Contains("\"get_server_status\"") || requestJson.Contains("\"shutdown_server\""));
+                bool isProbeMethod = IsProbeMethod(requestJson);
                 if (!IsAuthorized(context) && !isProbeMethod)
                 {
                     RejectUnauthorized(context);
@@ -118,6 +118,22 @@ namespace UnityMCP.Editor
             catch (Exception e)
             {
                 NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Error handling HTTP request: {e.Message}");
+            }
+        }
+
+        // Only these two methods may skip auth, and only when they are the actual JSON-RPC method
+        // (a substring match would let any method smuggle the name in its params).
+        private static bool IsProbeMethod(string requestJson)
+        {
+            if (string.IsNullOrEmpty(requestJson)) return false;
+            try
+            {
+                string method = Newtonsoft.Json.Linq.JObject.Parse(requestJson)["method"]?.ToString();
+                return method == "get_server_status" || method == "shutdown_server";
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 

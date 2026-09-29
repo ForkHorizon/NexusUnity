@@ -31,6 +31,23 @@ namespace UnityMCP.Editor.Tests
             }
         }
 
+        [Test]
+        public void FindObjectsHandlesInvalidRegexAndPerformsLiteralSearch()
+        {
+            var go = new GameObject("TestObject (1)");
+            try
+            {
+                JObject result = RpcResult("find_objects", new JObject { ["name"] = "TestObject (1)" });
+                JArray objects = (JArray)result["objects"];
+                Assert.IsNotNull(objects);
+                Assert.IsTrue(objects.Any(o => o["name"]?.ToString() == "TestObject (1)"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
         private static JObject RpcResult(string method, JObject parameters = null)
         {
             var request = new JObject

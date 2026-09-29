@@ -217,5 +217,15 @@ namespace UnityMCP.Editor.Tests
             if (method == null) throw new Exception($"Method {methodName} not found in MCPServer");
             return method.Invoke(null, args);
         }
+
+        [Test]
+        public void ProbeMethodBypassOnlyAppliesToActualRpcMethod()
+        {
+            var isProbe = typeof(MCPServer).GetMethod("IsProbeMethod", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(isProbe);
+            Assert.IsTrue((bool)isProbe.Invoke(null, new object[] { "{\"method\":\"get_server_status\"}" }));
+            Assert.IsFalse((bool)isProbe.Invoke(null, new object[] { "{\"method\":\"capture_game_view_screenshot\",\"params\":{\"x\":\"get_server_status\"}}" }));
+            Assert.IsFalse((bool)isProbe.Invoke(null, new object[] { "not json get_server_status" }));
+        }
     }
 }

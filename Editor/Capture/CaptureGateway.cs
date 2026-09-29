@@ -12,6 +12,7 @@ namespace UnityMCP.Editor.Capture
     /// </summary>
     public sealed class CaptureGateway : ICaptureGateway
     {
+        private const int MaxRepaintTicks = 10;
         private static readonly SemaphoreSlim Gate = new SemaphoreSlim(1, 1);
         private static int _cachedMainThreadId;
 
@@ -109,6 +110,35 @@ namespace UnityMCP.Editor.Capture
             return tcs.Task;
         }
 
+        // Repaint is deferred: a docked/hidden Game View only creates its RT on a later editor tick.
+        private static async Task<RenderTexture> WaitForPresentedRt(EditorWindow gameView, CancellationToken cancellationToken)
+        {
+            for (int tick = 0; ; tick++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (gameView == null)
+                {
+                    throw new CaptureException(CaptureErrorCode.GameViewUnavailable, "Game View window was closed during capture.");
+                }
+
+                gameView.Repaint();
+                RenderTexture rt = GameViewCaptureSource.TryGetPresentedRt(gameView);
+                if (rt != null || tick >= MaxRepaintTicks) return rt;
+
+                var next = new TaskCompletionSource<bool>();
+                EditorApplication.CallbackFunction onUpdate = null;
+                onUpdate = () =>
+                {
+                    EditorApplication.update -= onUpdate;
+                    next.TrySetResult(true);
+                };
+                EditorApplication.update += onUpdate;
+                EditorApplication.QueuePlayerLoopUpdate();
+                // No ConfigureAwait(false): resume through the Unity sync context so the caller keeps running on the main thread.
+                await next.Task;
+            }
+        }
+
         private static async Task<CaptureResult> Execute(
             CaptureRequest request,
             CancellationToken cancellationToken)
@@ -124,8 +154,7 @@ namespace UnityMCP.Editor.Capture
             }
 
             gameView.Focus();
-            gameView.Repaint();
-            RenderTexture presented = GameViewCaptureSource.TryGetPresentedRt(gameView);
+            RenderTexture presented = await WaitForPresentedRt(gameView, cancellationToken);
             if (presented == null)
             {
                 throw new CaptureException(

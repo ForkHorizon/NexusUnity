@@ -160,11 +160,11 @@ Schema compatibility notes:
 - `ui_click` / `unity_ui_click`
 - `ui_input_text` / `unity_ui_input_text`
 
-`batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls.
+`batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls. Asynchronous methods (`capture_game_view_screenshot`, `nexus.capture_game_view`) cannot run inside a batch and return an error asking you to call them directly.
 
 ### Screenshot results
 
-`capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format`, and `image_base64`. The default Game View format remains `png`. Optional Game View parameters are `format` (`png` or `jpg`/`jpeg`), `quality` / `jpeg_quality` (1–100, JPEG only), `width`, `height`, `max_long_edge`, and `include_telemetry`. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
+`capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format`, and `image_base64`. The default Game View format remains `png`. Optional Game View parameters are `format` (`png` or `jpg`/`jpeg`), `quality` / `jpeg_quality` (1–100, JPEG only), `width`, `height`, `max_long_edge`, and `include_telemetry`. Output size is capped at 8192 pixels on the longest edge. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
 
 Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (and their `nexus_*` aliases) share one handler and description per command. `nexus.capture_game_view` defaults to JPEG and returns `encoding`, `bytes`, `base64`, `source`, and stage timings. These three commands are also exposed as experimental Unity Pipeline `[CliCommand]`s when `com.unity.pipeline` is installed; that package is optional and is not a Nexus dependency.
 

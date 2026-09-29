@@ -22,7 +22,7 @@ namespace UnityMCP.Editor
         /// <summary>Lists all available tools for the MCP server.</summary>
         private static JToken ListTools(JToken p)
         {
-            string profile = p?["profile"]?.ToString();
+            string profile = (p as JObject)?["profile"]?.ToString();
             if (string.IsNullOrEmpty(profile) && _cachedTools != null) return _cachedTools;
 
             var tools = new JArray();

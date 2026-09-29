@@ -164,5 +164,29 @@ namespace UnityMCP.Editor.Tests
             Assert.IsNotNull(res["error"], "import_asset in ProjectSettings should return error");
             Assert.IsTrue(res["error"]["message"].ToString().Contains("forbidden"), "Error message should state modifying ProjectSettings is forbidden");
         }
+
+        [Test]
+        public void MoveAsset_ToAssetsRoot_MovesFileIntoRoot()
+        {
+            string root = "Assets/NexusUnityGeneratedTests";
+            string oldPath = $"{root}/Sub/NexusMoveRootProbe.txt";
+            const string movedPath = "Assets/NexusMoveRootProbe.txt";
+            CleanupGeneratedAssetRoot(root);
+
+            try
+            {
+                CallRaw("write_file", new JObject { ["path"] = oldPath, ["content"] = "test" });
+                AssetDatabase.Refresh();
+
+                var res = CallRaw("move_asset", new JObject { ["old_path"] = oldPath, ["new_path"] = "Assets" });
+                Assert.IsNotNull(res["result"], $"Expected success result, got error: {res["error"]}");
+                Assert.IsTrue(File.Exists(MCPServerMethods.ValidatePath(movedPath)), "File should be moved into the Assets root");
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(movedPath);
+                CleanupGeneratedAssetRoot(root);
+            }
+        }
     }
 }

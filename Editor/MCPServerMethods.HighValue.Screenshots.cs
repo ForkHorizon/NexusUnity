@@ -148,8 +148,11 @@ namespace UnityMCP.Editor
             return null;
         }
 
+        private static Type[] _visualElementCaptureTypes;
+
         private static Type[] GetVisualElementCaptureTypes()
         {
+            if (_visualElementCaptureTypes != null) return _visualElementCaptureTypes;
             var types = new List<Type>();
             void AddType(Type t) { if (t != null && !types.Contains(t)) types.Add(t); }
 
@@ -164,7 +167,7 @@ namespace UnityMCP.Editor
                 catch { }
             }
 
-            return types.ToArray();
+            return _visualElementCaptureTypes = types.ToArray();
         }
 
         private static byte[] EncodeRenderTextureToPng(RenderTexture rt)

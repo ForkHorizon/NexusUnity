@@ -10,7 +10,7 @@ All notable public changes to Nexus Unity are documented here.
 - Published a Legacy HTTP sunset timeline: Legacy remains fully supported. Removal is not scheduled until Unity CLI 1.0 stable, non-experimental `com.unity.pipeline`, and one Nexus stable release after Pipeline-primary `auto`. `get_server_status.runtime.legacy` reports that ledger.
 
 ### Changed
-- Package EditMode tests live under a single `Tests/Editor` suite (`package.json` `testables`). Historical `Tests~/Editor` was merged into that suite and removed. The test asmdef uses Unity's `overrideReferences` + `Newtonsoft.Json.dll` / `nunit.framework.dll`.
+- Package EditMode tests live under a single `Tests/Editor` suite (guarded by `UNITY_INCLUDE_TESTS`, so consumers only compile it when the test framework is installed and the package is listed in their `Packages/manifest.json` `testables`). Historical `Tests~/Editor` was merged into that suite and removed. The test asmdef uses Unity's `overrideReferences` + `Newtonsoft.Json.dll` / `nunit.framework.dll`.
 - Runtime `get_server_status` now returns a main-thread-published snapshot. Requested mode is cached so the HTTP listener does not read EditorPrefs off-thread.
 - Inspector/window screenshots use `EditorWindowPixelCapture` (ReadPixels). Game View remains Capture V2 DriverOwnedReadback only.
 - Research reports and spike scripts live under `Research~/` and are not compiled.
@@ -20,6 +20,10 @@ All notable public changes to Nexus Unity are documented here.
 - Pipeline health probing validates session PID liveness and Unity-like process identity, caches last-healthy state across domain reload, and reports `runtime.unity_cli` / `runtime.pipeline.detected|experimental|supported` without shelling out to the Unity CLI.
 
 ### Fixed
+- Security: unauthenticated HTTP requests could bypass auth by containing `get_server_status` or `shutdown_server` anywhere in the body; only the actual JSON-RPC `method` is exempt now.
+- Capture: readback timeouts no longer busy-loop or poll forever, encode failures no longer wedge the capture gate, the Game View wait resumes on the main thread, and capture size is capped at 8192 per edge.
+- Runtime: Pipeline health probe retries and re-runs when the runtime mode changes; the Unity version gate accepts 6000 and newer.
+- `batch_execute` reports async capture methods with a clear error; `find_objects` also matches the literal name; `list_tools` accepts array params.
 - Reworked Game View, Inspector, and UI window screenshot capture to use Unity-native in-engine render textures and VisualElement captures with safe surface readback fallback instead of macOS `screencapture`.
 - Added synchronous editor tracker rebuild for targeted Inspector captures (`instance_id`), resolved MSAA render textures, guarded against background desktop screen scraping via `isApplicationActive`, and provided structured PNG results while preserving legacy client compatibility.
 - Added comprehensive screenshot stress-test tooling (`scripts/screenshot-stress-test.py`) and in-engine regression tests (`CaptureScreenshotStressTestRapidChurn`) covering rapid burst captures, multi-threaded swarms, selection churn invariants, and dynamic window geometry resizes.

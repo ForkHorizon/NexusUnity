@@ -50,9 +50,7 @@ namespace UnityMCP.Editor
 
         private static void TestScreenshots()
         {
-            Call("execute_menu_item", new JObject { ["item_path"] = "Window/General/Game" });
-            AssertScreenshot(Call("capture_game_view_screenshot", null), "Game View");
-
+            // capture_game_view_screenshot is async-only and is rejected on the main thread; it is covered by CaptureGatewayTests.
             Call("execute_menu_item", new JObject { ["item_path"] = "Window/General/Inspector" });
             AssertScreenshot(Call("capture_inspector_screenshot", null), "Inspector");
         }

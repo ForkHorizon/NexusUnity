@@ -58,7 +58,8 @@ namespace UnityMCP.Editor.Runtime
         }
 
         /// <summary>
-        /// True when HTTP bind should be skipped: explicit pipeline mode, or auto with a healthy Pipeline.
+        /// True when Pipeline is the selected runtime (explicit pipeline, or auto with a healthy Pipeline).
+        /// Legacy HTTP is still bound opportunistically; this only means a busy/foreign-owned port is not a startup error.
         /// </summary>
         public static bool CanSkipLegacyHttpBind(NexusRuntimeMode requested, RuntimeCapabilitySnapshot snapshot)
         {

@@ -34,6 +34,7 @@ namespace UnityMCP.Editor
             modeField.RegisterValueChangedCallback(evt =>
             {
                 MCPSettings.RuntimeMode = (NexusRuntimeMode)evt.newValue;
+                NexusRuntimeCapabilities.Shared.BeginHealthProbe();
             });
             panel.Add(modeField);
             panel.Add(NexusEditorUi.Label(

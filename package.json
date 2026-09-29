@@ -24,8 +24,5 @@
   "dependencies": {
     "com.unity.inputsystem": "1.19.0",
     "com.unity.nuget.newtonsoft-json": "2.0.0"
-  },
-  "testables": [
-    "UnityMCP.Editor.Tests"
-  ]
+  }
 }

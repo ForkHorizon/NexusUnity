@@ -61,7 +61,7 @@ When Nexus Unity writes an existing user or project config, it preserves unrelat
 Nexus Unity is a local developer tool and should be used only with trusted local clients.
 
 - HTTP and WebSocket requests must target loopback hosts.
-- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`.
+- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`. Only `get_server_status` and `shutdown_server` are exempt, matched on the JSON-RPC `method` field.
 - WebSocket and HTTP requests are processed asynchronously on background worker threads, ensuring the server accept loop remains non-blocking for concurrent clients.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
@@ -108,7 +108,7 @@ Raw HTTP JSON-RPC:
 - Experimental canonical commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` are available over Legacy HTTP. If `com.unity.pipeline` is installed, the same handlers are also registered as optional `[CliCommand]`s for `unity mcp` / `unity command`. Pipeline remains optional; Nexus compiles and runs without it.
 - **Support matrix:** Unity 6000.0+. With a healthy `com.unity.pipeline` session, runtime `auto` prefers Pipeline / persistent `unity mcp`. Without Pipeline, Legacy HTTP/MCP on loopback is the compatibility backend. `com.unity.pipeline` is not a package dependency. Runtime mode (`legacy` / `pipeline` / `auto`) is in Project Settings > Nexus Unity. Set `legacy` to force HTTP. Explicit `pipeline` does not fall back to HTTP. Legacy HTTP remains fully supported until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release.
 - Legacy HTTP sunset: Legacy remains fully supported. It is not fully deprecated while Unity CLI is pre-release and `com.unity.pipeline` is experimental. Removal is not scheduled until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release after Pipeline-primary `auto`.
-- `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls.
+- `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls. Asynchronous capture methods must be called directly, not inside a batch.
 
 MCP bridge:
 

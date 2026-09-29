@@ -16,6 +16,7 @@ namespace UnityMCP.Editor.Capture
     internal static class DriverOwnedReadback
     {
         private const int PollTimeoutMs = 8000;
+        private const int AbandonAfterMs = 60000;
         private static readonly List<Pending> PendingReads = new List<Pending>();
         private static bool _reloading;
 
@@ -166,20 +167,45 @@ namespace UnityMCP.Editor.Capture
             EditorApplication.update -= pending.Poll;
             RemovePending(pending);
             pending.Timings.SubmitToDoneMs = pending.DoneWatch.Elapsed.TotalMilliseconds;
-            if (!pending.LogicalCompleted) Finish(pending);
+            if (!pending.LogicalCompleted)
+            {
+                try { Finish(pending); }
+                catch (Exception ex)
+                {
+                    pending.LogicalCompleted = true;
+                    pending.Tcs.TrySetException(ex);
+                }
+            }
+
             ReleaseSubmitted(pending);
         }
 
         private static void HandleIncompletePoll(Pending pending)
         {
-            if (!pending.LogicalCompleted && Stopwatch.GetTimestamp() > pending.Deadline)
+            if (!pending.LogicalCompleted)
             {
-                pending.LogicalCompleted = true;
-                pending.Tcs.TrySetException(new CaptureException(
-                    CaptureErrorCode.ReadbackFailed, "GPU readback timed out."));
+                if (Stopwatch.GetTimestamp() > pending.Deadline)
+                {
+                    pending.LogicalCompleted = true;
+                    pending.Tcs.TrySetException(new CaptureException(
+                        CaptureErrorCode.ReadbackFailed, "GPU readback timed out."));
+                }
+                else
+                {
+                    EditorApplication.QueuePlayerLoopUpdate();
+                }
+
+                return;
             }
 
-            EditorApplication.QueuePlayerLoopUpdate();
+            // Logically failed but the driver never completed: stop polling. The RT is intentionally not
+            // released because the GPU may still own it.
+            if (pending.DoneWatch.ElapsedMilliseconds > AbandonAfterMs)
+            {
+                EditorApplication.update -= pending.Poll;
+                RemovePending(pending);
+                pending.SubmittedRt = null;
+            }
         }
 
         private static void Finish(Pending pending)
