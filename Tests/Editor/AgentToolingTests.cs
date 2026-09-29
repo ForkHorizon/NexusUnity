@@ -235,8 +235,9 @@ namespace UnityMCP.Editor.Tests
         [UnityTest]
         public IEnumerator CaptureGameViewScreenshotReturnsStructuredPng()
         {
-            Assume.That(Application.platform, Is.EqualTo(RuntimePlatform.OSXEditor), "Screenshot acceptance is validated on macOS.");
-            Assume.That(!Application.isBatchMode, "Screenshot capture requires a visible editor window.");
+            // Assert.Ignore (Skipped) instead of Assume (Inconclusive): Unity exits non-zero on inconclusive results, which fails CI.
+            if (Application.platform != RuntimePlatform.OSXEditor) Assert.Ignore("Screenshot acceptance is validated on macOS.");
+            if (Application.isBatchMode) Assert.Ignore("Screenshot capture requires a visible editor window.");
             EditorWindow gameView = OpenEditorWindow("UnityEditor.GameView", "Game");
 
             try

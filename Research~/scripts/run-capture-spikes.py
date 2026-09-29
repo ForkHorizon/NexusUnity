@@ -58,16 +58,56 @@ def run_all_spikes():  # noqa: PLR0915
     print(" SPIKE A: THREAD ID TRACE & TIMESTAMPS")
     print("-" * 80)
     stages = [
-        ("1. HTTP request received", trace_a.get("http_received_thread_id"), f"{trace_a.get('http_received_time_ms', 0):.4f} ms"),
-        ("2. Main action dispatched & start", trace_a.get("main_action_thread_id"), f"{trace_a.get('main_action_start_ms', 0):.4f} ms"),
-        ("3. Source acquisition complete", trace_a.get("main_action_thread_id"), f"{trace_a.get('source_acquisition_ms', 0):.4f} ms"),
-        ("4. Readback request issued", trace_a.get("main_action_thread_id"), f"{trace_a.get('readback_request_start_ms', 0):.4f} ms"),
-        ("5. Readback done (update tick poll)", trace_a.get("readback_done_thread_id"), f"{trace_a.get('readback_done_ms', 0):.4f} ms (ticks: {trace_a.get('update_tick_count')})"),
-        ("6. ImageConversion encoding", trace_a.get("encode_thread_id"), f"duration: {trace_a.get('encode_duration_ms', 0):.4f} ms"),
-        ("7. TCS.SetResult called", trace_a.get("tcs_set_result_thread_id"), f"{trace_a.get('tcs_set_result_ms', 0):.4f} ms"),
-        ("8. TCS continuation executed", trace_a.get("continuation_thread_id"), f"{trace_a.get('continuation_start_ms', 0):.4f} ms"),
-        ("9. Base64 & JSON serialization", trace_a.get("base64_thread_id"), f"duration: {trace_a.get('base64_duration_ms', 0):.4f} ms"),
-        ("10. HTTP response sent", trace_a.get("response_send_thread_id"), f"total: {trace_a.get('total_latency_ms', 0):.4f} ms"),
+        (
+            "1. HTTP request received",
+            trace_a.get("http_received_thread_id"),
+            f"{trace_a.get('http_received_time_ms', 0):.4f} ms",
+        ),
+        (
+            "2. Main action dispatched & start",
+            trace_a.get("main_action_thread_id"),
+            f"{trace_a.get('main_action_start_ms', 0):.4f} ms",
+        ),
+        (
+            "3. Source acquisition complete",
+            trace_a.get("main_action_thread_id"),
+            f"{trace_a.get('source_acquisition_ms', 0):.4f} ms",
+        ),
+        (
+            "4. Readback request issued",
+            trace_a.get("main_action_thread_id"),
+            f"{trace_a.get('readback_request_start_ms', 0):.4f} ms",
+        ),
+        (
+            "5. Readback done (update tick poll)",
+            trace_a.get("readback_done_thread_id"),
+            f"{trace_a.get('readback_done_ms', 0):.4f} ms (ticks: {trace_a.get('update_tick_count')})",
+        ),
+        (
+            "6. ImageConversion encoding",
+            trace_a.get("encode_thread_id"),
+            f"duration: {trace_a.get('encode_duration_ms', 0):.4f} ms",
+        ),
+        (
+            "7. TCS.SetResult called",
+            trace_a.get("tcs_set_result_thread_id"),
+            f"{trace_a.get('tcs_set_result_ms', 0):.4f} ms",
+        ),
+        (
+            "8. TCS continuation executed",
+            trace_a.get("continuation_thread_id"),
+            f"{trace_a.get('continuation_start_ms', 0):.4f} ms",
+        ),
+        (
+            "9. Base64 & JSON serialization",
+            trace_a.get("base64_thread_id"),
+            f"duration: {trace_a.get('base64_duration_ms', 0):.4f} ms",
+        ),
+        (
+            "10. HTTP response sent",
+            trace_a.get("response_send_thread_id"),
+            f"total: {trace_a.get('total_latency_ms', 0):.4f} ms",
+        ),
     ]
     print(f"{'Lifecycle Stage':<38} | {'Thread ID':<10} | {'Timing / Notes'}")
     print("-" * 80)
@@ -75,9 +115,15 @@ def run_all_spikes():  # noqa: PLR0915
         print(f"{name:<38} | {tid!s:<10} | {timing}")
     print("-" * 80)
     print(f"Proof: Main thread never blocked (.Wait/.Result) : {trace_a.get('proof_main_thread_never_blocked')}")
-    print(f"Proof: Continuation ran on worker thread         : {trace_a.get('proof_continuation_off_thread')} (Thread {trace_a.get('continuation_thread_id')} != {trace_a.get('main_action_thread_id')})")
-    print(f"Proof: Base64 ran on worker thread              : {trace_a.get('proof_base64_off_thread')} (Thread {trace_a.get('base64_thread_id')} != {trace_a.get('main_action_thread_id')})")
-    print(f"Proof: HTTP response sent from worker thread    : {trace_a.get('proof_response_off_thread')} (Thread {trace_a.get('response_send_thread_id')} != {trace_a.get('main_action_thread_id')})")
+    print(
+        f"Proof: Continuation ran on worker thread         : {trace_a.get('proof_continuation_off_thread')} (Thread {trace_a.get('continuation_thread_id')} != {trace_a.get('main_action_thread_id')})"
+    )
+    print(
+        f"Proof: Base64 ran on worker thread              : {trace_a.get('proof_base64_off_thread')} (Thread {trace_a.get('base64_thread_id')} != {trace_a.get('main_action_thread_id')})"
+    )
+    print(
+        f"Proof: HTTP response sent from worker thread    : {trace_a.get('proof_response_off_thread')} (Thread {trace_a.get('response_send_thread_id')} != {trace_a.get('main_action_thread_id')})"
+    )
 
     # -------------------------------------------------------------------------
     # SPIKE B: SOURCE ACQUISITION COMPARISON
@@ -101,7 +147,9 @@ def run_all_spikes():  # noqa: PLR0915
     print("-" * 96)
     print(" SPIKE B: COMPATIBILITY & LATENCY MATRIX (Option A vs Option B)")
     print("-" * 96)
-    print(f"{'Condition':<22} | {'Option A Works?':<16} | {'Option A Latency':<16} | {'Option B Works?':<16} | {'Option B Latency':<16}")
+    print(
+        f"{'Condition':<22} | {'Option A Works?':<16} | {'Option A Latency':<16} | {'Option B Works?':<16} | {'Option B Latency':<16}"
+    )
     print("-" * 96)
     for cell in matrix_cells:
         cond = cell.get("condition", "unknown")
@@ -125,7 +173,9 @@ def run_all_spikes():  # noqa: PLR0915
     print("-" * 80)
     blit_costs = spike_c.get("blit_costs_metal", {})
     for res_name, data in blit_costs.items():
-        print(f"Resolution {res_name:<6} ({data.get('width')}x{data.get('height')}): avg={data.get('avg_ms', 0):.4f} ms, min={data.get('min_ms', 0):.4f} ms, max={data.get('max_ms', 0):.4f} ms")
+        print(
+            f"Resolution {res_name:<6} ({data.get('width')}x{data.get('height')}): avg={data.get('avg_ms', 0):.4f} ms, min={data.get('min_ms', 0):.4f} ms, max={data.get('max_ms', 0):.4f} ms"
+        )
 
     print("\n" + "-" * 80)
     print(" SPIKE C: FORMAT COMPATIBILITY & ENCODER SUPPORT")
@@ -187,7 +237,9 @@ def run_all_spikes():  # noqa: PLR0915
     print("-" * 90)
     print(" SPIKE D: ENCODER BENCHMARK (1080p, 10 iterations each)")
     print("-" * 90)
-    print(f"{'Encoder Candidate':<28} | {'Median ms':<10} | {'Min ms':<10} | {'Max ms':<10} | {'GC Alloc':<10} | {'Output Bytes'}")
+    print(
+        f"{'Encoder Candidate':<28} | {'Median ms':<10} | {'Min ms':<10} | {'Max ms':<10} | {'GC Alloc':<10} | {'Output Bytes'}"
+    )
     print("-" * 90)
     candidates = [
         ("Baseline: Texture2D PNG", spike_d.get("baseline_texture2d_png", {})),
@@ -197,7 +249,9 @@ def run_all_spikes():  # noqa: PLR0915
         ("Candidate 2c: Native JPG 95", spike_d.get("candidate2_jpg_95", {})),
     ]
     for name, c in candidates:
-        print(f"{name:<28} | {c.get('median_ms', 0):<10.2f} | {c.get('min_ms', 0):<10.2f} | {c.get('max_ms', 0):<10.2f} | {c.get('gc_alloc_bytes_per_call', 0)!s:<10} | {c.get('output_bytes', 0)}")
+        print(
+            f"{name:<28} | {c.get('median_ms', 0):<10.2f} | {c.get('min_ms', 0):<10.2f} | {c.get('max_ms', 0):<10.2f} | {c.get('gc_alloc_bytes_per_call', 0)!s:<10} | {c.get('output_bytes', 0)}"
+        )
     print("-" * 90)
 
     cand1 = spike_d.get("candidate1_native_png", {})
@@ -226,7 +280,9 @@ def run_all_spikes():  # noqa: PLR0915
     print(f"{'Latency Median (ms)':<34} | {r1.get('median_ms', 0):<24.2f} | {r2.get('median_ms', 0):<24.2f}")
     print(f"{'Latency p95 (ms)':<34} | {r1.get('p95_ms', 0):<24.2f} | {r2.get('p95_ms', 0):<24.2f}")
     print(f"{'Latency Max (ms)':<34} | {r1.get('max_ms', 0):<24.2f} | {r2.get('max_ms', 0):<24.2f}")
-    print(f"{'GC Alloc per Capture (bytes)':<34} | {r1.get('gc_alloc_bytes_per_capture', 0):<24} | {r2.get('gc_alloc_bytes_per_capture', 0):<24}")
+    print(
+        f"{'GC Alloc per Capture (bytes)':<34} | {r1.get('gc_alloc_bytes_per_capture', 0):<24} | {r2.get('gc_alloc_bytes_per_capture', 0):<24}"
+    )
     get_data_str = f"{r1.get('get_data_avg_ms', 0):.4f} ms"
     print(f"{'GetData<byte>() Avg Duration':<34} | {get_data_str:<24} | {'N/A':<24}")
     print(f"{'GetData is Zero-Alloc View?':<34} | {r1.get('get_data_is_zero_alloc_view')!s:<24} | {'N/A':<24}")

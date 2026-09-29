@@ -31,27 +31,27 @@ CSV_OUTPUT = os.path.join(PACKAGE_ROOT, "architecture-benchmark-results.csv")
 NEXUS_PORT = 8081
 PIPELINE_PORT = 7800
 
+
 def get_auth_token() -> str:
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, encoding="utf-8") as f:
             return f.read().strip()
     return ""
 
+
 AUTH_TOKEN = get_auth_token()
 
-def call_nexus_http(method: str, params: dict[str, Any] | None = None, timeout: float = 30.0) -> tuple[dict[str, Any], float, int]:
+
+def call_nexus_http(
+    method: str, params: dict[str, Any] | None = None, timeout: float = 30.0
+) -> tuple[dict[str, Any], float, int]:
     """Sends a JSON-RPC request to Nexus HTTP loopback server."""
-    payload = {
-        "jsonrpc": "2.0",
-        "id": int(time.time() * 1000) % 1000000,
-        "method": method,
-        "params": params or {}
-    }
+    payload = {"jsonrpc": "2.0", "id": int(time.time() * 1000) % 1000000, "method": method, "params": params or {}}
     raw = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         f"http://127.0.0.1:{NEXUS_PORT}",
         data=raw,
-        headers={"Content-Type": "application/json", "X-Nexus-Unity-Token": AUTH_TOKEN}
+        headers={"Content-Type": "application/json", "X-Nexus-Unity-Token": AUTH_TOKEN},
     )
     t0 = time.perf_counter()
     with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -59,6 +59,7 @@ def call_nexus_http(method: str, params: dict[str, Any] | None = None, timeout: 
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
     parsed = json.loads(resp_data.decode("utf-8"))
     return parsed, elapsed_ms, len(resp_data)
+
 
 def call_unity_cli(args: list[str], timeout: float = 30.0) -> tuple[dict[str, Any], float, int]:
     """Executes a one-shot cold Unity CLI invocation."""
@@ -73,8 +74,10 @@ def call_unity_cli(args: list[str], timeout: float = 30.0) -> tuple[dict[str, An
         parsed = {"raw": out, "error": proc.stderr}
     return parsed, elapsed_ms, len(out.encode("utf-8"))
 
+
 class UnityShellSession:
     """Persistent warm process wrapper for `unity shell --protocol ndjson` with crash resilience."""
+
     def __init__(self):
         self._start_proc()
 
@@ -84,7 +87,7 @@ class UnityShellSession:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
         )
 
     def call(self, command_name: str, args: list[str] | None = None) -> tuple[dict[str, Any], float, int]:
@@ -116,18 +119,16 @@ class UnityShellSession:
         except Exception:
             pass
 
+
 class UnityMcpSession:
     """Persistent warm process wrapper for `unity mcp` stdio server with async notification handling."""
+
     def __init__(self):
         self._start_proc()
 
     def _start_proc(self):
         self.proc = subprocess.Popen(
-            ["unity", "mcp"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
+            ["unity", "mcp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         self.req_id = 1
         # Initialize
@@ -138,8 +139,8 @@ class UnityMcpSession:
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "benchmark-runner", "version": "1.0"}
-            }
+                "clientInfo": {"name": "benchmark-runner", "version": "1.0"},
+            },
         }
         self.send(init_req)
         self.read_response(self.req_id)
@@ -169,10 +170,7 @@ class UnityMcpSession:
             "jsonrpc": "2.0",
             "id": current_id,
             "method": "tools/call",
-            "params": {
-                "name": tool_name,
-                "arguments": arguments or {}
-            }
+            "params": {"name": tool_name, "arguments": arguments or {}},
         }
         t0 = time.perf_counter()
         try:
@@ -200,6 +198,7 @@ class UnityMcpSession:
         except Exception:
             pass
 
+
 def compute_stats(values: list[float]) -> dict[str, float]:
     if not values:
         return {"count": 0, "min": 0, "p50": 0, "mean": 0, "p95": 0, "p99": 0, "max": 0}
@@ -209,15 +208,8 @@ def compute_stats(values: list[float]) -> dict[str, float]:
     p50 = vals[int(n * 0.50)]
     p95 = vals[min(int(n * 0.95), n - 1)]
     p99 = vals[min(int(n * 0.99), n - 1)]
-    return {
-        "count": n,
-        "min": vals[0],
-        "p50": p50,
-        "mean": mean_val,
-        "p95": p95,
-        "p99": p99,
-        "max": vals[-1]
-    }
+    return {"count": n, "min": vals[0], "p50": p50, "mean": mean_val, "p95": p95, "p99": p99, "max": vals[-1]}
+
 
 def main():  # noqa: PLR0915
     print("======================================================================")
@@ -247,7 +239,7 @@ def main():  # noqa: PLR0915
             "hardware": "Apple M5 (arm64, Mac17,2)",
             "graphics_api": "Metal",
             "render_pipeline": "UniversalRenderPipelineAsset (URP 17.5.0)",
-            "color_space": "Linear"
+            "color_space": "Linear",
         }
         all_results["environment"] = env_meta
         print(f"Target Editor PID: {env_meta['pid']}, Version: {env_meta['unity_editor_version']}")
@@ -290,7 +282,7 @@ def main():  # noqa: PLR0915
             "payload_bytes": compute_stats(nexus_v2_bytes),
             "format": "jpg",
             "resolution": f"{resp.get('result', {}).get('width', 0)}x{resp.get('result', {}).get('height', 0)}",
-            "source": "reflected_gameview_rt"
+            "source": "reflected_gameview_rt",
         }
 
         # Candidate 2: Nexus V2 R1 + PNG (for apples-to-apples lossless)
@@ -313,7 +305,7 @@ def main():  # noqa: PLR0915
             "payload_bytes": compute_stats(nexus_png_bytes),
             "format": "png",
             "resolution": f"{resp.get('result', {}).get('width', 0)}x{resp.get('result', {}).get('height', 0)}",
-            "source": "reflected_gameview_rt"
+            "source": "reflected_gameview_rt",
         }
 
         # Candidate 3: Unity CLI official capture_game_view (camera source)
@@ -337,7 +329,7 @@ def main():  # noqa: PLR0915
             "payload_bytes": compute_stats(unity_cgv_bytes),
             "format": "png",
             "resolution": "1280x720",
-            "source": "camera_render"
+            "source": "camera_render",
         }
 
         # Candidate 4: Unity CLI official screenshot (saves file to Temp)
@@ -359,7 +351,7 @@ def main():  # noqa: PLR0915
             "roundtrip_ms": compute_stats(unity_sc_times),
             "payload_bytes": compute_stats(unity_sc_bytes),
             "format": "png_file",
-            "source": "camera_render"
+            "source": "camera_render",
         }
 
         all_results["capture_matrix"] = capture_matrix
@@ -391,7 +383,7 @@ def main():  # noqa: PLR0915
             "includes_selection_outlines": False,
             "includes_grid": False,
             "includes_overlays": False,
-            "render_method": "camera_render"
+            "render_method": "camera_render",
         }
 
         # -----------------------------------------------------------------
@@ -407,7 +399,7 @@ def main():  # noqa: PLR0915
             ("op4_mutation", "set_transform"),
             ("op5_play_control", "eval_play_mode"),
             ("op6_logs", "console"),
-            ("op7_screenshot", "nexus_capture_game_view")
+            ("op7_screenshot", "nexus_capture_game_view"),
         ]
 
         for op_key, op_name in operations:
@@ -435,7 +427,7 @@ def main():  # noqa: PLR0915
                 bytes_nexus.append(b)
             op_data["nexus_http_warm"] = {
                 "roundtrip_ms": compute_stats(times_nexus),
-                "payload_bytes": compute_stats(bytes_nexus)
+                "payload_bytes": compute_stats(bytes_nexus),
             }
 
             # Surface 2: Unity MCP (warm stdio)
@@ -448,7 +440,9 @@ def main():  # noqa: PLR0915
                 elif op_key == "op3_heavy_query":
                     _r, ms, b = mcp_session.call_tool("nexus_project_map")
                 elif op_key == "op4_mutation":
-                    _r, ms, b = mcp_session.call_tool("set_transform", {"target": "Main Camera", "position": [0.0, 1.0, -10.0]})
+                    _r, ms, b = mcp_session.call_tool(
+                        "set_transform", {"target": "Main Camera", "position": [0.0, 1.0, -10.0]}
+                    )
                 elif op_key == "op5_play_control":
                     _r, ms, b = mcp_session.call_tool("editor_status")
                 elif op_key == "op6_logs":
@@ -459,7 +453,7 @@ def main():  # noqa: PLR0915
                 bytes_mcp.append(b)
             op_data["unity_mcp_warm"] = {
                 "roundtrip_ms": compute_stats(times_mcp),
-                "payload_bytes": compute_stats(bytes_mcp)
+                "payload_bytes": compute_stats(bytes_mcp),
             }
 
             # Surface 3: Unity Shell ndjson (warm persistent)
@@ -472,7 +466,9 @@ def main():  # noqa: PLR0915
                 elif op_key == "op3_heavy_query":
                     _r, ms, b = shell_session.call("command", ["nexus_project_map"])
                 elif op_key == "op4_mutation":
-                    _r, ms, b = shell_session.call("command", ["set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"])
+                    _r, ms, b = shell_session.call(
+                        "command", ["set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"]
+                    )
                 elif op_key == "op5_play_control":
                     _r, ms, b = shell_session.call("command", ["editor_status"])
                 elif op_key == "op6_logs":
@@ -483,7 +479,7 @@ def main():  # noqa: PLR0915
                 bytes_shell.append(b)
             op_data["unity_shell_warm"] = {
                 "roundtrip_ms": compute_stats(times_shell),
-                "payload_bytes": compute_stats(bytes_shell)
+                "payload_bytes": compute_stats(bytes_shell),
             }
 
             # Surface 4: Unity CLI cold (fresh process) - 3 samples to observe process launch overhead
@@ -496,7 +492,9 @@ def main():  # noqa: PLR0915
                 elif op_key == "op3_heavy_query":
                     _r, ms, b = call_unity_cli(["command", "nexus_project_map"])
                 elif op_key == "op4_mutation":
-                    _r, ms, b = call_unity_cli(["command", "set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"])
+                    _r, ms, b = call_unity_cli(
+                        ["command", "set_transform", "--target", "Main Camera", "--position", "[0, 1, -10]"]
+                    )
                 elif op_key == "op5_play_control":
                     _r, ms, b = call_unity_cli(["command", "editor_status"])
                 elif op_key == "op6_logs":
@@ -507,7 +505,7 @@ def main():  # noqa: PLR0915
                 bytes_cold.append(b)
             op_data["unity_cli_cold"] = {
                 "roundtrip_ms": compute_stats(times_cold),
-                "payload_bytes": compute_stats(bytes_cold)
+                "payload_bytes": compute_stats(bytes_cold),
             }
 
             transport_results[op_key] = op_data
@@ -529,13 +527,20 @@ def main():  # noqa: PLR0915
 
         t_eval, b_eval = [], []
         for _ in range(10):
-            _, ms, b = shell_session.call("command", ["eval", "--code", "return new { isPlaying = UnityEditor.EditorApplication.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling };"])
+            _, ms, b = shell_session.call(
+                "command",
+                [
+                    "eval",
+                    "--code",
+                    "return new { isPlaying = UnityEditor.EditorApplication.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling };",
+                ],
+            )
             t_eval.append(ms)
             b_eval.append(b)
 
         cmd_v_eval["status"] = {
             "command_editor_status": {"roundtrip_ms": compute_stats(t_cmd), "bytes": compute_stats(b_cmd)},
-            "eval_status": {"roundtrip_ms": compute_stats(t_eval), "bytes": compute_stats(b_eval)}
+            "eval_status": {"roundtrip_ms": compute_stats(t_eval), "bytes": compute_stats(b_eval)},
         }
 
         # Case 2: Find Object
@@ -547,13 +552,20 @@ def main():  # noqa: PLR0915
 
         t_eval2, b_eval2 = [], []
         for _ in range(10):
-            _, ms, b = shell_session.call("command", ["eval", "--code", "var go = UnityEngine.GameObject.Find(\"Main Camera\"); return go != null ? go.name : null;"])
+            _, ms, b = shell_session.call(
+                "command",
+                [
+                    "eval",
+                    "--code",
+                    'var go = UnityEngine.GameObject.Find("Main Camera"); return go != null ? go.name : null;',
+                ],
+            )
             t_eval2.append(ms)
             b_eval2.append(b)
 
         cmd_v_eval["find_object"] = {
             "command_find_gameobjects": {"roundtrip_ms": compute_stats(t_cmd2), "bytes": compute_stats(b_cmd2)},
-            "eval_find_object": {"roundtrip_ms": compute_stats(t_eval2), "bytes": compute_stats(b_eval2)}
+            "eval_find_object": {"roundtrip_ms": compute_stats(t_eval2), "bytes": compute_stats(b_eval2)},
         }
 
         all_results["command_vs_eval"] = cmd_v_eval
@@ -579,12 +591,12 @@ def main():  # noqa: PLR0915
             hybrid_parity[hybrid_cmd] = {
                 "nexus_http_transport": {
                     "roundtrip_ms": compute_stats(t_nexus_trans),
-                    "payload_bytes": compute_stats(b_nexus_trans)
+                    "payload_bytes": compute_stats(b_nexus_trans),
                 },
                 "unity_pipeline_transport": {
                     "roundtrip_ms": compute_stats(t_pipe_trans),
-                    "payload_bytes": compute_stats(b_pipe_trans)
-                }
+                    "payload_bytes": compute_stats(b_pipe_trans),
+                },
             }
 
         all_results["hybrid_parity"] = hybrid_parity
@@ -606,20 +618,21 @@ def main():  # noqa: PLR0915
                 "tool_count": len(nexus_tool_list),
                 "schema_bytes": len(json.dumps(nexus_tool_list).encode("utf-8")),
                 "avg_bytes_per_tool": len(json.dumps(nexus_tool_list).encode("utf-8")) / max(1, len(nexus_tool_list)),
-                "estimated_tokens_4char_rule": len(json.dumps(nexus_tool_list)) // 4
+                "estimated_tokens_4char_rule": len(json.dumps(nexus_tool_list)) // 4,
             },
             "unity_mcp": {
                 "tool_count": len(unity_tool_list),
                 "schema_bytes": len(json.dumps(unity_tool_list).encode("utf-8")),
                 "avg_bytes_per_tool": len(json.dumps(unity_tool_list).encode("utf-8")) / max(1, len(unity_tool_list)),
-                "estimated_tokens_4char_rule": len(json.dumps(unity_tool_list)) // 4
+                "estimated_tokens_4char_rule": len(json.dumps(unity_tool_list)) // 4,
             },
             "unity_pipeline_commands": {
                 "command_count": len(pipeline_cmd_list),
                 "schema_bytes": len(json.dumps(pipeline_cmd_list).encode("utf-8")),
-                "avg_bytes_per_command": len(json.dumps(pipeline_cmd_list).encode("utf-8")) / max(1, len(pipeline_cmd_list)),
-                "estimated_tokens_4char_rule": len(json.dumps(pipeline_cmd_list)) // 4
-            }
+                "avg_bytes_per_command": len(json.dumps(pipeline_cmd_list).encode("utf-8"))
+                / max(1, len(pipeline_cmd_list)),
+                "estimated_tokens_4char_rule": len(json.dumps(pipeline_cmd_list)) // 4,
+            },
         }
         all_results["token_surface"] = token_surface
 
@@ -636,29 +649,84 @@ def main():  # noqa: PLR0915
     # Flatten summary metrics to CSV
     with open(CSV_OUTPUT, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["Category", "Subcategory", "Surface_Candidate", "Metric", "Count", "Min", "P50", "Mean", "P95", "Max"])
+        writer.writerow(
+            ["Category", "Subcategory", "Surface_Candidate", "Metric", "Count", "Min", "P50", "Mean", "P95", "Max"]
+        )
 
         # Capture matrix
         for cand, data in all_results.get("capture_matrix", {}).items():
             rt = data["roundtrip_ms"]
-            writer.writerow(["Capture", "GameView", cand, "roundtrip_ms", rt["count"], rt["min"], rt["p50"], rt["mean"], rt["p95"], rt["max"]])
+            writer.writerow(
+                [
+                    "Capture",
+                    "GameView",
+                    cand,
+                    "roundtrip_ms",
+                    rt["count"],
+                    rt["min"],
+                    rt["p50"],
+                    rt["mean"],
+                    rt["p95"],
+                    rt["max"],
+                ]
+            )
             pb = data["payload_bytes"]
-            writer.writerow(["Capture", "GameView", cand, "payload_bytes", pb["count"], pb["min"], pb["p50"], pb["mean"], pb["p95"], pb["max"]])
+            writer.writerow(
+                [
+                    "Capture",
+                    "GameView",
+                    cand,
+                    "payload_bytes",
+                    pb["count"],
+                    pb["min"],
+                    pb["p50"],
+                    pb["mean"],
+                    pb["p95"],
+                    pb["max"],
+                ]
+            )
 
         # Transport benchmark
         for op, surfaces in all_results.get("transport_benchmark", {}).items():
             for surf, data in surfaces.items():
                 rt = data["roundtrip_ms"]
-                writer.writerow(["Transport", op, surf, "roundtrip_ms", rt["count"], rt["min"], rt["p50"], rt["mean"], rt["p95"], rt["max"]])
+                writer.writerow(
+                    [
+                        "Transport",
+                        op,
+                        surf,
+                        "roundtrip_ms",
+                        rt["count"],
+                        rt["min"],
+                        rt["p50"],
+                        rt["mean"],
+                        rt["p95"],
+                        rt["max"],
+                    ]
+                )
 
         # Hybrid parity
         for cmd, transports in all_results.get("hybrid_parity", {}).items():
             for trans, data in transports.items():
                 rt = data["roundtrip_ms"]
-                writer.writerow(["HybridParity", cmd, trans, "roundtrip_ms", rt["count"], rt["min"], rt["p50"], rt["mean"], rt["p95"], rt["max"]])
+                writer.writerow(
+                    [
+                        "HybridParity",
+                        cmd,
+                        trans,
+                        "roundtrip_ms",
+                        rt["count"],
+                        rt["min"],
+                        rt["p50"],
+                        rt["mean"],
+                        rt["p95"],
+                        rt["max"],
+                    ]
+                )
 
     print(f"Saved summary CSV results to {CSV_OUTPUT}")
     print("\nBenchmark program completed successfully!")
+
 
 if __name__ == "__main__":
     main()

@@ -47,9 +47,7 @@ def call_or_fail(method: str, params: dict[str, Any] | None = None) -> Any:
     return res.get("result", res)
 
 
-def bootstrap_ci_95(
-    data: list[float], resamples: int = 1000
-) -> dict[str, float]:
+def bootstrap_ci_95(data: list[float], resamples: int = 1000) -> dict[str, float]:
     """Calculate 95% bootstrap confidence interval for the mean."""
     if not data:
         return {"ci_low": 0.0, "ci_high": 0.0}
@@ -114,14 +112,8 @@ def get_hardware_environment() -> dict[str, Any]:
     }
     if sys.platform == "darwin":
         try:
-            model = subprocess.check_output(
-                ["sysctl", "-n", "hw.model"], text=True
-            ).strip()
-            mem_bytes = int(
-                subprocess.check_output(
-                    ["sysctl", "-n", "hw.memsize"], text=True
-                ).strip()
-            )
+            model = subprocess.check_output(["sysctl", "-n", "hw.model"], text=True).strip()
+            mem_bytes = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"], text=True).strip())
             env["mac_model"] = model
             env["ram_gb"] = round(mem_bytes / (1024**3), 1)
         except Exception:
@@ -136,9 +128,7 @@ def main():  # noqa: PLR0915
 
     server_status = wait_for_server()
     hw_env = get_hardware_environment()
-    print(
-        f"Host Machine    : {hw_env.get('mac_model', 'Unknown')} ({hw_env.get('ram_gb')} GB RAM)"
-    )
+    print(f"Host Machine    : {hw_env.get('mac_model', 'Unknown')} ({hw_env.get('ram_gb')} GB RAM)")
     print(f"Unity Version   : {server_status.get('unityVersion')}")
     print(f"Session Gen     : {server_status.get('sessionGeneration')}")
     print(f"Server Port     : {server_status.get('port')}")
@@ -150,9 +140,7 @@ def main():  # noqa: PLR0915
             "unity_version": server_status.get("unityVersion"),
             "session_id": server_status.get("sessionId"),
             "session_generation": server_status.get("sessionGeneration"),
-            "timestamp_utc": time.strftime(
-                "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
-            ),
+            "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
     }
 
@@ -177,12 +165,8 @@ def main():  # noqa: PLR0915
     # -------------------------------------------------------------------------
     # 2. ASYNC RPC STRESS TEST
     # -------------------------------------------------------------------------
-    print(
-        "\n[Stage 2/14] Async RPC Stress Test (50 requests, 10 concurrency)..."
-    )
-    rpc_stress = call_or_fail(
-        "benchmark_async_rpc_stress", {"concurrency": 10, "requests": 50}
-    )
+    print("\n[Stage 2/14] Async RPC Stress Test (50 requests, 10 concurrency)...")
+    rpc_stress = call_or_fail("benchmark_async_rpc_stress", {"concurrency": 10, "requests": 50})
     results["async_rpc_stress"] = rpc_stress
     print(f"  Completed      : {rpc_stress['completed']}/50")
     print(f"  Errors         : {rpc_stress['errors']}")
@@ -220,9 +204,7 @@ def main():  # noqa: PLR0915
     # -------------------------------------------------------------------------
     # 5. R1 TEMPORAL CONTRACT DELAYS
     # -------------------------------------------------------------------------
-    print(
-        "\n[Stage 5/14] R1 GetData() Temporal Contract Delays (0, 1, 2, 3, 5, 10 ticks)..."
-    )
+    print("\n[Stage 5/14] R1 GetData() Temporal Contract Delays (0, 1, 2, 3, 5, 10 ticks)...")
     temporal_delays = call_or_fail("benchmark_r1_temporal_delays")
     results["r1_temporal_delays"] = temporal_delays
     for d in temporal_delays.get("delay_records", []):
@@ -237,20 +219,14 @@ def main():  # noqa: PLR0915
     print("\n[Stage 6/14] Dynamic Resolution Cycling (50 cycles)...")
     dyn_res = call_or_fail("benchmark_dynamic_resolution", {"cycles": 50})
     results["dynamic_resolution_cycling"] = dyn_res
-    print(
-        f"  R1 Success     : {dyn_res['r1_success_count']}/{dyn_res['total_cycles']}"
-    )
-    print(
-        f"  R2 Success     : {dyn_res['r2_success_count']}/{dyn_res['total_cycles']}"
-    )
+    print(f"  R1 Success     : {dyn_res['r1_success_count']}/{dyn_res['total_cycles']}")
+    print(f"  R2 Success     : {dyn_res['r2_success_count']}/{dyn_res['total_cycles']}")
     print(f"  Net Heap Growth: {dyn_res['net_heap_growth_bytes']:,} bytes")
 
     # -------------------------------------------------------------------------
     # 7. READBACK-ONLY R1 VS R2 (5 sessions x 200 samples = 1,000 samples each)
     # -------------------------------------------------------------------------
-    print(
-        "\n[Stage 7/14] Readback-Only R1 vs R2 (5 sessions x 200 samples = 1,000 each)..."
-    )
+    print("\n[Stage 7/14] Readback-Only R1 vs R2 (5 sessions x 200 samples = 1,000 each)...")
     readback_sessions = []
     all_r1_samples = []
     all_r2_samples = []
@@ -291,10 +267,14 @@ def main():  # noqa: PLR0915
         "r1_submit_cpu_ms": compute_python_stats(r1_submit_times),
         "r2_submit_cpu_ms": compute_python_stats(r2_submit_times),
     }
-    print(f"  R1 Wait p50    : {results['readback_r1_vs_r2']['r1_wait_ms']['p50']:.2f} ms "
-          f"(mean={results['readback_r1_vs_r2']['r1_wait_ms']['mean']:.2f} ms)")
-    print(f"  R2 Wait p50    : {results['readback_r1_vs_r2']['r2_wait_ms']['p50']:.2f} ms "
-          f"(mean={results['readback_r1_vs_r2']['r2_wait_ms']['mean']:.2f} ms)")
+    print(
+        f"  R1 Wait p50    : {results['readback_r1_vs_r2']['r1_wait_ms']['p50']:.2f} ms "
+        f"(mean={results['readback_r1_vs_r2']['r1_wait_ms']['mean']:.2f} ms)"
+    )
+    print(
+        f"  R2 Wait p50    : {results['readback_r1_vs_r2']['r2_wait_ms']['p50']:.2f} ms "
+        f"(mean={results['readback_r1_vs_r2']['r2_wait_ms']['mean']:.2f} ms)"
+    )
     print(f"  R1 GetData p50 : {results['readback_r1_vs_r2']['r1_getdata_ms']['p50']:.4f} ms")
 
     # -------------------------------------------------------------------------
@@ -322,7 +302,7 @@ def main():  # noqa: PLR0915
         "corpus_textured_gameplay",
         "corpus_particle_noise",
         "corpus_mixed_gameplay_ui",
-        "corpus_real_game_view"
+        "corpus_real_game_view",
     ]
     encoder_corpus_results = {}
     for cat in corpus_categories:
@@ -335,10 +315,18 @@ def main():  # noqa: PLR0915
     for cat_key in ["corpus_text_heavy_ui", "corpus_mixed_gameplay_ui"]:
         cr = encoder_corpus_results[cat_key]
         print(f"  Summary for {cat_key}:")
-        print(f"    Native PNG    : {cr['native_png']['median_ms']:.2f} ms, {cr['native_png']['output_bytes']:,} B, PSNR={cr['native_png']['psnr_db']:.1f} dB")
-        print(f"    JPG Q75       : {cr['native_jpg_q75']['median_ms']:.2f} ms, {cr['native_jpg_q75']['output_bytes']:,} B, PSNR={cr['native_jpg_q75']['psnr_db']:.1f} dB")
-        print(f"    JPG Q85       : {cr['native_jpg_q85']['median_ms']:.2f} ms, {cr['native_jpg_q85']['output_bytes']:,} B, PSNR={cr['native_jpg_q85']['psnr_db']:.1f} dB")
-        print(f"    JPG Q95       : {cr['native_jpg_q95']['median_ms']:.2f} ms, {cr['native_jpg_q95']['output_bytes']:,} B, PSNR={cr['native_jpg_q95']['psnr_db']:.1f} dB")
+        print(
+            f"    Native PNG    : {cr['native_png']['median_ms']:.2f} ms, {cr['native_png']['output_bytes']:,} B, PSNR={cr['native_png']['psnr_db']:.1f} dB"
+        )
+        print(
+            f"    JPG Q75       : {cr['native_jpg_q75']['median_ms']:.2f} ms, {cr['native_jpg_q75']['output_bytes']:,} B, PSNR={cr['native_jpg_q75']['psnr_db']:.1f} dB"
+        )
+        print(
+            f"    JPG Q85       : {cr['native_jpg_q85']['median_ms']:.2f} ms, {cr['native_jpg_q85']['output_bytes']:,} B, PSNR={cr['native_jpg_q85']['psnr_db']:.1f} dB"
+        )
+        print(
+            f"    JPG Q95       : {cr['native_jpg_q95']['median_ms']:.2f} ms, {cr['native_jpg_q95']['output_bytes']:,} B, PSNR={cr['native_jpg_q95']['psnr_db']:.1f} dB"
+        )
 
     # -------------------------------------------------------------------------
     # 10. GPU DOWNSCALE MATRIX
@@ -347,9 +335,11 @@ def main():  # noqa: PLR0915
     downscale_matrix = call_or_fail("benchmark_downscale_matrix", {"iterations": 10})
     results["downscale_matrix"] = downscale_matrix
     for row in downscale_matrix.get("downscale_targets", []):
-        print(f"  Target {row['target_long_edge']}p ({row['dimensions']}): "
-              f"blit_cpu={row['blit_submit_cpu_ms']:.4f}ms, readback={row['readback_wait_ms']:.2f}ms, "
-              f"jpg_enc={row['encode_ms']:.2f}ms, bytes={row['output_bytes']:,}")
+        print(
+            f"  Target {row['target_long_edge']}p ({row['dimensions']}): "
+            f"blit_cpu={row['blit_submit_cpu_ms']:.4f}ms, readback={row['readback_wait_ms']:.2f}ms, "
+            f"jpg_enc={row['encode_ms']:.2f}ms, bytes={row['output_bytes']:,}"
+        )
 
     # -------------------------------------------------------------------------
     # 11. SOURCE FRESHNESS MATRIX (Public vs Reflected across 12 states)
@@ -367,31 +357,31 @@ def main():  # noqa: PLR0915
         "play_hidden_docked",
         "play_paused",
         "play_entering",
-        "play_exiting"
+        "play_exiting",
     ]
     freshness_matrix = {}
     for backend in ["public", "reflected"]:
         freshness_matrix[backend] = {}
         for cond in conditions:
             print(f"  Testing {backend} in {cond} (30 samples)...")
-            res = call_or_fail("benchmark_source_freshness", {
-                "backend": backend,
-                "condition": cond,
-                "iterations": 30
-            })
+            res = call_or_fail("benchmark_source_freshness", {"backend": backend, "condition": cond, "iterations": 30})
             freshness_matrix[backend][cond] = res
-            print(f"    -> success={res['success_rate']*100:.0f}%, "
-                  f"stale={res['stale_rate']*100:.0f}%, "
-                  f"supported={res['public_edit_mode_supported']}, "
-                  f"acq_p50={res['acquisition_ms']['p50']:.3f}ms")
+            print(
+                f"    -> success={res['success_rate'] * 100:.0f}%, "
+                f"stale={res['stale_rate'] * 100:.0f}%, "
+                f"supported={res['public_edit_mode_supported']}, "
+                f"acq_p50={res['acquisition_ms']['p50']:.3f}ms"
+            )
     results["source_freshness_matrix"] = freshness_matrix
 
     # Private RT lifetime verification
     print("  Testing Private RT Lifetime Isolation...")
     private_rt_life = call_or_fail("benchmark_private_rt_lifetime")
     results["private_rt_lifetime"] = private_rt_life
-    print(f"    -> Status: {private_rt_life.get('status')}, "
-          f"Intact after mutation: {private_rt_life.get('nexus_copy_intact_after_mutation')}")
+    print(
+        f"    -> Status: {private_rt_life.get('status')}, "
+        f"Intact after mutation: {private_rt_life.get('nexus_copy_intact_after_mutation')}"
+    )
 
     # -------------------------------------------------------------------------
     # 12. LEGACY INSPECTOR / EDITOR WINDOW BASELINE
@@ -418,13 +408,10 @@ def main():  # noqa: PLR0915
 
         for _batch in range(5):  # 5 batches of 20 = 100 samples
             t0 = time.perf_counter()
-            u_res = call_or_fail("benchmark_pipeline", {
-                "pipeline": pipe,
-                "iterations": 20,
-                "width": 1920,
-                "height": 1080,
-                "jpeg_quality": 85
-            })
+            u_res = call_or_fail(
+                "benchmark_pipeline",
+                {"pipeline": pipe, "iterations": 20, "width": 1920, "height": 1080, "jpeg_quality": 85},
+            )
             t1 = time.perf_counter()
             # Approximate per-request python roundtrip in batch
             batch_total_ms = (t1 - t0) * 1000.0
@@ -433,11 +420,7 @@ def main():  # noqa: PLR0915
             unity_metrics = u_res  # keep latest batch metrics
 
         py_stats = compute_python_stats(python_roundtrips)
-        e2e_results[pipe] = {
-            "pipeline": pipe,
-            "python_roundtrip_ms": py_stats,
-            "unity_metrics": unity_metrics
-        }
+        e2e_results[pipe] = {"pipeline": pipe, "python_roundtrip_ms": py_stats, "unity_metrics": unity_metrics}
         print(f"    Python Roundtrip p50: {py_stats['p50']:.2f} ms (p95={py_stats['p95']:.2f} ms)")
         print(f"    Unity Main Stall p50: {unity_metrics['main_thread_stall_ms']['p50']:.2f} ms")
         print(f"    Payload Bytes       : {unity_metrics['payload_bytes']:,} bytes")
@@ -457,29 +440,119 @@ def main():  # noqa: PLR0915
     csv_path = os.path.join(PACKAGE_ROOT, "capture-validation-results.csv")
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["Category", "Candidate", "Metric", "Count", "Min", "p50", "Mean", "p95", "p99", "Max", "StdDev", "CI95_Low", "CI95_High"])
+        writer.writerow(
+            [
+                "Category",
+                "Candidate",
+                "Metric",
+                "Count",
+                "Min",
+                "p50",
+                "Mean",
+                "p95",
+                "p99",
+                "Max",
+                "StdDev",
+                "CI95_Low",
+                "CI95_High",
+            ]
+        )
 
         # Readback R1 vs R2
         for cand, key in [("R1", "r1_wait_ms"), ("R2", "r2_wait_ms")]:
             m = results["readback_r1_vs_r2"][key]
-            writer.writerow(["Readback_Wait", cand, "wait_ms", m["count"], m["min"], m["p50"], m["mean"], m["p95"], m["p99"], m["max"], m["std_dev"], m["ci_95_low"], m["ci_95_high"]])
+            writer.writerow(
+                [
+                    "Readback_Wait",
+                    cand,
+                    "wait_ms",
+                    m["count"],
+                    m["min"],
+                    m["p50"],
+                    m["mean"],
+                    m["p95"],
+                    m["p99"],
+                    m["max"],
+                    m["std_dev"],
+                    m["ci_95_low"],
+                    m["ci_95_high"],
+                ]
+            )
 
         # End-to-End Python Roundtrip
         for pipe in candidate_pipelines:
             m = e2e_results[pipe]["python_roundtrip_ms"]
-            writer.writerow(["EndToEnd_Roundtrip", pipe, "python_roundtrip_ms", m["count"], m["min"], m["p50"], m["mean"], m["p95"], m["p99"], m["max"], m["std_dev"], m["ci_95_low"], m["ci_95_high"]])
+            writer.writerow(
+                [
+                    "EndToEnd_Roundtrip",
+                    pipe,
+                    "python_roundtrip_ms",
+                    m["count"],
+                    m["min"],
+                    m["p50"],
+                    m["mean"],
+                    m["p95"],
+                    m["p99"],
+                    m["max"],
+                    m["std_dev"],
+                    m["ci_95_low"],
+                    m["ci_95_high"],
+                ]
+            )
 
         # End-to-End Unity Stall
         for pipe in candidate_pipelines:
             m = e2e_results[pipe]["unity_metrics"]["main_thread_stall_ms"]
-            writer.writerow(["EndToEnd_Stall", pipe, "main_thread_stall_ms", m["count"], m["min"], m["p50"], m["mean"], m["p95"], m["p99"], m["max"], m["std_dev"], 0.0, 0.0])
+            writer.writerow(
+                [
+                    "EndToEnd_Stall",
+                    pipe,
+                    "main_thread_stall_ms",
+                    m["count"],
+                    m["min"],
+                    m["p50"],
+                    m["mean"],
+                    m["p95"],
+                    m["p99"],
+                    m["max"],
+                    m["std_dev"],
+                    0.0,
+                    0.0,
+                ]
+            )
 
         # Encoders for text-heavy and mixed
         for cat in ["corpus_text_heavy_ui", "corpus_mixed_gameplay_ui"]:
             c_res = encoder_corpus_results[cat]
-            for enc_name in ["baseline_png", "native_png", "native_jpg_q60", "native_jpg_q70", "native_jpg_q75", "native_jpg_q80", "native_jpg_q85", "native_jpg_q90", "native_jpg_q95"]:
+            for enc_name in [
+                "baseline_png",
+                "native_png",
+                "native_jpg_q60",
+                "native_jpg_q70",
+                "native_jpg_q75",
+                "native_jpg_q80",
+                "native_jpg_q85",
+                "native_jpg_q90",
+                "native_jpg_q95",
+            ]:
                 e = c_res[enc_name]
-                writer.writerow([f"Encoder_{cat}", enc_name, "duration_ms", 10, e["min_ms"], e["median_ms"], e["mean_ms"], e["p95_ms"], e["p95_ms"], e["max_ms"], e["stddev_ms"], 0.0, 0.0])
+                writer.writerow(
+                    [
+                        f"Encoder_{cat}",
+                        enc_name,
+                        "duration_ms",
+                        10,
+                        e["min_ms"],
+                        e["median_ms"],
+                        e["mean_ms"],
+                        e["p95_ms"],
+                        e["p95_ms"],
+                        e["max_ms"],
+                        e["stddev_ms"],
+                        0.0,
+                        0.0,
+                    ]
+                )
 
     print(f"Saved: {csv_path}")
 
@@ -488,6 +561,7 @@ def main():  # noqa: PLR0915
         meta_file = artifact_file + ".meta"
         if not os.path.exists(meta_file):
             import uuid  # noqa: PLC0415
+
             guid_hex = uuid.uuid4().hex
             with open(meta_file, "w", encoding="utf-8") as mf:
                 mf.write(f"fileFormatVersion: 2\nguid: {guid_hex}\n")

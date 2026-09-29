@@ -3,6 +3,7 @@
 
 Does not call Nexus HTTP. Requires a running Editor with Pipeline on 7800+.
 """
+
 from __future__ import annotations
 
 import json
@@ -58,17 +59,19 @@ def main() -> int:
         if not ok:
             errors += 1
         if i >= WARMUPS:
-            samples.append({
-                "ok": ok,
-                "roundtrip_ms": rt,
-                "acquisition_ms": data.get("acquisition_ms"),
-                "submit_ms": data.get("submit_ms"),
-                "wait_ms": data.get("wait_ms"),
-                "encode_ms": data.get("encode_ms"),
-                "main_thread_stall_ms": data.get("main_thread_stall_ms"),
-                "total_ms": data.get("total_ms"),
-                "bytes": data.get("bytes"),
-            })
+            samples.append(
+                {
+                    "ok": ok,
+                    "roundtrip_ms": rt,
+                    "acquisition_ms": data.get("acquisition_ms"),
+                    "submit_ms": data.get("submit_ms"),
+                    "wait_ms": data.get("wait_ms"),
+                    "encode_ms": data.get("encode_ms"),
+                    "main_thread_stall_ms": data.get("main_thread_stall_ms"),
+                    "total_ms": data.get("total_ms"),
+                    "bytes": data.get("bytes"),
+                }
+            )
 
     # CLI args are positional (width, height, format, quality, max_dimension).
     # Do not pass format=png: global --format collides, and named args bind the next flag.
@@ -91,9 +94,17 @@ def main() -> int:
         "stall_p50_ms": statistics.median(stalls) if stalls else None,
         "wait_p50_ms": statistics.median(waits) if waits else None,
         "blocking_regression": (statistics.median(stalls) if stalls else 0) > 40,
-        "png": {"ok": png.get("encoding") == "png" and png.get("success"), "width": png.get("width"), "height": png.get("height")},
+        "png": {
+            "ok": png.get("encoding") == "png" and png.get("success"),
+            "width": png.get("width"),
+            "height": png.get("height"),
+        },
         "quality50": {"ok": q50.get("success"), "bytes": q50.get("bytes")},
-        "normalize_1600x900": {"ok": norm.get("width") == 1600 and norm.get("height") == 900, "width": norm.get("width"), "height": norm.get("height")},
+        "normalize_1600x900": {
+            "ok": norm.get("width") == 1600 and norm.get("height") == 900,
+            "width": norm.get("width"),
+            "height": norm.get("height"),
+        },
         "unsupported_format_errors": not bool(bad.get("success")),
     }
     print(json.dumps(report, indent=2))

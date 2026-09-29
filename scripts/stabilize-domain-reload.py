@@ -3,6 +3,7 @@
 
 Does not call Nexus HTTP. Requires a running Editor with Pipeline.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,8 +25,7 @@ def run_cmd(args: list[str], timeout: int = 180) -> dict:
     env["UNITY_NO_BANNER"] = "1"
     env["UNITY_NON_INTERACTIVE"] = "1"
     proc = subprocess.run(
-        ["unity", "command", "--project-path", str(PROJ), "--json", "--result-only",
-         "--timeout", str(timeout), *args],
+        ["unity", "command", "--project-path", str(PROJ), "--json", "--result-only", "--timeout", str(timeout), *args],
         capture_output=True,
         text=True,
         env=env,
@@ -72,14 +72,16 @@ def main() -> int:
             pending_failures += 0
         else:
             pending_failures += 1
-        cycles.append({
-            "i": i,
-            "pending_ok": pending_ok,
-            "reload_ok": reload.get("success", True),
-            "ready": ready,
-            "recovered": recovered,
-            "elapsed_ms": elapsed,
-        })
+        cycles.append(
+            {
+                "i": i,
+                "pending_ok": pending_ok,
+                "reload_ok": reload.get("success", True),
+                "ready": ready,
+                "recovered": recovered,
+                "elapsed_ms": elapsed,
+            }
+        )
         if not ready:
             break
 

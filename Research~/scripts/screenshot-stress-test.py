@@ -146,7 +146,7 @@ def run_phase1_burst_stress(iterations: int) -> tuple[bool, LatencyStats, Latenc
 
         valid, err, _w, _h = validate_screenshot_payload(game_res, "capture_game_view_screenshot")
         if not valid:
-            print(f"  [FAIL] Iteration {i+1} Game View: {err}")
+            print(f"  [FAIL] Iteration {i + 1} Game View: {err}")
             success = False
             break
 
@@ -158,12 +158,12 @@ def run_phase1_burst_stress(iterations: int) -> tuple[bool, LatencyStats, Latenc
 
         valid, err, _w, _h = validate_screenshot_payload(inspector_res, "capture_inspector_screenshot")
         if not valid:
-            print(f"  [FAIL] Iteration {i+1} Inspector: {err}")
+            print(f"  [FAIL] Iteration {i + 1} Inspector: {err}")
             success = False
             break
 
         if (i + 1) % 10 == 0 or i == iterations - 1:
-            print(f"  Completed {i+1}/{iterations} burst iterations...")
+            print(f"  Completed {i + 1}/{iterations} burst iterations...")
 
     print(f"  Game View Latency:  {game_stats.summary()}")
     print(f"  Inspector Latency:  {inspector_stats.summary()}")
@@ -257,7 +257,7 @@ def run_phase3_selection_churn_stress(cycles: int) -> tuple[bool, LatencyStats]:
 
                 valid, err, _, _ = validate_screenshot_payload(res, "capture_inspector_screenshot")
                 if not valid:
-                    print(f"  [FAIL] Cycle {cycle+1} object '{name}': {err}")
+                    print(f"  [FAIL] Cycle {cycle + 1} object '{name}': {err}")
                     success = False
                     break
 
@@ -271,7 +271,7 @@ def run_phase3_selection_churn_stress(cycles: int) -> tuple[bool, LatencyStats]:
             if not success:
                 break
             if (cycle + 1) % 5 == 0 or cycle == cycles - 1:
-                print(f"  Completed {cycle+1}/{cycles} selection churn cycles...")
+                print(f"  Completed {cycle + 1}/{cycles} selection churn cycles...")
 
     finally:
         print("  Cleaning up test objects...")
@@ -299,28 +299,34 @@ def run_phase4_window_geometry_stress() -> tuple[bool, LatencyStats]:
         orig_rect = {"x": 80, "y": 80, "width": 640, "height": 720}
 
     test_geometries = [
-        {"x": 80, "y": 80, "width": 320, "height": 420},   # Minimum supported
-        {"x": 80, "y": 80, "width": 800, "height": 600},   # Standard 4:3
+        {"x": 80, "y": 80, "width": 320, "height": 420},  # Minimum supported
+        {"x": 80, "y": 80, "width": 800, "height": 600},  # Standard 4:3
         {"x": 60, "y": 60, "width": 1000, "height": 450},  # Wide aspect
-        {"x": 60, "y": 60, "width": 450, "height": 900},   # Tall portrait
+        {"x": 60, "y": 60, "width": 450, "height": 900},  # Tall portrait
     ]
 
     try:
         for _idx, geom in enumerate(test_geometries):
-            bridge_call("ui_automation", {
-                "action": "set_window_rect",
-                "window_title": "Nexus Unity",
-                **geom,
-            })
+            bridge_call(
+                "ui_automation",
+                {
+                    "action": "set_window_rect",
+                    "window_title": "Nexus Unity",
+                    **geom,
+                },
+            )
             time.sleep(0.05)  # Allow Editor UI to layout
 
             t0 = time.perf_counter()
-            snap = bridge_call("ui_automation", {
-                "action": "capture_window_snapshot",
-                "window_title": "Nexus Unity",
-                "include_image": True,
-                "include_hierarchy": True,
-            })
+            snap = bridge_call(
+                "ui_automation",
+                {
+                    "action": "capture_window_snapshot",
+                    "window_title": "Nexus Unity",
+                    "include_image": True,
+                    "include_hierarchy": True,
+                },
+            )
             dt_ms = (time.perf_counter() - t0) * 1000.0
             resize_stats.record(dt_ms)
 
@@ -335,21 +341,26 @@ def run_phase4_window_geometry_stress() -> tuple[bool, LatencyStats]:
                 img_bytes = base64.b64decode(raw_b64)
                 dims = parse_png_dimensions(img_bytes)
                 if dims:
-                    print(f"  Geom {geom['width']}x{geom['height']} -> captured {dims[0]}x{dims[1]} ({len(img_bytes)} bytes) in {dt_ms:.1f}ms")
+                    print(
+                        f"  Geom {geom['width']}x{geom['height']} -> captured {dims[0]}x{dims[1]} ({len(img_bytes)} bytes) in {dt_ms:.1f}ms"
+                    )
             else:
                 print(f"  Geom {geom['width']}x{geom['height']} snapshot returned without image.")
 
     finally:
         # Restore original window rect
         with contextlib.suppress(Exception):
-            bridge_call("ui_automation", {
-                "action": "set_window_rect",
-                "window_title": "Nexus Unity",
-                "x": orig_rect.get("x", 80),
-                "y": orig_rect.get("y", 80),
-                "width": orig_rect.get("width", 640),
-                "height": orig_rect.get("height", 720),
-            })
+            bridge_call(
+                "ui_automation",
+                {
+                    "action": "set_window_rect",
+                    "window_title": "Nexus Unity",
+                    "x": orig_rect.get("x", 80),
+                    "y": orig_rect.get("y", 80),
+                    "width": orig_rect.get("width", 640),
+                    "height": orig_rect.get("height", 720),
+                },
+            )
 
     print(f"  Window Resize Latency: {resize_stats.summary()}")
     return success, resize_stats
@@ -384,7 +395,9 @@ def run_phase5_boundary_and_recovery_stress() -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="NexusUnity Screenshot Stress Test Suite")
-    parser.add_argument("--burst-count", type=int, default=50, help="Number of sequential burst iterations (default: 50)")
+    parser.add_argument(
+        "--burst-count", type=int, default=50, help="Number of sequential burst iterations (default: 50)"
+    )
     parser.add_argument("--concurrency", type=int, default=8, help="Number of concurrent worker threads (default: 8)")
     parser.add_argument("--concurrent-tasks", type=int, default=40, help="Number of concurrent tasks (default: 40)")
     parser.add_argument("--churn-cycles", type=int, default=15, help="Number of selection churn cycles (default: 15)")

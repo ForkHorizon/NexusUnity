@@ -179,7 +179,7 @@ namespace UnityMCP.Editor.Tests
                     "Editor", "Pipeline", "NexusPipelineCommands.cs");
             }
 
-            Assume.That(File.Exists(path), "Pipeline command wrapper source should exist in the package.");
+            if (!File.Exists(path)) Assert.Ignore("Pipeline command wrapper source should exist in the package.");
             string text = File.ReadAllText(path);
             Assert.IsFalse(text.Contains("GetAwaiter().GetResult()"));
             Assert.IsFalse(text.Contains(".Result"));

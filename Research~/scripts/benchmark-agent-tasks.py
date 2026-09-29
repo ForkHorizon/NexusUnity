@@ -24,26 +24,24 @@ OUTPUT_JSON = os.path.join(PACKAGE_ROOT, "agent-tasks-benchmark.json")
 
 NEXUS_PORT = 8081
 
+
 def get_auth_token() -> str:
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, encoding="utf-8") as f:
             return f.read().strip()
     return ""
 
+
 AUTH_TOKEN = get_auth_token()
 
+
 def call_nexus_http(method: str, params: dict[str, Any] | None = None) -> tuple[dict[str, Any], float, int]:
-    payload = {
-        "jsonrpc": "2.0",
-        "id": int(time.time() * 1000) % 1000000,
-        "method": method,
-        "params": params or {}
-    }
+    payload = {"jsonrpc": "2.0", "id": int(time.time() * 1000) % 1000000, "method": method, "params": params or {}}
     raw = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         f"http://127.0.0.1:{NEXUS_PORT}",
         data=raw,
-        headers={"Content-Type": "application/json", "X-Nexus-Unity-Token": AUTH_TOKEN}
+        headers={"Content-Type": "application/json", "X-Nexus-Unity-Token": AUTH_TOKEN},
     )
     t0 = time.perf_counter()
     with urllib.request.urlopen(req, timeout=30.0) as resp:
@@ -51,17 +49,14 @@ def call_nexus_http(method: str, params: dict[str, Any] | None = None) -> tuple[
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
     return json.loads(resp_data.decode("utf-8")), elapsed_ms, len(resp_data)
 
+
 class UnityMcpSession:
     def __init__(self):
         self._start_proc()
 
     def _start_proc(self):
         self.proc = subprocess.Popen(
-            ["unity", "mcp"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
+            ["unity", "mcp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         self.req_id = 1
         init_req = {
@@ -71,8 +66,8 @@ class UnityMcpSession:
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "agent-tasks-benchmark", "version": "1.0"}
-            }
+                "clientInfo": {"name": "agent-tasks-benchmark", "version": "1.0"},
+            },
         }
         self.send(init_req)
         self.read_response(self.req_id)
@@ -102,10 +97,7 @@ class UnityMcpSession:
             "jsonrpc": "2.0",
             "id": current_id,
             "method": "tools/call",
-            "params": {
-                "name": tool_name,
-                "arguments": arguments or {}
-            }
+            "params": {"name": tool_name, "arguments": arguments or {}},
         }
         t0 = time.perf_counter()
         self.send(req)
@@ -120,6 +112,7 @@ class UnityMcpSession:
             self.proc.wait(timeout=2)
         except Exception:
             pass
+
 
 def main():  # noqa: PLR0915
     print("======================================================================")
@@ -142,7 +135,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_a,
             "total_payload_bytes": b1_a,
-            "description": "Single curated project intelligence map with active scene objects and git state."
+            "description": "Single curated project intelligence map with active scene objects and git state.",
         }
 
         # Arch B (Official Unity MCP)
@@ -156,7 +149,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 4,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b + b2_b + b3_b + b4_b,
-            "description": "4 separate low-level tool calls (editor_status, list_open_scenes, get_scene_hierarchy, package_list)."
+            "description": "4 separate low-level tool calls (editor_status, list_open_scenes, get_scene_hierarchy, package_list).",
         }
 
         # Arch C (Hybrid via Unity MCP)
@@ -167,13 +160,13 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_c,
             "total_payload_bytes": b1_c,
-            "description": "Curated Nexus project map exposed as [CliCommand] over Unity MCP."
+            "description": "Curated Nexus project map exposed as [CliCommand] over Unity MCP.",
         }
 
         task_results["task1_project_context"] = {
             "arch_a_nexus": task1_a,
             "arch_b_official": task1_b,
-            "arch_c_hybrid": task1_c
+            "arch_c_hybrid": task1_c,
         }
 
         # -------------------------------------------------------------
@@ -188,7 +181,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_a,
             "total_payload_bytes": b1_a,
-            "description": "Aggregated, grouped, de-duplicated error summary by file/line."
+            "description": "Aggregated, grouped, de-duplicated error summary by file/line.",
         }
 
         # Arch B
@@ -199,7 +192,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b,
-            "description": "Raw unstructured console log tail dumping noisy stack traces."
+            "description": "Raw unstructured console log tail dumping noisy stack traces.",
         }
 
         # Arch C
@@ -210,13 +203,13 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_c,
             "total_payload_bytes": b1_c,
-            "description": "Grouped diagnostic summary exposed as [CliCommand] over Unity MCP."
+            "description": "Grouped diagnostic summary exposed as [CliCommand] over Unity MCP.",
         }
 
         task_results["task2_diagnose_errors"] = {
             "arch_a_nexus": task2_a,
             "arch_b_official": task2_b,
-            "arch_c_hybrid": task2_c
+            "arch_c_hybrid": task2_c,
         }
 
         # -------------------------------------------------------------
@@ -233,7 +226,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 3,
             "total_ms": total_ms_a,
             "total_payload_bytes": b1_a + b2_a + b3_a,
-            "description": "find_objects -> set_transform (mutate) -> set_transform (restore)."
+            "description": "find_objects -> set_transform (mutate) -> set_transform (restore).",
         }
 
         # Arch B
@@ -246,7 +239,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 3,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b + b2_b + b3_b,
-            "description": "find_gameobjects -> set_transform (mutate) -> set_transform (restore)."
+            "description": "find_gameobjects -> set_transform (mutate) -> set_transform (restore).",
         }
 
         # Arch C (same pipeline tools used in hybrid)
@@ -254,13 +247,13 @@ def main():  # noqa: PLR0915
             "roundtrips": 3,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b + b2_b + b3_b,
-            "description": "Standard native Pipeline commands used directly."
+            "description": "Standard native Pipeline commands used directly.",
         }
 
         task_results["task3_inspect_mutate_transform"] = {
             "arch_a_nexus": task3_a,
             "arch_b_official": task3_b,
-            "arch_c_hybrid": task3_c
+            "arch_c_hybrid": task3_c,
         }
 
         # -------------------------------------------------------------
@@ -276,7 +269,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 2,
             "total_ms": total_ms_a,
             "total_payload_bytes": b1_a + b2_a,
-            "description": "get_editor_state -> read_logs."
+            "description": "get_editor_state -> read_logs.",
         }
 
         # Arch B
@@ -288,7 +281,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 2,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b + b2_b,
-            "description": "editor_status -> console."
+            "description": "editor_status -> console.",
         }
 
         # Arch C
@@ -296,13 +289,13 @@ def main():  # noqa: PLR0915
             "roundtrips": 2,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b + b2_b,
-            "description": "Native editor_status and console commands."
+            "description": "Native editor_status and console commands.",
         }
 
         task_results["task4_play_cycle_logs"] = {
             "arch_a_nexus": task4_a,
             "arch_b_official": task4_b,
-            "arch_c_hybrid": task4_c
+            "arch_c_hybrid": task4_c,
         }
 
         # -------------------------------------------------------------
@@ -317,7 +310,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_a,
             "total_payload_bytes": b1_a,
-            "description": "Nexus V2 R1 GPU readback + JPEG Q85 encoding. Includes Screen Space UI overlays."
+            "description": "Nexus V2 R1 GPU readback + JPEG Q85 encoding. Includes Screen Space UI overlays.",
         }
 
         # Arch B (Official capture_game_view camera PNG)
@@ -328,7 +321,7 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_b,
             "total_payload_bytes": b1_b,
-            "description": "Official capture_game_view. Synchronous camera render to PNG. Misses UI overlays."
+            "description": "Official capture_game_view. Synchronous camera render to PNG. Misses UI overlays.",
         }
 
         # Arch C (Nexus V2 via Unity MCP)
@@ -339,13 +332,13 @@ def main():  # noqa: PLR0915
             "roundtrips": 1,
             "total_ms": total_ms_c,
             "total_payload_bytes": b1_c,
-            "description": "Nexus V2 R1 GPU readback + JPEG Q85 exposed as [CliCommand] over Unity MCP."
+            "description": "Nexus V2 R1 GPU readback + JPEG Q85 exposed as [CliCommand] over Unity MCP.",
         }
 
         task_results["task5_capture_game_view"] = {
             "arch_a_nexus": task5_a,
             "arch_b_official": task5_b,
-            "arch_c_hybrid": task5_c
+            "arch_c_hybrid": task5_c,
         }
 
     finally:
@@ -357,9 +350,16 @@ def main():  # noqa: PLR0915
     print(f"\nTask benchmark complete! Saved to {OUTPUT_JSON}")
     for tname, data in task_results.items():
         print(f"\n{tname.upper()}:")
-        print(f"  Arch A (Nexus HTTP):    {data['arch_a_nexus']['roundtrips']} roundtrips, {data['arch_a_nexus']['total_ms']:.2f} ms, {data['arch_a_nexus']['total_payload_bytes']} bytes")
-        print(f"  Arch B (Official Unity):{data['arch_b_official']['roundtrips']} roundtrips, {data['arch_b_official']['total_ms']:.2f} ms, {data['arch_b_official']['total_payload_bytes']} bytes")
-        print(f"  Arch C (Hybrid):        {data['arch_c_hybrid']['roundtrips']} roundtrips, {data['arch_c_hybrid']['total_ms']:.2f} ms, {data['arch_c_hybrid']['total_payload_bytes']} bytes")
+        print(
+            f"  Arch A (Nexus HTTP):    {data['arch_a_nexus']['roundtrips']} roundtrips, {data['arch_a_nexus']['total_ms']:.2f} ms, {data['arch_a_nexus']['total_payload_bytes']} bytes"
+        )
+        print(
+            f"  Arch B (Official Unity):{data['arch_b_official']['roundtrips']} roundtrips, {data['arch_b_official']['total_ms']:.2f} ms, {data['arch_b_official']['total_payload_bytes']} bytes"
+        )
+        print(
+            f"  Arch C (Hybrid):        {data['arch_c_hybrid']['roundtrips']} roundtrips, {data['arch_c_hybrid']['total_ms']:.2f} ms, {data['arch_c_hybrid']['total_payload_bytes']} bytes"
+        )
+
 
 if __name__ == "__main__":
     main()
