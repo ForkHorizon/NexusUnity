@@ -38,9 +38,10 @@ namespace UnityMCP.Editor.Commands
 
         /// <summary>
         /// Executes the project map command and returns JSON for Legacy HTTP/MCP.
+        /// Completes synchronously (already-completed task); the async signature only matches <see cref="INexusCommand"/>.
         /// </summary>
         /// <param name="parameters">Unused; the command has no arguments.</param>
-        /// <param name="cancellationToken">Unused; the command is synchronous.</param>
+        /// <param name="cancellationToken">Unused; the command completes synchronously and cannot be cancelled.</param>
         /// <returns>Structured project map JSON.</returns>
         public Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {

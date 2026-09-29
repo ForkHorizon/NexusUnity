@@ -17,7 +17,7 @@ namespace UnityMCP.Editor.Runtime
             NexusRuntimeCapabilities.Shared.BeginHealthProbe();
         }
 
-        /// <summary>Stops adapter bookkeeping. Pipeline CliCommands unload with the Editor domain.</summary>
+        /// <summary>Currently a no-op: the adapter holds no resources, and Pipeline CliCommands unload with the Editor domain.</summary>
         public void Stop()
         {
         }

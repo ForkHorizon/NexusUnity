@@ -42,7 +42,7 @@ namespace UnityMCP.Editor
         }
 
         /// <summary>
-        /// Restores the runtime preference to Auto.
+        /// Restores the requested runtime mode to its built-in default (currently <see cref="NexusRuntimeMode.Auto"/>).
         /// </summary>
         public static void ResetRuntimeModeDefault()
         {

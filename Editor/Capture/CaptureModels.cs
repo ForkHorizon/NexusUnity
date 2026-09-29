@@ -3,7 +3,7 @@ using System;
 namespace UnityMCP.Editor.Capture
 {
     /// <summary>
-    /// Compressed image format produced by Nexus Capture V2.
+    /// Image encodings supported by Nexus Capture V2: <see cref="CaptureFormat.Png"/> is lossless, <see cref="CaptureFormat.Jpeg"/> is lossy and smaller.
     /// </summary>
     public enum CaptureFormat
     {
@@ -108,7 +108,8 @@ namespace UnityMCP.Editor.Capture
     }
 
     /// <summary>
-    /// Transport-independent capture failure.
+    /// Capture failure carrying a stable <see cref="CaptureErrorCode"/> and a human-readable message.
+    /// Thrown by the capture gateway and translated by each transport (HTTP, Pipeline) without leaking transport details.
     /// </summary>
     public sealed class CaptureException : Exception
     {

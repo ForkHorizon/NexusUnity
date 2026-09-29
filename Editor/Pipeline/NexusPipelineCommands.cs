@@ -15,7 +15,8 @@ namespace UnityMCP.Editor.Pipeline
     public static class NexusPipelineCommands
     {
         /// <summary>
-        /// Pipeline projection of <see cref="ProjectMapCommand"/>.
+        /// Pipeline projection of <see cref="ProjectMapCommand"/>: returns a curated project intelligence map (build scenes,
+        /// color space, render pipeline) as a structured result. Read-only; it does not modify the project.
         /// </summary>
         [CliCommand(ProjectMapCommand.Alias, ProjectMapCommand.Description, Tags = new[] { "nexus", "context" })]
         public static NexusProjectMapResult ProjectMap()
@@ -24,7 +25,8 @@ namespace UnityMCP.Editor.Pipeline
         }
 
         /// <summary>
-        /// Pipeline projection of <see cref="GroupCompileErrorsCommand"/>.
+        /// Pipeline projection of <see cref="GroupCompileErrorsCommand"/>: extracts C# compiler errors (CSxxxx) from recent console logs
+        /// and groups them by originating file. Read-only; <c>max_logs</c> caps how many console entries are inspected.
         /// </summary>
         [CliCommand(GroupCompileErrorsCommand.Alias, GroupCompileErrorsCommand.Description, Tags = new[] { "nexus", "diagnostics" })]
         public static NexusCompileErrorsResult GroupCompileErrors(

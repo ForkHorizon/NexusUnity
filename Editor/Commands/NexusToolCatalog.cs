@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace UnityMCP.Editor.Commands
 {
     /// <summary>
-    /// Minimal curated tool profiles. Aliases stay dispatchable without being advertised twice.
+    /// Curated tool profiles that decide which tools <c>list_tools</c> advertises for each profile.
+    /// Canonical command aliases (for example <c>nexus_project_map</c>) stay dispatchable but are not advertised a second time.
     /// </summary>
     public static class NexusToolCatalog
     {

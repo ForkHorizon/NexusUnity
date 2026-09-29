@@ -1,8 +1,8 @@
 namespace UnityMCP.Editor.Runtime
 {
     /// <summary>
-    /// Resolves requested runtime mode to an effective transport.
-    /// Auto prefers Pipeline on eligible installs and Legacy otherwise.
+    /// Chooses the effective transport (Legacy HTTP or Pipeline) from the requested mode and the current capability snapshot.
+    /// Explicit Legacy and Pipeline are honoured as is; Auto uses Pipeline only when the install is eligible, otherwise Legacy.
     /// </summary>
     public static class NexusRuntimeSelector
     {
