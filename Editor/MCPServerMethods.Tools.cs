@@ -22,8 +22,8 @@ namespace UnityMCP.Editor
         /// <summary>Lists all available tools for the MCP server.</summary>
         private static JToken ListTools(JToken p)
         {
-            // Return cached version. Note: The returned JToken is shared and must NOT be modified by the caller.
-            if (_cachedTools != null) return _cachedTools;
+            string profile = (p as JObject)?["profile"]?.ToString();
+            if (string.IsNullOrEmpty(profile) && _cachedTools != null) return _cachedTools;
 
             var tools = new JArray();
             AddServerHealthTools(tools);
@@ -38,6 +38,7 @@ namespace UnityMCP.Editor
             AddSerializationTools(tools);
             AddLinterTools(tools);
             AddHighValueTools(tools);
+            AddCanonicalCommandTools(tools);
             AddPlayerPrefsTools(tools);
             AddScriptableObjectTools(tools);
             AddSyncTools(tools);
@@ -46,6 +47,17 @@ namespace UnityMCP.Editor
             AddTimelineTools(tools);
             AddContextTools(tools);
             AddDeltaTools(tools);
+
+            if (!string.IsNullOrEmpty(profile))
+            {
+                var filtered = new JArray();
+                foreach (JToken tool in tools)
+                {
+                    string name = tool?["name"]?.ToString();
+                    if (Commands.NexusToolCatalog.IsVisible(name, profile)) filtered.Add(tool);
+                }
+                return filtered;
+            }
 
             _cachedTools = tools;
             return tools;
@@ -170,10 +182,40 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("list_player_prefs", "List all PlayerPref keys and values", new JObject { }));
         }
 
+        private static void AddCanonicalCommandTools(JArray tools)
+        {
+            foreach (Commands.INexusCommand command in Commands.NexusCommandRegistry.All)
+            {
+                Commands.NexusCommandDescriptor descriptor = command.Descriptor;
+                JObject props = new JObject();
+                if (descriptor.Parameters != null)
+                {
+                    foreach (Commands.NexusCommandParameter parameter in descriptor.Parameters)
+                    {
+                        props[parameter.Name] = new JObject
+                        {
+                            ["type"] = parameter.JsonType,
+                            ["description"] = parameter.Description
+                        };
+                    }
+                }
+
+                tools.Add(CreateTool(descriptor.Id, descriptor.Description, props));
+            }
+        }
+
         private static void AddHighValueTools(JArray tools)
         {
-            tools.Add(CreateTool("capture_inspector_screenshot", "Capture PNG of Inspector (macOS only)", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }));
-            tools.Add(CreateTool("capture_game_view_screenshot", "Capture PNG of Game View", new JObject { }));
+            tools.Add(CreateTool("capture_inspector_screenshot", "Capture Inspector as a structured PNG result", new JObject { ["instance_id"] = new JObject { ["type"] = "integer" } }));
+            tools.Add(CreateTool("capture_game_view_screenshot", "Capture presented Game View pixels as a structured image result. Defaults to PNG; JPEG, quality, and downscale are optional.", new JObject
+            {
+                ["format"] = new JObject { ["type"] = "string", ["description"] = "png (default) or jpg/jpeg" },
+                ["quality"] = new JObject { ["type"] = "integer", ["description"] = "JPEG quality 1-100, default 85" },
+                ["width"] = new JObject { ["type"] = "integer", ["description"] = "Optional output width; 0 keeps source width" },
+                ["height"] = new JObject { ["type"] = "integer", ["description"] = "Optional output height; 0 keeps source height" },
+                ["max_long_edge"] = new JObject { ["type"] = "integer", ["description"] = "Optional max longest edge in pixels" },
+                ["include_telemetry"] = new JObject { ["type"] = "boolean", ["description"] = "Include capture stage timings when true" }
+            }));
             tools.Add(CreateTool("generate_mermaid_diagram", "Generate Mermaid diagram of scene", new JObject { }));
             tools.Add(CreateTool("semantic_find", "Find objects by semantic meaning", new JObject { ["query"] = new JObject { ["type"] = "string" } }, "query"));
         }

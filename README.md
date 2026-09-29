@@ -1,6 +1,6 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.5.0)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.6.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 [![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
@@ -8,15 +8,15 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.5.0`
+- Version: `1.7.0` (development)
 - License: `MIT`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
 
-Active public release. Current version: `1.5.0`.
+Development line for the upcoming `1.7.0` release. Latest public release: `1.6.0`.
 
-The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
+The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[1.7.0] - Unreleased` in `CHANGELOG.md` until the next tagged release.
 
 ## Screenshot / Demo
 
@@ -34,6 +34,17 @@ Open `Window > Nexus Unity` in the Unity Editor to use the server, integrations,
 - Local machine access to the Unity Editor.
 - Python 3 for MCP bridge integrations.
 
+## Support matrix
+
+| Environment | Transport |
+| :--- | :--- |
+| Unity 6000.x with `com.unity.pipeline` installed and a healthy Pipeline session | Preferred: Pipeline / persistent `unity mcp`. Runtime mode `auto` selects this. |
+| Unity 6000.x without Pipeline, or Pipeline unhealthy | Compatibility: Legacy HTTP/MCP on loopback (default port 8081). |
+
+`com.unity.pipeline` is **optional**. Nexus compiles and runs without it. Legacy HTTP is the minimal compatibility backend; it does not own Capture or command business logic. Removal of Legacy HTTP is not scheduled until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release after Pipeline-primary `auto`.
+
+See [BENCHMARKS.md](BENCHMARKS.md) for public validation evidence and the ongoing performance benchmark ledger.
+
 ## Install
 
 1. Open your Unity project.
@@ -48,7 +59,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.5.0
+https://github.com/ForkHorizon/NexusUnity.git#v1.6.0
 ```
 
 Nexus Unity does not declare Unity Project Auditor packages. Its lint tool always runs Nexus style and scene checks, and only includes Unity Project Auditor findings when the host project explicitly has compatible Project Auditor rules installed.
@@ -169,6 +180,9 @@ Root-deployed path:
 - `unity_asset_manager`: search, import, refresh, and manage prefab assets.
 - `unity_editor_controller`: play mode, menus, undo/redo, logs, editor state, asset refresh, and test-result polling.
 - `unity_ui_automation`: query and operate Unity Editor UI Toolkit windows, including window rects for resize QA.
+- `capture_game_view_screenshot` and `capture_inspector_screenshot`: structured image data with dimensions, base64 image bytes, and capture duration. Game View defaults to PNG and optionally accepts JPEG, quality, and downscale parameters.
+- Experimental canonical commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` share one handler each. When `com.unity.pipeline` is installed they are also available as optional Pipeline CLI/MCP commands.
+- Runtime mode defaults to `auto`: eligible Unity 6000 + Pipeline installs use Pipeline as primary and Legacy HTTP as fallback. Set Project Settings > Nexus Unity > Runtime to `legacy` to force HTTP. Legacy HTTP remains fully supported; removal is not scheduled until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release.
 
 See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 
@@ -265,9 +279,9 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-Do not bump `package.json` for every change while development is unreleased. Keep the package at the latest public release version, currently `1.5.0`, and record user-visible work under `[Unreleased]` in `CHANGELOG.md`.
+The current development line is `1.7.0`, following the latest public release `1.6.0`. Record user-visible work under `[1.7.0] - Unreleased` in `CHANGELOG.md` until the next tagged release.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new version section, update `package.json` and the visible version strings in `README.md`, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.5.0` and `v1.5.0`. Reserve patch bumps for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[1.7.0] - Unreleased` entries to the new dated release section, update the visible version strings, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.7.0` and `v1.7.0`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 

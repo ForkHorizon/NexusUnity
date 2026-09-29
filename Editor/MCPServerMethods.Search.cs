@@ -110,7 +110,7 @@ namespace UnityMCP.Editor
                 {
                     try
                     {
-                        return regex.IsMatch(go.name);
+                        return regex.IsMatch(go.name) || go.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0;
                     }
                     catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
                     {

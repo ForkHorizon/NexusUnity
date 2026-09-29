@@ -13,6 +13,7 @@
     ".ci-gates",
     ".git",
     "Tests~",
+    "Tests",
     "tools~",
     "Editor/tests",
     "ThirdParty",

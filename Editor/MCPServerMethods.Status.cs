@@ -64,7 +64,8 @@ namespace UnityMCP.Editor
                     ["busyReason"] = busyReason
                 },
                 ["lastHeartbeatUtc"] = MCPServer.LastMainThreadTickUtc.ToString("o"),
-                ["sessionGeneration"] = MCPServer.SessionGeneration
+                ["sessionGeneration"] = MCPServer.SessionGeneration,
+                ["runtime"] = Runtime.NexusRuntimeHost.ToStatusJson()
             };
         }
 

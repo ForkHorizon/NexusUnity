@@ -7,6 +7,8 @@
   ],
   "exclude_paths": [
     "Tests~/",
+    "Tests/",
+    "Research~/",
     "tools~/",
     "Plugins/"
   ],

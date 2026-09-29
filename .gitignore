@@ -153,4 +153,35 @@ AUDIT_FINDINGS.md*
 .mcp.json
 .mcp.json.bak-*
 CLAUDE.md
+CLAUDE.md.meta
 AGENTS.md.soma-backup-*
+
+# Generated research / benchmark output (keep scripts and reports; ignore result dumps)
+capture-validation-results.*
+capture-validation-results.*.meta
+capture_spikes_report.json
+capture_spikes_report.json.meta
+architecture-benchmark-results.*
+architecture-benchmark-results.*.meta
+agent-tasks-benchmark.json
+agent-tasks-benchmark.json.meta
+ambiguity-validation-results.json
+ambiguity-validation-results.json.meta
+nexus-mcp-tools.json
+nexus-mcp-tools.json.meta
+unity-cli-commands.json
+unity-cli-commands.json.meta
+unity-mcp-tools.json
+unity-mcp-tools.json.meta
+unity-pipeline-commands.json
+unity-pipeline-commands.json.meta
+captures/
+captures.meta
+stabilize-pipeline-capture-results.json
+stabilize-pipeline-capture-results.json.meta
+stabilize-domain-reload-results.json
+stabilize-domain-reload-results.json.meta
+
+# Local Assets-harness symlink so Unity Test Runner can load Tests~/Editor
+EditModeTests/
+EditModeTests.meta
