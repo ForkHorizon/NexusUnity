@@ -1,7 +1,8 @@
 # NEXUS UNITY — MASTER PLAN v2
 
-Version 2.1 · 2026-09-30 · Owners: Kiryl / Daliys (ForkHorizon)
+Version 2.2 · 2026-09-30 · Owners: Kiryl / Daliys (ForkHorizon)
 Revised after an adversarial review (technical + strategy challengers, independent judge); see §15.
+v2.2: aligned with two Unity research passes (what Unity ships now, what it is likely to ship next); see §14b.
 Horizon: 12 weeks (target start 2026-10-05) with two hard decision gates (week 4, week 9).
 **Status: ACTIVE. Supersedes `MASTER_PLAN.md` (v1, 2026-09-01) and the forward-looking parts of
 `ImageCapturePlan.md` (M0–M4 are done; M5 is replaced by §9 here).** Only one plan is active at a time.
@@ -67,6 +68,16 @@ skill, N=8–10 на ячейку, ≥2 задачи из стороннего o
 uLoop); публикация на OpenUPM вместе с 1.7.0; Windows-проверка до Gate B; COMPARISON с Ivan,
 Coplay, Funplay, akiojin, uLoop.
 
+**Сверка с Unity (v2.2, подробно в §14b).** Unity строит маленькие примитивы и CI-инструменты, а
+сценарии оставляет skills своих команд. Уже есть или скоро будет: `unity recompile` с файлом/строкой
+ошибок, тесты (`--affected`, JUnit), билды и hot reload в плеере, `batch` с одним Undo, `eval`,
+профайлер («до GA» по словам сотрудника), `simulate_key/pointer` (по отчёту — только в dev-плеере и
+только Input System; проверяем в P0-10). Это **не строим**, а оборачиваем. **Строим**: UI-таргетинг
+по имени (UGUI + UITK), проверки состояния/лога/UI/пикселей, сценарий verify (с выводом в JUnit),
+бюджетированный контекст, диагностику, которая работает даже в Safe Mode, правдивую готовность.
+**Срочно:** Pipeline 0.8.0-exp.1 (28.09) перенёс атрибуты в сборку `Unity.Pipeline.Attributes` —
+наша Pipeline-сборка, вероятно, перестанет компилироваться; P0-06 переходит в первые дни.
+
 **Решения, которые нужны от вас сейчас** — см. §10 (G1–G11). Рекомендации даны.
 
 ---------------------------------------------------------------------
@@ -81,7 +92,9 @@ No "DO NOT REOPEN" sections. Facts expire on a Unity / Pipeline version bump or 
 | F1 | Unity CLI 1.0.0-beta.11 (2026-09-22) + `com.unity.pipeline` (experimental, 0.x-exp), free, Unity 6.0+ | docs.unity.com/en-us/unity-cli/release-notes (via search only; docs.unity.com is not fetchable from the review container) | next CLI release |
 | F2 | Unity deprecated its in-Editor AI Assistant MCP server; `unity mcp` replaces it; Unity recommends `unity command`/`unity eval` over MCP for shell-capable agents | docs.unity.com/en-us/unity-cli/replace-mcp-server-unity-cli (via search) | next CLI release |
 | F3 | Pipeline built-ins include status, console, hierarchy, component get/set, play/stop, screenshot/capture_game_view, recompile, build, tests, packages, bakes, eval, menu, `set_autotick`; `[CliCommand]` auto-discovery with `MainThreadRequired` (default true); `unity shell --protocol ndjson` warm process. **`--detach` + `unity job` is sourced only from a forum post** (not in the official SKILL.md) → hypothesis until P0-10 | Unity-Technologies/skills `unity-cli` SKILL.md; community command list; beta.4 forum post | next Pipeline release / P0-10 |
-| F4 | No keyboard/mouse Play Mode input or UI automation found in official Unity CLI material | A §5 (official skill + references fetched) | **must be re-checked in P0-10 against live `unity command` listing** |
+| F4 | **Revised (v2.2):** Pipeline 0.7 reportedly ships `simulate_key` (down/up/press) and `simulate_pointer` (screen x/y, move/down/up/click), on the **runtime (dev Player) server only**, Input System only, no key hold, no text entry, no UI-element targeting. Whether they work in Editor Play Mode is unknown. No UI automation (UGUI/UITK) command exists. Reported from a third-party copy of the 0.7.0-exp.1 package source (its CHANGELOG checked; the command source not independently verified) | `v2_analysis/U1_unity_shipped.md`; github.com/bigkaka111-oss/ReactorCrystal/tree/main/Packages/com.unity.pipeline | **P0-10 must confirm on the harness** |
+| F14 | `com.unity.pipeline` 0.8.0-exp.1 (~2026-09-28) has breaking changes; `[CliCommand]`/`[CliArg]` moved to a new `Unity.Pipeline.Attributes` assembly, so Nexus's Pipeline asmdef (no reference to it, open-ended `0.0.0-exp` range) will likely fail to compile with CS0246 on 0.8 | U1 §2, U2 §1 | P0-06 |
+| F15 | Unity CLI beta.9–11 added `unity recompile` (errors with file and line, exit codes), `unity test --affected`, `watch test`, `unity vcs affected`, `--detach`/`unity job`, `--caller`/`--skill` flags; Pipeline 0.7 has `wait_for`, transactional `batch` (single Undo, `dry_run`), `run_script`, `audit`, `search`, `get_performance_stats`, `set_autotick`, ~162 commands | U1, U2 (search snippets + GitHub skills repo) | next CLI/Pipeline release |
 | F5 | Third parties already ship Play Mode input + UI clicks + screenshots: `hatayama/unity-cli-loop` (uLoopMCP) v3.0.1 has `simulate-keyboard`, `simulate-mouse-input`, `simulate-mouse-ui`, `replay-input`, `screenshot`, `record-video` over its own socket/named-pipe IPC (not Pipeline); `akiojin/unity-cli` ships `unity-playmode-testing`, `unity-input-system`, `unity-ui-automation` skills; Funplay ships a core profile with input sim + screenshots | github.com/hatayama/unity-cli-loop; github.com/akiojin/unity-cli; skills.sh listings | P0-10b |
 | F6 | **Hypothesis (N=4, self-written agent retrospectives, not transcripts):** in 3 of 4 sessions Nexus was never called; in the 4th, 2 calls. Agents used shell, asked the user for screenshots, or drove the GUI with computer-use. Report 3 cannot confirm Nexus was even installed (`3.md:31`); report 4 ran in a computer-use client | `AI Chat reports Before all changes/1-4.md` | re-measured in P0-09 |
 | F7 | v1 benchmark "ok%" = no JSON-RPC error; C10 invalid for all tools (fixture has 0 tests; bridge result was `Submitted`/`Timeout`); C12 invalid (no EventSystem; Funplay click hit nothing; Coplay screenshot `success:false`); C8 bridge used OS screencapture; C7 raw 99 ms = false-ready (n=4; listener died on reload) | raw JSON in `NexusFeature~/results/`; `BENCH_RESULTS.md:117` | permanent (v1 numbers are void) |
@@ -244,8 +257,9 @@ Legend: **E:** = evidence required in the PR.
 - `shutdown_server` requires the token (zombie cleanup reads the token file) — minor (D-1). Cancel flag so a timed-out *queued* call never executes later; fix the disposed-`ManualResetEventSlim` bug (D-2); `request_id` idempotency cache (~5 min) for mutating methods; SECURITY.md states `unity eval` is outside Nexus gates and `confirm:true` is an intent flag (D-11).
 - E: tests — unauthenticated shutdown rejected; timed-out queued mutation not applied; retry of a *running* mutation with the same `request_id` is not applied twice; no `ObjectDisposedException` after timeout.
 
-**P0-06 · Pin Pipeline version range** (1d) · Files: `Editor/Pipeline/UnityMCP.Editor.Pipeline.asmdef`, tests
+**P0-06 · Pin Pipeline version range + 0.8 compatibility** (1–2d, **URGENT: first task of week 1**, F14) · Files: `Editor/Pipeline/UnityMCP.Editor.Pipeline.asmdef`, tests
 - Replace `0.0.0-exp` with the tested range, with an explicit test of Unity prerelease (`-exp`) range semantics; out-of-range → legacy fallback.
+- Pipeline 0.8: reference `Unity.Pipeline.Attributes` (attributes moved there) via a second version-gated define or a separate thin asmdef; keep 0.7 compiling. Prefer depending on the attributes assembly only, not the full package.
 - E: compiles with Pipeline absent and in range; out-of-range verified in a **second scratch project** with a different Pipeline version (a package version cannot be faked in EditMode).
 
 **P0-07 · MCP handshake that sells Nexus** (1–2d) · Files: `nexus_unity_bridge.py`, bridge schemas
@@ -275,6 +289,8 @@ Legend: **E:** = evidence required in the PR.
 **P0-10 · Ground truth on Unity** (2d) [spike, doc only]
 - On the harness: dump live `unity command` list for the installed Pipeline; confirm or refute `--detach` / `unity job` (F3); Play Mode input? Overlay UI in `capture_game_view`? profiler depth? player-build command registration? Pipeline pre-dispatch hook (could a policy layer gate `eval`? — input to G8).
 - **Naming check:** register a test command as `nexus.verify_probe` and `nexus_verify_probe` via `[CliCommand]`; call both from `unity command`, `unity mcp` in Claude Code, and Codex. Until the dotted form passes everywhere, all public names are `nexus_*`.
+- **Unity input check (F4):** does `simulate_key`/`simulate_pointer` exist in the installed Pipeline, and does it work in **Editor Play Mode** (runtime server with `enableInBuilds`) or only in a dev Player? Can it hold keys or type text? Result decides whether V-03 wraps Unity or builds its own injection.
+- **Unity diagnostics check (F15):** output and token size of `unity recompile` on the 3-error fixture; `unity vcs affected --json` and `search` on the prefab reference graph (decides C-02); `wait_for` and `batch` semantics (inputs to V-05 and backlog `mutate`).
 - **Input focus check** (0.5d): inject a key via Input System into an unfocused Editor in Play Mode, with and without Game View focus; note which `backgroundBehavior`/focus settings are required and whether they need a ProjectSettings write.
 - E: `Research~/evidence/P0-10/unity_capabilities.md` with command list and screenshots. Updates F3/F4/F13.
 
@@ -307,11 +323,12 @@ Legend: **E:** = evidence required in the PR.
 - E: contract tests for ≥6 codes; legacy raw shapes unchanged (`OpenSourceApiContractTests`).
 
 **S-05 · `nexus_compile`** (3d) · Deps: P0-02 · Files: new command, replaces scraping in `GroupCompileErrorsCommand`
-- `CompilationPipeline.assemblyCompilationFinished` messages (file/line/col/id), persisted in SessionState across reload (fixes D-10); optional sandboxed writes with the extended deny-list (rule §6.8), write params legacy-only in the Pipeline projection; "did you mean" via `symbol_index` for CS0246/CS1061; ±3 lines of source context in `normal` detail; detect Hot Reload for Unity / FastScriptReload and warn that the verdict reflects Unity's compile, not the hot-patched state.
+- `CompilationPipeline.assemblyCompilationFinished` messages (file/line/col/id), persisted in SessionState across reload (fixes D-10); optional sandboxed writes with the extended deny-list (rule §6.8), write params legacy-only in the Pipeline projection; "did you mean" via `symbol_index` for CS0246/CS1061; ±3 lines of source context in `normal` detail; detect Hot Reload for Unity / FastScriptReload and warn that the verdict reflects Unity's compile, not the hot-patched state. **v2.2:** in pipeline mode, obtain compile truth from `unity recompile` (F15) and add only grouping/hints/context on top; do not duplicate Unity's error listing.
 - E: fixture 3-error case returns exactly 3 errors with positions; token size of summary response; `no_change` <50 ms **only if P0-01b landed**, otherwise report measured time.
 
 **S-06 · `nexus_diagnose` + `nexus_get` handles + capabilities map** (3d)
 - Opaque server-issued handles; retention cap; `nexus_status detail:"capabilities"` (≈300 tokens, grouped by job with profile names).
+- **v2.2 Safe-Mode-resilient path:** when Pipeline/Editor scripting cannot load (compile errors → Safe Mode), diagnose from `Editor.log` + asmdefs + last persisted compile result (§14b.2).
 - E: fixture broken state → ≤15-line prioritized report; handle fetch with range/crop; path-like handle rejected.
 
 **S-07 · `nexus_look` image hygiene + Scene View** (3d) · Files: Capture command/projections
@@ -346,7 +363,7 @@ Task list and oracles for Gate B are frozen in `PREREG_GATE_B.md` **before V-06a
 **V-05 · Assertions** (3d): log present/absent, object property op value, UI element visible/text, pixel region color±tol, no new errors; structured fail reasons. Also used by `nexus_snapshot` (verify-lite). E: unit tests per assert.
 **V-02b · Resumable scenario runner** (3d) · Deps: L-02: scenario step cursor survives play-entry reload; idempotent step contract. E: verify survives the play-entry reload with domain reload enabled and completes 20/20.
 **V-06a · Runner + DSL core** (3d) · Deps: V-02b, V-03, V-04a, V-05: closed step set (5 step types: play, input, wait-frames/until, assert, capture), per-frame predicates, summary ≤400 tokens. E: planted bug is caught; DSL schema tokens measured. **Gate B runs on V-06a.**
-**V-06b · Reporting + saved scenarios** (3d): capture-on-fail, report in job dir, scenarios saved under `NexusScenarios~/` (non-imported) as regression tests. E: 3 recipe scenarios 10/10.
+**V-06b · Reporting + saved scenarios** (3d): capture-on-fail, report in job dir, scenarios saved under `NexusScenarios~/` (non-imported) as regression tests; **v2.2:** also emit NUnit/JUnit XML so results plug into `unity test` reports and CI (§14b.2). E: 3 recipe scenarios 10/10.
 **V-07 · Verify via `unity command`** (1d, only if P0-10 confirms `--detach`/`unity job`): parity table legacy vs pipeline projection.
 **V-08 · Enter Play Mode fast path** (2d, optional): `EnterPlayModeOptions` (no domain reload) only when a static-state lint passes; setting restored after the run; results labelled "no-reload mode" (lint cannot be complete: third-party DLLs, static events). E: play entry time before/after; lint catches a planted static.
 **V-09 · Release 1.9.0-preview "verify"** (1d): docs, CHANGELOG, GIF.
@@ -368,7 +385,7 @@ Task list and oracles for Gate B are frozen in `PREREG_GATE_B.md` **before V-06a
 **R-04 · Demo** (2d): replays of the real failures (report 3 screenshots, report 4 folder dialog) side by side with Nexus; if Gate B passed, add "Agent says it's fixed. Nexus proves it." recorded with `nexus_verify` itself; demo scripts are bench scenarios.
 **R-05 · Release 1.9.0** (1d): live truth GA, context tools, Windows supported, verify GA only if Gate B passed.
 
-**Later / backlog (not scheduled):** `nexus_scene_diff` + bounded `scene_snapshot` (former C-03, closes #0016) · `nexus_ui_check` (former C-05) · extract `Nexus.Core.Editor` asmdef (former A-03, only after L-01) · `nexus_perf` (ProfilerRecorder + worst-frame markers; only if P0-10 shows Unity's profiler command is shallow) · `nexus_player_check` (same scenario against a development build; spike first) · `nexus_mutate` transactional batch with undo group + rollback · opt-in local usage export · studio policy/audit layer over Pipeline (G8, only if P0-10 finds a pre-dispatch hook).
+**Later / backlog (not scheduled):** `nexus_scene_diff` + bounded `scene_snapshot` (former C-03, closes #0016) · `nexus_ui_check` (former C-05) · extract `Nexus.Core.Editor` asmdef (former A-03, only after L-01) · `nexus_perf` (**v2.2: do not build raw capture** — Unity signals profiler before GA; at most a perf-budget assert inside verify via `ProfilerRecorder`) · `nexus_player_check` (same scenario over `unity command --runtime` with `RuntimeOnly` steps, §14b.3; spike first) · ~~`nexus_mutate`~~ dropped in v2.2 (Unity `batch` is transactional with single Undo + `dry_run`) · opt-in local usage export · studio policy/audit layer over Pipeline (G8, only if P0-10 finds a pre-dispatch hook).
 
 Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-01 included); with ≤4 PRs in flight, 2 fixture Editors and 2 reviewers this fills 12 weeks only if the gates pass. If Gate A2 says "verify-lite", Phase 3 drops to ~4 tasks and frees ~2 weeks for Live truth polish and context. Optional tasks (V-04b, V-07, V-08) are the buffer.
 
@@ -521,13 +538,67 @@ Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-0
 - Claude vision token cost — https://platform.claude.com/docs/en/build-with-claude/vision
 - Claude tool-name constraints — Anthropic tool-use docs on platform.claude.com (tool `name` pattern `^[a-zA-Z0-9_-]{1,64}$`)
 - Cursor ignoring `tools/list_changed` mid-session (reported by Challenger 1, not independently verified) — forum.cursor.com thread 161459
-- Adversarial reviews (session scratchpad): `CH1_technical.md`, `CH2_strategy.md`; judge log `JUDGE_log.md`
+- Adversarial reviews: `v2_analysis/CH1_technical.md`, `v2_analysis/CH2_strategy.md`; judge log `v2_analysis/JUDGE_log.md`
+- Unity research (v2.2): `v2_analysis/U1_unity_shipped.md`, `v2_analysis/U2_unity_roadmap.md`; Pipeline 0.7.0-exp.1 package copy (third party) — https://github.com/bigkaka111-oss/ReactorCrystal/tree/main/Packages/com.unity.pipeline ; Unity-Technologies/skills and unity-agent-plugin (GitHub); Coplay news — https://coplay.dev/blog/whats-next-for-coplay
 
 ---------------------------------------------------------------------
-## 14b. UNITY ROADMAP ALIGNMENT (to be filled after Unity research)
+## 14b. UNITY ROADMAP ALIGNMENT (v2.2)
 ---------------------------------------------------------------------
 
-Pending: Unity roadmap research.
+Sources: `v2_analysis/U1_unity_shipped.md` (what Unity ships now) and `v2_analysis/U2_unity_roadmap.md`
+(what it is likely to ship next). Evidence levels: **CONFIRMED** (shipped / officially stated),
+**SIGNAL** (staff draft PR or staff forum reply), **SPEC** (inference). Unity's docs sites were
+reachable only through search snippets; treat every row as input to P0-10, not as settled.
+
+### 14b.1 How Unity is shipping (pattern)
+- Unity ships **small primitives + CI tooling** (commands, jobs, tests, builds, runtime connection) and
+  leaves multi-step workflows to **skills written by its product teams**. No composed, token-budgeted
+  verify/diagnose/context layer has appeared in anything found (SPEC: unlikely within 12 months;
+  Unity's priority is breadth and GA before Unity 7, whose early beta is expected Dec 2026 and GA Q1 2027).
+- Pipeline breaks its API roughly every minor (0.6→0.7→0.8 within weeks). **Capability probing beats
+  version pinning** long-term; pinning (P0-06) is the short-term guard.
+- Timelines: CLI 1.0.0-beta.11 (2026-09-22), Pipeline 0.8.0-exp.1 (~09-28). No public GA date
+  (SPEC: CLI GA near the Unity 7 window).
+
+### 14b.2 Capability map: Unity status → Nexus decision
+| Area | Unity now | Unity next (6 / 12 mo) | Nexus decision |
+|---|---|---|---|
+| GameObject/asset/scene CRUD | CONFIRMED ~160 built-ins, transactional `batch` with single Undo + `dry_run` | — | **AVOID.** Frozen legacy only; backlog `nexus_mutate` dropped (use `batch`) |
+| C# execution | CONFIRMED `eval`, `eval_file`, `run_script` | — | **AVOID** (already G3) |
+| Compile diagnostics | CONFIRMED `unity recompile` lists errors with file/line (beta.11); `console_status` groundTruth | grouping/hints: 12 mo medium | **WRAP.** `nexus_compile` calls `unity recompile` when present; Nexus adds grouping, "did you mean", ±3 lines context, and **Safe-Mode-resilient diagnosis** (reads `Editor.log`/asmdefs when Pipeline cannot load — a gap Unity's own skill documents) |
+| Tests | CONFIRMED `run_tests`, `unity test --affected`, `watch test`, JUnit | — | **AVOID** running tests; summarise failures only inside `nexus_diagnose` |
+| Build / player / hot reload / runtime connection | CONFIRMED, fastest-moving area | 6 mo high | **AVOID own transport; INTEGRATE.** Backlog `player_check` = same scenario over `unity command --runtime` |
+| Jobs | CONFIRMED `--detach`, `unity job`, `/api/job` (jobs do not survive reload) | — | **USE** Unity jobs in pipeline mode; Nexus L-02 job store only for reload-crossing Nexus workflows and legacy mode |
+| Editor wake-up / throttling | CONFIRMED `set_autotick` | — | **USE** in pipeline mode; P0-01a/b only for legacy mode |
+| Input simulation | Reported: `simulate_key`/`simulate_pointer`, dev Player runtime, Input System, press/click only (F4) | SIGNAL: staff draft "polyspatial-playtest" skill + sub-agent (record → drive → assert on recorded state), XR-scoped; generic input 6 mo ~40%, 12 mo ~60% | **WRAP, design for replacement.** V-03 behind `IUnityPrimitives`; build only hold/text/Editor-Play-Mode gaps that P0-10 confirms. Not a differentiator |
+| UI automation (UGUI / UITK) | none (coordinates only; `capture_*_element` in 6000.7+) | 6 mo ~20%, 12 mo ~35% | **BUILD** — main differentiator: UI-aware targeting by name/path, visibility/text/clickability, `NO_EVENTSYSTEM` errors (V-04) |
+| Game View / Overlay capture | CONFIRMED `capture_game_view` camera/screen; screen includes Overlay **in Play Mode only**; PNG, `max_resolution`, path-only; desktop fallback in beta.10 | JPEG/crop/overlay fixes: 6 mo ~45%, 12 mo ~70% | **Keep Capture V2 only while it measurably wins** (Edit-Mode Overlay, JPEG, stall). W-03 falls back to Unity `source=screen`. Invest in crop-to-element, numbered marks, token budget — **not** new raw capture |
+| Assertions / visual verification | `wait_for` member conditions (equals/greaterThan/contains/changed) + capture on met | pixel asserts 12 mo ~25%; state-recording asserts 12 mo ~40% | **BUILD** state-first asserts (property/log/UI), pixel region second; **WRAP** `wait_for` for property waits (V-05) |
+| Scenario runner (verify) | none as a composite | 6 mo ~15%, 12 mo ~30% | **BUILD if Gate A2 allows**; emit **NUnit/JUnit** and offer "export scenario as PlayMode test" so results plug into `unity test` and CI |
+| Profiler / perf | `get_performance_stats` snapshot | SIGNAL: staff reply "profiler and frame debugger before GA" (search summary only); 6 mo ~55%, 12 mo ~75% | **AVOID raw profiler capture.** Only later: a perf-budget assert inside verify via `ProfilerRecorder` |
+| Context / references | `search` (Unity Search, ≤200 results); `unity vcs affected` GUID impact graph | reverse-reference packs 12 mo ~60% | **BUILD `nexus_context`** (token budget, attached-where, serialized refs); `find_references` only if it beats `search`/`vcs affected` in P0-10 — otherwise **consume** `vcs affected --json` |
+| Readiness | settling/503, compilationFailed, groundTruth | — | **WRAP + BUILD** epochs (P0-02); truthful readiness remains a Nexus quality point |
+| Skills / plugin | CONFIRMED 33-skill plugin, `unity-cli` + `unity-pipeline` skills, `skill install --local`; public skills repo no longer takes PRs; no QA/playtest skill shipped | QA skills: SIGNAL (playtest draft), 6 mo ~70% | **INTEGRATE.** Nexus skill composes with `unity-cli`, never copies domain skills; same plugin format; ship skill inside the package |
+| MCP client setup | CONFIRMED `unity mcp configure` (~16 clients, `--server` family) | — | **AVOID** extending Nexus installers (already frozen) |
+| Security / policy | bearer token, Origin refusal, loopback-only (0.8), no per-command policy | per-command policy 12 mo ~60% | **ALIGN, don't compete:** express Nexus gates in Unity's vocabulary (`SECURITY.md`, `RuntimeOnly`, dev-only); G8 policy-layer idea stays conditional |
+
+### 14b.3 Integration hooks to prepare now (added to tasks)
+1. **Attributes assembly (P0-06):** reference `Unity.Pipeline.Attributes` (0.8) instead of the full package where possible; consider public `CommandRegistry.RegisterCommand` for state-dependent commands.
+2. **`RuntimeOnly` steps (backlog `player_check`):** design verify step executors so they can be registered as runtime commands for dev Players.
+3. **Jobs:** map the Nexus job store onto Unity job ids in pipeline mode (V-07).
+4. **Identify Nexus to Unity:** pass `--caller nexus --skill <name>` on every CLI call Nexus or its skills make (documented integration flag; costs nothing). Add to S-01 skill recipes.
+5. **Capability probing (new rule for L-01/V-07):** at startup read `unity command` listing (`--format json` / tags) and route to Unity's `simulate_*`, `profiler`, `ui_*`, `capture_*` as soon as they exist; the N/N-1 CI job (A-01) keeps a parity table.
+6. **Consume, don't rebuild:** `unity vcs affected --json` for impact/reference questions; `unity test --affected` for regression selection inside verify; `unity recompile` for compile truth.
+7. **Monthly watch list (owner task, 30 min):** Pipeline and CLI changelogs; Unity-Technologies/skills and unity-agent-plugin PRs (esp. the playtest skill); Unity Discussions CLI thread (profiler/GA). Any hit on input/UI automation/overlay/asserts triggers a re-check of Gate A2/B assumptions (R2).
+
+### 14b.4 Ecosystem notes (reported, not independently verified)
+- akiojin/unity-cli is converging on Unity's capture primitives; uLoopMCP's input/replay/record set is the most likely bundle for Unity to absorb.
+- CoplayDev (largest open-source Unity MCP) was reported acquired by Ramen/Aura and tied to a commercial assistant (coplay.dev blog) — reduces open-source competition but raises commercial-assistant competition.
+
+### 14b.5 Net effect on this plan
+- **Confirms the direction:** live truth + UI-aware targeting + assertions + token-lean context + truthful readiness are the lowest-overlap areas for 6–12 months.
+- **Downgrades:** input simulation (wrap, not build), raw capture features, profiler, reference index (must beat `search`/`vcs affected`), `nexus_mutate` (dropped).
+- **Upgrades:** P0-06 to urgent (F14); Safe-Mode-resilient diagnosis added to `nexus_diagnose`; JUnit output for verify.
 
 ---------------------------------------------------------------------
 ## 15. ADVERSARIAL REVIEW LOG (v2.0 → v2.1)
