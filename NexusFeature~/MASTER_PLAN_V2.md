@@ -419,15 +419,15 @@ Phase 0 load note (v2.3): Phase 0 is ≈36 agent-days. With ≤4 PRs in flight i
 - **A1 is unchanged by v2.4.** S5/S5r/S1e runs and the high-volume tasks do not count toward A1 and A1 is not re-defined; "chose Nexus" for S4 is still the adoption question for the current design. A façade arm makes "chose Nexus" meaningless *for that arm*, so S5 is judged only by Gate F.
 - **A2 verify room (desk decision from P0-10b):** if **≥2 competitors detect the planted bug**, `nexus_verify` is not built as a flagship; Phase 3 shrinks to "verify-lite" (V-05 assertions usable by `nexus_snapshot`, Overlay capture as a `[CliCommand]` others can call, skill recipes that combine competitor/Unity input with Nexus assertions). Otherwise Phase 3 proceeds.
 
-**▶ GATE F (end of week 5; v2.5 decision matrix; does not block Gate A or Phase 2)** — pre-registered in `PREREG_GATE_A.md` §F **before any full-P0-16c run** (this text was fixed on 2026-10-03, before any S6 result existed); the prereg author may tighten, never loosen. No single prerequisite gates an architecture: the 20% mis-routing threshold of v2.4 is **removed** (mis-routing is a reported metric). Power: success margins need ≈100 pooled runs per arm for ±10 pp; with fewer runs the verdict is **INSUFFICIENT EVIDENCE** and the hypothesis stays open.
+**▶ GATE F (end of week 5; v2.5 decision matrix; does not block Gate A or Phase 2)** — pre-registered in `PREREG_GATE_A.md` §F **before any full-P0-16c run** (this text was fixed on 2026-10-03, before any S6 result existed); the prereg author may tighten, never loosen. No single prerequisite gates an architecture: the 20% mis-routing threshold of v2.4 is **removed** (mis-routing is a reported metric). Power (critic C, H6): a −10 pp non-inferiority margin has only ≈46% power at 100 pooled runs per arm; the full spike needs ≈130–320 Editor-hours, not 40–90. Gate F therefore expects **INSUFFICIENT EVIDENCE** unless effects are large, and that is an acceptable outcome. The v2.4 ≥20% mis-routing prerequisite was removed at the owner's request (2026-10-03); mis-routing is a reported metric.
 
 Decision matrix — each comparison is evaluated on pooled frozen tasks and separately for read/diagnose tasks and write tasks:
 
 | Dimension | Pass condition for the challenger vs its comparator |
 |---|---|
-| D1 semantic success | non-inferior: lower 90% bound of (challenger − comparator) ≥ −10 pp; no task ≥3/10 runs worse |
+| D1 semantic success | non-inferior: lower 90% bound of (challenger − comparator) ≥ −10 pp (production-policy success for S6: runs that needed `eval`/`run_script`/`batch` through Nexus count as failures); per-task differences reported, no per-task veto (it fires by chance 50–68% at equal rates) |
 | D2 false-success | upper 90% bound of the difference ≤ +5 pp |
-| D3 tokens per successful task | median ratio ≤ 0.8 with bootstrap 90% CI upper bound < 1.0 (or D4/D5 passes instead) |
+| D3 cost per success | Σ tokens over all runs ÷ successes per task; geometric mean of per-task ratios ≤ 0.8 with bootstrap 90% CI upper bound < 1.0 |
 | D4 calls per successful task | median ratio ≤ 0.8, CI upper bound < 1.0 |
 | D5 routing/discovery failures | wrong-capability + invalid-argument + failed-discovery calls per run ≤ comparator's; retries not higher |
 | D6 capability coverage | ≥90% of tasks completed without leaving the compact surface; every escape classified (capability vs discoverability loss) |
@@ -438,11 +438,11 @@ Decision matrix — each comparison is evaluated on pooled frozen tasks and sepa
 
 Outcomes (any of these, including mixed; never forced binary):
 - **F — Nexus-primary** (S6 vs S5 and vs S4): D1, D2, D6, D9 pass and ≥2 of D3/D4/D5 pass and D7, D8, D10 pass → schedule an implementation design task (not implementation) after Live truth.
-- **C — selective façade** (S5 vs S4): D1, D2, D9 pass, D3 passes on the read/diagnose class, and F does not pass → schedule F-01..F-03.
-- **E — skills/Unity sufficient** (S1e vs S4, compared with C/F): if S1e meets C's conditions, compare E with the best façade arm on the **product table** (maintenance burden, client portability, prompt dependence, discoverability for users without the official skill, reliability across models, API stability, UX consistency). E is chosen only if the façade is not better on D1/D3/D4 **and** the product table does not favour the façade; cheapest-to-build is one row, not the rule.
+- **C — selective façade** (S5 vs S4): D1, D2, D9 pass and **D3 itself** passes on the read/diagnose class (D4/D5 cannot substitute), and F does not pass → schedule F-01..F-03.
+- **E — skills/Unity sufficient** (S1e vs S4, compared with C/F): if S1e meets C's conditions, compare E with the best façade arm on the **product table** (each row scored better/same/worse by an independent reviewer before seeing the arm labels where possible) (maintenance burden, client portability, prompt dependence, discoverability for users without the official skill, reliability across models, API stability, UX consistency). E is chosen only if the façade is not better on D1/D3/D4 **and** the product table does not favour the façade; cheapest-to-build is one row, not the rule.
 - **A — direct Unity + Nexus composites**: none of the above pass.
 - **Mixed** (allowed and expected): e.g. Nexus-primary for reads/diagnosis, Unity-direct for writes/`eval`/build — when the read class meets F and the write class does not. The boundary is reported per task class.
-- **INSUFFICIENT EVIDENCE**: if the D1 or D3 interval spans both pass and fail regions. The hypothesis stays open; no architecture change.
+- **INSUFFICIENT EVIDENCE** (checked **before** A): if the D1 interval contains both −10 pp and 0, or the D3 interval contains both 0.8 and 1.0. The hypothesis stays open; no architecture change. A is chosen only when the challengers' intervals exclude their pass regions.
 - **C1 control**: if C1 (Unity allowlisted to the same subset) matches S6 on D1/D3/D4, the S6 gain is attributed to capability-surface reduction, not to Nexus; the recommendation becomes "curate/allowlist Unity's own surface (skill/config)" rather than a Nexus façade.
 
 ### PHASE 2 — Flagship "Live truth" (weeks 4–6)

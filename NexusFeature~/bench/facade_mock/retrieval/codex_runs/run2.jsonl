@@ -1,0 +1,9 @@
+{"type":"thread.started","thread_id":"01a1022c-995b-74c2-8fa2-b40260b1fdaf"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
+{"type":"item.completed","item":{"id":"item_1","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"I’ll inspect the available MCP tool names and descriptions, then call the Unity reference lookup once."}}
+{"type":"item.started","item":{"id":"item_3","type":"mcp_tool_call","server":"unity","tool":"search","arguments":{"query":"ref:Enemy.prefab"},"result":null,"error":null,"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"item_3","type":"mcp_tool_call","server":"unity","tool":"search","arguments":{"query":"ref:Enemy.prefab"},"result":{"content":[{"type":"text","text":"STUB: Unity Editor not connected (benchmark stub). Do not retry; report which tool and arguments you chose."}],"structured_content":null},"error":null,"status":"failed"}}
+{"type":"item.completed","item":{"id":"item_4","type":"agent_message","text":"mcp__unity__search(query=\"ref:Enemy.prefab\")"}}
+{"type":"turn.completed","usage":{"input_tokens":174361,"cached_input_tokens":147968,"cache_write_input_tokens":0,"output_tokens":1299,"reasoning_output_tokens":971}}

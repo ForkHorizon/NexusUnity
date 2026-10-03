@@ -1,0 +1,387 @@
+{
+ "baseline_unity_mcp_154": 24634,
+ "domain_oneof_fulldesc": {
+  "total": 25659,
+  "per_manager": {
+   "unity_gameobject": 2706,
+   "unity_scene": 758,
+   "unity_asset": 3241,
+   "unity_prefab": 1010,
+   "unity_animation": 3132,
+   "unity_bake": 1850,
+   "unity_build": 1395,
+   "unity_settings": 3018,
+   "unity_package": 962,
+   "unity_code": 2791,
+   "unity_test": 454,
+   "unity_editor": 2265,
+   "unity_diagnostics": 2063
+  },
+  "max": 3241
+ },
+ "domain_oneof_shortdesc": {
+  "total": 23953,
+  "per_manager": {
+   "unity_gameobject": 2499,
+   "unity_scene": 737,
+   "unity_asset": 3030,
+   "unity_prefab": 1006,
+   "unity_animation": 3006,
+   "unity_bake": 1760,
+   "unity_build": 1285,
+   "unity_settings": 2756,
+   "unity_package": 786,
+   "unity_code": 2470,
+   "unity_test": 454,
+   "unity_editor": 2215,
+   "unity_diagnostics": 1935
+  },
+  "max": 3030
+ },
+ "domain_flat_reqdesc": {
+  "total": 14233,
+  "per_manager": {
+   "unity_gameobject": 1443,
+   "unity_scene": 354,
+   "unity_asset": 1513,
+   "unity_prefab": 651,
+   "unity_animation": 1584,
+   "unity_bake": 923,
+   "unity_build": 934,
+   "unity_settings": 805,
+   "unity_package": 645,
+   "unity_code": 2054,
+   "unity_test": 307,
+   "unity_editor": 1868,
+   "unity_diagnostics": 1150
+  },
+  "max": 2054
+ },
+ "domain_flat_ifthen": {
+  "total": 16064,
+  "per_manager": {
+   "unity_gameobject": 1767,
+   "unity_scene": 431,
+   "unity_asset": 1835,
+   "unity_prefab": 840,
+   "unity_animation": 1955,
+   "unity_bake": 981,
+   "unity_build": 1014,
+   "unity_settings": 811,
+   "unity_package": 697,
+   "unity_code": 2271,
+   "unity_test": 313,
+   "unity_editor": 1991,
+   "unity_diagnostics": 1156
+  },
+  "max": 2271
+ },
+ "domain_flat_reqdesc_shortdesc": {
+  "total": 12481,
+  "per_manager": {
+   "unity_gameobject": 1233,
+   "unity_scene": 332,
+   "unity_asset": 1296,
+   "unity_prefab": 646,
+   "unity_animation": 1451,
+   "unity_bake": 827,
+   "unity_build": 818,
+   "unity_settings": 541,
+   "unity_package": 468,
+   "unity_code": 1726,
+   "unity_test": 307,
+   "unity_editor": 1816,
+   "unity_diagnostics": 1018
+  },
+  "max": 1816
+ },
+ "flat_param_conflicts": {
+  "unity_settings": [
+   "settings"
+  ]
+ },
+ "curated": {
+  "tools": 5,
+  "typed_commands": 42,
+  "total": 6945,
+  "per_tool": {
+   "unity_object": 2272,
+   "unity_project": 2913,
+   "unity_editor": 1452,
+   "unity_describe": 201,
+   "unity_invoke": 102
+  }
+ },
+ "router": {
+  "total": 213,
+  "per_tool": {
+   "unity_list": 70,
+   "unity_describe": 57,
+   "unity_run": 84
+  }
+ },
+ "discovery_payloads": {
+  "list_all_compact": 7170,
+  "list_names_only": 449,
+  "list_one_domain_compact_max": 835,
+  "describe_one_command_median": 109,
+  "describe_one_command_max": 1064
+ },
+ "classification": {
+  "commands": 154,
+  "auto_by_name_rules": 151,
+  "auto_pct": 98.1,
+  "name_rules": 13,
+  "hand_table_entries_needed": 2,
+  "hand_table": {
+   "get_import_settings": "unity_asset",
+   "set_import_settings": "unity_asset"
+  },
+  "unclassified_after_rules": [],
+  "ambiguous": {
+   "add_scene_to_build": [
+    "unity_build",
+    "unity_scene"
+   ],
+   "get_build_settings": [
+    "unity_build",
+    "unity_settings"
+   ],
+   "get_lighting_settings": [
+    "unity_bake",
+    "unity_settings"
+   ],
+   "get_navmesh_settings": [
+    "unity_bake",
+    "unity_settings"
+   ],
+   "get_serialized_fields": [
+    "unity_code",
+    "unity_gameobject"
+   ],
+   "nexus_group_compile_errors": [
+    "unity_code",
+    "unity_diagnostics"
+   ],
+   "package_search": [
+    "unity_editor",
+    "unity_package"
+   ],
+   "remove_scene_from_build": [
+    "unity_build",
+    "unity_scene"
+   ],
+   "report_evals": [
+    "unity_code",
+    "unity_diagnostics"
+   ],
+   "set_build_settings": [
+    "unity_build",
+    "unity_settings"
+   ],
+   "set_lighting_settings": [
+    "unity_bake",
+    "unity_settings"
+   ],
+   "set_navmesh_settings": [
+    "unity_bake",
+    "unity_settings"
+   ],
+   "set_serialized_field": [
+    "unity_code",
+    "unity_gameobject"
+   ]
+  },
+  "ambiguous_count": 13,
+  "tag_method": {
+   "commands_with_tags": 151,
+   "tagmap_entries": 20,
+   "disagree_with_name_rules": {
+    "add_scene_to_build": [
+     "unity_build",
+     "unity_scene"
+    ],
+    "get_serialized_fields": [
+     "unity_gameobject",
+     "unity_code"
+    ],
+    "remove_scene_from_build": [
+     "unity_build",
+     "unity_scene"
+    ],
+    "set_serialized_field": [
+     "unity_gameobject",
+     "unity_code"
+    ]
+   }
+  },
+  "actions_per_manager": {
+   "unity_gameobject": 16,
+   "unity_scene": 7,
+   "unity_asset": 16,
+   "unity_prefab": 7,
+   "unity_animation": 14,
+   "unity_bake": 17,
+   "unity_build": 10,
+   "unity_settings": 18,
+   "unity_package": 6,
+   "unity_code": 11,
+   "unity_test": 4,
+   "unity_editor": 15,
+   "unity_diagnostics": 13
+  }
+ },
+ "params": {
+  "total": 359,
+  "required": 103,
+  "with_default": 178,
+  "string_with_schema_enum": 0,
+  "string_enum_only_in_prose": 12,
+  "non_clean_mappings": {
+   "objectref->string handle (path/guid/globalId/instanceId/hierarchyPath; untyped union)": 46,
+   "polymorphic jtoken->string": 4,
+   "jarray->string (items untyped)": 4,
+   "list`1->array": 1,
+   "jobject->string (JSON-in-string)": 6,
+   "single[][]->array<array<number>> (no length constraints)": 3,
+   "structured input -> nested object schema (typed)": 12,
+   "nullable`1->integer": 1,
+   "objectid[]->array": 1
+  },
+  "examples": {
+   "objectref->string handle (path/guid/globalId/instanceId/hierarchyPath; untyped union)": [
+    "add_animator_layer.controller",
+    "add_animator_parameter.controller",
+    "add_animator_state.controller",
+    "add_animator_state.motion"
+   ],
+   "polymorphic jtoken->string": [
+    "add_animator_parameter.defaultValue",
+    "add_animator_state.layer",
+    "add_animator_transition.layer",
+    "set_serialized_field.value"
+   ],
+   "jarray->string (items untyped)": [
+    "add_animator_state.position",
+    "add_animator_transition.conditions",
+    "run_script.args",
+    "set_animation_curve.keys"
+   ],
+   "list`1->array": [
+    "batch.operations"
+   ],
+   "jobject->string (JSON-in-string)": [
+    "batch.result_fields",
+    "set_component_properties.properties",
+    "set_import_settings.settings",
+    "set_lighting_settings.settings"
+   ],
+   "single[][]->array<array<number>> (no length constraints)": [
+    "create_gameobjects.positions",
+    "create_gameobjects.rotations",
+    "create_gameobjects.scales"
+   ],
+   "structured input -> nested object schema (typed)": [
+    "set_audio_settings.settings",
+    "set_build_settings.settings",
+    "set_graphics_settings.settings",
+    "set_input_settings.settings"
+   ],
+   "nullable`1->integer": [
+    "set_material_properties.renderQueue"
+   ],
+   "objectid[]->array": [
+    "set_selection.instance_ids"
+   ]
+  },
+  "commands_without_params": 42
+ },
+ "adapter_flags": {
+  "dry_run": 43,
+  "async_status": 12,
+  "confirm_gate": 30,
+  "code_exec": 8,
+  "image_base64": 4,
+  "destructive": 12
+ },
+ "adapter_lists": {
+  "async_status": [
+   "audit",
+   "bake_lighting",
+   "bake_navmesh",
+   "bake_occlusion_culling",
+   "build",
+   "package_add",
+   "package_remove",
+   "package_resolve",
+   "recompile",
+   "run_tests",
+   "switch_build_target",
+   "wait_for"
+  ],
+  "image_base64": [
+   "capture_game_view",
+   "capture_scene_view",
+   "nexus_capture_game_view",
+   "screenshot"
+  ],
+  "destructive": [
+   "clear_baked_lighting",
+   "clear_console",
+   "clear_navmesh",
+   "clear_occlusion_culling",
+   "delete_asset",
+   "delete_gameobject",
+   "package_remove",
+   "remove_animation_curve",
+   "remove_component",
+   "remove_scene_from_build",
+   "switch_build_target",
+   "unpack_prefab"
+  ],
+  "code_exec": [
+   "batch",
+   "eval",
+   "eval_file",
+   "menu",
+   "reload_file",
+   "reload_file_editor_interpreter",
+   "reload_file_player_interpreter",
+   "run_script"
+  ]
+ },
+ "baseline_per_tool": {
+  "median": 127,
+  "max": 1082
+ },
+ "baseline_atomic_sum_per_domain": {
+  "unity_gameobject": 2619,
+  "unity_scene": 693,
+  "unity_asset": 3161,
+  "unity_prefab": 926,
+  "unity_animation": 3045,
+  "unity_bake": 1748,
+  "unity_build": 1322,
+  "unity_settings": 2928,
+  "unity_package": 905,
+  "unity_code": 2712,
+  "unity_test": 394,
+  "unity_editor": 2189,
+  "unity_diagnostics": 1990
+ },
+ "flat_lossiness": {
+  "shared_param_names_across_managers": 63,
+  "shared_with_differing_descriptions(dropped)": 49
+ },
+ "status_pairs": {
+  "total": 12,
+  "hand": [
+   "bake_occlusion_culling",
+   "run_tests",
+   "package_add",
+   "package_remove",
+   "package_resolve",
+   "wait_for"
+  ]
+ }
+}

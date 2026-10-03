@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "command": "command editor_status",
+  "data": {
+    "command": "editor_status",
+    "parameters": {},
+    "result": {
+      "status": "ready",
+      "compiling": false,
+      "domainReloadInProgress": false,
+      "playMode": "stopped",
+      "lastHeartbeat": "2026-10-02T14:26:57.387592Z",
+      "projectPath": "/Users/daliys/Daliys/UnityProjects/UnityTestForNexus",
+      "unityVersion": "6000.3.16f1"
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "/Users/daliys/Daliys/UnityProjects/UnityTestForNexus"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}

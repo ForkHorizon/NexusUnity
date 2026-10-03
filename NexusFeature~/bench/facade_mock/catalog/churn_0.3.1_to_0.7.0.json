@@ -1,0 +1,69 @@
+{
+ "old_version": "0.3.1-exp.1 (community doc, approximate)",
+ "new_version": "0.7.0-exp.1 (live)",
+ "old_count": 151,
+ "new_count_unity_only": 151,
+ "common": 138,
+ "added": [
+  "audit",
+  "audit_status",
+  "batch",
+  "console_status",
+  "get_runtime_pipeline_settings",
+  "reload_file_editor_interpreter",
+  "reload_file_player_interpreter",
+  "report_evals",
+  "run_script",
+  "set_runtime_pipeline_settings",
+  "wait_cancel",
+  "wait_for",
+  "wait_status"
+ ],
+ "removed_or_renamed": [
+  "capture_editor_element",
+  "capture_runtime_element",
+  "cleanup_hotreload",
+  "get_console_logs",
+  "hotreload_status",
+  "log",
+  "quit",
+  "reload_file_override",
+  "runtime_status",
+  "set_target_framerate",
+  "set_timescale",
+  "simulate_key",
+  "simulate_pointer"
+ ],
+ "params_in_0.7_not_mentioned_in_0.3.1_row": {
+  "capture_game_view": [
+   "include_inline_image",
+   "max_resolution",
+   "source"
+  ],
+  "capture_scene_view": [
+   "include_inline_image",
+   "max_resolution"
+  ],
+  "console": [
+   "since_session"
+  ],
+  "get_serialized_fields": [
+   "format"
+  ],
+  "recompile": [
+   "focus"
+  ],
+  "set_autotick": [
+   "persist"
+  ],
+  "set_import_settings": [
+   "platform"
+  ]
+ },
+ "managers_touched_by_added": {
+  "unity_diagnostics": 4,
+  "unity_code": 4,
+  "unity_settings": 2,
+  "unity_editor": 3
+ }
+}

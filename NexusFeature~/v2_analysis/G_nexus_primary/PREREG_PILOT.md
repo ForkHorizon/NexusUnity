@@ -86,3 +86,76 @@ Granularity (S6-domain vs S6-curated vs S6-router): reported descriptively only 
 ## 6. Full P0-16 decision matrix (pre-registered now, before any S6 result; replaces v2.4 Gate F text)
 See MASTER_PLAN_V2 Gate F (v2.5). Written into the plan before pilot results are read. Thresholds there may only be
 tightened after this point.
+
+---------------------------------------------------------------------
+## Amendment A1 (2026-10-03, after critic review C_design_review.md, before any scored run)
+Only two **unscored smoke runs** exist (T5/S4, T9/S6-domain, run ids `*_0`); they validated the harness and are excluded
+from all analysis. Changes (each maps to a critic item):
+
+**A1.1 Freeze (B1).** Façade, proxy, catalog surfaces, harness (`bench/facade_mock/pilot_harness/`), fixture generator and
+T2 variant are committed before run 1; sha256 list in `pilot_harness/FREEZE.sha256`. Deviations of the mock normaliser from
+the pre-task spec (F_facade_hypothesis §2.3, mtime 2026-10-02):
+| Feature | Pre-task spec | Mock (frozen) | Note |
+|---|---|---|---|
+| hierarchy depth/collapse/default components/handle | yes | yes | + `root`, `limit`, name regex (plan P0-12 "depth/root/limit/filter") |
+| derived `activeInHierarchy`, component filter | no | **removed** (H1) | only Unity's raw `activeSelf` is returned |
+| console grouping, counts, cursor, errors first | yes (compact.py sorts errors first) | yes | top-10 instead of top-5 |
+| console origin | first `(at X:N)` match (compact.py) | same rule | Assets/Packages-only variant removed (H1) |
+| `compilationFailed` passthrough | no | yes | raw Unity field |
+| unknown arguments | n/a | explicit `invalid_arguments` error (B4) | was silently dropped in a pre-freeze draft |
+
+**A1.2 Answer hygiene (B2).** The fixture contains no NexusFeature~/task files (verified). Any agent shell command or MCP
+argument matching `NexusFeature|TASKS_v1|G_nexus_primary|/harness/|Editor.log|eval-usage` marks the run **void**
+(reported, rerun once). Editor.log reads are allowed for real users but void here because the shared log carries prior runs.
+
+**A1.3 Symmetric call logging (B3).** Every MCP server of every arm runs behind the same logging proxy. Call unit = one
+MCP `tools/call` or one shell command or one file change. In code mode, calls are counted from the proxy, not from items.
+
+**A1.4 eval/production policy (B5).** Primary success for S6 arms = **production-policy success**: a run that called
+`eval`/`eval_file`/`run_script`/`batch` through Nexus counts as *not achievable on production S6*. Observed success is
+secondary. Such runs are tagged "needed direct Unity" for coverage. If >25% of S6-domain task calls are eval-like, the S6-domain
+result is labelled "eval-mediated". S4/S5 eval use is reported, not penalised.
+
+**A1.5 Run protocol (B6).** Infrastructure failure (decided automatically, before reading output): reset assertion failed
+(console not seeded; T2 not failing at start), Codex produced 0 tokens, Editor unresponsive, void per A1.2 → rerun once,
+all reruns reported. Cap: 30 min wall per run, same for all arms; capped = failure. `claimed_ok`: RO = an ANSWER line exists;
+W = fixed positive-claim regex on the final message and no negation in its last 600 chars (`metrics.py`), applied
+blind to arm. Network access is **on for all arms** (H4); S6 hides Unity's CLI by PATH only, and any shell command invoking
+`unity command|cmd|list|mcp|eval`, `.unity/bin`, `:7800` or the Pipeline port file is recorded as **bypass**. Codex web
+search disabled in all arms.
+
+**A1.6 Formulas and labels (B6, H8).** Cost per success (per task, per arm) = Σ(input incl. cached + output incl.
+reasoning) over **all** runs ÷ successes (production policy for S6); 0 successes → ratio capped at 4.0. Pooled = geometric
+mean of per-task ratios. Calls per success analogous (reported only).
+- **toward-X**: X's successes ≥ comparator − 1 **and** pooled cost-per-success ratio ≤0.75 **and** ratio ≤1.0 on ≥4 of 6
+  tasks **and** false-success not higher by >1.
+- **against-X**: ≥3 fewer successes **or** pooled ratio ≥1.3. Otherwise **neutral**. Always reported with "INSUFFICIENT
+  EVIDENCE (N=12)".
+- **Sensitivity (H1)**: labels are recomputed on the 4 tasks excluding T5 and T9; if the label changes, it is reported as
+  "contamination-sensitive".
+- **Consequences** (fixed now): toward S6-domain → the full P0-16c runs S6-domain first and keeps S6-curated only if it
+  was not worse; against S6-domain → full spike runs S5 vs S4 first and S6 only with the C1 control and composite variants;
+  neutral → no reprioritisation. Granularity (S6-domain/curated/router) is descriptive only.
+
+**A1.7 Coverage and discovery (H9).** Per run: coverage class (compact surface only / escape hatch `nexus_describe`,
+`nexus_invoke`, `detail:"full"` / needed direct Unity (eval-like) / bypass), discovery calls (`nexus_list`/`describe`,
+`unity command` listings), first-call routing in S4/S5 (unity vs nexus-unity vs nexus vs shell), MCP output truncation.
+Codex code-mode retrieval items are recorded if the JSON stream exposes them (in smoke runs it did not; MCP calls appeared
+as plain `mcp_tool_call` items) — so retrieval correctness is **not** measured in this pilot and stays a P0-16a item.
+
+**A1.8 Third-party targets (H2), mechanical rule fixed now.** Project: copy of the owner's `Puzzle`. Scene = the scene file
+under `Assets/` with the most GameObjects (ties: path order). T3★ prefab = among prefabs with ≥5 outermost instances in that
+scene and ≥1 other asset depending on it, the one with the most instances (ties: path order). T9★ = the first entry of
+(AudioSource, Light, Collider, Animator, ParticleSystem, Camera, Canvas, MonoBehaviour-derived components in name order)
+for which exactly one object at depth ≥6 with that component has an inactive ancestor; prompt = T9 template with the
+component named. Ground truth recorded before any run there. Arms S4, S5, S6-domain, N=1.
+
+**A1.9 Disclosures.** S4 has no official Unity skill (not installed here; the plan's S4 includes it) and only the one-line
+routing text — S4 is weaker than the plan's S4 (H3). Codex code mode can post-process raw outputs in JS and compacts tool
+schemas >5 KB (S6-domain managers are 0.3–2k tokens each, above the plan's 600-token rule) (H5). S6 mock has no
+composites (`nexus_snapshot/compile/diagnose`), so it tests "Unity re-shaped + normalised reads", not the full Nexus-primary
+product (M1). Sibling collapse may hide target branches; the offline sufficiency check (M4) was **not** run before the pilot.
+T2 at start shows only CS0117 (CS0246 appears after the first fix because Saltmarsh.Editor depends on Saltmarsh.Runtime).
+Oracle tolerance (M7): leading `/` and `.unity` suffixes accepted in T3/T9 parsers (applied to all arms). The v2.4
+"≥20% mis-routing" prerequisite was removed at the owner's explicit request (2026-10-03 message, item 8), after Agent A's
+offline routing data existed; mis-routing stays a reported metric (M6).

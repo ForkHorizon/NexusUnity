@@ -1,0 +1,8 @@
+{"type":"thread.started","thread_id":"01a1022c-995b-7fd0-87be-f69092534f06"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
+{"type":"item.completed","item":{"id":"item_1","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
+{"type":"turn.started"}
+{"type":"item.started","item":{"id":"item_2","type":"mcp_tool_call","server":"unity","tool":"nexus_group_compile_errors","arguments":{},"result":null,"error":null,"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"item_2","type":"mcp_tool_call","server":"unity","tool":"nexus_group_compile_errors","arguments":{},"result":{"content":[{"type":"text","text":"STUB: Unity Editor not connected (benchmark stub). Do not retry; report which tool and arguments you chose."}],"structured_content":null},"error":null,"status":"failed"}}
+{"type":"item.completed","item":{"id":"item_3","type":"agent_message","text":"mcp__unity__nexus_group_compile_errors({})"}}
+{"type":"turn.completed","usage":{"input_tokens":99208,"cached_input_tokens":79872,"cache_write_input_tokens":0,"output_tokens":393,"reasoning_output_tokens":252}}

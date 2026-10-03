@@ -1,0 +1,100 @@
+{
+ "hier": {
+  "objects": 1133,
+  "roots": 33,
+  "tree": [
+   {
+    "n": "Main Camera",
+    "c": [
+     "Camera",
+     "AudioListener"
+    ]
+   },
+   {
+    "n": "Directional Light",
+    "c": [
+     "Light",
+     "UniversalAdditionalLightData"
+    ]
+   },
+   {
+    "n": "Canvas",
+    "c": [
+     "Canvas",
+     "CanvasScaler",
+     "GraphicRaycaster"
+    ],
+    "ch": [
+     {
+      "n": "Panel_#",
+      "c": [
+       "Image"
+      ],
+      "ch": [
+       {
+        "n": "Row_#",
+        "c": [
+         "HorizontalLayoutGroup"
+        ],
+        "kids": 8,
+        "x": 6
+       }
+      ],
+      "x": 20,
+      "off_n": 4
+     }
+    ]
+   },
+   {
+    "n": "Enemy_#",
+    "c": [
+     "MeshFilter",
+     "BoxCollider",
+     "MeshRenderer",
+     "Rigidbody"
+    ],
+    "x": 30
+   }
+  ],
+  "more": "snap://h1 (depth>2, cursor)"
+ },
+ "console": {
+  "counts": {
+   "error": 6,
+   "warn": 41,
+   "log": 0
+  },
+  "groups": [
+   {
+    "lvl": "error",
+    "msg": "NullReferenceException: Object reference not set to an instance of an object",
+    "n": 6,
+    "at": "Assets/Scripts/PlayerController.cs:42"
+   },
+   {
+    "lvl": "warn",
+    "msg": "Shader warning: variant stripped 0",
+    "n": 14,
+    "at": "./Library/PackageCache/com.unity.pipeline@ab05e9cd7f74/Runtime/Compilation/EvalCodeCompiler.cs:190"
+   },
+   {
+    "lvl": "warn",
+    "msg": "Shader warning: variant stripped 1",
+    "n": 13,
+    "at": "./Library/PackageCache/com.unity.pipeline@ab05e9cd7f74/Runtime/Compilation/EvalCodeCompiler.cs:190"
+   },
+   {
+    "lvl": "warn",
+    "msg": "Shader warning: variant stripped 2",
+    "n": 13,
+    "at": "./Library/PackageCache/com.unity.pipeline@ab05e9cd7f74/Runtime/Compilation/EvalCodeCompiler.cs:190"
+   },
+   {
+    "lvl": "warn",
+    "msg": "Missing types referenced from component UniversalRenderPipelineGlobalSettings on game object UniversalRenderPipelineGlobalSettings:",
+    "n": 1
+   }
+  ],
+  "cursor": 47
+ }
+}

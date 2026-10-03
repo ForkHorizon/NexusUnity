@@ -1,0 +1,7 @@
+{"server": "unity", "method": "initialize", "params": null}
+{"server": "nexus", "method": "initialize", "params": null}
+{"server": "unity", "method": "notifications/initialized", "params": null}
+{"server": "nexus", "method": "notifications/initialized", "params": null}
+{"server": "nexus", "method": "tools/list", "params": null}
+{"server": "unity", "method": "tools/list", "params": null}
+{"server": "unity", "method": "tools/call", "params": {"_meta": {"callId": "exec-3ce07205-ba1a-4286-85b3-1b35bd6c2ff7", "x-codex-turn-metadata": {"session_id": "01a1022c-995b-7fd0-87be-f69092534f06", "thread_id": "01a1022c-995b-7fd0-87be-f69092534f06", "reasoning_effort": "high", "turn_id": "01a1022c-99eb-7973-b2f1-cafc4c2151b4", "model": "gpt-6-luna", "thread_source": "user", "turn_trigger": "exec", "sandbox": "seatbelt", "sandbox_mode": "read-only", "auto_review_enabled": false, "node_repl_auto_review_required": false, "node_repl_disabled": false, "turn_started_at_unix_ms": 1791037839855, "codex_version": "0.160.0"}, "threadId": "01a1022c-995b-7fd0-87be-f69092534f06", "sessionId": "01a1022c-995b-7fd0-87be-f69092534f06", "windowId": "01a1022c-995b-7fd0-87be-f69092534f06:0", "itemId": "ctc_02fc231de65057b6016ac1119e3ac887d299f7245599081de1", "progressToken": 1}, "name": "nexus_group_compile_errors", "arguments": {}}}

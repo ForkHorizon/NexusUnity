@@ -1,0 +1,60 @@
+{
+ "jsonrpc": "2.0",
+ "id": 2,
+ "result": {
+  "tools": [
+   {
+    "name": "unity_list",
+    "description": "List official Unity Pipeline commands (compact: name, description, tags). Filter by tag prefix or query.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "tag": {
+       "type": "string"
+      },
+      "query": {
+       "type": "string"
+      }
+     },
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "unity_describe",
+    "description": "Full JSON input schema + flags for one command.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "command": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "command"
+     ],
+     "additionalProperties": false
+    }
+   },
+   {
+    "name": "unity_run",
+    "description": "Run a Unity Pipeline command: {command, args}. Validate args with unity_describe first.",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "command": {
+       "type": "string"
+      },
+      "args": {
+       "type": "object",
+       "description": "Arguments per the command schema."
+      }
+     },
+     "required": [
+      "command"
+     ],
+     "additionalProperties": false
+    }
+   }
+  ]
+ }
+}
