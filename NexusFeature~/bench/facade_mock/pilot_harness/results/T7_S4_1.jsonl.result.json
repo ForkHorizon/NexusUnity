@@ -1,0 +1,88 @@
+{
+ "run": "T7_S4_1",
+ "task": "T7",
+ "arm": "S4",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "Updated the four lantern post instances on Pier 3: their light intensity is now 1.5 and their shadows are off. The lantern prefab and other lights were left unchanged. Saved [Harbor.unity](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scenes/Harbor.unity).",
+ "oracle": {
+  "answer": null,
+  "oracle": "PASS"
+ },
+ "metrics": {
+  "tokens_input": 440041,
+  "tokens_cached": 381440,
+  "tokens_uncached": 58601,
+  "tokens_output": 1541,
+  "tokens_reasoning": 569,
+  "tokens_total": 441582,
+  "tool_output_tokens": 519576,
+  "mcp_output_tokens": 519576,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 3,
+   "mcp_tool_call": 19
+  },
+  "mcp_calls": 19,
+  "mcp_calls_by_server": {
+   "nexus-unity": 6,
+   "unity": 13
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 19,
+  "mcp_errors": 4,
+  "invalid_arg_or_action": 4,
+  "retries": 4,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 1804,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443
+  },
+  "unity_commands": [
+   "unity_dump_scene_graph",
+   "unity_editor_controller",
+   "unity_dump_scene_graph",
+   "unity_dump_scene_graph",
+   "unity_dump_scene_graph",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "set_serialized_field",
+   "save_scene",
+   "unity_dump_scene_graph"
+  ]
+ },
+ "wall_s": 62.1,
+ "reset_s": 25.5,
+ "reset": {
+  "nexus_bridge_ok": true,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

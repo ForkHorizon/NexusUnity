@@ -1,6 +1,10 @@
 # F — Façade hypothesis: Unity CLI as a hidden backend behind a compact Nexus API?
 
 Date: 2026-10-02 · Input to MASTER_PLAN_V2 v2.4 · Research and planning only (no production code)
+
+> **v2.5 correction (2026-10-03):** this analysis tested an adjacent design (S4 + selective reads = S5) and its "option B
+rejected" conclusion is **withdrawn**: Nexus-primary (S6) was not tested here. See `G_nexus_primary/` and MASTER_PLAN_V2 §17.3.
+The "truncated at 25k" statement about Claude Code is also wrong (large outputs spill to a file; F21).
 Evidence folder: `v2_analysis/F_facade_evidence/` (scripts, raw captures, two research notes:
 `R_clients.md` = client tool-loading research with a URL per claim; `R_repo.md` = Nexus manager-tool history + measurements).
 

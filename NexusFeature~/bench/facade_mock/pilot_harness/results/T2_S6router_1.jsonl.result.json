@@ -1,0 +1,83 @@
+{
+ "run": "T2_S6router_1",
+ "task": "T2",
+ "arm": "S6router",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "Unity compiles successfully again. I fixed both compile errors:\n\n- Changed `TideClock.NormalizedHeight` to use the existing clamped inverse-lerp helper.\n- Added `Saltmarsh.Weather` as a reference in the Editor assembly definition so `HarborLightBaker` can access `WeatherProfile`.\n\nNexus recompile completed with no errors. The merged lighting code remains in place.",
+ "oracle": {
+  "answer": null,
+  "recompile": {
+   "status": "up_to_date",
+   "failed": false,
+   "errors": [],
+   "compilationFailed": false
+  },
+  "oracle": "PASS",
+  "tests": "{\"Summary\": {\"Total\": 11, \"Passed\": 9, \"Failed\": 1, \"Skipped\": 1, \"Inconclusive\": 0}, \"Results\": [{\"FullName\": \"CargoIdTests.Parse_HandlesUnicodeSuffix\", \"Status\": \"Skipped\", \"Duration\": 0.00125, \"Message\": \"Waiting on design for unicode ids\", \"StackTrace\": null}, {\"FullName\": \"CargoIdTests.Parse_RejectsMissingNumber\", \"Status\": \"Passed\", \"Duration\": 0.005575, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"CargoIdTests.Parse_Simple\", \"Status\": \"Passed\", \"Duration\": 0.0029714, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"PriceTableTests.BulkDiscount_StartsAtHundredUnits\", \"Status\": \"Failed\", \"Duration\": 0.007712, \"Message\": \"  Expected: 0.850000024f\\n  But was:  0.899999976f\\n\", \"StackTrace\": \"at PriceTableTests.BulkDiscount_StartsAtHundredUnits () [0x00000] in /private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Tests/EditMode/PriceTableTests.cs:6\\n\"}, {\"FullName\": \"PriceTableTests.NineteenUnits_FullPrice\", \"Status\": \"Passed\", \"Duration\": 0.0001245, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"PriceTableTests.NinetyNineUnits_GetsTraderRate\", \"Status\": \"Passed\", \"Duration\": 5.85e-05, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"PriceTableTests.TwentyUnits_GetsTraderRate\", \"Status\": \"Passed\", \"Duration\": 5.15e-05, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"TideClockTests.NormalizedHeight_AtHalfTide_IsHalf\", \"Status\": \"Pass",
+  "tests_ok": true
+ },
+ "metrics": {
+  "tokens_input": 187524,
+  "tokens_cached": 163840,
+  "tokens_uncached": 23684,
+  "tokens_output": 1181,
+  "tokens_reasoning": 139,
+  "tokens_total": 188705,
+  "tool_output_tokens": 2180,
+  "mcp_output_tokens": 1044,
+  "shell_output_tokens": 1136,
+  "items": {
+   "agent_message": 3,
+   "mcp_tool_call": 7,
+   "command_execution": 7
+  },
+  "mcp_calls": 7,
+  "mcp_calls_by_server": {
+   "nexus": 7
+  },
+  "shell_calls": 7,
+  "file_changes": 0,
+  "calls_total": 14,
+  "mcp_errors": 0,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 2,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 4711,
+  "tools_list_chars": {
+   "nexus": 1176
+  },
+  "unity_commands": [
+   "nexus_list",
+   "console_status",
+   "nexus_group_compile_errors",
+   "nexus_list",
+   "recompile",
+   "recompile",
+   "console_status"
+  ]
+ },
+ "wall_s": 52.9,
+ "reset_s": 33.1,
+ "reset": {
+  "nexus_bridge_ok": null,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": true
+ },
+ "timed_out": false
+}

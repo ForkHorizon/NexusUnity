@@ -1,0 +1,90 @@
+{
+ "run": "T3_S6curated_1",
+ "task": "T3",
+ "arm": "S6curated",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "Direct scene instances of `Lantern_Post`:\n\n- Docks_Test: 3\n- Harbor: 17\n- AutoSavedScene, MainMenu, Tests, and 0: 0 each\n\nOther assets that reference it: `Lantern_Post_Rusty.prefab`, `LanternSet.asset`, and `StreetKit.prefab`.\n\nANSWER: 0=0; AutoSavedScene=0; Docks_Test=3; Harbor=17; MainMenu=0; Tests=0; assets=Lantern_Post_Rusty.prefab, LanternSet.asset, StreetKit.prefab",
+ "oracle": {
+  "answer": "0=0; AutoSavedScene=0; Docks_Test=3; Harbor=17; MainMenu=0; Tests=0; assets=Lantern_Post_Rusty.prefab, LanternSet.asset, StreetKit.prefab",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": ""
+ },
+ "metrics": {
+  "tokens_input": 197360,
+  "tokens_cached": 177408,
+  "tokens_uncached": 19952,
+  "tokens_output": 2815,
+  "tokens_reasoning": 683,
+  "tokens_total": 200175,
+  "tool_output_tokens": 3399,
+  "mcp_output_tokens": 3399,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 19
+  },
+  "mcp_calls": 19,
+  "mcp_calls_by_server": {
+   "nexus": 19
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 19,
+  "mcp_errors": 3,
+  "invalid_arg_or_action": 0,
+  "retries": 3,
+  "wrong_capability": 0,
+  "discovery_calls": 10,
+  "escape_calls": 15,
+  "eval_like_calls": 5,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 8765,
+  "tools_list_chars": {
+   "nexus": 29172
+  },
+  "unity_commands": [
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "find_assets",
+   "find_assets",
+   "list_open_scenes",
+   "eval",
+   "eval",
+   "editor_status",
+   "eval",
+   "eval",
+   "eval"
+  ]
+ },
+ "wall_s": 83.2,
+ "reset_s": 24.3,
+ "reset": {
+  "nexus_bridge_ok": null,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

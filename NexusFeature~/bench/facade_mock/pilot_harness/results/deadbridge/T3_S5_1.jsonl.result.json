@@ -1,0 +1,71 @@
+{
+ "run": "T3_S5_1",
+ "task": "T3",
+ "arm": "S5",
+ "rep": 1,
+ "semantic_ok": false,
+ "claimed_ok": true,
+ "false_success": true,
+ "prod_policy_ok": false,
+ "infra_fail": true,
+ "void_leak": false,
+ "final": "Direct scene instances: Harbor has 17; Docks_Test has 3. Other assets reference the prefab: Lantern_Post_Rusty (variant), StreetKit (nested prefab), and LanternSet (asset).\n\nANSWER: Harbor=17; Docks_Test=3; assets=Lantern_Post_Rusty.prefab, StreetKit.prefab, LanternSet.asset",
+ "oracle": {
+  "answer": "Harbor=17; Docks_Test=3; assets=Lantern_Post_Rusty.prefab, StreetKit.prefab, LanternSet.asset",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": "EVALFAIL:No Pipeline instance found for project: /private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture. Make sure Unity Editor is running with the Pipeline package installed."
+  },
+  "why": "mutated during read-only task"
+ },
+ "metrics": {
+  "tokens_input": 172062,
+  "tokens_cached": 151552,
+  "tokens_uncached": 20510,
+  "tokens_output": 896,
+  "tokens_reasoning": 0,
+  "tokens_total": 172958,
+  "tool_output_tokens": 47254,
+  "mcp_output_tokens": 0,
+  "shell_output_tokens": 47254,
+  "items": {
+   "agent_message": 4,
+   "mcp_tool_call": 3,
+   "command_execution": 5
+  },
+  "mcp_calls": 3,
+  "mcp_calls_by_server": {
+   "nexus-unity": 3
+  },
+  "shell_calls": 5,
+  "file_changes": 0,
+  "calls_total": 8,
+  "mcp_errors": 3,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 10,
+  "tools_list_chars": {
+   "unity": 2,
+   "nexus": 2779,
+   "nexus-unity": 19443
+  },
+  "unity_commands": [
+   "unity_scene_manager",
+   "unity_search_manager",
+   "unity_asset_manager"
+  ]
+ },
+ "wall_s": 1110.8,
+ "reset_s": 3083.1,
+ "reset": {
+  "counts_after_seed": null,
+  "compileFailed_at_start": null
+ },
+ "timed_out": false
+}

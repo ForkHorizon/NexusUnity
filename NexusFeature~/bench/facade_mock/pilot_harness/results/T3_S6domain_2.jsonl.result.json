@@ -1,0 +1,94 @@
+{
+ "run": "T3_S6domain_2",
+ "task": "T3",
+ "arm": "S6domain",
+ "rep": 2,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "There are 17 direct copies in Harbor and 3 in Docks_Test. Other referencing assets are Lantern_Post_Rusty.prefab, StreetKit.prefab, and LanternSet.asset.\n\nANSWER: Harbor=17; Docks_Test=3; assets=Lantern_Post_Rusty.prefab, StreetKit.prefab, LanternSet.asset.",
+ "oracle": {
+  "answer": "Harbor=17; Docks_Test=3; assets=Lantern_Post_Rusty.prefab, StreetKit.prefab, LanternSet.asset.",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": "scenes={'harbor': '17', 'docks_test': '3'} assets={'lanternset.asset.', 'lantern_post_rusty', 'streetkit'}"
+ },
+ "metrics": {
+  "tokens_input": 858997,
+  "tokens_cached": 806144,
+  "tokens_uncached": 52853,
+  "tokens_output": 4150,
+  "tokens_reasoning": 1970,
+  "tokens_total": 863147,
+  "tool_output_tokens": 4840,
+  "mcp_output_tokens": 4840,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 3,
+   "mcp_tool_call": 24
+  },
+  "mcp_calls": 24,
+  "mcp_calls_by_server": {
+   "nexus": 24
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 24,
+  "mcp_errors": 8,
+  "invalid_arg_or_action": 3,
+  "retries": 6,
+  "wrong_capability": 4,
+  "discovery_calls": 0,
+  "escape_calls": 2,
+  "eval_like_calls": 10,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 52986,
+  "tools_list_chars": {
+   "nexus": 58920
+  },
+  "unity_commands": [
+   "eval",
+   "eval",
+   "eval",
+   "eval",
+   "eval",
+   "find_assets",
+   "find_assets",
+   "list_open_scenes",
+   "get_scene_hierarchy",
+   "get_scene_hierarchy",
+   "get_scene_hierarchy",
+   "eval",
+   "console",
+   "eval",
+   "console",
+   "eval",
+   "console",
+   "eval",
+   "list_open_scenes",
+   "open_scene",
+   "get_scene_hierarchy",
+   "search",
+   "eval",
+   "console"
+  ]
+ },
+ "wall_s": 174.9,
+ "reset_s": 20.4,
+ "reset": {
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false,
+ "rescored_A5": true
+}

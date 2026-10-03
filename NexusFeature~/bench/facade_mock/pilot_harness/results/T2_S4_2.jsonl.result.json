@@ -1,0 +1,87 @@
+{
+ "run": "T2_S4_2",
+ "task": "T2",
+ "arm": "S4",
+ "rep": 2,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "Unity now compiles with no C# errors. I added `TideMath.Lerp01` as an alias for the existing clamped inverse lerp, preserving the merged call and its intended behavior, and added the missing `Saltmarsh.Weather` assembly reference for the merged lighting editor code.\n\nUnity\u2019s compile check returned **Ready** with no errors, and the compiler error scan found none.",
+ "oracle": {
+  "answer": null,
+  "recompile": {
+   "status": "up_to_date",
+   "failed": false,
+   "errors": [],
+   "compilationFailed": false
+  },
+  "oracle": "PASS",
+  "tests": "{\"Summary\": {\"Total\": 11, \"Passed\": 9, \"Failed\": 1, \"Skipped\": 1, \"Inconclusive\": 0}, \"Results\": [{\"FullName\": \"CargoIdTests.Parse_HandlesUnicodeSuffix\", \"Status\": \"Skipped\", \"Duration\": 0.0003436, \"Message\": \"Waiting on design for unicode ids\", \"StackTrace\": null}, {\"FullName\": \"CargoIdTests.Parse_RejectsMissingNumber\", \"Status\": \"Passed\", \"Duration\": 0.002147, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"CargoIdTests.Parse_Simple\", \"Status\": \"Passed\", \"Duration\": 0.0013058, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"PriceTableTests.BulkDiscount_StartsAtHundredUnits\", \"Status\": \"Failed\", \"Duration\": 0.0015618, \"Message\": \"  Expected: 0.850000024f\\n  But was:  0.899999976f\\n\", \"StackTrace\": \"at PriceTableTests.BulkDiscount_StartsAtHundredUnits () [0x00000] in /private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Tests/EditMode/PriceTableTests.cs:6\\n\"}, {\"FullName\": \"PriceTableTests.NineteenUnits_FullPrice\", \"Status\": \"Passed\", \"Duration\": 3.35e-05, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"PriceTableTests.NinetyNineUnits_GetsTraderRate\", \"Status\": \"Passed\", \"Duration\": 2.42e-05, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"PriceTableTests.TwentyUnits_GetsTraderRate\", \"Status\": \"Passed\", \"Duration\": 2.01e-05, \"Message\": null, \"StackTrace\": null}, {\"FullName\": \"TideClockTests.NormalizedHeight_AtHalfTide_IsHalf\", \"Status\": \"Pa",
+  "tests_ok": true
+ },
+ "metrics": {
+  "tokens_input": 478234,
+  "tokens_cached": 428800,
+  "tokens_uncached": 49434,
+  "tokens_output": 1859,
+  "tokens_reasoning": 310,
+  "tokens_total": 480093,
+  "tool_output_tokens": 10653,
+  "mcp_output_tokens": 8794,
+  "shell_output_tokens": 1859,
+  "items": {
+   "agent_message": 4,
+   "command_execution": 7,
+   "mcp_tool_call": 9
+  },
+  "mcp_calls": 9,
+  "mcp_calls_by_server": {
+   "unity": 7,
+   "nexus-unity": 2
+  },
+  "shell_calls": 7,
+  "file_changes": 0,
+  "calls_total": 16,
+  "mcp_errors": 0,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 24034,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443
+  },
+  "unity_commands": [
+   "console_status",
+   "console",
+   "nexus_group_compile_errors",
+   "unity_write_and_compile",
+   "nexus_group_compile_errors",
+   "console_status",
+   "unity_write_and_compile",
+   "console_status",
+   "nexus_group_compile_errors"
+  ]
+ },
+ "wall_s": 84.6,
+ "reset_s": 40.5,
+ "reset": {
+  "nexus_bridge_ok": true,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": true
+ },
+ "timed_out": false
+}

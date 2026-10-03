@@ -1,0 +1,101 @@
+{
+ "run": "T9_S4_2",
+ "task": "T9",
+ "arm": "S4",
+ "rep": 2,
+ "semantic_ok": false,
+ "claimed_ok": true,
+ "false_success": true,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The auto-playing bell AudioSources are on two buoy objects, and both reference `bell_buoy.wav`. The scene has no AudioListener, so Unity has nowhere to output their sound.\n\nANSWER: path=/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r12/Mount/BellAudio; reason=the scene has no AudioListener, so the bell has no listener to play through",
+ "oracle": {
+  "answer": "path=/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r12/Mount/BellAudio; reason=the scene has no AudioListener, so the bell has no listener to play through",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r12/Mount/BellAudio reason=the scene has no AudioListener, so the bell has no listener to play through"
+ },
+ "metrics": {
+  "tokens_input": 298371,
+  "tokens_cached": 254464,
+  "tokens_uncached": 43907,
+  "tokens_output": 1433,
+  "tokens_reasoning": 491,
+  "tokens_total": 299804,
+  "tool_output_tokens": 117929,
+  "mcp_output_tokens": 117929,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 30
+  },
+  "mcp_calls": 30,
+  "mcp_calls_by_server": {
+   "nexus-unity": 3,
+   "unity": 27
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 30,
+  "mcp_errors": 3,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 2678,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443
+  },
+  "unity_commands": [
+   "unity_editor_controller",
+   "unity_dump_scene_graph",
+   "unity_scene_manager",
+   "get_scene_hierarchy",
+   "find_gameobjects",
+   "find_gameobjects",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "find_gameobjects",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "get_serialized_fields",
+   "find_gameobjects"
+  ]
+ },
+ "wall_s": 55.5,
+ "reset_s": 22.7,
+ "reset": {
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

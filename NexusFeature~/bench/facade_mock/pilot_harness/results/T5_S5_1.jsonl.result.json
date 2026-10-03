@@ -1,0 +1,74 @@
+{
+ "run": "T5_S5_1",
+ "task": "T5",
+ "arm": "S5",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "There are **3 distinct errors**. Each is reported as originating from your code:\n\n- Missing localization key `menu.play.subtitle` \u2014 [LocalizationCheck.cs:31](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scripts/Editor/Validation/LocalizationCheck.cs:31) (5 occurrences)\n- Duplicate cargo ID `crate_fish_07` in Northpier \u2014 [ManifestValidator.cs:47](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scripts/Editor/Validation/ManifestValidator.cs:47)\n- `NullReferenceException` \u2014 [HarborAmbience.cs:58](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scripts/Runtime/Audio/HarborAmbience.cs:58)\n\nANSWER: count=3; errors=Assets/BenchFixture/Scripts/Editor/Validation/LocalizationCheck.cs:31 | Assets/BenchFixture/Scripts/Editor/Validation/ManifestValidator.cs:47 | Assets/BenchFixture/Scripts/Runtime/Audio/HarborAmbience.cs:58",
+ "oracle": {
+  "answer": "count=3; errors=Assets/BenchFixture/Scripts/Editor/Validation/LocalizationCheck.cs:31 | Assets/BenchFixture/Scripts/Editor/Validation/ManifestValidator.cs:47 | Assets/BenchFixture/Scripts/Runtime/Audio/HarborAmbience.cs:58",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": ""
+ },
+ "metrics": {
+  "tokens_input": 60593,
+  "tokens_cached": 47360,
+  "tokens_uncached": 13233,
+  "tokens_output": 476,
+  "tokens_reasoning": 0,
+  "tokens_total": 61069,
+  "tool_output_tokens": 176,
+  "mcp_output_tokens": 176,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 1
+  },
+  "mcp_calls": 1,
+  "mcp_calls_by_server": {
+   "nexus": 1
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 1,
+  "mcp_errors": 0,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 3,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443,
+   "nexus": 2779
+  },
+  "unity_commands": [
+   "nexus_console"
+  ]
+ },
+ "wall_s": 19.7,
+ "reset_s": 26.4,
+ "reset": {
+  "nexus_bridge_ok": true,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

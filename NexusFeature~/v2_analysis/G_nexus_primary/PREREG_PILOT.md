@@ -212,3 +212,15 @@ Editor automatically if Pipeline is unreachable. The voided cells are re-run.
    anything. Finish your reply with one line in exactly this form: ANSWER: path=<full hierarchy path of the object>;
    reason=<short reason>". Oracle: normalised path equal; reason names `Caht` or `DarkMode` and matches
    /inactive|disabled|not active|deactivated|turned off/; read-only integrity via git. Arms S4, S5, S6-domain, N=1.
+
+## Corrections note (2026-10-04, after the final independent review — no thresholds changed, no runs re-scored)
+- A5's header time "≈23:15" is wrong: committed 22:55, and it was triggered by reading a scored T3 failure (not outcome-blind).
+- A3 was written after the 7 affected S4/S5 runs had scored 0/7; its trigger was an infrastructure fact, but the timing is disclosed.
+- §2's statement that S6 runs with network off was superseded by A1.5 (network on for all arms).
+- §2 calls the S6-domain managers "typed"; as built they are a **flat parameter union** per manager (lossy; descriptions cut to 90
+  characters), which the design critic had flagged.
+- The 0.25 floor (comparator with 0 successes) is implemented in `analyze.py` but was not written in A1.6.
+- "Uncached input tokens" is a post-hoc lens, not a pre-registered metric.
+- Gate F v2.5 was finalised after the unscored S6 smoke run (not "before any S6 result existed"); D1's per-task veto was removed then at
+  the design critic's request.
+Robustness checks: PILOT_RESULTS.md §6.

@@ -1,0 +1,85 @@
+{
+ "run": "T1_S6router_1",
+ "task": "T1",
+ "arm": "S6router",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The vignette overlay was intercepting all pointer clicks because its Image had Raycast Target enabled. I disabled raycasting on that Image and saved [MainMenu.unity](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scenes/MainMenu.unity). The vignette\u2019s appearance is unchanged.",
+ "oracle": {
+  "answer": null,
+  "oracle": "PASS"
+ },
+ "metrics": {
+  "tokens_input": 146310,
+  "tokens_cached": 131840,
+  "tokens_uncached": 14470,
+  "tokens_output": 1015,
+  "tokens_reasoning": 142,
+  "tokens_total": 147325,
+  "tool_output_tokens": 2871,
+  "mcp_output_tokens": 2871,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 3,
+   "mcp_tool_call": 18
+  },
+  "mcp_calls": 18,
+  "mcp_calls_by_server": {
+   "nexus": 18
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 18,
+  "mcp_errors": 0,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 5,
+  "escape_calls": 3,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 1456,
+  "tools_list_chars": {
+   "nexus": 1176
+  },
+  "unity_commands": [
+   "nexus_list",
+   "list_open_scenes",
+   "nexus_list",
+   "get_scene_hierarchy",
+   "get_scene_hierarchy",
+   "find_gameobjects",
+   "find_gameobjects",
+   "find_gameobjects",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "set_component_properties",
+   "save_scene"
+  ]
+ },
+ "wall_s": 39.2,
+ "reset_s": 21.5,
+ "reset": {
+  "nexus_bridge_ok": null,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

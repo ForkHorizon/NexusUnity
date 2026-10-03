@@ -1,0 +1,75 @@
+{
+ "run": "T1_S4_2",
+ "task": "T1",
+ "arm": "S4",
+ "rep": 2,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The vignette Image was intercepting clicks because it sat on a higher-sorting canvas with `Raycast Target` enabled. I disabled raycasts on that Image, preserving its appearance, and saved [MainMenu.unity](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scenes/MainMenu.unity). Verified the setting is now `false`.",
+ "oracle": {
+  "answer": null,
+  "oracle": "PASS"
+ },
+ "metrics": {
+  "tokens_input": 264515,
+  "tokens_cached": 231424,
+  "tokens_uncached": 33091,
+  "tokens_output": 802,
+  "tokens_reasoning": 158,
+  "tokens_total": 265317,
+  "tool_output_tokens": 19983,
+  "mcp_output_tokens": 19983,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 3,
+   "mcp_tool_call": 6
+  },
+  "mcp_calls": 6,
+  "mcp_calls_by_server": {
+   "nexus-unity": 4,
+   "unity": 2
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 6,
+  "mcp_errors": 1,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 644,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443
+  },
+  "unity_commands": [
+   "unity_dump_scene_graph",
+   "unity_editor_controller",
+   "set_serialized_field",
+   "unity_component_manager",
+   "unity_scene_manager",
+   "get_serialized_fields"
+  ]
+ },
+ "wall_s": 47.0,
+ "reset_s": 25.6,
+ "reset": {
+  "nexus_bridge_ok": true,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

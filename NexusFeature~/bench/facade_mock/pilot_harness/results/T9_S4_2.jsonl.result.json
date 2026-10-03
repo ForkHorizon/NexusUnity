@@ -1,0 +1,80 @@
+{
+ "run": "T9_S4_2",
+ "task": "T9",
+ "arm": "S4",
+ "rep": 2,
+ "semantic_ok": false,
+ "claimed_ok": true,
+ "false_success": true,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The AudioSource is disabled, and Play On Awake is off.\n\nANSWER: path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w02/Mount/BellAudio; reason=its AudioSource component is disabled, and Play On Awake is off",
+ "oracle": {
+  "answer": "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w02/Mount/BellAudio; reason=its AudioSource component is disabled, and Play On Awake is off",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w02/Mount/BellAudio reason=its AudioSource component is disabled, and Play On Awake is off"
+ },
+ "metrics": {
+  "tokens_input": 449972,
+  "tokens_cached": 411648,
+  "tokens_uncached": 38324,
+  "tokens_output": 982,
+  "tokens_reasoning": 338,
+  "tokens_total": 450954,
+  "tool_output_tokens": 612639,
+  "mcp_output_tokens": 612639,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 8
+  },
+  "mcp_calls": 8,
+  "mcp_calls_by_server": {
+   "nexus-unity": 8
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 8,
+  "mcp_errors": 1,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 698,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443
+  },
+  "unity_commands": [
+   "unity_scene_manager",
+   "unity_editor_controller",
+   "unity_dump_scene_graph",
+   "unity_search_manager",
+   "unity_component_manager",
+   "unity_dump_scene_graph",
+   "unity_dump_scene_graph",
+   "unity_dump_scene_graph"
+  ]
+ },
+ "wall_s": 510.9,
+ "reset_s": 24.6,
+ "reset": {
+  "nexus_bridge_ok": true,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

@@ -1,0 +1,84 @@
+{
+ "run": "T3_S6router_1",
+ "task": "T3",
+ "arm": "S6router",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The prefab is placed directly in Docks_Test 3 times and Harbor 17 times. I found no direct placements in the other scenes. Other referencing assets are Lantern_Post_Rusty.prefab, StreetKit.prefab, and LanternSet.asset.\n\nANSWER: Docks_Test=3; Harbor=17; assets=Lantern_Post_Rusty.prefab, StreetKit.prefab, LanternSet.asset",
+ "oracle": {
+  "answer": "Docks_Test=3; Harbor=17; assets=Lantern_Post_Rusty.prefab, StreetKit.prefab, LanternSet.asset",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": ""
+ },
+ "metrics": {
+  "tokens_input": 235886,
+  "tokens_cached": 213760,
+  "tokens_uncached": 22126,
+  "tokens_output": 1492,
+  "tokens_reasoning": 447,
+  "tokens_total": 237378,
+  "tool_output_tokens": 21315,
+  "mcp_output_tokens": 3500,
+  "shell_output_tokens": 17815,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 14,
+   "command_execution": 3
+  },
+  "mcp_calls": 14,
+  "mcp_calls_by_server": {
+   "nexus": 14
+  },
+  "shell_calls": 3,
+  "file_changes": 0,
+  "calls_total": 17,
+  "mcp_errors": 0,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 8,
+  "escape_calls": 4,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 475,
+  "tools_list_chars": {
+   "nexus": 1176
+  },
+  "unity_commands": [
+   "nexus_list",
+   "nexus_list",
+   "nexus_describe",
+   "nexus_describe",
+   "nexus_describe",
+   "find_assets",
+   "find_assets",
+   "nexus_list",
+   "nexus_list",
+   "find_assets",
+   "find_assets",
+   "list_open_scenes",
+   "get_scene_hierarchy",
+   "nexus_describe"
+  ]
+ },
+ "wall_s": 56.6,
+ "reset_s": 26.4,
+ "reset": {
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

@@ -1,0 +1,84 @@
+{
+ "run": "T1_S6domain_1",
+ "task": "T1",
+ "arm": "S6domain",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The `FxCanvas/VignetteOverlay` image had **Raycast Target** enabled, so the full-screen vignette intercepted clicks before they reached the menu buttons. I turned off its raycast target and saved [MainMenu.unity](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scenes/MainMenu.unity).\n\nThe vignette\u2019s appearance is unchanged. I also found that the Credits button has no click handler assigned, so it may still have no action after the raycast fix.",
+ "oracle": {
+  "answer": null,
+  "oracle": "PASS"
+ },
+ "metrics": {
+  "tokens_input": 544889,
+  "tokens_cached": 504832,
+  "tokens_uncached": 40057,
+  "tokens_output": 1971,
+  "tokens_reasoning": 490,
+  "tokens_total": 546860,
+  "tool_output_tokens": 1403,
+  "mcp_output_tokens": 1248,
+  "shell_output_tokens": 155,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 16,
+   "command_execution": 2
+  },
+  "mcp_calls": 16,
+  "mcp_calls_by_server": {
+   "nexus": 16
+  },
+  "shell_calls": 2,
+  "file_changes": 0,
+  "calls_total": 18,
+  "mcp_errors": 5,
+  "invalid_arg_or_action": 4,
+  "retries": 5,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 4,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 1658,
+  "tools_list_chars": {
+   "nexus": 58920
+  },
+  "unity_commands": [
+   "list_open_scenes",
+   "get_scene_hierarchy",
+   "editor_status",
+   "eval",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "eval",
+   "set_component_properties",
+   "eval",
+   "eval",
+   "save_scene"
+  ]
+ },
+ "wall_s": 67.3,
+ "reset_s": 20.9,
+ "reset": {
+  "nexus_bridge_ok": null,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

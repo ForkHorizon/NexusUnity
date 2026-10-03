@@ -1,0 +1,76 @@
+{
+ "run": "T9_S6domain_1",
+ "task": "T9",
+ "arm": "S6domain",
+ "rep": 1,
+ "semantic_ok": false,
+ "claimed_ok": true,
+ "false_success": true,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The buoy bell AudioSource is at `/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio`. Its clip is assigned, but **Play On Awake is false**, so it does not start automatically with the scene.\n\nANSWER: path=/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio; reason=Play On Awake is disabled",
+ "oracle": {
+  "answer": "path=/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio; reason=Play On Awake is disabled",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio reason=Play On Awake is disabled"
+ },
+ "metrics": {
+  "tokens_input": 200311,
+  "tokens_cached": 149504,
+  "tokens_uncached": 50807,
+  "tokens_output": 638,
+  "tokens_reasoning": 86,
+  "tokens_total": 200949,
+  "tool_output_tokens": 699,
+  "mcp_output_tokens": 699,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 7
+  },
+  "mcp_calls": 7,
+  "mcp_calls_by_server": {
+   "nexus": 7
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 7,
+  "mcp_errors": 3,
+  "invalid_arg_or_action": 2,
+  "retries": 2,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 1,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 440,
+  "tools_list_chars": {
+   "nexus": 58920
+  },
+  "unity_commands": [
+   "list_open_scenes",
+   "get_scene_hierarchy",
+   "get_scene_hierarchy",
+   "find_gameobjects",
+   "find_gameobjects",
+   "get_component_properties",
+   "get_component_properties"
+  ]
+ },
+ "wall_s": 46.9,
+ "reset_s": 25.8,
+ "reset": {
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

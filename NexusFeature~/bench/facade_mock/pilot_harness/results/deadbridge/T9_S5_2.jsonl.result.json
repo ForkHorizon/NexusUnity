@@ -1,0 +1,73 @@
+{
+ "run": "T9_S5_2",
+ "task": "T9",
+ "arm": "S5",
+ "rep": 2,
+ "semantic_ok": false,
+ "claimed_ok": true,
+ "false_success": true,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The AudioSource is at `/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w01/Mount/BellAudio`. It has a bell clip assigned, but **Play On Awake is off**, so it won\u2019t play automatically when the scene starts.\n\nANSWER: path=/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w01/Mount/BellAudio; reason=Play On Awake is disabled.",
+ "oracle": {
+  "answer": "path=/Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w01/Mount/BellAudio; reason=Play On Awake is disabled.",
+  "readonly": {
+   "git": "",
+   "dirty_scenes": ""
+  },
+  "why": "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w01/Mount/BellAudio reason=Play On Awake is disabled."
+ },
+ "metrics": {
+  "tokens_input": 88256,
+  "tokens_cached": 60672,
+  "tokens_uncached": 27584,
+  "tokens_output": 300,
+  "tokens_reasoning": 0,
+  "tokens_total": 88556,
+  "tool_output_tokens": 1943,
+  "mcp_output_tokens": 1943,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 2
+  },
+  "mcp_calls": 2,
+  "mcp_calls_by_server": {
+   "nexus": 2
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 2,
+  "mcp_errors": 0,
+  "invalid_arg_or_action": 0,
+  "retries": 0,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 266,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443,
+   "nexus": 2779
+  },
+  "unity_commands": [
+   "nexus_hierarchy",
+   "nexus_inspect"
+  ]
+ },
+ "wall_s": 28.0,
+ "reset_s": 22.8,
+ "reset": {
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

@@ -1,0 +1,1114 @@
+{
+ "n_runs": 48,
+ "per_cell": {
+  "T1/S4": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 224360.5,
+   "mean_uncached": 37084.5,
+   "mean_tool_output_tokens": 20003.0,
+   "mean_calls": 4.5,
+   "mean_mcp_errors": 0.5,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 48.7,
+   "cost_per_success": 224360,
+   "fails": []
+  },
+  "T1/S5": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 180037.5,
+   "mean_uncached": 27742.5,
+   "mean_tool_output_tokens": 3057.5,
+   "mean_calls": 11.5,
+   "mean_mcp_errors": 1.0,
+   "mean_invalid": 1.0,
+   "mean_retries": 1.0,
+   "mean_wrong_cap": 0.5,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 244.3,
+   "cost_per_success": 180038,
+   "fails": []
+  },
+  "T1/S6domain": {
+   "n": 2,
+   "success": 1,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 380996.5,
+   "mean_uncached": 29344.5,
+   "mean_tool_output_tokens": 1385.5,
+   "mean_calls": 17.5,
+   "mean_mcp_errors": 5.5,
+   "mean_invalid": 5.0,
+   "mean_retries": 5.5,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 1,
+   "bypass_runs": 0,
+   "mean_wall_s": 54.2,
+   "cost_per_success": 761993,
+   "fails": [
+    "PASS"
+   ]
+  },
+  "T1/S6curated": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 113854.0,
+   "mean_uncached": 34750.0,
+   "mean_tool_output_tokens": 1196.0,
+   "mean_calls": 14.0,
+   "mean_mcp_errors": 2.0,
+   "mean_invalid": 1.0,
+   "mean_retries": 1.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 2.0,
+   "mean_escape": 2.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 31.1,
+   "cost_per_success": 113854,
+   "fails": []
+  },
+  "T1/S6router": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 147325.0,
+   "mean_uncached": 14470.0,
+   "mean_tool_output_tokens": 2871.0,
+   "mean_calls": 18.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 5.0,
+   "mean_escape": 3.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 39.2,
+   "cost_per_success": 147325,
+   "fails": []
+  },
+  "T2/S4": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 430056.5,
+   "mean_uncached": 47211.0,
+   "mean_tool_output_tokens": 27759.0,
+   "mean_calls": 15.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 94.2,
+   "cost_per_success": 430056,
+   "fails": []
+  },
+  "T2/S5": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 363567.5,
+   "mean_uncached": 34481.0,
+   "mean_tool_output_tokens": 7652.5,
+   "mean_calls": 12.5,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 98.3,
+   "cost_per_success": 363568,
+   "fails": []
+  },
+  "T2/S6domain": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 232795.0,
+   "mean_uncached": 25522.5,
+   "mean_tool_output_tokens": 4159.5,
+   "mean_calls": 12.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 52.7,
+   "cost_per_success": 232795,
+   "fails": []
+  },
+  "T2/S6curated": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 347100.0,
+   "mean_uncached": 26232.0,
+   "mean_tool_output_tokens": 3774.0,
+   "mean_calls": 21.0,
+   "mean_mcp_errors": 2.0,
+   "mean_invalid": 1.0,
+   "mean_retries": 1.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 4.0,
+   "mean_escape": 4.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 78.0,
+   "cost_per_success": 347100,
+   "fails": []
+  },
+  "T2/S6router": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 188705.0,
+   "mean_uncached": 23684.0,
+   "mean_tool_output_tokens": 2180.0,
+   "mean_calls": 14.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 2.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 52.9,
+   "cost_per_success": 188705,
+   "fails": []
+  },
+  "T3/S4": {
+   "n": 2,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 1,
+   "mean_tokens": 245989.5,
+   "mean_uncached": 41736.0,
+   "mean_tool_output_tokens": 84789.5,
+   "mean_calls": 6.5,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 44.4,
+   "cost_per_success": 491979,
+   "fails": [
+    "scenes={'harbor': '17', 'docks_test': '3', '0': '0', 'autosavedscene': '0', 'mainmenu': '0', 'tests': '0'} assets={'streetkit', 'lantern_post_rusty'}"
+   ]
+  },
+  "T3/S5": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 264786.5,
+   "mean_uncached": 54738.0,
+   "mean_tool_output_tokens": 60996.5,
+   "mean_calls": 6.5,
+   "mean_mcp_errors": 0.5,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.5,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 49.5,
+   "cost_per_success": 264786,
+   "fails": []
+  },
+  "T3/S6domain": {
+   "n": 2,
+   "success": 0,
+   "observed_success": 1,
+   "false_success": 1,
+   "mean_tokens": 579828.5,
+   "mean_uncached": 45271.5,
+   "mean_tool_output_tokens": 4341.0,
+   "mean_calls": 18.0,
+   "mean_mcp_errors": 5.5,
+   "mean_invalid": 2.5,
+   "mean_retries": 4.5,
+   "mean_wrong_cap": 2.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 2.0,
+   "eval_like_runs": 1,
+   "bypass_runs": 0,
+   "mean_wall_s": 121.3,
+   "cost_per_success": null,
+   "fails": [
+    "scenes={'harbor': '16'} assets={'unverified'}",
+    "scenes={'harbor': '17', 'docks_test': '3'} assets={'lanternset.asset.', 'lantern_post_rusty', 'streetkit'}"
+   ]
+  },
+  "T3/S6curated": {
+   "n": 1,
+   "success": 0,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 200175.0,
+   "mean_uncached": 19952.0,
+   "mean_tool_output_tokens": 3399.0,
+   "mean_calls": 19.0,
+   "mean_mcp_errors": 3.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 3.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 10.0,
+   "mean_escape": 15.0,
+   "eval_like_runs": 1,
+   "bypass_runs": 0,
+   "mean_wall_s": 83.2,
+   "cost_per_success": null,
+   "fails": [
+    null
+   ]
+  },
+  "T3/S6router": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 237378.0,
+   "mean_uncached": 22126.0,
+   "mean_tool_output_tokens": 21315.0,
+   "mean_calls": 17.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 8.0,
+   "mean_escape": 4.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 56.6,
+   "cost_per_success": 237378,
+   "fails": []
+  },
+  "T5/S4": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 162231.0,
+   "mean_uncached": 37265.0,
+   "mean_tool_output_tokens": 145023.0,
+   "mean_calls": 3.5,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 76.7,
+   "cost_per_success": 162231,
+   "fails": []
+  },
+  "T5/S5": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 61066.5,
+   "mean_uncached": 14761.0,
+   "mean_tool_output_tokens": 176.0,
+   "mean_calls": 1.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 23.1,
+   "cost_per_success": 61066,
+   "fails": []
+  },
+  "T5/S6domain": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 160067.0,
+   "mean_uncached": 36366.0,
+   "mean_tool_output_tokens": 6709.5,
+   "mean_calls": 2.5,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 1.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 49.2,
+   "cost_per_success": 160067,
+   "fails": []
+  },
+  "T5/S6curated": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 43712.0,
+   "mean_uncached": 15270.0,
+   "mean_tool_output_tokens": 479.0,
+   "mean_calls": 2.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 29.4,
+   "cost_per_success": 43712,
+   "fails": []
+  },
+  "T5/S6router": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 72012.0,
+   "mean_uncached": 21502.0,
+   "mean_tool_output_tokens": 591.0,
+   "mean_calls": 5.0,
+   "mean_mcp_errors": 1.0,
+   "mean_invalid": 1.0,
+   "mean_retries": 1.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 3.0,
+   "mean_escape": 2.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 28.3,
+   "cost_per_success": 72012,
+   "fails": []
+  },
+  "T7/S4": {
+   "n": 2,
+   "success": 2,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 443496.0,
+   "mean_uncached": 55936.0,
+   "mean_tool_output_tokens": 745658.5,
+   "mean_calls": 20.5,
+   "mean_mcp_errors": 6.0,
+   "mean_invalid": 4.0,
+   "mean_retries": 5.5,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 83.2,
+   "cost_per_success": 443496,
+   "fails": []
+  },
+  "T7/S5": {
+   "n": 2,
+   "success": 0,
+   "observed_success": 0,
+   "false_success": 2,
+   "mean_tokens": 446169.0,
+   "mean_uncached": 37232.0,
+   "mean_tool_output_tokens": 5945.0,
+   "mean_calls": 23.5,
+   "mean_mcp_errors": 14.0,
+   "mean_invalid": 9.5,
+   "mean_retries": 9.5,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 59.3,
+   "cost_per_success": null,
+   "fails": [
+    "FAIL:not changed Harbor/Waterfront/Piers/Pier_03/Lamps/Lantern_Post",
+    "FAIL:not changed Harbor/Waterfront/Piers/Pier_03/Lamps/Lantern_Post"
+   ]
+  },
+  "T7/S6domain": {
+   "n": 2,
+   "success": 0,
+   "observed_success": 2,
+   "false_success": 0,
+   "mean_tokens": 509433.0,
+   "mean_uncached": 38337.0,
+   "mean_tool_output_tokens": 5902.5,
+   "mean_calls": 25.5,
+   "mean_mcp_errors": 9.5,
+   "mean_invalid": 8.5,
+   "mean_retries": 8.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 2.5,
+   "eval_like_runs": 2,
+   "bypass_runs": 0,
+   "mean_wall_s": 79.3,
+   "cost_per_success": null,
+   "fails": [
+    "PASS",
+    "PASS"
+   ]
+  },
+  "T7/S6curated": {
+   "n": 1,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 0,
+   "mean_tokens": 420923.0,
+   "mean_uncached": 48872.0,
+   "mean_tool_output_tokens": 5597.0,
+   "mean_calls": 43.0,
+   "mean_mcp_errors": 12.0,
+   "mean_invalid": 11.0,
+   "mean_retries": 11.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 4.0,
+   "mean_escape": 4.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 101.7,
+   "cost_per_success": 420923,
+   "fails": []
+  },
+  "T7/S6router": {
+   "n": 1,
+   "success": 0,
+   "observed_success": 0,
+   "false_success": 1,
+   "mean_tokens": 527613.0,
+   "mean_uncached": 44665.0,
+   "mean_tool_output_tokens": 13534.0,
+   "mean_calls": 31.0,
+   "mean_mcp_errors": 5.0,
+   "mean_invalid": 4.0,
+   "mean_retries": 4.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 9.0,
+   "mean_escape": 6.0,
+   "eval_like_runs": 1,
+   "bypass_runs": 0,
+   "mean_wall_s": 88.7,
+   "cost_per_success": null,
+   "fails": [
+    "FAIL:not changed Harbor/Waterfront/Piers/Pier_03/Deck/bollard_row (1)/Lantern_Post (3)"
+   ]
+  },
+  "T9/S4": {
+   "n": 2,
+   "success": 0,
+   "observed_success": 0,
+   "false_success": 2,
+   "mean_tokens": 317833.0,
+   "mean_uncached": 44309.5,
+   "mean_tool_output_tokens": 677562.0,
+   "mean_calls": 5.5,
+   "mean_mcp_errors": 0.5,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 270.3,
+   "cost_per_success": null,
+   "fails": [
+    "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w04/Mount/BellAudio reason=AudioSource has no clip assigned (AudioClip is null)",
+    "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w02/Mount/BellAudio reason=its AudioSource component is disabled, and Play On Awake is off"
+   ]
+  },
+  "T9/S5": {
+   "n": 2,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 1,
+   "mean_tokens": 156255.0,
+   "mean_uncached": 27717.5,
+   "mean_tool_output_tokens": 5377.5,
+   "mean_calls": 17.0,
+   "mean_mcp_errors": 0.5,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 50.9,
+   "cost_per_success": 312510,
+   "fails": [
+    "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_West/buoy.w01/Mount/BellAudio reason=Play On Awake is disabled"
+   ]
+  },
+  "T9/S6domain": {
+   "n": 2,
+   "success": 1,
+   "observed_success": 1,
+   "false_success": 1,
+   "mean_tokens": 197796.5,
+   "mean_uncached": 43390.5,
+   "mean_tool_output_tokens": 3656.5,
+   "mean_calls": 23.5,
+   "mean_mcp_errors": 11.0,
+   "mean_invalid": 10.5,
+   "mean_retries": 10.5,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 1.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 55.2,
+   "cost_per_success": 395593,
+   "fails": [
+    "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio reason=Play On Awake is disabled"
+   ]
+  },
+  "T9/S6curated": {
+   "n": 1,
+   "success": 0,
+   "observed_success": 0,
+   "false_success": 1,
+   "mean_tokens": 95104.0,
+   "mean_uncached": 21038.0,
+   "mean_tool_output_tokens": 3114.0,
+   "mean_calls": 17.0,
+   "mean_mcp_errors": 0.0,
+   "mean_invalid": 0.0,
+   "mean_retries": 0.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 0.0,
+   "mean_escape": 0.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 49.6,
+   "cost_per_success": null,
+   "fails": [
+    "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio reason=Play On Awake is disabled"
+   ]
+  },
+  "T9/S6router": {
+   "n": 1,
+   "success": 0,
+   "observed_success": 0,
+   "false_success": 1,
+   "mean_tokens": 245946.0,
+   "mean_uncached": 41332.0,
+   "mean_tool_output_tokens": 5675.0,
+   "mean_calls": 12.0,
+   "mean_mcp_errors": 1.0,
+   "mean_invalid": 1.0,
+   "mean_retries": 1.0,
+   "mean_wrong_cap": 0.0,
+   "mean_discovery": 4.0,
+   "mean_escape": 2.0,
+   "eval_like_runs": 0,
+   "bypass_runs": 0,
+   "mean_wall_s": 61.0,
+   "cost_per_success": null,
+   "fails": [
+    "path=Harbor/Waterfront/Breakwater/Segment_C (2)/Markers/BuoyField_East/buoy.r01/Mount/BellAudio reason=Play On Awake is disabled"
+   ]
+  }
+ },
+ "labels": {
+  "S6domain vs S4": {
+   "label": "against-S6domain",
+   "succ_x": 6,
+   "succ_c": 9,
+   "fs_x": 2,
+   "fs_c": 3,
+   "gm_cost_ratio": 1.391,
+   "per_task_ratio": {
+    "T1": 3.396,
+    "T2": 0.541,
+    "T3": 4.0,
+    "T5": 0.987,
+    "T7": 4.0,
+    "T9": 0.25
+   },
+   "tasks_le1": 3
+  },
+  "S6domain vs S5": {
+   "label": "against-S6domain",
+   "succ_x": 6,
+   "succ_c": 9,
+   "fs_x": 2,
+   "fs_c": 3,
+   "gm_cost_ratio": 2.024,
+   "per_task_ratio": {
+    "T1": 4.0,
+    "T2": 0.64,
+    "T3": 4.0,
+    "T5": 2.621,
+    "T7": null,
+    "T9": 1.266
+   },
+   "tasks_le1": 1
+  },
+  "S5 vs S4": {
+   "label": "toward-S5",
+   "succ_x": 9,
+   "succ_c": 9,
+   "fs_x": 3,
+   "fs_c": 3,
+   "gm_cost_ratio": 0.718,
+   "per_task_ratio": {
+    "T1": 0.802,
+    "T2": 0.845,
+    "T3": 0.538,
+    "T5": 0.376,
+    "T7": 4.0,
+    "T9": 0.25
+   },
+   "tasks_le1": 5
+  }
+ },
+ "labels_sensitivity_excl_T5_T9": {
+  "S6domain vs S4": {
+   "label": "against-S6domain",
+   "succ_x": 3,
+   "succ_c": 7,
+   "fs_x": 1,
+   "fs_c": 1,
+   "gm_cost_ratio": 2.329,
+   "per_task_ratio": {
+    "T1": 3.396,
+    "T2": 0.541,
+    "T3": 4.0,
+    "T7": 4.0
+   },
+   "tasks_le1": 1
+  },
+  "S6domain vs S5": {
+   "label": "against-S6domain",
+   "succ_x": 3,
+   "succ_c": 6,
+   "fs_x": 1,
+   "fs_c": 2,
+   "gm_cost_ratio": 2.172,
+   "per_task_ratio": {
+    "T1": 4.0,
+    "T2": 0.64,
+    "T3": 4.0,
+    "T7": null
+   },
+   "tasks_le1": 1
+  },
+  "S5 vs S4": {
+   "label": "neutral",
+   "succ_x": 6,
+   "succ_c": 7,
+   "fs_x": 2,
+   "fs_c": 1,
+   "gm_cost_ratio": 1.099,
+   "per_task_ratio": {
+    "T1": 0.802,
+    "T2": 0.845,
+    "T3": 0.538,
+    "T7": 4.0
+   },
+   "tasks_le1": 3
+  }
+ },
+ "arm_totals": {
+  "S4": {
+   "runs": 12,
+   "success": 9,
+   "observed_success": 9,
+   "false_success": 3,
+   "tokens_total": 3647933,
+   "mean_tokens": 303994,
+   "eval_share_of_mcp_calls": 0.0,
+   "servers_used": {
+    "nexus-unity,unity": 7,
+    "shell-only": 1,
+    "nexus-unity": 3,
+    "unity": 1
+   },
+   "coverage": {
+    "n/a": 12
+   },
+   "top_commands": [
+    [
+     "set_serialized_field",
+     26
+    ],
+    [
+     "unity_dump_scene_graph",
+     18
+    ],
+    [
+     "unity_editor_controller",
+     6
+    ],
+    [
+     "unity_component_manager",
+     6
+    ],
+    [
+     "console_status",
+     6
+    ],
+    [
+     "nexus_group_compile_errors",
+     5
+    ],
+    [
+     "console",
+     4
+    ],
+    [
+     "unity_write_and_compile",
+     4
+    ],
+    [
+     "unity_search_manager",
+     4
+    ],
+    [
+     "save_scene",
+     3
+    ],
+    [
+     "unity_scene_manager",
+     3
+    ],
+    [
+     "get_serialized_fields",
+     1
+    ]
+   ],
+   "wall_s_mean": 102.9,
+   "infra_or_void": 0
+  },
+  "S5": {
+   "runs": 12,
+   "success": 9,
+   "observed_success": 9,
+   "false_success": 3,
+   "tokens_total": 2943764,
+   "mean_tokens": 245314,
+   "eval_share_of_mcp_calls": 0.0,
+   "servers_used": {
+    "nexus,nexus-unity,unity": 5,
+    "nexus,unity": 1,
+    "shell-only": 1,
+    "nexus-unity": 1,
+    "nexus": 3,
+    "nexus,nexus-unity": 1
+   },
+   "coverage": {
+    "n/a": 12
+   },
+   "top_commands": [
+    [
+     "nexus_inspect",
+     33
+    ],
+    [
+     "get_component_properties",
+     15
+    ],
+    [
+     "set_serialized_field",
+     15
+    ],
+    [
+     "set_component_properties",
+     10
+    ],
+    [
+     "nexus_hierarchy",
+     9
+    ],
+    [
+     "unity_component_manager",
+     8
+    ],
+    [
+     "unity_scene_manager",
+     6
+    ],
+    [
+     "nexus_console",
+     5
+    ],
+    [
+     "unity_write_and_compile",
+     4
+    ],
+    [
+     "nexus_group_compile_errors",
+     3
+    ],
+    [
+     "unity_search_manager",
+     3
+    ],
+    [
+     "nexus_find",
+     3
+    ]
+   ],
+   "wall_s_mean": 87.6,
+   "infra_or_void": 0
+  },
+  "S6domain": {
+   "runs": 12,
+   "success": 6,
+   "observed_success": 10,
+   "false_success": 2,
+   "tokens_total": 4121833,
+   "mean_tokens": 343486,
+   "eval_share_of_mcp_calls": 0.093,
+   "servers_used": {
+    "nexus": 12
+   },
+   "coverage": {
+    "needed_eval": 4,
+    "compact_only": 3,
+    "escape_hatch": 5
+   },
+   "top_commands": [
+    [
+     "get_component_properties",
+     81
+    ],
+    [
+     "get_scene_hierarchy",
+     23
+    ],
+    [
+     "eval",
+     17
+    ],
+    [
+     "list_open_scenes",
+     10
+    ],
+    [
+     "find_gameobjects",
+     8
+    ],
+    [
+     "set_component_properties",
+     7
+    ],
+    [
+     "console",
+     7
+    ],
+    [
+     "search",
+     6
+    ],
+    [
+     "save_scene",
+     4
+    ],
+    [
+     "recompile",
+     4
+    ],
+    [
+     "find_assets",
+     4
+    ],
+    [
+     "editor_status",
+     3
+    ]
+   ],
+   "wall_s_mean": 68.7,
+   "infra_or_void": 0
+  },
+  "S6curated": {
+   "runs": 6,
+   "success": 4,
+   "observed_success": 5,
+   "false_success": 1,
+   "tokens_total": 1220868,
+   "mean_tokens": 203478,
+   "eval_share_of_mcp_calls": 0.046,
+   "servers_used": {
+    "nexus": 6
+   },
+   "coverage": {
+    "escape_hatch": 3,
+    "needed_eval": 1,
+    "compact_only": 2
+   },
+   "top_commands": [
+    [
+     "nexus_describe",
+     20
+    ],
+    [
+     "get_component_properties",
+     17
+    ],
+    [
+     "set_component_properties",
+     13
+    ],
+    [
+     "get_serialized_fields",
+     10
+    ],
+    [
+     "find_gameobjects",
+     8
+    ],
+    [
+     "set_serialized_field",
+     7
+    ],
+    [
+     "get_scene_hierarchy",
+     6
+    ],
+    [
+     "editor_status",
+     5
+    ],
+    [
+     "eval",
+     5
+    ],
+    [
+     "list_open_scenes",
+     4
+    ],
+    [
+     "console",
+     3
+    ],
+    [
+     "recompile",
+     3
+    ]
+   ],
+   "wall_s_mean": 62.2,
+   "infra_or_void": 0
+  },
+  "S6router": {
+   "runs": 6,
+   "success": 4,
+   "observed_success": 4,
+   "false_success": 2,
+   "tokens_total": 1418979,
+   "mean_tokens": 236496,
+   "eval_share_of_mcp_calls": 0.023,
+   "servers_used": {
+    "nexus": 6
+   },
+   "coverage": {
+    "escape_hatch": 4,
+    "compact_only": 1,
+    "needed_eval": 1
+   },
+   "top_commands": [
+    [
+     "nexus_describe",
+     17
+    ],
+    [
+     "nexus_list",
+     14
+    ],
+    [
+     "get_component_properties",
+     11
+    ],
+    [
+     "find_gameobjects",
+     10
+    ],
+    [
+     "get_scene_hierarchy",
+     8
+    ],
+    [
+     "list_open_scenes",
+     4
+    ],
+    [
+     "find_assets",
+     4
+    ],
+    [
+     "set_serialized_field",
+     4
+    ],
+    [
+     "set_component_properties",
+     3
+    ],
+    [
+     "console_status",
+     3
+    ],
+    [
+     "save_scene",
+     2
+    ],
+    [
+     "recompile",
+     2
+    ]
+   ],
+   "wall_s_mean": 54.4,
+   "infra_or_void": 0
+  }
+ }
+}

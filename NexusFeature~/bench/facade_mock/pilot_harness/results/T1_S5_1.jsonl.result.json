@@ -1,0 +1,83 @@
+{
+ "run": "T1_S5_1",
+ "task": "T1",
+ "arm": "S5",
+ "rep": 1,
+ "semantic_ok": true,
+ "claimed_ok": true,
+ "false_success": false,
+ "prod_policy_ok": true,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "The full screen vignette image was intercepting clicks because its `Raycast Target` was enabled. I disabled raycast targeting on the image while preserving its appearance, then saved [MainMenu.unity](/private/tmp/claude-501/-Users-daliys-Daliys-UnityProjects-UnityTestForNexus-Assets-NexusUnity/470acca2-da7b-44a6-ad72-216b84b02154/scratchpad/p016/fixture/Assets/BenchFixture/Scenes/MainMenu.unity).",
+ "oracle": {
+  "answer": null,
+  "oracle": "PASS"
+ },
+ "metrics": {
+  "tokens_input": 171164,
+  "tokens_cached": 139776,
+  "tokens_uncached": 31388,
+  "tokens_output": 878,
+  "tokens_reasoning": 151,
+  "tokens_total": 172042,
+  "tool_output_tokens": 2416,
+  "mcp_output_tokens": 2416,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 3,
+   "mcp_tool_call": 12
+  },
+  "mcp_calls": 12,
+  "mcp_calls_by_server": {
+   "nexus": 2,
+   "nexus-unity": 1,
+   "unity": 9
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 12,
+  "mcp_errors": 2,
+  "invalid_arg_or_action": 2,
+  "retries": 2,
+  "wrong_capability": 1,
+  "discovery_calls": 0,
+  "escape_calls": 0,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 1393,
+  "tools_list_chars": {
+   "unity": 101996,
+   "nexus-unity": 19443,
+   "nexus": 2779
+  },
+  "unity_commands": [
+   "nexus_hierarchy",
+   "nexus_console",
+   "unity_editor_controller",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "get_component_properties",
+   "set_component_properties",
+   "save_scene"
+  ]
+ },
+ "wall_s": 45.0,
+ "reset_s": 24.1,
+ "reset": {
+  "nexus_bridge_ok": true,
+  "port_file": true,
+  "counts_after_seed": {
+   "error": 7,
+   "warn": 421,
+   "log": 40
+  },
+  "compileFailed_at_start": false
+ },
+ "timed_out": false
+}

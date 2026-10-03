@@ -1,0 +1,72 @@
+{
+ "run": "T9P_S6domain_1",
+ "task": "T9P",
+ "arm": "S6domain",
+ "rep": 1,
+ "semantic_ok": false,
+ "claimed_ok": true,
+ "false_success": true,
+ "prod_policy_ok": false,
+ "infra_fail": false,
+ "void_leak": false,
+ "final": "ANSWER: path=/Main Camera/Canvas/DarkMode/Caht/Popup/Panel_Middle/ScrollRect; reason=its RawImage color alpha is 1/255, making it nearly transparent.",
+ "oracle": {
+  "answer": "path=/Main Camera/Canvas/DarkMode/Caht/Popup/Panel_Middle/ScrollRect; reason=its RawImage color alpha is 1/255, making it nearly transparent.",
+  "readonly_git": "",
+  "why": "path=Main Camera/Canvas/DarkMode/Caht/Popup/Panel_Middle/ScrollRect reason=its RawImage color alpha is 1/255, making it nearly transparent."
+ },
+ "metrics": {
+  "tokens_input": 182880,
+  "tokens_cached": 162816,
+  "tokens_uncached": 20064,
+  "tokens_output": 927,
+  "tokens_reasoning": 223,
+  "tokens_total": 183807,
+  "tool_output_tokens": 536,
+  "mcp_output_tokens": 536,
+  "shell_output_tokens": 0,
+  "items": {
+   "agent_message": 2,
+   "mcp_tool_call": 11
+  },
+  "mcp_calls": 11,
+  "mcp_calls_by_server": {
+   "nexus": 11
+  },
+  "shell_calls": 0,
+  "file_changes": 0,
+  "calls_total": 11,
+  "mcp_errors": 5,
+  "invalid_arg_or_action": 5,
+  "retries": 4,
+  "wrong_capability": 0,
+  "discovery_calls": 0,
+  "escape_calls": 2,
+  "eval_like_calls": 0,
+  "bypass_cmds": [],
+  "leak_cmds": [],
+  "unity_ms": 650,
+  "tools_list_chars": {
+   "nexus": 58920
+  },
+  "unity_commands": [
+   "list_open_scenes",
+   "get_scene_hierarchy",
+   "get_scene_hierarchy",
+   "find_gameobjects",
+   "find_gameobjects",
+   "get_component_properties",
+   "get_component_properties",
+   "find_gameobjects",
+   "get_component_properties",
+   "get_component_properties",
+   "get_serialized_fields"
+  ]
+ },
+ "wall_s": 37.1,
+ "reset_s": 6.4,
+ "reset": {
+  "nexus_bridge_ok": null,
+  "port_file": true
+ }
+}
