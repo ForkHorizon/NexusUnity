@@ -131,6 +131,14 @@ def git(*a): return subprocess.run(["git", "-C", FIX, *a], capture_output=True, 
 SEED = ('var m = System.Type.GetType("Saltmarsh.EditorTools.SaltmarshStartupChecks, Saltmarsh.Editor").GetMethod("RunAll", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static); '
         'm.Invoke(null, null); return "seeded";')
 
+def nexus_alive():
+    import urllib.request
+    tok = open(FIX + "/Library/NexusUnityAuthToken.txt").read().strip()
+    req = urllib.request.Request("http://127.0.0.1:8081/", data=json.dumps({"jsonrpc": "2.0", "method": "get_editor_state", "params": {}, "id": 1}).encode(),
+                                 headers={"Content-Type": "application/json", "X-Nexus-Unity-Token": tok})
+    try: return b'"result"' in urllib.request.urlopen(req, timeout=10).read()
+    except Exception: return False
+
 def recompile_wait(expect_fail=None, t=300):
     ucmd("recompile", timeout=60)
     t0 = time.time(); st = None
@@ -163,10 +171,14 @@ def reset(task, arm):
     for _ in range(30):
         time.sleep(2); ok, cs = ucmd("console_status", timeout=15)
         if ok and cs.get("counts", {}).get("warn", 0) >= 421: counts = cs.get("counts"); break
+    nexus_ok = None
+    if arm in ("S4", "S5"):  # A3: Nexus auto-start never fires in an unfocused idle Editor; start it like a user would
+        ev('if (UnityMCP.Editor.MCPServer.IsRunning) return "running"; UnityMCP.Editor.MCPServer.Start(); return "started";', 60)
+        time.sleep(3); nexus_ok = nexus_alive()
     scene = START_SCENE.get(task, "Harbor")
     ucmd("open_scene", {"path": FX + "Scenes/" + scene + ".unity"})
     ok, cs2 = ucmd("console_status")
-    return {"counts_after_seed": counts, "compileFailed_at_start": (cs2 or {}).get("groundTruth", {}).get("compilationFailed") if ok else None}
+    return {"nexus_bridge_ok": nexus_ok, "port_file": os.path.exists(FIX + "/Library/Pipeline/.unity-pipeline-port"), "counts_after_seed": counts, "compileFailed_at_start": (cs2 or {}).get("groundTruth", {}).get("compilationFailed") if ok else None}
 
 # ------------------------------------------------------------------ arms
 COMMON = ("This is a Unity 6 project. A Unity Editor is running with this project open; use the available Unity tools to inspect "
@@ -296,7 +308,7 @@ def run(task, arm, rep):
     import metrics
     m = metrics.run_metrics(out, task, arm)
     cl = metrics.claimed(task, final)
-    infra = (rs.get("counts_after_seed") is None) or (task == "T2" and not rs.get("compileFailed_at_start")) or m["tokens_total"] == 0
+    infra = (rs.get("counts_after_seed") is None) or rs.get("nexus_bridge_ok") is False or not rs.get("port_file", True) or (task == "T2" and not rs.get("compileFailed_at_start")) or m["tokens_total"] == 0
     res = {"run": run_id, "task": task, "arm": arm, "rep": rep, "semantic_ok": ok, "claimed_ok": cl, "false_success": bool(cl and not ok),
            "prod_policy_ok": bool(ok and (not arm.startswith("S6") or m["eval_like_calls"] == 0)), "infra_fail": infra,
            "void_leak": bool(m["leak_cmds"]), "final": final[-1500:], "oracle": det, "metrics": m,

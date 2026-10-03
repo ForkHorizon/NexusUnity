@@ -169,3 +169,18 @@ one, and so on). T9★ uses the top scene. Prompt scoping (to keep the third-par
 for the count in the named scene only plus referencing assets; T9★ names the component and the scene, and says "deep in the
 hierarchy (6 or more levels)". Ground truth is computed by the harness before any agent run and stored in
 `harness/key/puzzle_key.json`.
+
+## Amendment A3 (2026-10-03 ≈20:25, infrastructure defects found mid-pilot; decided from infrastructure logs, not outcomes)
+1. **Dead Nexus bridge in S4/S5.** In all 7 S4/S5 runs so far, 100% of `nexus-unity` calls returned "connection refused":
+   Nexus's legacy HTTP server auto-starts after 60 `EditorApplication.update` frames, which never elapsed in the unfocused,
+   idle harness Editor. S4/S5 therefore did not have the pre-registered surface. Fix: reset starts the Nexus server
+   explicitly (as a user would by opening the window) and asserts it answers; failure = infrastructure failure. All 7 S4/S5
+   runs are **re-run**; the originals are kept in `runs/deadbridge/` and reported as a sensitivity set ("S4/S5 with an
+   unreachable Nexus bridge" — itself a realistic state for Pipeline-mode installs, cf. D-8).
+2. **Unity CLI inside the Codex sandbox (MEASURED, new fact F27).** Under `codex sandbox` workspace-write (network on),
+   `unity command …` reports "No Unity Editor instances found with reachable Pipeline servers" **and deletes
+   `Library/Pipeline/.unity-pipeline-port`**, which makes the Editor undiscoverable for every other client until restart.
+   This happened in run T3_S4_1 and broke the following run (T3_S5_1, infra-failed). Fix for the pilot: the port file is
+   restored and made immutable (`chflags uchg`); S4/S5's shell CLI remains non-functional (as for any Codex user on the
+   default sandbox), which is recorded as an environment property, not corrected. S6 runs are unaffected (no shell CLI).
+3. Runs that completed before 17:47 (T9 all arms; T3 S6-domain ×2, S6-router) ran with a healthy Pipeline and stand.
