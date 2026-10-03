@@ -253,7 +253,7 @@ def oracle(task, final):
             scenes = {}; assets = set()
             for p in parts:
                 if p.lower().startswith("assets="):
-                    assets = {re.sub(r"\.(prefab|asset)$", "", a.strip().split("/")[-1].lower()) for a in p[7:].split(",") if a.strip()}
+                    assets = {re.sub(r"\.(prefab|asset)$", "", a.strip().rstrip(".,;`").split("/")[-1].lower()) for a in p[7:].split(",") if a.strip()}
                 elif "=" in p:
                     k, v = p.split("=", 1); scenes[k.strip().lower().replace(".unity", "")] = v.strip()
             ok = scenes.get("harbor") == "17" and scenes.get("docks_test") == "3" and all(v in ("0",) for k, v in scenes.items() if k not in ("harbor", "docks_test")) \
