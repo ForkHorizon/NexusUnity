@@ -1,9 +1,10 @@
 # NEXUS UNITY — MASTER PLAN v2
 
-Version 2.3 · 2026-09-30 · Owners: Kiryl / Daliys (ForkHorizon)
+Version 2.4 · 2026-10-02 · Owners: Kiryl / Daliys (ForkHorizon)
 Revised after an adversarial review (technical + strategy challengers, independent judge); see §15.
 v2.2: aligned with two Unity research passes (what Unity ships now, what it is likely to ship next); see §14b.
 v2.3: blind-spot review (Unity dropping domain reload, agent hooks, MCP 2026-07-28, headless agents, ToS, privacy, package footprint); see §16.
+v2.4: façade hypothesis (Unity CLI as a hidden backend behind a compact Nexus API) researched and measured; decision deferred to a pre-registered spike + Gate F; see §17.
 Horizon: 12 weeks (target start 2026-10-05) with two hard decision gates (week 4, week 9).
 **Status: ACTIVE. Supersedes `MASTER_PLAN.md` (v1, 2026-09-01) and the forward-looking parts of
 `ImageCapturePlan.md` (M0–M4 are done; M5 is replaced by §9 here).** Only one plan is active at a time.
@@ -14,6 +15,7 @@ still match), web research on Unity CLI / Pipeline (Sep 2026), four independent 
 - `B_skeptic.md` — what not to do, risks, kill list, process guardrails
 - `C_agent_efficiency.md` — adoption, token economics, benchmark v2 spec
 - `D_architecture_roadmap.md` — target architecture, method migration, roadmap, go-to-market
+- `F_facade_hypothesis.md` (v2.4) — façade vs direct Unity: client tool-loading research, measured schema/output/latency costs, spike design; evidence in `F_facade_evidence/`
 
 and two adversarial challenges of v2.0 (technical, strategy), judged in §15.
 
@@ -91,7 +93,23 @@ P0-14. (5) **ToS Unity §17.2** и **приватность/NDA** — прави
 картинки можно выключить (`images: off`). (6) **След пакета в проектах:** жёсткая зависимость от Input
 System и Runtime-сборка в релизных билдах — P0-15. (7) Бенчмарк публикуем как открытый eval.
 
-**Решения, которые нужны от вас сейчас** — см. §10 (G1–G14). Рекомендации даны.
+**Фасад над Unity CLI (v2.4, подробно в §17 и `v2_analysis/F_facade_hypothesis.md`).** Проверили идею
+«агент видит только компактный Nexus, а Nexus сам вызывает официальные команды Unity и сжимает ответ».
+Замеры: `unity mcp` отдаёт 154 отдельных тула (~21–25k токенов схем). Claude Code (с моделями и
+провайдером Anthropic), Codex (на моделях с tool search) и Cursor держат в контексте в основном имена
+(~0.5–1.4k), поэтому выигрыш по схемам велик только в Gemini CLI и в сетапах без отложенной загрузки
+(например, корпоративный прокси вместо API Anthropic). Сам формат «менеджеров» почти не экономит схемы
+(+4% при разбиении на атомарные тулы — экономия была от скрытия методов). Реальная дыра — **размер
+ответов**: у `get_scene_hierarchy` нет глубины/фильтра, на сцене ~1.1k объектов это ~86k токенов; агент
+получает обрезанный ответ (лимит MCP-вывода Claude Code 25k) и делает повторные запросы. Сколько это
+стоит на *успешную задачу* — неизвестно. Решение: **фасад сейчас не строим.** Сначала дешёвые варианты:
+просим Unity добавить depth/limit (P0-12) и проверяем рецепты skill с `unity eval` (вариант E). Затем
+спайк P0-16 и **Gate F** (неделя 5, критерии записаны заранее, сравнение S5 = S4 + фасад против S4).
+Кандидат только **выборочный read-фасад** (сначала как Nexus-команды в Core, работающие и через
+`unity command`), без пересылки записей и `eval`. Полная обёртка всех команд отклонена. Принцип 1
+уточнён: «дубль» определяется по возможности (capability), а не по пути вызова.
+
+**Решения, которые нужны от вас сейчас** — см. §10 (G1–G15). Рекомендации даны.
 
 ---------------------------------------------------------------------
 ## 1. FACTS THIS PLAN RELIES ON (each with evidence and expiry)
@@ -112,6 +130,10 @@ No "DO NOT REOPEN" sections. Facts expire on a Unity / Pipeline version bump or 
 | F17 | MCP spec 2026-07-28 removes `initialize`/sessions (`instructions` move to `server/discover`), makes tasks an extension and replaces server-initiated elicitation with a new input-request mechanism; clients will speak both 2025-11-25 and 2026-07-28 for a while | modelcontextprotocol/modelcontextprotocol spec changelog (reported by E; not re-verified by the lead) | next MCP spec release |
 | F18 | Unity ToS (2026-06-30) §17.2 restricts agentic access to Unity "Offerings" to authorized agentic access; Unity staff said informally that local Editor integrations are unaffected, but the text is unchanged | unity.com/legal/terms-of-service; Unity Discussions thread 1724661 (search only) | ToS amendment |
 | F19 | Nexus footprint in user projects: `package.json` hard-depends on `com.unity.inputsystem` 1.19.0; `Runtime/UnityMCP.Runtime.asmdef` has no platform/define constraints, so it compiles into release player builds | `package.json:23-26`; `Runtime/UnityMCP.Runtime.asmdef` (verified by the lead) | P0-15 |
+| F20 | `unity mcp` (CLI beta.10, Pipeline 0.7.0-exp.1) exposes **154 tools, one per Pipeline command**, ≈20.8k schema tokens with compact JSON, ≈24.6k with default spacing (cl100k proxy; bare names ≈0.45k, ≈1.4k with client prefixes like `mcp__unity__`); `tools/list` is empty until an Editor connects; `listChanged:true` | MEASURED 2026-10-02, `v2_analysis/F_facade_evidence/unity_mcp_tools_list.jsonl` | next CLI/Pipeline release |
+| F21 | Client schema loading: Claude Code defers MCP schemas by default (names + instructions only); Codex defers MCP tools behind `tool_search` on supporting models and ignores `list_changed`; Cursor keeps names only (since Jan 2026) and ignores `list_changed`; Gemini CLI loads all schemas (no deferral). **Caveats:** Claude Code turns deferral off for non-first-party `ANTHROPIC_BASE_URL`, some Vertex models and Azure Foundry; Codex deferral needs a tool-search model (default-on is REPORTED); Cursor is from its blog; names still drive selection and loaded schemas persist for the session. Claude Code warns above 10k tokens of MCP output and caps it at 25k by default (`MAX_MCP_OUTPUT_TOKENS`) | `F_facade_evidence/R_clients.md` §1–4 | 30 days |
+| F22 | Unity read outputs are unbounded: `get_scene_hierarchy` has no depth/subtree/limit parameter (`path` = scene file) and returns ≈86k tokens for a ≈1.1k-object scene (above Claude Code's 25k MCP output cap, so the agent sees a truncated result and must re-query or fall back to `eval`); `console` tail 100 ≈29k; `--format human` is not smaller. The 100× reduction of a prototype normaliser is an upper bound against untargeted calls; tokens per *successful task* are unmeasured. Warm `unity mcp` call ≈100 ms (unfocused Edit Mode), cold `unity command` ≈1.2–2.2 s | MEASURED, `F_facade_evidence/compact.py`, `warm.py`, `raw_samples/` | next Pipeline release |
+| F23 | Nexus's 14 managers ≈5.3k tokens (the "~4.9k" figure was chars/4); the same 71 actions as atomic tools ≈5.6k (+4%); the 2026-05 consolidation's saving came from hiding ~50 methods, not from the `action` format | MEASURED, `F_facade_evidence/R_repo.md` | next bridge change |
 | F5 | Third parties already ship Play Mode input + UI clicks + screenshots: `hatayama/unity-cli-loop` (uLoopMCP) v3.0.1 has `simulate-keyboard`, `simulate-mouse-input`, `simulate-mouse-ui`, `replay-input`, `screenshot`, `record-video` over its own socket/named-pipe IPC (not Pipeline); `akiojin/unity-cli` ships `unity-playmode-testing`, `unity-input-system`, `unity-ui-automation` skills; Funplay ships a core profile with input sim + screenshots | github.com/hatayama/unity-cli-loop; github.com/akiojin/unity-cli; skills.sh listings | P0-10b |
 | F6 | **Hypothesis (N=4, self-written agent retrospectives, not transcripts):** in 3 of 4 sessions Nexus was never called; in the 4th, 2 calls. Agents used shell, asked the user for screenshots, or drove the GUI with computer-use. Report 3 cannot confirm Nexus was even installed (`3.md:31`); report 4 ran in a computer-use client | `AI Chat reports Before all changes/1-4.md` | re-measured in P0-09 |
 | F7 | v1 benchmark "ok%" = no JSON-RPC error; C10 invalid for all tools (fixture has 0 tests; bridge result was `Submitted`/`Timeout`); C12 invalid (no EventSystem; Funplay click hit nothing; Coplay screenshot `success:false`); C8 bridge used OS screencapture; C7 raw 99 ms = false-ready (n=4; listener died on reload) | raw JSON in `NexusFeature~/results/`; `BENCH_RESULTS.md:117` | permanent (v1 numbers are void) |
@@ -160,7 +182,11 @@ Verified code defects used below (file:line checked on `ef13f8e`, re-checked on 
 ## 3. PRINCIPLES (apply to every task)
 ---------------------------------------------------------------------
 
-1. **Don't duplicate Unity.** If Pipeline has an atomic command, Nexus calls it (pipeline mode) or keeps its frozen legacy equivalent (legacy mode). No new atomic CRUD.
+1. **Don't duplicate Unity.** If Pipeline has an atomic command, Nexus calls it (pipeline mode) or keeps its frozen legacy equivalent (legacy mode). No new atomic CRUD. **v2.4 — three distinct things, never conflated:**
+   - *Duplicate implementation* (forbidden): Nexus offers a **capability** Unity already offers with equivalent bounds — whatever the code path (own Editor-API code, or a wrapper that only renames a Unity command).
+   - *Delegated façade* (allowed only if Gate F passes, §7): Nexus read action → **official** Unity command → Nexus normalisation / budget / handle → agent. Read-only, allowlisted; Nexus owns the schema and output shape, never the primitive. Writes, `eval`, `run_script` and `batch` are never forwarded.
+   - *Nexus composite* (the product): Nexus workflow → several Unity state sources / primitives → orchestration, truthful waits → compact semantic result.
+   - A Nexus read that adds bounds Unity lacks (e.g. depth/limit on hierarchy, F22) is not a duplicate **only while Unity lacks them**: first ask upstream (P0-12), and retire the Nexus read within one minor after Unity ships the equivalent.
 2. **Every new capability must either replace ≥3 agent calls, or do something Unity and the shipping competitors cannot.** Otherwise it is not built.
 3. **One logical call, Editor-side.** Composite workflows run inside the Editor with event-driven waits (compile/reload/play-mode/test callbacks), never fixed sleeps. **A reload may or may not happen** (v2.3, F16: Fast Enter Play Mode is the default on 6.6+ and the only mode on 6.8; CoreCLR reloads per assembly). Readiness never depends on a reload event alone; workflows are resumable where reloads happen and state-reset-aware where they don't. Where a reload does happen (play entry on older projects with reload enabled, compiles on Mono): any operation that can cross a reload persists a resumable job (state in SessionState / `Library/Nexus/jobs`), resumes via `[InitializeOnLoad]`, and the client shim (bridge / `unity command` wrapper / skill) reconnects and long-polls `job_wait` once. `interrupted` is reserved for Editor restart or crash.
 4. **Small answers by default.** Verdict + counts + top-k + handles; `detail: summary|normal|full`; deltas via generation/cursor; images only when useful, cropped and downscaled (default long side 768 px, F12).
@@ -193,6 +219,7 @@ Key rules (details in `v2_analysis/D_architecture_roadmap.md` §1, amended here)
 - **Idempotency**: mutating calls accept `request_id`; the server remembers results ~5 min; a retry with the same id returns the stored result; a mutation that times out while executing returns `outcome:"unknown"` + `request_id`.
 - **Handles and job ids** (`cap://`, `log://`, `snap://`, jobs) are server-issued opaque ids `[a-z0-9]{8,}`, never paths.
 - **Pipeline compatibility**: pin `versionDefines` to a tested range; out-of-range → assembly excluded → `auto` falls back to legacy; CI contract job for Pipeline N and N-1. Write-capable parameters are **not** projected to Pipeline until Pipeline's auth model is documented (Pipeline does not check the Nexus token).
+- **Delegated façade / normalised reads (v2.4, conditional on Gate F):** default candidate is **Core `[CliCommand]` read commands** (reachable via `unity command nexus_*`, MCP and legacy, no Python needed, Principle 6) that obtain Unity's data through `IUnityPrimitives` / public Editor APIs and add only bounding, grouping, budgets and handles; the alternative candidate is an **L1 client-side adapter** (bridge/shim) over a warm `unity mcp` / `unity shell --protocol ndjson` child — never a cold `unity command` per call (+1.2–2 s, F22), never reflection into Pipeline. Either way: **read-only allowlist**; no write parameters, `eval`, `run_script` or `batch` routed through Nexus (rule §6.8, G3, R5); the L1 adapter must not hold a Unity session that bypasses the Nexus token/sandbox, and its auth model is checked in P0-10. Coverage means every Unity command stays reachable **directly through Unity**, not through Nexus.
 - **Python bridge**: freeze the 14 managers; add dynamic pass-through of canonical commands driven by `list_tools` metadata (new C# command appears in MCP with zero Python edits); profiles chosen at startup (env var / argument), `load_profile` + `tools/list_changed` best-effort only; per-project port discovery (D-8); reuse its CLI mode as the optional `nexus` shim.
 
 ---------------------------------------------------------------------
@@ -213,6 +240,8 @@ Key rules (details in `v2_analysis/D_architecture_roadmap.md` §1, amended here)
 
 Other profiles, chosen at startup (or loaded on demand where the client honours `list_changed`): `qa` (`nexus_verify`, input, ui_query/ui_act, step_frame — only if Gate A2/B pass), `context` (`nexus_context`, promoted to core only if C-01 passes its ≥30% bar), `scene` (scene_diff, snapshot — backlog), `perf` (later), `full` (legacy managers + raw escape hatch `nexus_call` / `nexus_list`). Before promising the budget, measure the verify DSL schema (may cost ~1k alone).
 
+**v2.4:** the ≤8 / ≤2.5k budget stays. If Gate F passes, normalised reads must fit inside it by merging into core entries (`nexus_snapshot` for bounded hierarchy/find, `nexus_diagnose` for grouped console/test/compile results) or replacing one, not by growing it; each manager schema ≤ ~600 tokens (a deferred client loads a manager whole — today's `unity_hierarchy_manager` alone is 1.7k).
+
 In-memory C#: Nexus does not ship `execute_code` or an `eval` forwarder. Skills, `nexus_status detail:"capabilities"` and COMPARISON.md state: "in-memory C# = `unity eval` (requires Pipeline, same Unity 6.0 floor as Nexus)".
 
 ### 5.2 Method migration (from ~121 raw methods)
@@ -221,6 +250,7 @@ Summary (details: A §1, D §2):
 - **~40 unique** (Capture V2, input, UI Toolkit automation, semantic_find, scene_delta, symbol_index, missing refs, diffs, timeline, lint, step_frame): become or feed canonical commands.
 - **~10 rebuilt as composites** (waits, write+compile, tests-wait, batch).
 - **7 transport methods**: Pipeline owns them in pipeline mode; legacy keeps them.
+- **v2.4:** if Gate F passes, a frozen legacy duplicate is *not* revived for the façade; façade actions route to the Unity command, and the frozen method stays legacy-only.
 - Deprecation policy: hide first (not a break) → `deprecated:true` + `replacement` in `list_tools` → dispatchable for ≥2 minors and ≥90 days → remove only in a major. No security gate is relaxed during migration.
 
 ---------------------------------------------------------------------
@@ -319,7 +349,7 @@ Legend: **E:** = evidence required in the PR.
 - Ships Unreleased CHANGELOG + fixes; no new features; OpenUPM listing + release automation (former R-01) so install stats exist from week 2. E: tag, release notes, clean-install smoke on macOS, OpenUPM page.
 
 **P0-12 · Upstream outreach** (0.5d) [parallel, week 1]
-- One issue/post each to Unity (Pipeline forum), IvanMurzak/Unity-MCP and uLoopMCP offering Capture V2 Overlay-correct capture as a `[CliCommand]`/library and readiness epochs. Record responses; input to §9 fallback and G9.
+- One issue/post each to Unity (Pipeline forum), IvanMurzak/Unity-MCP and uLoopMCP offering Capture V2 Overlay-correct capture as a `[CliCommand]`/library and readiness epochs. **v2.4:** also file a Pipeline feature request for `depth`/`root`/`limit`/`filter` on `get_scene_hierarchy` and grouped/deduplicated `console` output (F22). Record responses; input to §9 fallback, G9 and Gate F.
 
 **P0-13 · Version matrix + CoreCLR spike** (2d) [spike, DECISION input for L-02/V-02b/P0-02 scope] (F16)
 - Run the fixture on 6000.3 LTS, 6000.6 (Fast Enter Play Mode default) and a 6.8/Unity 7 alpha/beta when available. Record: does play entry reload? which Nexus statics (`MCPServer`, queues, capture state, runtime selector) misbehave without a reload? does compile still reload the domain?
@@ -331,7 +361,19 @@ Legend: **E:** = evidence required in the PR.
 **P0-15 · Package footprint** (1–2d) (F19)
 - Make Input System optional via `versionDefines` (input commands report `INPUT_SYSTEM_MISSING`); constrain `UnityMCP.Runtime` to `UNITY_EDITOR || DEVELOPMENT_BUILD` (or move it behind a define) so nothing ships in release players. E: a clean project without Input System compiles; a release build contains no `UnityMCP.Runtime`.
 
-Phase 0 load note (v2.3): Phase 0 is ≈36 agent-days. With ≤4 PRs in flight it realistically spans weeks 1–3; the spikes (P0-01a, P0-10, P0-10b, P0-13, P0-14) run in parallel and must not block P0-11.
+**P0-16 · Agent-facing boundary spike: S4 vs S5 vs S6** (v2.4, **re-scoped in v2.5**, §17) [spike, DECISION input for Gate F] — **no production code**; mock façades, routers, fixtures and scripts live in `NexusFeature~/bench/facade_mock/` and are never shipped. It tests **three different architectures**, not "façade yes/no":
+- **S4 — current design** (baseline): Unity CLI / `unity mcp` / official skills + current Nexus + routing instructions.
+- **S5 — selective façade / hybrid**: S4 + Nexus-normalised versions of high-volume reads (bounded hierarchy, grouped console, bounded find, stripped component reads, handles). Unity stays directly visible.
+- **S6 — Nexus-primary / Unity-hidden-backend**: the agent sees only a compact Nexus surface; every primitive is delegated to the **official** Unity command (no reimplementation), large reads are normalised; Unity's own tools/CLI are not exposed as a competing surface where the client allows hiding them. Variants: **S6-domain** (≈6–15 typed domain managers + composites, generated from Unity's catalog), **S6-curated** (≤6 tools for common work + typed `describe`/`invoke` for the rest), **S6-router** (one generic tool + discovery; a minimal-schema *control*, never treated as representative of S6).
+- Controls: **S1e** (S4 + option-E skill recipes with `unity eval` snippets), **C1** (Unity-direct allowlisted to the same command subset as S6-curated, official names — tests "fewer visible commands" without Nexus), **S6-bypass** (S6 with the official Unity skill + shell CLI also installed — measures how often agents bypass the façade in realistic installs).
+- **P0-16a · Schema, discovery and retrieval matrix** (1.5d) · Deps: P0-10. Per client — Claude Code (ToolSearch on **and** `ENABLE_TOOL_SEARCH=false`), Codex default code-mode model **and** a `tool_search` (BM25) model, Gemini CLI (no deferral), Cursor if <0.5d — for every arm: persistent tool tokens at start, schema tokens actually loaded, **discovery calls** (ToolSearch / `tool_search` / code-mode `ALL_TOOLS` filtering / `nexus_describe` / `unity command` listing), **retrieval results and whether the correct capability is in the retrieved top-k**, tokens spent on discovery, discovery wall time, MCP output truncation/file-spill behaviour. Measured from real client transcripts (`count_tokens` API), never inferred from schema size. E: `Research~/evidence/P0-16/schema_matrix.md`, `retrieval.md`. Pilot inputs: `v2_analysis/G_nexus_primary/A_tool_search.md`.
+- **P0-16b · Normalisation corpus + adapter sizing + option E** (2d) · Deps: P0-08 fixture, task freeze. Output classes on the fixture **and** ≥1 third-party scene with irregular depth, repeated logs, missing references, component/serialized-state questions, compile and test diagnostics; budgets `summary` / `normal` / `full-bounded`. For each: raw Unity tokens and what the client actually delivers (truncation/file spill), option-E output, normalised output; frozen sufficiency question answered from the output + handle fetches (count fetches, retries, omissions of critical data). **Catalog-driven adapter** measured on Pipeline N and N-1: % of commands representable from `unity list`/tag metadata without hand code, hand-mapping count, ambiguous commands, generated-schema size per surface and per manager, command-specific adapters (async/poll, image, confirm, code-exec), breakage across versions. Pilot input: `G_nexus_primary/B_catalog_adapter.md`.
+- **Task freeze first:** task set, oracles and sufficiency questions are written by an author blind to the façade/normaliser design and frozen before normalisers change (pilot set: `G_nexus_primary/TASKS_v1.md`). ≥2 tasks from a real third-party open-source project; real-session replays where possible. Tasks cover the persona's real workflow (UI diagnosis, C# edit + compile truth, object/component relationships, references, broken-Editor diagnosis, running existing editor tools, a simple scene change through an official primitive, import state), not only reads.
+- **P0-16c · Agent arms** (4d agent time + ≈40–90 Editor-hours on both fixture Editors) · Deps: P0-16a/b, P0-08b/c. All arms on the same frozen tasks and oracles; arms differ only in the agent-facing surface and its one-paragraph instruction file; S6 must reach the same Unity capabilities the tasks need (gaps listed, never faked). Headline metrics per arm: **semantic success, false-success, total tokens per successful task, calls per successful task**; plus input/schema/discovery/tool-output/answer tokens, discovery calls, wrong-capability calls, invalid-argument calls, retries, wall time, Unity time, normalisation time, human intervention, **capability coverage** (tasks completed entirely through the compact surface / needing an escape hatch / needing direct Unity; real capability loss vs discoverability loss). Primary clients: Claude Code + Codex; Gemini CLI cell for the no-deferral case. E: `NexusFeature~/results/FACADE_V1.md` with transcripts.
+- **P0-16d · Delegated-write research question** (0.5d, desk): can official Unity write primitives be delegated behind Nexus while preserving token/sandbox/approval/idempotency/audit guarantees? Answer per write category (bounded Undo writes, asset/file writes, settings, destructive, build/package, `eval`/`run_script`/`batch`). Pilot input: `G_nexus_primary/D_security.md`. No implementation; production policy stays read-only until this is answered and Gate F passes.
+- **Pilot (2026-10-03, done before the full spike):** one client (Codex), 5 arms, ≈54 runs — `G_nexus_primary/PREREG_PILOT.md`, results in `G_nexus_primary/PILOT_RESULTS.md`. A pilot can only change research priorities; it cannot pass or fail Gate F.
+
+Phase 0 load note (v2.3): Phase 0 is ≈36 agent-days. With ≤4 PRs in flight it realistically spans weeks 1–3; the spikes (P0-01a, P0-10, P0-10b, P0-13, P0-14, P0-16a/b) run in parallel and must not block P0-11. v2.4 adds ≈6 agent-days (P0-16a–c) plus ≈25–60 Editor-hours. P0-16a/b run as parallel spikes in weeks 2–3; P0-16c runs after the Gate A runs on the second fixture Editor and may finish in week 5. Capacity comes from postponing C-01 (spike) and the optional V-04b/V-07; V-08 is **not** a buffer.
 
 ### PHASE 1 — Discoverability + small composite surface (weeks 2–4)
 
@@ -374,7 +416,34 @@ Phase 0 load note (v2.3): Phase 0 is ≈36 agent-days. With ≤4 PRs in flight i
 
 **▶ GATE A (end of week 4), pre-registered in `PREREG_GATE_A.md`:** (v2.3: A1 is measured separately for "agent chose Nexus" and "Nexus ran via hooks"; hooks count as adoption only if the user opted in)
 - **A1 adoption:** re-run P0-09 with S4 = Nexus 1.7 (instructions + skill + core profile + CLI). Pass if Nexus is called for the Unity-state step in **≥60% of pre-registered relevant runs** AND the lower Wilson 90% bound for S4 is above the upper bound for S3 AND false-success is not higher than S1 (reported with interval). External-user feedback (S-08) is reported, not a hard criterion yet. Fail → stop feature work, 2 weeks on discoverability, re-run; if still failing → fallback (§9).
+- **A1 is unchanged by v2.4.** S5/S5r/S1e runs and the high-volume tasks do not count toward A1 and A1 is not re-defined; "chose Nexus" for S4 is still the adoption question for the current design. A façade arm makes "chose Nexus" meaningless *for that arm*, so S5 is judged only by Gate F.
 - **A2 verify room (desk decision from P0-10b):** if **≥2 competitors detect the planted bug**, `nexus_verify` is not built as a flagship; Phase 3 shrinks to "verify-lite" (V-05 assertions usable by `nexus_snapshot`, Overlay capture as a `[CliCommand]` others can call, skill recipes that combine competitor/Unity input with Nexus assertions). Otherwise Phase 3 proceeds.
+
+**▶ GATE F (end of week 5; v2.5 decision matrix; does not block Gate A or Phase 2)** — pre-registered in `PREREG_GATE_A.md` §F **before any full-P0-16c run** (this text was fixed on 2026-10-03, before any S6 result existed); the prereg author may tighten, never loosen. No single prerequisite gates an architecture: the 20% mis-routing threshold of v2.4 is **removed** (mis-routing is a reported metric). Power: success margins need ≈100 pooled runs per arm for ±10 pp; with fewer runs the verdict is **INSUFFICIENT EVIDENCE** and the hypothesis stays open.
+
+Decision matrix — each comparison is evaluated on pooled frozen tasks and separately for read/diagnose tasks and write tasks:
+
+| Dimension | Pass condition for the challenger vs its comparator |
+|---|---|
+| D1 semantic success | non-inferior: lower 90% bound of (challenger − comparator) ≥ −10 pp; no task ≥3/10 runs worse |
+| D2 false-success | upper 90% bound of the difference ≤ +5 pp |
+| D3 tokens per successful task | median ratio ≤ 0.8 with bootstrap 90% CI upper bound < 1.0 (or D4/D5 passes instead) |
+| D4 calls per successful task | median ratio ≤ 0.8, CI upper bound < 1.0 |
+| D5 routing/discovery failures | wrong-capability + invalid-argument + failed-discovery calls per run ≤ comparator's; retries not higher |
+| D6 capability coverage | ≥90% of tasks completed without leaving the compact surface; every escape classified (capability vs discoverability loss) |
+| D7 maintenance | catalog-driven pass-through covers ≥80% of exposed actions; hand-written normalisers/adapters ≤ 600 lines total with N/N-1 contract tests |
+| D8 latency | median wall time per successful task not >10% worse; added per-call overhead ≤50 ms vs a warm Unity call |
+| D9 security | no weakening of §6 rule 8; delegated writes only per P0-16d conditions; `eval`/`run_script`/agent `batch` never delegated |
+| D10 client portability | the challenger's advantage (D3 or D4) holds in ≥2 of the 3 clients and it is not worse on D1 in any client |
+
+Outcomes (any of these, including mixed; never forced binary):
+- **F — Nexus-primary** (S6 vs S5 and vs S4): D1, D2, D6, D9 pass and ≥2 of D3/D4/D5 pass and D7, D8, D10 pass → schedule an implementation design task (not implementation) after Live truth.
+- **C — selective façade** (S5 vs S4): D1, D2, D9 pass, D3 passes on the read/diagnose class, and F does not pass → schedule F-01..F-03.
+- **E — skills/Unity sufficient** (S1e vs S4, compared with C/F): if S1e meets C's conditions, compare E with the best façade arm on the **product table** (maintenance burden, client portability, prompt dependence, discoverability for users without the official skill, reliability across models, API stability, UX consistency). E is chosen only if the façade is not better on D1/D3/D4 **and** the product table does not favour the façade; cheapest-to-build is one row, not the rule.
+- **A — direct Unity + Nexus composites**: none of the above pass.
+- **Mixed** (allowed and expected): e.g. Nexus-primary for reads/diagnosis, Unity-direct for writes/`eval`/build — when the read class meets F and the write class does not. The boundary is reported per task class.
+- **INSUFFICIENT EVIDENCE**: if the D1 or D3 interval spans both pass and fail regions. The hypothesis stays open; no architecture change.
+- **C1 control**: if C1 (Unity allowlisted to the same subset) matches S6 on D1/D3/D4, the S6 gain is attributed to capability-surface reduction, not to Nexus; the recommendation becomes "curate/allowlist Unity's own surface (skill/config)" rather than a Nexus façade.
 
 ### PHASE 2 — Flagship "Live truth" (weeks 4–6)
 
@@ -418,9 +487,11 @@ Task list and oracles for Gate B are frozen in `PREREG_GATE_B.md` **before V-06a
 **R-04 · Demo** (2d): replays of the real failures (report 3 screenshots, report 4 folder dialog) side by side with Nexus; if Gate B passed, add "Agent says it's fixed. Nexus proves it." recorded with `nexus_verify` itself; demo scripts are bench scenarios.
 **R-05 · Release 1.9.0** (1d): live truth GA, context tools, Windows supported, verify GA only if Gate B passed.
 
+**Façade backlog (only if Gate F passes; not scheduled):** C → F-01 normalised read commands in Core (`[CliCommand]`, read-only, `detail`/`max_tokens`/handles per C-04) merged into the ≤8 core budget, each schema ≤600 tokens · F-02 contract tests per normaliser against Pipeline N/N-1 in A-01 · F-03 retirement check: drop any Nexus read once Unity ships equivalent bounds (Principle 1). F → F-10 Nexus-primary **design** task (surface, catalog-driven adapter, security per P0-16d, migration) — design only; implementation needs its own owner decision.
+
 **Later / backlog (not scheduled):** `nexus_scene_diff` + bounded `scene_snapshot` (former C-03, closes #0016) · `nexus_ui_check` (former C-05) · extract `Nexus.Core.Editor` asmdef (former A-03, only after L-01) · `nexus_perf` (**v2.2: do not build raw capture** — Unity signals profiler before GA; at most a perf-budget assert inside verify via `ProfilerRecorder`) · `nexus_player_check` (same scenario over `unity command --runtime` with `RuntimeOnly` steps, §14b.3; spike first) · ~~`nexus_mutate`~~ dropped in v2.2 (Unity `batch` is transactional with single Undo + `dry_run`) · opt-in local usage export · studio policy/audit layer over Pipeline (G8, only if P0-10 finds a pre-dispatch hook).
 
-Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-01 included); with ≤4 PRs in flight, 2 fixture Editors and 2 reviewers this fills 12 weeks only if the gates pass. If Gate A2 says "verify-lite", Phase 3 drops to ~4 tasks and frees ~2 weeks for Live truth polish and context. Optional tasks (V-04b, V-07, V-08) are the buffer.
+Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (+≈6 agent-days and ≈25–60 Editor-hours for P0-16 in v2.4; C-01 and optional V-04b/V-07 postponed) (spikes P0-01a/P0-10/P0-10b/C-01 included); with ≤4 PRs in flight, 2 fixture Editors and 2 reviewers this fills 12 weeks only if the gates pass. If Gate A2 says "verify-lite", Phase 3 drops to ~4 tasks and frees ~2 weeks for Live truth polish and context. Optional tasks (V-04b, V-07, V-08) are the buffer.
 
 ---------------------------------------------------------------------
 ## 8. v1 → v2 MAPPING (what happened to every v1 task)
@@ -437,7 +508,7 @@ Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-0
 | T07 dispatch tax | SHRINK → P0-01a/b | It is a wake-up problem, and Pipeline has it too; spike first |
 | T08 payload diet | KEEP → C-04, S-07 | Tokens are a core axis |
 | T09 bridge efficiency | DROP | Bridge is frozen/thin |
-| T10 14→32–40 tools | **REVERSED** | ≤8 default + profiles + skills + capabilities map (§5.1) |
+| T10 14→32–40 tools | **REVERSED** | ≤8 default + profiles + skills + capabilities map (§5.1). v2.4: a delegated façade over Unity commands is tested in P0-16 / Gate F, not assumed |
 | T11 response contract | SHRINK → S-04 | New canonical commands only |
 | T12 zero-config wizard | DROP | `unity mcp configure` / skills; installer frozen; `nexus doctor` in S-01 |
 | T13 readiness enum | KEEP → P0-02 | |
@@ -476,7 +547,7 @@ Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-0
 1. **Contribute (A1):** publish Capture V2 as a small standalone package (`[CliCommand]` + library) and upstream it / readiness epochs to whichever maintainer answered P0-12.
 2. **Skills product (A2):** publish the skill pack as verification and debugging recipes on top of `unity command` / `unity eval` + the few Nexus commands.
 3. **Editor-tool automation (A3):** if the replays show agents mostly need to run existing editor tooling, narrow to `nexus_run` + `nexus_compile` for tools programmers.
-4. **Token-lean proxy (A4):** only if the P0-08 token column shows raw `unity command` outputs ≥3× larger than Nexus equivalents on hierarchy/console.
+4. **Token-lean proxy (A4):** v2.4 — no longer a blind fallback: decided by Gate F (P0-16). Raw hierarchy/console outputs are unbounded (F22), but the cost per *successful task* is unmeasured (clients truncate; agents re-query or use `eval`). A4 becomes the leading fallback only if Gate F's F1, F2 and F6 pass while Gate A fails; if option E wins, A4 is a skill recipe set, not a product.
 5. Put the rest in maintenance mode with a clear README note. This is a legitimate outcome, not a failure.
 
 ---------------------------------------------------------------------
@@ -499,6 +570,7 @@ Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-0
 | G12 | Unity floor after 6.0 support ends (2026-10-16, F16) | week 2 | **Keep 6000.0 installable; test and support 6000.3 LTS and 6000.6+; the harness moves off 6000.4** |
 | G13 | Hooks as a first-class, opt-in entry point (S-09) | now | **Yes, opt-in** — changes Gate A's definition (reported separately) |
 | G14 | Funding: GitHub Sponsors + apply to OpenAI's Codex open-source fund (Anthropic's OSS program needs ~5k stars) | week 2 | **Yes** |
+| G15 | Façade over Unity CLI (v2.4): build now, never, or decide by pre-registered spike | now | **Decide by spike: option E (upstream request + skill recipes) first, then P0-16 + Gate F (week 5). Only a *selective* read façade is a candidate; full façade rejected on current evidence (F20–F23)** |
 
 ---------------------------------------------------------------------
 ## 11. SUCCESS METRICS (what "we're winning" means now)
@@ -513,7 +585,9 @@ Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-0
 | False-success rate (agent says done, check fails) | unmeasured | not higher than any measured setup |
 | Tokens per successful task (report-3 replay) | est. 20–30k (Nexus today) | ≤7k (estimate to be replaced by P0-09) |
 | Main-thread call p50, Edit Mode, unfocused, agent session active | 100–300 ms | <20 ms if P0-01a finds a safe lever |
-| Default tools/list tokens | ~4.9k (14 managers) | ≤2.5k |
+| Default tools/list tokens | ~5.3k measured (14 managers; ~4.9k was chars/4, F23) | ≤2.5k (count_tokens API) |
+| Tokens per successful high-volume task (hierarchy/console/find), S5 vs S4 (v2.4) | unmeasured; raw hierarchy ≈86k on 1.1k objects, truncated at 25k by Claude Code (F22) | Gate F: ≤0.7× with success non-inferior, or façade dropped |
+| Wrong-tool / invalid-action rate per run (v2.4) | unmeasured | reported for S1/S4/S5; S5 ≤ S4 |
 | Screenshot cost to the model | base64 text (unusable) | ≤0.8k tokens, real image (768 px default) |
 | Platforms with a recorded benchmark run | macOS only | macOS + Windows (before Gate B) |
 | External users who tried it on their own project / report use | 0 | ≥5 / ≥3 by Gate B |
@@ -548,6 +622,8 @@ Capacity: ~51 tasks × ~2.2 d ≈ 110 agent-days (spikes P0-01a/P0-10/P0-10b/C-0
 | R19 | CoreCLR / Unity 7 breaks Nexus (reflection on private `GameView` fields, statics, `AppNapBypass` P/Invoke) | P0-13 matrix; CI job on the newest beta once available | Any failure on the 6.8/7 matrix |
 | R20 | Gate B (week 9 ≈ early December) collides with the Unity 7 beta and holidays | Recruit external users by week 8; freeze scope in week 11 | <3 recruited users by week 8 |
 | R21 | Competition beyond Unity: Unreal 5.8 ships an official MCP plugin; Godot MCPs; Aura (Coplay's owner) sells a cross-engine assistant | Stay Unity-deep (live truth, Overlay capture, verify); revisit cross-engine only after Gate B | A tester asks for Unreal/Godot parity |
+| R22 | Façade turns into duplication by another name (hand-written schemas over ~154 moving commands; manager schemas bloat, as 2.7k→5.3k did from v1.0 to v1.6) | Read-only scope; ≤10 hand normalisers with N/N-1 contract tests (F5); each schema ≤600 tokens; retire reads when Unity ships bounds (F-03) | >10 hand-written normalisers, any schema >600 tokens, or a normaliser broken by a Pipeline minor |
+| R23 | Normalised output hides the fact the task needs → token win, success loss | Sufficiency questions frozen before normalisers (P0-16b/F6); F1 non-inferiority vs S4; handles for the rest; tokens alone never pass Gate F | Any task where S5 is ≥3/10 runs below S4 |
 
 ---------------------------------------------------------------------
 ## 13. WHERE THE ANALYSES DISAGREED (and how v2.1 resolves it)
@@ -606,7 +682,8 @@ reachable only through search snippets; treat every row as input to P0-10, not a
 ### 14b.2 Capability map: Unity status → Nexus decision
 | Area | Unity now | Unity next (6 / 12 mo) | Nexus decision |
 |---|---|---|---|
-| GameObject/asset/scene CRUD | CONFIRMED ~160 built-ins, transactional `batch` with single Undo + `dry_run` | — | **AVOID.** Frozen legacy only; backlog `nexus_mutate` dropped (use `batch`) |
+| GameObject/asset/scene CRUD | CONFIRMED ~160 built-ins (154 measured on 0.7, F20), transactional `batch` with single Undo + `dry_run` | — | **AVOID implementing.** Frozen legacy only; backlog `nexus_mutate` dropped (use `batch`). Writes stay Unity-direct even under a façade |
+| Unbounded reads (hierarchy, console, find/search) | CONFIRMED, no depth/limit/grouping on hierarchy; console tail without grouping (F22) | — | **AVOID implementing; normalise.** Delegated read façade decided by Gate F (P0-16); otherwise normalisation lives inside `nexus_snapshot`/`nexus_diagnose` |
 | C# execution | CONFIRMED `eval`, `eval_file`, `run_script` | — | **AVOID** (already G3) |
 | Compile diagnostics | CONFIRMED `unity recompile` lists errors with file/line (beta.11); `console_status` groundTruth | grouping/hints: 12 mo medium | **WRAP.** `nexus_compile` calls `unity recompile` when present; Nexus adds grouping, "did you mean", ±3 lines context, and **Safe-Mode-resilient diagnosis** (reads `Editor.log`/asmdefs when Pipeline cannot load — a gap Unity's own skill documents) |
 | Tests | CONFIRMED `run_tests`, `unity test --affected`, `watch test`, JUnit | — | **AVOID** running tests; summarise failures only inside `nexus_diagnose` |
@@ -740,3 +817,47 @@ Enter Play Mode; how much of your own agent work now runs in cloud agents; wheth
 whether any tester is under an NDA forbidding cloud screenshots; whether you can receive Sponsors/grants;
 whether Tuanjie is in scope; whether to publish the benchmark even if Nexus loses; whether to avoid the
 December window for Gate B / 1.9.0.
+
+---------------------------------------------------------------------
+## 17. FAÇADE HYPOTHESIS REVIEW (v2.3 → v2.4)
+---------------------------------------------------------------------
+
+Question: should Nexus stop treating Unity CLI as a parallel agent-visible surface and instead use it as a
+mostly hidden execution backend behind a smaller, stable, token-efficient Nexus API? Full analysis:
+`v2_analysis/F_facade_hypothesis.md`; evidence (scripts, raw captures, client research with a URL per claim,
+manager-tool history): `v2_analysis/F_facade_evidence/`. Raw hierarchy/console captures are truncated to
+20 KB in the evidence folder; the measurement scripts and token tables are complete.
+
+### 17.1 Findings and decision
+- **Measured (F20, F22, F23):** `unity mcp` = 154 tools, one per command, ≈21–25k schema tokens; Unity read
+  outputs are unbounded (hierarchy ≈86k tokens at ≈1.1k objects, no depth parameter; truncated at 25k by
+  Claude Code); warm Unity call ≈100 ms, cold CLI ≈1.2–2.2 s, normalisation ≈1 ms; Nexus managers ≈5.3k and
+  the manager format saves only ≈4% vs atomic tools.
+- **Documented (F21):** Claude Code, Codex (tool-search models) and Cursor defer schemas; Gemini CLI and
+  non-deferring setups do not. Unity recommends shell over MCP for shell-capable agents.
+- **Decision (G15):** option **D → (E, then C)**. No façade now; upstream request (P0-12); spike P0-16a–c;
+  Gate F at week 5 (comparator S4, pre-registered non-inferiority margins, option E wins ties). Full façade
+  (B) rejected on current evidence. Principle 1 now defines duplication by capability and separates
+  duplicate implementation / delegated façade / composite. Gate A A1 is unchanged; façade arms are judged
+  only by Gate F.
+- **Still requires evidence:** tokens per successful task under each design; wrong-tool rates for managers
+  vs named Unity commands; sufficiency of normalised output on real scenes; whether option E is enough;
+  whether non-deferring clients matter to the target persona.
+
+### 17.2 Independent review log (challenger agent; the author did not judge its own criteria after results — no results exist yet)
+
+| id | objection (short) | sev | verdict | change applied |
+|---|---|---|---|---|
+| F-1 | §17 referenced but missing | HIGH | ACCEPT | this section |
+| F-2 | 100× compared to a cost the agent never pays (25k MCP cap, filtered calls) | HIGH | ACCEPT | §0, F21, F22, §9 A4, analysis §1/§2.3 reworded; "100×" removed from §0 |
+| F-3 | L1 façade contradicts Principle 6 (Python optional) and the §5.1 merge into Core composites | HIGH | ACCEPT | §4: Core `[CliCommand]` normalised reads are the default candidate, L1 adapter the alternative |
+| F-4 | `nexus_call` "100% coverage" forwards writes/`eval`, breaks §6.8/G3 | HIGH | ACCEPT | read-only allowlist; coverage = reachable directly via Unity; F7 security criterion; Principle 1 |
+| F-5 | Gate F unpassable at N=8–10 (best-of-two comparator, "every task", −10 pp needs ~100+ runs/arm); F3 comparator inconsistent | HIGH | ACCEPT | comparator S4 for all criteria; pooled non-inferiority −15 pp sized to ≈50 runs/arm; per-task rule only for ≥3/10 drops |
+| F-6 | Editor time under-counted (+160–220 runs) | HIGH | ACCEPT | high-volume tasks Claude Code only; S5r one task; ≈150 runs, ≈25–60 Editor-hours costed; Gate F moved to week 5, non-blocking |
+| F-7 | Tasks/normalisers contaminated (same author, synthetic regular scene) | MED | ACCEPT | task + sufficiency freeze by prereg author before normalisers; ≥1 high-volume task on a third-party scene |
+| F-8 | S5 differs from S4 in more than one variable | MED | ACCEPT | S5 = exactly S4 + façade |
+| F-9 | Deferral claims overstated (proxies, models; prefixed names ≈1.4k; 24.6k with default JSON) | MED | ACCEPT | F20/F21 caveats; §0; no-deferral cell in P0-16a/c |
+| F-10 | Missing cheaper option E (upstream params + skill `eval` recipes); call-path loophole in the distinction | MED | ACCEPT | option E arm S1e, wins ties; P0-12 upstream request; duplication defined by capability + retirement rule |
+| F-11 | Stability argument contradicts catalog pass-through; F5 denominator gameable | MED | ACCEPT | analysis argument downgraded; F5 = ≤10 hand normalisers with N/N-1 contract tests, denominator façade-exposed actions |
+| F-12 | Buffer took V-08; outcome table incomplete; A4 bypassed F1; high-volume tasks not excluded from A1 | MED | ACCEPT | capacity from C-01/V-04b/V-07, V-08 kept; full outcome table; A4 requires F1; A1 exclusion stated |
+| F-13 | G15/R22–R23 ordering; 913 vs 1,133 objects; n=5 latency | LOW | ACCEPT (n=5 kept, labelled) | renumbered; label fixed (≈1.1k); latency n stated in F_facade_hypothesis M8 |
