@@ -184,3 +184,14 @@ hierarchy (6 or more levels)". Ground truth is computed by the harness before an
    restored and made immutable (`chflags uchg`); S4/S5's shell CLI remains non-functional (as for any Codex user on the
    default sandbox), which is recorded as an environment property, not corrected. S6 runs are unaffected (no shell CLI).
 3. Runs that completed before 17:47 (T9 all arms; T3 S6-domain ×2, S6-router) ran with a healthy Pipeline and stand.
+
+## Amendment A4 (2026-10-03 ≈22:35; harness defect introduced by A3, found from infrastructure logs)
+The A3 immutable port file stopped Pipeline from rewriting its port file after a domain reload. Only T2 triggers a reload
+(successful compile), so the T2 oracle lost the Editor: `T2_S6curated_1` (oracle could not connect → scored FAIL by the
+harness, not by the agent) and `T2_S4_1` (reset hung 36 min, infra) are **void** and moved to `runs/harness_invalid/`. A scan of
+every other run's MCP log and event stream found no "Cannot connect"/"No Pipeline instance" errors, so no other run is affected.
+Fix: the lock is removed (Pipeline owns its file again) and, in S4/S5 only, the agent's PATH `unity` is a shim
+(`harness/sandbox_bin/unity`, committed) that reproduces the real CLI's observed in-sandbox failure text for Editor-facing
+subcommands **without** deleting the port file; non-Editor subcommands (help, version) run the real CLI. Agent-visible
+behaviour is unchanged versus A3 (the real CLI cannot reach the Editor from the Codex sandbox either). Reset now restarts the
+Editor automatically if Pipeline is unreachable. The voided cells are re-run.

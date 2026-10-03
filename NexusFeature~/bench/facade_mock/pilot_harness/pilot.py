@@ -152,7 +152,14 @@ def recompile_wait(expect_fail=None, t=300):
     wait_ready(t)
     return st
 
+def restart_editor():
+    subprocess.run(["pkill", "-f", "projectpath " + FIX]); time.sleep(10)
+    subprocess.run(["pkill", "-9", "-f", "projectpath " + FIX]); time.sleep(3)
+    subprocess.run([UNITY, "open", FIX, "--non-interactive", "--args", "--mcp-port 8081"], capture_output=True)
+    time.sleep(20); return wait_ready(600)
+
 def reset(task, arm):
+    if not wait_ready(60): restart_editor()   # A4: recover from an unreachable Pipeline instead of hanging
     ucmd("editor_stop", timeout=30)
     git("reset", "--hard", "fixture-v1"); git("clean", "-fdx", "-e", "Library", "-e", "Temp", "-e", "Logs", "-e", "UserSettings", "-e", "obj")
     write_agents_md(arm)
@@ -219,7 +226,7 @@ def codex_home(arm, run_id):
 
 def path_env(arm):
     base = "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin"
-    return (os.path.expanduser("~/.unity/bin") + ":" + base) if arm in ("S4", "S5") else base
+    return (os.path.join(H, "sandbox_bin") + ":" + base) if arm in ("S4", "S5") else base  # A4 shim
 
 # ------------------------------------------------------------------ oracle
 ANS = re.compile(r"^\s*\**\s*ANSWER:\s*(.*)$", re.I | re.M)

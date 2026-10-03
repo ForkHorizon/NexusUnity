@@ -1,0 +1,13 @@
+#!/bin/sh
+# Pilot shim (amendment A4): inside the Codex sandbox the real Unity CLI cannot reach the Editor and deletes the
+# Pipeline port file as a side effect. This shim reproduces the real CLI's observable failure for Editor commands
+# without the side effect; non-Editor subcommands (help, --version, editors, ...) go to the real CLI.
+case "$1" in
+  command|cmd|list|mcp|eval|shell|job|pipeline|pipe|test)
+    case " $* " in *" --json "*|*"--format json"*|*"--format=json"*)
+      printf '%s\n' '{' '  "success": false,' "  \"command\": \"unity $1\"," '  "data": null,' '  "errors": [' '    {' '      "code": "COMMAND_FAILED",' '      "message": "No Unity Editor instances found with reachable Pipeline servers.\n\nMake sure:\n• Unity Editor is running with a project open\n• The Pipeline package is installed in the project\n• The Pipeline HTTP server is running\n\nYou can check available instances with: unity pipeline list"' '    }' '  ],' '  "warnings": []' '}' ; exit 1;;
+    esac
+    printf '%s\n' "Error: No Unity Editor instances found with reachable Pipeline servers." "" "Make sure:" "• Unity Editor is running with a project open" "• The Pipeline package is installed in the project" "• The Pipeline HTTP server is running" "" "You can check available instances with: unity pipeline list" >&2
+    exit 1;;
+esac
+exec "$HOME/.unity/bin/unity" "$@"
