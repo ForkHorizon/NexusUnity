@@ -159,3 +159,13 @@ T2 at start shows only CS0117 (CS0246 appears after the first fix because Saltma
 Oracle tolerance (M7): leading `/` and `.unity` suffixes accepted in T3/T9 parsers (applied to all arms). The v2.4
 "≥20% mis-routing" prerequisite was removed at the owner's explicit request (2026-10-03 message, item 8), after Agent A's
 offline routing data existed; mis-routing stays a reported metric (M6).
+
+## Amendment A2 (2026-10-03, before any third-party run; fixture pilot running, results not read)
+Applying A1.8 to the Puzzle copy (YAML GameObject-document count as the "most GameObjects" measure): the top scene is
+`Assets/Libs/Layer Lab/GUI PRO Kit - Simple Casual/Scene/DemoScene.unity` (9,478 GameObjects, third-party asset-store
+content) — it has no prefab instances, so T3★ is unsatisfiable there. Fallback rule: T3★ uses the next scene by GameObject
+count that has a qualifying prefab (`Assets/Scenes/Game.unity` is next, 146 GOs + 7 prefab instances; if it has none, the next
+one, and so on). T9★ uses the top scene. Prompt scoping (to keep the third-party tasks tractable and deterministic): T3★ asks
+for the count in the named scene only plus referencing assets; T9★ names the component and the scene, and says "deep in the
+hierarchy (6 or more levels)". Ground truth is computed by the harness before any agent run and stored in
+`harness/key/puzzle_key.json`.
