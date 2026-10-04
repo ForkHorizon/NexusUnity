@@ -157,6 +157,7 @@ namespace UnityMCP.Editor
             Set(QuietTicksKey, 0);
             if (reloadExpected) Set(ReloadExpectedKey, 1);
             _isCompiling = Get(CompileInFlightKey) > 0;
+            ForgetCompileFromEarlierArm();
             PublishEvaluate();
         }
 
@@ -174,6 +175,7 @@ namespace UnityMCP.Editor
             Set(ReloadEpochKey, Get(ReloadEpochKey) + 1);
             Set(CompileInFlightKey, 0);
             _isCompiling = false;
+            NoteUnsatisfiedScriptWrite();
         }
 
         internal static void NotifyDomainLoadedForTests()
@@ -184,6 +186,7 @@ namespace UnityMCP.Editor
 
         static void ApplyTick(bool isCompiling, bool isUpdating, bool isPlayTransition)
         {
+            ResolveCompilationFailureProbe();
             _isCompiling = isCompiling;
             _isUpdating = isUpdating;
             _isPlayTransition = isPlayTransition;
@@ -193,7 +196,7 @@ namespace UnityMCP.Editor
 
         static void UpdateQuiet(bool isCompiling, bool isUpdating)
         {
-            bool busy = Get(CompileInFlightKey) > 0 || Get(ReloadArmedKey) == 1 || isCompiling || isUpdating;
+            bool busy = Get(CompileInFlightKey) > 0 || Get(ReloadArmedKey) == 1 || isCompiling || isUpdating || _isPlayTransition;
             if (busy || Get(RefreshInvokedKey) != 1)
             {
                 if (busy) Set(QuietTicksKey, 0);
@@ -228,7 +231,9 @@ namespace UnityMCP.Editor
             bool failedCompileSettled = scriptWrite && quiet && seenCompile
                 && Get(ReloadExpectedKey) == 0
                 && Get(CompileEpochKey) > Get(BaselineCompileKey);
-            bool noOp = scriptWrite && quiet && !seenCompile;
+            bool noOp = scriptWrite && quiet && !seenCompile
+                && Get(ReloadExpectedKey) == 0
+                && Get(CompileEpochKey) == Get(BaselineCompileKey);
             if (reloadSatisfies || failedCompileSettled)
             {
                 _idleReason = ReasonReady;

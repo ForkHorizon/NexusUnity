@@ -134,7 +134,7 @@ The current development line preserves backward compatibility while correcting p
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `get_game_object` includes transform state and a compact component list for cheap write verification; use `inspect_component` for full component properties.
-- Script writes require `confirm: true`, then readiness probes remain busy while the scheduled asset refresh is pending so agents do not race Unity domain reload.
+- Script writes require `confirm: true`, then readiness probes remain busy while the scheduled asset refresh is pending so agents do not race Unity domain reload. A write during an in-flight compile stays busy until a later compile reloads. On macOS that refresh waits for Editor focus, or 15 seconds.
 - Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts an optional explicit `path` plus `base_color` / `color` and `emission_color`, so automation can isolate generated materials in a known project folder and make them visibly distinct.
 - `write_file` and `write_files_batch` create missing parent directories after path validation; `.cs` writes require `confirm: true`.

@@ -83,6 +83,43 @@ namespace UnityMCP.Editor
             return "importing";
         }
 
+        static int _failureProbe;
+
+        static void ResolveCompilationFailureProbe()
+        {
+            if (_failureProbe != 1 || Volatile.Read(ref _testDepth) > 0) return;
+            _failureProbe = 0;
+            if (EditorUtility.scriptCompilationFailed) Set(ReloadExpectedKey, 0);
+        }
+
+        static void ArmCompilationFailureProbe() => _failureProbe = 1;
+
+        /// <summary>Test hook for the tick that reads scriptCompilationFailed after compilationFinished.</summary>
+        internal static void ApplyFailureProbeForTests(bool scriptCompilationFailed)
+        {
+            _failureProbe = 0;
+            if (scriptCompilationFailed) Set(ReloadExpectedKey, 0);
+            PublishEvaluate();
+        }
+
+        static void ForgetCompileFromEarlierArm()
+        {
+            if (Get(ScriptWriteKey) != 1 || Get(SeenCompileKey) == 1) return;
+            Set(RefreshInvokedKey, 0);
+            Set(ReloadExpectedKey, 0);
+            Set(QuietTicksKey, 0);
+        }
+
+        static void NoteUnsatisfiedScriptWrite()
+        {
+            if (Get(ScriptWriteKey) != 1 || Get(SeenCompileKey) == 1) return;
+            Set(RefreshInvokedKey, 0);
+            Set(ReloadExpectedKey, 0);
+            Set(QuietTicksKey, 0);
+            Set(BaselineCompileKey, Get(CompileEpochKey));
+            Set(BaselineReloadKey, Get(ReloadEpochKey));
+        }
+
         internal static bool ImportBlocked(Snapshot snap)
         {
             return snap.Reconnect
@@ -125,7 +162,9 @@ namespace UnityMCP.Editor
         static void OnCompilationFinished(object _)
         {
             if (Volatile.Read(ref _testDepth) > 0) return;
-            NotifyCompilationFinished(!EditorUtility.scriptCompilationFailed);
+            // scriptCompilationFailed is still the previous compile inside this callback.
+            NotifyCompilationFinished(true);
+            ArmCompilationFailureProbe();
         }
 
         static void OnBeforeAssemblyReload()

@@ -237,21 +237,27 @@ namespace UnityMCP.Editor
             #endif
 
             double startTime = EditorApplication.timeSinceStartup;
-            double timeoutSeconds = 15.0;
+            const double timeoutSeconds = 15.0;
 
-            _pendingRefreshCallback = () => {
-                var cb = _pendingRefreshCallback;
-                if (cb == null) return;
-                EditorApplication.update -= cb;
+            _pendingRefreshCallback = () =>
+            {
+                if (_pendingRefreshCallback == null) return;
+                bool timedOut = EditorApplication.timeSinceStartup - startTime > timeoutSeconds;
+                #if UNITY_EDITOR_OSX
+                if (!timedOut && !UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+                    return;
+                #endif
+                EditorApplication.update -= _pendingRefreshCallback;
                 _pendingRefreshCallback = null;
-
-                if (EditorApplication.timeSinceStartup - startTime > timeoutSeconds)
+                if (timedOut)
                     NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] TriggerSafeAssetRefresh focus wait exceeded 15s. Refreshing anyway so the script-write latch is not left stuck.");
 
                 EditorReadiness.NotifyRefreshInvoked();
                 AssetDatabase.Refresh();
+                if (EditorReadiness.ScriptRefreshQueued)
+                    EditorApplication.delayCall += TriggerSafeAssetRefresh;
             };
-            
+
             EditorApplication.update += _pendingRefreshCallback;
         }
     }

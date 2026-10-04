@@ -220,6 +220,84 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
+        public void ScriptWrite_OverlappingArm_DoesNotTreatOldCompileAsNoOp()
+        {
+            EditorReadiness.ArmScriptWrite();
+            EditorReadiness.NotifyRefreshInvoked();
+            EditorReadiness.NotifyCompilationStarted();
+
+            EditorReadiness.ArmScriptWrite();
+            EditorReadiness.NotifyRefreshInvoked();
+            EditorReadiness.NotifyCompilationFinished(true);
+            for (int i = 0; i < 5; i++) EditorReadiness.DriveTickForTests(false, false, false);
+            Assert.IsFalse(EditorReadiness.Published.Ready, "A compile that started before the latest write must not settle it.");
+
+            EditorReadiness.NotifyBeforeReload();
+            EditorReadiness.NotifyDomainLoadedForTests();
+            Assert.IsFalse(EditorReadiness.Published.Ready);
+            Assert.IsTrue(EditorReadiness.ScriptRefreshQueued);
+
+            EditorReadiness.NotifyRefreshInvoked();
+            EditorReadiness.NotifyCompilationStarted();
+            EditorReadiness.NotifyCompilationFinished(true);
+            EditorReadiness.NotifyBeforeReload();
+            EditorReadiness.NotifyDomainLoadedForTests();
+
+            Assert.IsTrue(EditorReadiness.Published.Ready);
+            Assert.AreEqual(EditorReadiness.ReasonReady, EditorReadiness.Published.Reason);
+            Assert.AreEqual(2, EditorReadiness.Published.CompileEpoch);
+            Assert.AreEqual(2, EditorReadiness.Published.ReloadEpoch);
+        }
+
+        [Test]
+        public void ScriptWrite_FailedCompile_ProbeSettlesOnTheFollowingTick()
+        {
+            EditorReadiness.ArmScriptWrite();
+            EditorReadiness.NotifyRefreshInvoked();
+            EditorReadiness.NotifyCompilationStarted();
+            EditorReadiness.NotifyCompilationFinished(true);
+            Assert.IsFalse(EditorReadiness.Published.Ready);
+
+            EditorReadiness.ApplyFailureProbeForTests(true);
+            EditorReadiness.DriveTickForTests(false, false, false);
+            Assert.IsFalse(EditorReadiness.Published.Ready);
+            EditorReadiness.DriveTickForTests(false, false, false);
+
+            Assert.IsTrue(EditorReadiness.Published.Ready);
+            Assert.AreEqual(EditorReadiness.ReasonReady, EditorReadiness.Published.Reason);
+            Assert.AreEqual(1, EditorReadiness.Published.CompileEpoch);
+            Assert.AreEqual(0, EditorReadiness.Published.ReloadEpoch);
+        }
+
+        [Test]
+        public void ScriptWrite_SuccessFlag_DoesNotSettleWithoutReload()
+        {
+            EditorReadiness.ArmScriptWrite();
+            EditorReadiness.NotifyRefreshInvoked();
+            EditorReadiness.NotifyCompilationStarted();
+            EditorReadiness.NotifyCompilationFinished(true);
+            EditorReadiness.ApplyFailureProbeForTests(false);
+            for (int i = 0; i < 4; i++) EditorReadiness.DriveTickForTests(false, false, false);
+
+            Assert.IsFalse(EditorReadiness.Published.Ready);
+            Assert.AreEqual(1, EditorReadiness.Published.CompileEpoch);
+            Assert.AreEqual(0, EditorReadiness.Published.ReloadEpoch);
+        }
+
+        [Test]
+        public void ScriptWrite_PlayTransition_DoesNotCountAsQuiet()
+        {
+            EditorReadiness.ArmScriptWrite();
+            EditorReadiness.NotifyRefreshInvoked();
+            for (int i = 0; i < 5; i++) EditorReadiness.DriveTickForTests(false, false, true);
+            Assert.IsFalse(EditorReadiness.Published.Ready);
+
+            EditorReadiness.DriveTickForTests(false, false, false);
+            Assert.IsFalse(EditorReadiness.Published.Ready, "Play-mode frames must not count toward the no-op settle.");
+            Assert.AreEqual(EditorReadiness.ReasonScriptWrite, EditorReadiness.Published.Reason);
+        }
+
+        [Test]
         public void StatusAndWait_ShareTheSameReadyFlag()
         {
             EditorReadiness.ArmScriptWrite();
