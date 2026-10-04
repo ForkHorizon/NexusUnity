@@ -23,6 +23,14 @@ namespace UnityMCP.Editor.Commands
         public const string LookDotAlias = "nexus.look";
         /// <summary>Default longest edge when max_dimension is omitted. Explicit 0 stays unconstrained.</summary>
         public const int DefaultMaxLongEdge = 768;
+        /// <summary>JPEG quality used when quality is omitted. Values outside 1–100 are clamped later.</summary>
+        public const int DefaultJpegQuality = 85;
+        /// <summary>Image encoding used when format is omitted. The other encoding is png.</summary>
+        public const string DefaultFormat = "jpg";
+        /// <summary>View used when view is omitted. Scene is the other accepted value.</summary>
+        public const string DefaultView = "game";
+        /// <summary>Delivery used when delivery is omitted. File writes one image under Temp.</summary>
+        public const string DefaultDelivery = "base64";
         /// <summary>Shared command description for every projection.</summary>
         public const string Description =
             "Captures Game View Overlay or a Scene View framed on a target. JPEG by default, longest edge 768 unless raised.";
@@ -98,11 +106,11 @@ namespace UnityMCP.Editor.Commands
             {
                 ["width"] = width,
                 ["height"] = height,
-                ["format"] = format ?? "jpg",
+                ["format"] = FormatOrDefault(format),
                 ["quality"] = quality,
                 ["max_dimension"] = maxDimension,
-                ["view"] = string.IsNullOrEmpty(view) ? "game" : view,
-                ["delivery"] = string.IsNullOrEmpty(delivery) ? "base64" : delivery
+                ["view"] = string.IsNullOrEmpty(view) ? DefaultView : view,
+                ["delivery"] = string.IsNullOrEmpty(delivery) ? DefaultDelivery : delivery
             };
             if (!string.IsNullOrEmpty(target)) parameters["target"] = target;
             if (instanceId != 0) parameters["instance_id"] = instanceId;
@@ -125,7 +133,7 @@ namespace UnityMCP.Editor.Commands
             var sw = Stopwatch.StartNew();
             try
             {
-                call.Request.Format = ParseFormat(call.Format ?? "jpg");
+                call.Request.Format = ParseFormat(FormatOrDefault(call.Format));
                 NexusCaptureResult result = await ExecuteAsync(call, cancellationToken).ConfigureAwait(false);
                 return NexusCommandEnvelope.Success(result, call.RequestId, sw.ElapsedMilliseconds);
             }
@@ -178,6 +186,12 @@ namespace UnityMCP.Editor.Commands
             };
         }
 
+        /// <summary>Uses jpg when the caller omits format.</summary>
+        internal static string FormatOrDefault(string format)
+        {
+            return format ?? DefaultFormat;
+        }
+
         private static CaptureFormat ParseFormat(string format)
         {
             if (string.IsNullOrEmpty(format) ||
@@ -203,23 +217,18 @@ namespace UnityMCP.Editor.Commands
                 DispatchAsync = true,
                 Parameters = new[]
                 {
-                    Param("width", "integer", WidthDescription),
-                    Param("height", "integer", HeightDescription),
-                    Param("format", "string", FormatDescription),
-                    Param("quality", "integer", QualityDescription),
-                    Param("max_dimension", "integer", MaxDimensionDescription),
-                    Param("view", "string", ViewDescription),
-                    Param("target", "string", TargetDescription),
-                    Param("instance_id", "integer", InstanceIdDescription),
-                    Param("delivery", "string", DeliveryDescription),
-                    Param("request_id", "string", NexusCommandCodes.RequestIdDescription)
+                    NexusCommandParameter.Optional("width", "integer", WidthDescription, 0),
+                    NexusCommandParameter.Optional("height", "integer", HeightDescription, 0),
+                    NexusCommandParameter.Optional("format", "string", FormatDescription, DefaultFormat),
+                    NexusCommandParameter.Optional("quality", "integer", QualityDescription, DefaultJpegQuality),
+                    NexusCommandParameter.Optional("max_dimension", "integer", MaxDimensionDescription, DefaultMaxLongEdge),
+                    NexusCommandParameter.Optional("view", "string", ViewDescription, DefaultView),
+                    NexusCommandParameter.Optional("target", "string", TargetDescription, null),
+                    NexusCommandParameter.Optional("instance_id", "integer", InstanceIdDescription, 0),
+                    NexusCommandParameter.Optional("delivery", "string", DeliveryDescription, DefaultDelivery),
+                    NexusCommandParameter.Optional("request_id", "string", NexusCommandCodes.RequestIdDescription, null)
                 }
             };
-        }
-
-        private static NexusCommandParameter Param(string name, string jsonType, string description)
-        {
-            return new NexusCommandParameter { Name = name, JsonType = jsonType, Description = description };
         }
     }
 }

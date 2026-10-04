@@ -22,6 +22,8 @@ namespace UnityMCP.Editor.Commands
             "Analyzes recent console logs, extracts C# compiler errors (CSxxxx), and groups them by root cause file.";
         /// <summary>Shared parameter description for <c>max_logs</c>.</summary>
         public const string MaxLogsDescription = "Maximum number of recent console log entries to inspect.";
+        /// <summary>Console entries inspected when max_logs is omitted.</summary>
+        public const int DefaultMaxLogs = 50;
 
         /// <summary>Gets the canonical compile-error descriptor.</summary>
         public NexusCommandDescriptor Descriptor { get; } = new NexusCommandDescriptor
@@ -33,18 +35,8 @@ namespace UnityMCP.Editor.Commands
             Profiles = new[] { "core" },
             Parameters = new[]
             {
-                new NexusCommandParameter
-                {
-                    Name = "max_logs",
-                    JsonType = "integer",
-                    Description = MaxLogsDescription
-                },
-                new NexusCommandParameter
-                {
-                    Name = "request_id",
-                    JsonType = "string",
-                    Description = NexusCommandCodes.RequestIdDescription
-                }
+                NexusCommandParameter.Optional("max_logs", "integer", MaxLogsDescription, DefaultMaxLogs),
+                NexusCommandParameter.Optional("request_id", "string", NexusCommandCodes.RequestIdDescription, null)
             }
         };
 
@@ -74,7 +66,7 @@ namespace UnityMCP.Editor.Commands
                     sw.ElapsedMilliseconds).ToJson());
             }
 
-            return Task.FromResult<JToken>(ExecuteEnveloped(maxLogs ?? 50, requestId).ToJson());
+            return Task.FromResult<JToken>(ExecuteEnveloped(maxLogs ?? DefaultMaxLogs, requestId).ToJson());
         }
 
         /// <summary>
@@ -113,7 +105,7 @@ namespace UnityMCP.Editor.Commands
         /// </summary>
         /// <param name="maxLogs">Maximum recent console entries to inspect.</param>
         /// <returns>Grouped compiler diagnostics.</returns>
-        public static NexusCompileErrorsResult Execute(int maxLogs = 50)
+        public static NexusCompileErrorsResult Execute(int maxLogs = DefaultMaxLogs)
         {
             var sw = Stopwatch.StartNew();
             var logs = MCPServer.GetLogs(maxLogs, "Error", string.Empty);

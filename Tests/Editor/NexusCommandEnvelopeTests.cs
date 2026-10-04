@@ -492,7 +492,9 @@ namespace UnityMCP.Editor.Tests
             Assert.IsFalse(((JObject)result["data"]).ContainsKey("message"));
             Assert.IsFalse(((JObject)result["data"]).ContainsKey("duration_ms"));
             string command = File.ReadAllText(LocateCommand("CaptureGameViewCommand.cs"));
-            StringAssert.Contains("format ?? \"jpg\"", command);
+            Assert.AreEqual("jpg", CaptureGameViewCommand.DefaultFormat);
+            Assert.AreEqual("jpg", CaptureGameViewCommand.FormatOrDefault(null));
+            StringAssert.Contains("FormatOrDefault(", command);
             JObject legacy = MCPServerMethods.CreateScreenshotResult(true, "ok", new byte[] { 1 }, new Vector2Int(1, 1), 1);
             Assert.AreEqual("png", legacy["format"]?.ToString());
         }

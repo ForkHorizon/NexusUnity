@@ -31,7 +31,7 @@ namespace UnityMCP.Editor.Pipeline
         /// </summary>
         [CliCommand(GroupCompileErrorsCommand.Alias, GroupCompileErrorsCommand.Description, Tags = new[] { "nexus", "diagnostics" })]
         public static NexusCommandEnvelope GroupCompileErrors(
-            [CliArg("max_logs", GroupCompileErrorsCommand.MaxLogsDescription)] int maxLogs = 50,
+            [CliArg("max_logs", GroupCompileErrorsCommand.MaxLogsDescription)] int maxLogs = GroupCompileErrorsCommand.DefaultMaxLogs,
             [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
             return GroupCompileErrorsCommand.ExecuteEnveloped(maxLogs, requestId);
@@ -46,13 +46,13 @@ namespace UnityMCP.Editor.Pipeline
         public static Task<NexusCommandEnvelope> CaptureGameView(
             [CliArg("width", CaptureGameViewCommand.WidthDescription)] int width = 0,
             [CliArg("height", CaptureGameViewCommand.HeightDescription)] int height = 0,
-            [CliArg("format", CaptureGameViewCommand.FormatDescription)] string format = "jpg",
-            [CliArg("quality", CaptureGameViewCommand.QualityDescription)] int quality = 85,
+            [CliArg("format", CaptureGameViewCommand.FormatDescription)] string format = CaptureGameViewCommand.DefaultFormat,
+            [CliArg("quality", CaptureGameViewCommand.QualityDescription)] int quality = CaptureGameViewCommand.DefaultJpegQuality,
             [CliArg("max_dimension", CaptureGameViewCommand.MaxDimensionDescription)] int maxDimension = CaptureGameViewCommand.DefaultMaxLongEdge,
-            [CliArg("view", CaptureGameViewCommand.ViewDescription)] string view = "game",
+            [CliArg("view", CaptureGameViewCommand.ViewDescription)] string view = CaptureGameViewCommand.DefaultView,
             [CliArg("target", CaptureGameViewCommand.TargetDescription)] string target = null,
             [CliArg("instance_id", CaptureGameViewCommand.InstanceIdDescription)] int instanceId = 0,
-            [CliArg("delivery", CaptureGameViewCommand.DeliveryDescription)] string delivery = "base64",
+            [CliArg("delivery", CaptureGameViewCommand.DeliveryDescription)] string delivery = CaptureGameViewCommand.DefaultDelivery,
             [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
             return CaptureGameViewCommand.ExecuteFromCli(

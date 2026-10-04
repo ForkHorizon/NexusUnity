@@ -43,5 +43,31 @@ namespace UnityMCP.Editor.Commands
 
         /// <summary>Gets or sets the parameter description.</summary>
         public string Description { get; set; }
+
+        /// <summary>Gets or sets whether a default is declared, including a null string default.</summary>
+        public bool HasDefault { get; set; }
+
+        /// <summary>Gets or sets the declared default. Null is meaningful when <see cref="HasDefault"/> is true.</summary>
+        public object DefaultValue { get; set; }
+
+        /// <summary>
+        /// Builds an optional parameter. The default is part of the canonical contract shared with Pipeline CLI.
+        /// </summary>
+        /// <param name="name">Wire name.</param>
+        /// <param name="jsonType">JSON schema type.</param>
+        /// <param name="description">Help text shared by every projection.</param>
+        /// <param name="defaultValue">Value used when the caller omits the argument.</param>
+        /// <returns>A parameter that declares a default.</returns>
+        public static NexusCommandParameter Optional(string name, string jsonType, string description, object defaultValue)
+        {
+            return new NexusCommandParameter
+            {
+                Name = name,
+                JsonType = jsonType,
+                Description = description,
+                HasDefault = true,
+                DefaultValue = defaultValue
+            };
+        }
     }
 }

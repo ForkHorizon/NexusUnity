@@ -35,12 +35,7 @@ namespace UnityMCP.Editor.Commands
             Profiles = new[] { "core" },
             Parameters = new[]
             {
-                new NexusCommandParameter
-                {
-                    Name = "request_id",
-                    JsonType = "string",
-                    Description = NexusCommandCodes.RequestIdDescription
-                }
+                NexusCommandParameter.Optional("request_id", "string", NexusCommandCodes.RequestIdDescription, null)
             }
         };
 

@@ -49,7 +49,7 @@ namespace UnityMCP.Editor.Commands
             call.WriteFile = writeFile;
             call.Request = new CaptureRequest
             {
-                JpegQuality = quality ?? 85,
+                JpegQuality = quality ?? CaptureGameViewCommand.DefaultJpegQuality,
                 RequestedWidth = width ?? 0,
                 RequestedHeight = height ?? 0,
                 MaxLongEdge = maxEdge,
@@ -104,11 +104,11 @@ namespace UnityMCP.Editor.Commands
             if (!NexusCommandArguments.TryReadOptionalString(parameters?["delivery"], "delivery", requestId, milliseconds, out string delivery, out rejected))
                 return false;
 
-            viewText = string.IsNullOrEmpty(viewText) ? "game" : viewText;
-            delivery = string.IsNullOrEmpty(delivery) ? "base64" : delivery;
+            viewText = string.IsNullOrEmpty(viewText) ? CaptureGameViewCommand.DefaultView : viewText;
+            delivery = string.IsNullOrEmpty(delivery) ? CaptureGameViewCommand.DefaultDelivery : delivery;
             if (!TryViewToken(viewText, out view))
                 return Reject(requestId, milliseconds, "view must be game or scene.", out rejected);
-            if (delivery != "base64" && delivery != "file")
+            if (delivery != CaptureGameViewCommand.DefaultDelivery && delivery != "file")
                 return Reject(requestId, milliseconds, "delivery must be base64 or file.", out rejected);
             if (target != null && target.Trim().Length == 0)
                 return Reject(requestId, milliseconds, "target must be a non-empty name or hierarchy path.", out rejected);
@@ -124,7 +124,7 @@ namespace UnityMCP.Editor.Commands
 
         private static bool TryViewToken(string viewText, out CaptureView view)
         {
-            if (viewText == "game")
+            if (viewText == CaptureGameViewCommand.DefaultView)
             {
                 view = CaptureView.Game;
                 return true;
