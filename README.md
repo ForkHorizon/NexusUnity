@@ -181,7 +181,7 @@ Root-deployed path:
 - `unity_editor_controller`: play mode, menus, undo/redo, logs, editor state, asset refresh, and test-result polling.
 - `unity_ui_automation`: query and operate Unity Editor UI Toolkit windows, including window rects for resize QA.
 - `capture_game_view_screenshot` and `capture_inspector_screenshot`: structured image data with dimensions, base64 image bytes, and capture duration. Game View defaults to PNG and optionally accepts JPEG, quality, and downscale parameters.
-- Experimental canonical commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` share one handler each. When `com.unity.pipeline` is installed they are also available as optional Pipeline CLI/MCP commands.
+- Experimental canonical commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` share one handler each and return one envelope (`ok`, `data`, `error`, `meta`). When `com.unity.pipeline` is installed they are also available as optional Pipeline CLI/MCP commands with that same envelope. Legacy raw tools keep their existing JSON.
 - Runtime mode defaults to `auto`: eligible Unity 6000 + Pipeline installs use Pipeline as primary and Legacy HTTP as fallback. Set Project Settings > Nexus Unity > Runtime to `legacy` to force HTTP. Legacy HTTP remains fully supported; removal is not scheduled until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release.
 
 See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.

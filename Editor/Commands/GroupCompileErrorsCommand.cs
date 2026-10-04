@@ -38,20 +38,74 @@ namespace UnityMCP.Editor.Commands
                     Name = "max_logs",
                     JsonType = "integer",
                     Description = MaxLogsDescription
+                },
+                new NexusCommandParameter
+                {
+                    Name = "request_id",
+                    JsonType = "string",
+                    Description = NexusCommandCodes.RequestIdDescription
                 }
             }
         };
 
         /// <summary>
-        /// Groups compiler errors from Unity console logs and returns JSON for Legacy HTTP/MCP.
+        /// Groups compiler errors and returns the canonical envelope for Legacy HTTP/MCP.
+        /// Reads the Unity console and does not modify the project.
         /// </summary>
-        /// <param name="parameters">Optional <c>max_logs</c> integer.</param>
+        /// <param name="parameters">Optional <c>max_logs</c> integer and string <c>request_id</c>.</param>
         /// <param name="cancellationToken">Unused; the command is synchronous.</param>
-        /// <returns>Structured compiler-error groups.</returns>
+        /// <returns>Envelope JSON. A list taken while compiling uses <c>partial</c>.</returns>
         public Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {
-            int maxLogs = parameters?["max_logs"]?.Value<int>() ?? 50;
-            return Task.FromResult(JToken.FromObject(Execute(maxLogs)));
+            var sw = Stopwatch.StartNew();
+            if (!NexusCommandArguments.TryReadRequestId(parameters, sw.ElapsedMilliseconds, out string requestId, out NexusCommandEnvelope rejected))
+                return Task.FromResult<JToken>(rejected.ToJson());
+            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["max_logs"], "max_logs", requestId, sw.ElapsedMilliseconds, out int? maxLogs, out rejected))
+                return Task.FromResult<JToken>(rejected.ToJson());
+            if (maxLogs.HasValue && maxLogs.Value < 0)
+            {
+                return Task.FromResult<JToken>(NexusCommandEnvelope.Failure(
+                    NexusCommandCodes.InvalidArgument,
+                    "max_logs must be zero or greater.",
+                    false,
+                    NexusCommandCodes.ChangeArgumentsHint,
+                    null,
+                    requestId,
+                    sw.ElapsedMilliseconds).ToJson());
+            }
+
+            return Task.FromResult<JToken>(ExecuteEnveloped(maxLogs ?? 50, requestId).ToJson());
+        }
+
+        /// <summary>
+        /// Builds the canonical compile-error envelope. Reads the Unity console and does not modify the project.
+        /// </summary>
+        /// <param name="maxLogs">Maximum recent console entries. Negative values are <c>invalid_argument</c>.</param>
+        /// <param name="requestId">Caller id echoed in <c>meta.request_id</c>, or null.</param>
+        /// <returns>Success, <c>partial</c> while compiling, or <c>invalid_argument</c>.</returns>
+        public static NexusCommandEnvelope ExecuteEnveloped(int maxLogs, string requestId)
+        {
+            var sw = Stopwatch.StartNew();
+            if (maxLogs < 0)
+            {
+                return NexusCommandEnvelope.Failure(
+                    NexusCommandCodes.InvalidArgument,
+                    "max_logs must be zero or greater.",
+                    false,
+                    NexusCommandCodes.ChangeArgumentsHint,
+                    null,
+                    requestId,
+                    sw.ElapsedMilliseconds);
+            }
+
+            try
+            {
+                return NexusCommandEnvelope.ProjectCompile(Execute(maxLogs), requestId, sw.ElapsedMilliseconds);
+            }
+            catch (System.Exception ex)
+            {
+                return NexusCommandEnvelope.FromException(ex, requestId, sw.ElapsedMilliseconds);
+            }
         }
 
         /// <summary>

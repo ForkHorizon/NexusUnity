@@ -15,41 +15,44 @@ namespace UnityMCP.Editor.Pipeline
     public static class NexusPipelineCommands
     {
         /// <summary>
-        /// Pipeline projection of <see cref="ProjectMapCommand"/>: returns a curated project intelligence map (build scenes,
-        /// color space, render pipeline) as a structured result. Read-only; it does not modify the project.
+        /// Pipeline projection of <see cref="ProjectMapCommand"/>: returns the canonical envelope around a curated project map.
+        /// Read-only; it reads editor project state and does not modify the project.
         /// </summary>
         [CliCommand(ProjectMapCommand.Alias, ProjectMapCommand.Description, Tags = new[] { "nexus", "context" })]
-        public static NexusProjectMapResult ProjectMap()
+        public static NexusCommandEnvelope ProjectMap(
+            [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
-            return ProjectMapCommand.Execute();
+            return ProjectMapCommand.ExecuteEnveloped(requestId);
         }
 
         /// <summary>
-        /// Pipeline projection of <see cref="GroupCompileErrorsCommand"/>: extracts C# compiler errors (CSxxxx) from recent console logs
-        /// and groups them by originating file. Read-only; <c>max_logs</c> caps how many console entries are inspected.
+        /// Pipeline projection of <see cref="GroupCompileErrorsCommand"/>: returns the canonical envelope around grouped compiler errors.
+        /// Read-only; it reads the Unity console and does not modify the project.
         /// </summary>
         [CliCommand(GroupCompileErrorsCommand.Alias, GroupCompileErrorsCommand.Description, Tags = new[] { "nexus", "diagnostics" })]
-        public static NexusCompileErrorsResult GroupCompileErrors(
-            [CliArg("max_logs", GroupCompileErrorsCommand.MaxLogsDescription)] int maxLogs = 50)
+        public static NexusCommandEnvelope GroupCompileErrors(
+            [CliArg("max_logs", GroupCompileErrorsCommand.MaxLogsDescription)] int maxLogs = 50,
+            [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
-            return GroupCompileErrorsCommand.Execute(maxLogs);
+            return GroupCompileErrorsCommand.ExecuteEnveloped(maxLogs, requestId);
         }
 
         /// <summary>
         /// Pipeline projection of <see cref="CaptureGameViewCommand"/>.
         /// Returns a task so Pipeline <c>UnwrapResult</c> awaits GPU completion on a worker thread
-        /// while Unity's update loop remains free to finish AsyncGPUReadback.
+        /// while Unity's update loop remains free to finish AsyncGPUReadback. The task result is the canonical envelope.
         /// </summary>
         [CliCommand(CaptureGameViewCommand.Alias, CaptureGameViewCommand.Description, MainThreadRequired = true, Tags = new[] { "nexus", "capture" })]
-        public static Task<NexusCaptureResult> CaptureGameView(
+        public static Task<NexusCommandEnvelope> CaptureGameView(
             [CliArg("width", CaptureGameViewCommand.WidthDescription)] int width = 0,
             [CliArg("height", CaptureGameViewCommand.HeightDescription)] int height = 0,
             [CliArg("format", CaptureGameViewCommand.FormatDescription)] string format = "jpg",
             [CliArg("quality", CaptureGameViewCommand.QualityDescription)] int quality = 85,
-            [CliArg("max_dimension", CaptureGameViewCommand.MaxDimensionDescription)] int maxDimension = 0)
+            [CliArg("max_dimension", CaptureGameViewCommand.MaxDimensionDescription)] int maxDimension = 0,
+            [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
-            return CaptureGameViewCommand.ExecuteAsync(
-                width, height, format, quality, maxDimension, CancellationToken.None);
+            return CaptureGameViewCommand.ExecuteEnveloped(
+                width, height, format, quality, maxDimension, requestId, CancellationToken.None);
         }
     }
 }

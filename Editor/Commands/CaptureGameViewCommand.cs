@@ -35,22 +35,81 @@ namespace UnityMCP.Editor.Commands
         public NexusCommandDescriptor Descriptor { get; } = CreateDescriptor();
 
         /// <summary>
-        /// Captures the presented Game View through Capture V2 and returns JSON for Legacy HTTP/MCP.
+        /// Captures the presented Game View and returns the canonical envelope for Legacy HTTP/MCP.
+        /// Reads presented pixels and the editor session. It does not write project files.
         /// </summary>
-        /// <param name="parameters">Optional width, height, format, quality, and max_dimension.</param>
+        /// <param name="parameters">Optional width, height, format, quality, max_dimension, and request_id.</param>
         /// <param name="cancellationToken">Token used to abort GPU readback.</param>
-        /// <returns>Structured capture JSON including Base64 bytes.</returns>
+        /// <returns>Envelope JSON. Domain failures stay in <c>result</c>, not a JSON-RPC error.</returns>
         public async Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {
-            int width = parameters?["width"]?.Value<int>() ?? 0;
-            int height = parameters?["height"]?.Value<int>() ?? 0;
-            string format = parameters?["format"]?.ToString() ?? "jpg";
-            int quality = parameters?["quality"]?.Value<int>() ?? 85;
-            int maxDimension = parameters?["max_dimension"]?.Value<int>()
-                ?? parameters?["max_long_edge"]?.Value<int>() ?? 0;
-            NexusCaptureResult result = await ExecuteAsync(
-                width, height, format, quality, maxDimension, cancellationToken).ConfigureAwait(false);
-            return JToken.FromObject(result);
+            var sw = Stopwatch.StartNew();
+            long ms = sw.ElapsedMilliseconds;
+            if (!NexusCommandArguments.TryReadRequestId(parameters, ms, out string requestId, out NexusCommandEnvelope rejected))
+                return rejected.ToJson();
+            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["width"], "width", requestId, ms, out int? width, out rejected))
+                return rejected.ToJson();
+            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["height"], "height", requestId, ms, out int? height, out rejected))
+                return rejected.ToJson();
+            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["quality"], "quality", requestId, ms, out int? quality, out rejected))
+                return rejected.ToJson();
+            if (!NexusCommandArguments.TryReadOptionalString(parameters?["format"], "format", requestId, ms, out string format, out rejected))
+                return rejected.ToJson();
+
+            JToken edge = parameters?["max_dimension"];
+            string edgeName = "max_dimension";
+            if (edge == null || edge.Type == JTokenType.Null)
+            {
+                edge = parameters?["max_long_edge"];
+                edgeName = "max_long_edge";
+            }
+
+            if (!NexusCommandArguments.TryReadOptionalInt(edge, edgeName, requestId, ms, out int? maxDimension, out rejected))
+                return rejected.ToJson();
+
+            NexusCommandEnvelope envelope = await ExecuteEnveloped(
+                width ?? 0,
+                height ?? 0,
+                format ?? "jpg",
+                quality ?? 85,
+                maxDimension ?? 0,
+                requestId,
+                cancellationToken).ConfigureAwait(false);
+            return envelope.ToJson();
+        }
+
+        /// <summary>
+        /// Captures Game View and returns the canonical envelope. Domain failures are envelopes, not thrown.
+        /// Reads presented pixels and does not write project files.
+        /// </summary>
+        /// <param name="width">Requested width, or 0 for the native Game View width.</param>
+        /// <param name="height">Requested height, or 0 for the native Game View height.</param>
+        /// <param name="format"><c>jpg</c>/<c>jpeg</c> or <c>png</c>.</param>
+        /// <param name="quality">JPEG quality. Values outside 1–100 are clamped by the encoder.</param>
+        /// <param name="maxDimension">Optional max longest edge, or 0 for unconstrained.</param>
+        /// <param name="requestId">Caller id echoed in <c>meta.request_id</c>, or null.</param>
+        /// <param name="cancellationToken">Token used to abort the capture.</param>
+        /// <returns>Envelope whose <c>data</c> is a <see cref="NexusCaptureResult"/> on success.</returns>
+        public static async Task<NexusCommandEnvelope> ExecuteEnveloped(
+            int width,
+            int height,
+            string format,
+            int quality,
+            int maxDimension,
+            string requestId,
+            CancellationToken cancellationToken)
+        {
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                NexusCaptureResult result = await ExecuteAsync(
+                    width, height, format, quality, maxDimension, cancellationToken).ConfigureAwait(false);
+                return NexusCommandEnvelope.Success(result, requestId, sw.ElapsedMilliseconds);
+            }
+            catch (Exception ex)
+            {
+                return NexusCommandEnvelope.FromException(ex, requestId, sw.ElapsedMilliseconds);
+            }
         }
 
         /// <summary>
@@ -139,7 +198,8 @@ namespace UnityMCP.Editor.Commands
                     Param("height", "integer", HeightDescription),
                     Param("format", "string", FormatDescription),
                     Param("quality", "integer", QualityDescription),
-                    Param("max_dimension", "integer", MaxDimensionDescription)
+                    Param("max_dimension", "integer", MaxDimensionDescription),
+                    Param("request_id", "string", NexusCommandCodes.RequestIdDescription)
                 }
             };
         }

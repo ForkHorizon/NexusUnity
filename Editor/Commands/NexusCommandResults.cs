@@ -38,7 +38,7 @@ namespace UnityMCP.Editor.Commands
     [Serializable]
     public sealed class NexusCompileErrorsResult
     {
-        /// <summary>Gets or sets whether the command succeeded.</summary>
+        /// <summary>Gets or sets whether a payload was produced. Stays true while compiling; the envelope ok bit and is_compiling say whether the list is complete.</summary>
         [JsonProperty("success")] public bool Success { get; set; }
         /// <summary>Gets or sets the number of CSxxxx errors found.</summary>
         [JsonProperty("total_errors")] public int TotalErrors { get; set; }

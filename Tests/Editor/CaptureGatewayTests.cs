@@ -183,7 +183,8 @@ namespace UnityMCP.Editor.Tests
             string text = File.ReadAllText(path);
             Assert.IsFalse(text.Contains("GetAwaiter().GetResult()"));
             Assert.IsFalse(text.Contains(".Result"));
-            Assert.IsTrue(text.Contains("Task<NexusCaptureResult>"));
+            Assert.IsTrue(text.Contains("Task<NexusCommandEnvelope>"));
+            Assert.IsFalse(text.Contains("Task<NexusCaptureResult>"));
         }
 
         private static void CloseGameViews()

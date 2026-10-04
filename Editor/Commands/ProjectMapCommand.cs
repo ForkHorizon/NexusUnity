@@ -33,19 +33,48 @@ namespace UnityMCP.Editor.Commands
             Title = "Project map",
             Description = Description,
             Profiles = new[] { "core" },
-            Parameters = Array.Empty<NexusCommandParameter>()
+            Parameters = new[]
+            {
+                new NexusCommandParameter
+                {
+                    Name = "request_id",
+                    JsonType = "string",
+                    Description = NexusCommandCodes.RequestIdDescription
+                }
+            }
         };
 
         /// <summary>
-        /// Executes the project map command and returns JSON for Legacy HTTP/MCP.
-        /// Completes synchronously (already-completed task); the async signature only matches <see cref="INexusCommand"/>.
+        /// Executes the project map and returns the canonical envelope for Legacy HTTP/MCP.
+        /// Completes synchronously. Reads editor project state and does not modify the project.
         /// </summary>
-        /// <param name="parameters">Unused; the command has no arguments.</param>
+        /// <param name="parameters">Optional string <c>request_id</c>. Other arguments are ignored.</param>
         /// <param name="cancellationToken">Unused; the command completes synchronously and cannot be cancelled.</param>
-        /// <returns>Structured project map JSON.</returns>
+        /// <returns>Envelope JSON with the project map in <c>data</c>.</returns>
         public Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {
-            return Task.FromResult(JToken.FromObject(Execute()));
+            var sw = Stopwatch.StartNew();
+            if (!NexusCommandArguments.TryReadRequestId(parameters, sw.ElapsedMilliseconds, out string requestId, out NexusCommandEnvelope rejected))
+                return Task.FromResult<JToken>(rejected.ToJson());
+            return Task.FromResult<JToken>(ExecuteEnveloped(requestId).ToJson());
+        }
+
+        /// <summary>
+        /// Builds the canonical project-map envelope. Reads editor project state and does not modify the project.
+        /// </summary>
+        /// <param name="requestId">Caller id echoed in <c>meta.request_id</c>, or null.</param>
+        /// <returns>Success envelope, or <c>internal</c> when the editor read throws.</returns>
+        public static NexusCommandEnvelope ExecuteEnveloped(string requestId)
+        {
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                return NexusCommandEnvelope.Success(Execute(), requestId, sw.ElapsedMilliseconds);
+            }
+            catch (Exception ex)
+            {
+                return NexusCommandEnvelope.FromException(ex, requestId, sw.ElapsedMilliseconds);
+            }
         }
 
         /// <summary>
