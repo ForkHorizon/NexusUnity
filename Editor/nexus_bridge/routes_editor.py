@@ -70,35 +70,76 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
     return {"result": timeout_result}
 
 
+_READINESS_POLL_SECONDS = 0.2
+
+
+def _epoch_value(epoch: object, key: str) -> int:
+    if not isinstance(epoch, dict):
+        return 0
+    value = epoch.get(key, 0)
+    return value if isinstance(value, int) else 0
+
+
+def _compilation_result(
+    status: str, ready: bool, reason: str, epoch: JsonObject, start_time: float
+) -> JsonRpcResponse:
+    return {
+        "result": {
+            "status": status,
+            "ready": ready,
+            "reason": reason,
+            "epoch": epoch,
+            "time_waited_seconds": round(time.time() - start_time, 2),
+        }
+    }
+
+
+def _readiness_cycle_finished(
+    baseline_compile: int, baseline_reload: int, payload: JsonObject, saw_blocked: bool
+) -> bool:
+    """Accept ready immediately when idle. After a blocked snapshot, require an epoch move or an explicit no-op."""
+    if not payload.get("ready") or payload.get("reconnect"):
+        return False
+    if not saw_blocked:
+        return payload.get("reason") in ("ready", "already_ready")
+    epoch = payload.get("epoch") if isinstance(payload.get("epoch"), dict) else {}
+    if _epoch_value(epoch, "reload") > baseline_reload or _epoch_value(epoch, "compile") > baseline_compile:
+        return True
+    return payload.get("reason") == "already_ready"
+
+
 def _wait_for_compilation(timeout: float, start_time: float | None = None) -> JsonRpcResponse:
+    """Re-poll Editor readiness. A dropped connection is not success; one HTTP call cannot span a domain reload."""
     start_time = time.time() if start_time is None else start_time
-    status: str = "Ready"
-
-    reload_started: bool = False
-    reload_wait_timeout = min(20.0, timeout)
-    while time.time() - start_time < reload_wait_timeout:
-        init_resp = _transport.call_unity("initialize")
-        if init_resp is None or "error" in init_resp:
-            reload_started = True
-            break
-        time.sleep(0.5)
-
-    if not reload_started:
-        _transport.call_unity("refresh_asset_database")
-
+    baseline_compile = 0
+    baseline_reload = 0
+    have_baseline = False
+    saw_blocked = False
+    last_reason = "timeout"
+    last_epoch: JsonObject = {}
     while time.time() - start_time < timeout:
-        init_resp = _transport.call_unity("initialize")
-        if init_resp and "result" in init_resp:
-            time.sleep(2.0)
-            state_resp = _transport.call_unity("get_editor_state")
-            state = _result_object(state_resp)
-            if state_resp and "result" in state_resp and not state.get("is_compiling") and not state.get("is_updating"):
-                break
-        time.sleep(1.0)
-    else:
-        status = "Timeout"
-
-    return {"result": {"status": status, "time_waited_seconds": round(time.time() - start_time, 2)}}
+        resp = _transport.call_unity("is_editor_idle")
+        payload = _result_object(resp)
+        epoch = payload.get("epoch")
+        if "ready" not in payload or not isinstance(epoch, dict):
+            last_reason = "domain_reload" if not resp or "error" in (resp or {}) else "unknown"
+            time.sleep(_READINESS_POLL_SECONDS)
+            continue
+        if not have_baseline:
+            baseline_compile = _epoch_value(epoch, "compile")
+            baseline_reload = _epoch_value(epoch, "reload")
+            have_baseline = True
+        last_epoch = epoch
+        last_reason = str(payload.get("reason") or "unknown")
+        if payload.get("reconnect") or last_reason == "domain_reload" or not payload.get("ready"):
+            saw_blocked = True
+            time.sleep(_READINESS_POLL_SECONDS)
+            continue
+        if _readiness_cycle_finished(baseline_compile, baseline_reload, payload, saw_blocked):
+            return _compilation_result("Ready", True, last_reason, epoch, start_time)
+        saw_blocked = True
+        time.sleep(_READINESS_POLL_SECONDS)
+    return _compilation_result("Timeout", False, last_reason, last_epoch, start_time)
 
 
 def _route_list_tools(_: JsonObject) -> JsonRpcResponse:

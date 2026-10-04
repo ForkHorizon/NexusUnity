@@ -29,8 +29,8 @@ Schema compatibility notes:
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `get_game_object` returns `transform.position`, `transform.rotation`, `transform.scale`, and compact `components` data for cheap read-back verification.
-- Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) use cached editor state because they may run on the listener thread.
-- After script writes, readiness probes remain busy until the scheduled asset refresh window has passed.
+- Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) read a published readiness snapshot because they may run on the listener thread. `get_server_status.readiness` and `is_editor_idle` share `ready`, `reason`, `reconnect`, and `epoch.compile` / `epoch.reload`. `wait_for_editor_idle` keeps `status` (`Ready`, `Timeout`, `Reloading`) and adds those fields. `Reloading` means the HTTP call stopped because a domain reload is armed; poll again after reconnect. `unity_wait` with `condition: compilation` re-polls `is_editor_idle` and does not call `refresh_asset_database` on its own.
+- After script writes, readiness stays not-ready (`reason: script_write`, then `compiling` or `domain_reload`) until `epoch.reload` advances. A failed compile settles once the editor is quiet, with `epoch.compile` advanced and `epoch.reload` unchanged. A refresh that compiles nothing returns `reason: already_ready`. `wait_for_ready` uses the same predicate and still returns a bare boolean.
 - During Play Mode transitions, readiness probes remain busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so callers can create visible materials in a chosen folder.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.

@@ -17,8 +17,6 @@ namespace UnityMCP.Editor
     /// </remarks>
     public static partial class MCPServerMethods
     {
-        private static DateTime _scriptRefreshBusyUntilUtc;
-
         private static void RegisterHierarchyMethods()
         {
             _methods["duplicate_object"] = DuplicateObject;
@@ -216,6 +214,8 @@ namespace UnityMCP.Editor
         {
             AssemblyReloadEvents.beforeAssemblyReload += CleanupPendingRefresh;
             EditorApplication.quitting += CleanupPendingRefresh;
+            if (EditorReadiness.ScriptRefreshQueued)
+                EditorApplication.delayCall += TriggerSafeAssetRefresh;
         }
 
         private static void CleanupPendingRefresh()
@@ -230,8 +230,7 @@ namespace UnityMCP.Editor
         private static void TriggerSafeAssetRefresh()
         {
             CleanupPendingRefresh();
-
-            _scriptRefreshBusyUntilUtc = DateTime.UtcNow.AddSeconds(8);
+            EditorReadiness.ArmScriptWrite();
 
             #if UNITY_EDITOR_OSX
             AppNapBypass.ScheduleActivation();
@@ -247,11 +246,9 @@ namespace UnityMCP.Editor
                 _pendingRefreshCallback = null;
 
                 if (EditorApplication.timeSinceStartup - startTime > timeoutSeconds)
-                {
-                    NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] TriggerSafeAssetRefresh timed out waiting for OS focus. Refresh aborted.");
-                    return;
-                }
-                
+                    NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] TriggerSafeAssetRefresh focus wait exceeded 15s. Refreshing anyway so the script-write latch is not left stuck.");
+
+                EditorReadiness.NotifyRefreshInvoked();
                 AssetDatabase.Refresh();
             };
             

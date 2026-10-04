@@ -102,7 +102,7 @@ C# script writes are guarded: `attach_script`, `write_file`, `write_files_batch`
 
 Raw `batch_execute` is capped at 50 requests and rejects nested `batch_execute` calls.
 
-Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) return cached editor state so they can run safely from the listener thread.
+Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) read one published readiness snapshot so they can run on the listener thread. The snapshot includes `ready`, `reason`, and `epoch` (`compile`, `reload`). A wait returns `Reloading` when a domain reload is armed; the bridge re-polls after reconnect.
 
 Direct JSON-RPC example:
 
@@ -198,7 +198,7 @@ Current development keeps the public API backward-compatible while tightening sc
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` updates position, rotation, and scale.
 - `get_game_object` returns `transform` and compact `components` data for cheap verify-after-write reads.
-- Script writes require `confirm: true` before Unity compilation is triggered, then keep readiness probes busy while the scheduled refresh is pending.
+- Script writes require `confirm: true` before Unity compilation is triggered, then keep readiness not-ready until the reload epoch advances, a failed compile settles, or the refresh compiles nothing.
 - Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so generated materials can be created inside a chosen project folder and made visibly distinct.
 - `write_file` and `write_files_batch` create missing parent directories after path validation; `.cs` writes require `confirm: true`.

@@ -149,7 +149,7 @@ namespace UnityMCP.Editor
         private static void AddSyncTools(JArray tools)
         {
             tools.Add(CreateTool("wait_for_asset_import_idle", "Wait until Unity is done importing assets", new JObject { ["timeout_seconds"] = new JObject { ["type"] = "integer" } }));
-            tools.Add(CreateTool("wait_for_editor_idle", "Wait until the editor is fully idle (not compiling, not importing, no background tasks)", new JObject { ["timeout_seconds"] = new JObject { ["type"] = "integer" } }));
+            tools.Add(CreateTool("wait_for_editor_idle", "Wait until Editor readiness is ready. Returns ready, epoch, and reason. Does not span a domain reload; reconnect and poll again when status is Reloading.", new JObject { ["timeout_seconds"] = new JObject { ["type"] = "integer" } }));
         }
 
         private static void AddScriptableObjectTools(JArray tools)

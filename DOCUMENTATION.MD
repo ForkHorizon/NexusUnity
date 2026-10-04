@@ -24,7 +24,7 @@ The server:
 - Restarts after Unity domain reloads when the previous session was running.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
 - Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, `get_tool_usage_stats`, and `reset_tool_usage_stats` for robust automation loops.
-- Serves fast-path health and wait calls from cached editor state when they run on the listener thread.
+- Serves fast-path health and wait calls from one published readiness snapshot when they run on the listener thread. Waits do not span a domain reload; clients re-poll after reconnect. `epoch.compile` and `epoch.reload` survive the reload.
 
 ## Unity Editor Menu
 

@@ -86,6 +86,7 @@ namespace UnityMCP.Editor
             IsPlayModeTransitionCached =
                 EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying;
             UnityVersionCached = Application.unityVersion;
+            EditorReadiness.NotifyEditorTick(IsCompilingCached, IsUpdatingCached, IsPlayModeTransitionCached);
         }
 
         static MCPServer()
