@@ -49,9 +49,17 @@ namespace UnityMCP.Editor.Capture
 
         internal static RenderTexture CopyToOwned(RenderTexture source, int width, int height)
         {
+            return CopyCropped(source, new RectInt(0, 0, source.width, source.height), width, height);
+        }
+
+        /// <summary>
+        /// Copies a bottom-left crop into a Nexus texture. The full frame uses the Overlay Y flip.
+        /// </summary>
+        internal static RenderTexture CopyCropped(RenderTexture source, RectInt crop, int width, int height)
+        {
             RenderTexture owned = RenderTexture.GetTemporary(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
-            // GPU readback row 0 is the bottom of the RT; PNG/JPEG row 0 is the top.
-            Graphics.Blit(source, owned, new Vector2(1f, -1f), new Vector2(0f, 1f));
+            CaptureFraming.CropScale(crop, source.width, source.height, out Vector2 scale, out Vector2 offset);
+            Graphics.Blit(source, owned, scale, offset);
             return owned;
         }
     }

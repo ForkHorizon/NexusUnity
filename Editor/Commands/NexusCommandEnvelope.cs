@@ -171,7 +171,7 @@ namespace UnityMCP.Editor.Commands
         public static NexusCommandEnvelope FromException(Exception exception, string requestId, long milliseconds)
         {
             Exception ex = Unwrap(exception) ?? exception;
-            if (ex is CaptureException capture) return MapCapture(capture, requestId, milliseconds);
+            if (ex is CaptureException capture) return NexusCaptureErrors.FromCapture(capture, requestId, milliseconds);
             if (ex is ArgumentException || ex is FormatException || ex is OverflowException || ex is JsonReaderException)
             {
                 return Failure(
@@ -224,40 +224,6 @@ namespace UnityMCP.Editor.Commands
         public JObject ToJson()
         {
             return JObject.FromObject(this);
-        }
-
-        private static NexusCommandEnvelope MapCapture(CaptureException capture, string requestId, long milliseconds)
-        {
-            string message = capture.Message;
-            switch (capture.Code)
-            {
-                case CaptureErrorCode.UnsupportedFormat:
-                    return Failure(NexusCommandCodes.InvalidArgument, message, false,
-                        NexusCommandCodes.ChangeArgumentsHint, null, requestId, milliseconds);
-                case CaptureErrorCode.GameViewUnavailable:
-                case CaptureErrorCode.CaptureSourceEmpty:
-                    return Failure(NexusCommandCodes.Unavailable, message, true,
-                        "Open a Game View that has a visible area, then call again.", null, requestId, milliseconds);
-                case CaptureErrorCode.CaptureBusy:
-                    return Failure(NexusCommandCodes.Busy, message, true,
-                        "Wait for the in-flight capture to finish, then call again.", null, requestId, milliseconds);
-                case CaptureErrorCode.DomainReloadInterrupted:
-                    return Failure(NexusCommandCodes.EditorNotReady, message, true,
-                        "Wait until the editor finishes reloading, then call again.", null, requestId, milliseconds);
-                case CaptureErrorCode.ReadbackFailed when message != null &&
-                    message.IndexOf("timed out", StringComparison.OrdinalIgnoreCase) >= 0:
-                    return Failure(NexusCommandCodes.Timeout, message, true,
-                        "The read timed out before an image was produced. It is safe to call again.",
-                        null, requestId, milliseconds);
-                case CaptureErrorCode.ReadbackFailed:
-                    return Failure(NexusCommandCodes.CaptureFailed, message, true,
-                        "GPU readback failed before an image was produced. It is safe to call again.",
-                        null, requestId, milliseconds);
-                default:
-                    return Failure(NexusCommandCodes.Internal, message, false,
-                        "The command failed before it could finish. Do not retry it blindly.",
-                        null, requestId, milliseconds, stackSource: capture);
-            }
         }
 
         private static NexusCommandMeta CreateMeta(string requestId, long milliseconds)

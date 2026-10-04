@@ -48,11 +48,16 @@ namespace UnityMCP.Editor.Pipeline
             [CliArg("height", CaptureGameViewCommand.HeightDescription)] int height = 0,
             [CliArg("format", CaptureGameViewCommand.FormatDescription)] string format = "jpg",
             [CliArg("quality", CaptureGameViewCommand.QualityDescription)] int quality = 85,
-            [CliArg("max_dimension", CaptureGameViewCommand.MaxDimensionDescription)] int maxDimension = 0,
+            [CliArg("max_dimension", CaptureGameViewCommand.MaxDimensionDescription)] int maxDimension = CaptureGameViewCommand.DefaultMaxLongEdge,
+            [CliArg("view", CaptureGameViewCommand.ViewDescription)] string view = "game",
+            [CliArg("target", CaptureGameViewCommand.TargetDescription)] string target = null,
+            [CliArg("instance_id", CaptureGameViewCommand.InstanceIdDescription)] int instanceId = 0,
+            [CliArg("delivery", CaptureGameViewCommand.DeliveryDescription)] string delivery = "base64",
             [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
-            return CaptureGameViewCommand.ExecuteEnveloped(
-                width, height, format, quality, maxDimension, requestId, CancellationToken.None);
+            return CaptureGameViewCommand.ExecuteFromCli(
+                width, height, format, quality, maxDimension, view, target, instanceId, delivery, requestId,
+                CancellationToken.None);
         }
     }
 }

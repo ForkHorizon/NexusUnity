@@ -37,6 +37,12 @@ namespace UnityMCP.Editor.Tests
             Assert.AreSame(
                 NexusCommandRegistry.Get(CaptureGameViewCommand.Id),
                 NexusCommandRegistry.Get(CaptureGameViewCommand.Alias));
+            Assert.AreSame(
+                NexusCommandRegistry.Get(CaptureGameViewCommand.Id),
+                NexusCommandRegistry.Get(CaptureGameViewCommand.LookAlias));
+            Assert.AreSame(
+                NexusCommandRegistry.Get(CaptureGameViewCommand.Id),
+                NexusCommandRegistry.Get(CaptureGameViewCommand.LookDotAlias));
         }
 
         [Test]
@@ -80,6 +86,8 @@ namespace UnityMCP.Editor.Tests
             CollectionAssert.Contains(names, CaptureGameViewCommand.Id);
             CollectionAssert.Contains(names, "capture_game_view_screenshot");
             CollectionAssert.DoesNotContain(names, CaptureGameViewCommand.Alias);
+            CollectionAssert.DoesNotContain(names, CaptureGameViewCommand.LookAlias);
+            CollectionAssert.DoesNotContain(names, CaptureGameViewCommand.LookDotAlias);
             CollectionAssert.DoesNotContain(names, "capture_inspector_screenshot");
         }
 

@@ -29,7 +29,24 @@ namespace UnityMCP.Editor.Capture
         /// <summary>Requested encoding format is not supported.</summary>
         UnsupportedFormat = 5,
         /// <summary>Capture was cancelled or interrupted by domain reload.</summary>
-        DomainReloadInterrupted = 6
+        DomainReloadInterrupted = 6,
+        /// <summary>No Scene View is open, so a framed capture cannot run.</summary>
+        SceneViewUnavailable = 7,
+        /// <summary>The selector did not resolve to one scene object.</summary>
+        TargetNotFound = 8,
+        /// <summary>The target is disabled and has no visible pixels.</summary>
+        TargetDisabled = 9,
+        /// <summary>The target is outside the Game View or too small to crop.</summary>
+        TargetNotVisible = 10
+    }
+
+    /// <summary>Editor surface captured by the canonical look command.</summary>
+    public enum CaptureView
+    {
+        /// <summary>Presented Game View, including Overlay UI composited by Unity.</summary>
+        Game = 0,
+        /// <summary>Scene View framed on a target object.</summary>
+        Scene = 1
     }
 
     /// <summary>
@@ -49,11 +66,20 @@ namespace UnityMCP.Editor.Capture
         /// <summary>Gets or sets an explicit output height. Zero keeps the source height.</summary>
         public int RequestedHeight { get; set; }
 
-        /// <summary>Gets or sets a max longest-edge constraint. Zero leaves the size unconstrained.</summary>
+        /// <summary>Gets or sets a max longest-edge constraint. Zero leaves the size unconstrained up to the encoder cap.</summary>
         public int MaxLongEdge { get; set; }
 
         /// <summary>Gets or sets whether stage timings are populated on the result.</summary>
         public bool IncludeTelemetry { get; set; }
+
+        /// <summary>Gets or sets Game View or a Scene View framed on the target.</summary>
+        public CaptureView View { get; set; } = CaptureView.Game;
+
+        /// <summary>Gets or sets an instance id to crop or frame. Zero means no id was supplied.</summary>
+        public int TargetInstanceId { get; set; }
+
+        /// <summary>Gets or sets a hierarchy path or unique object name. Null captures the full Game View.</summary>
+        public string TargetPath { get; set; }
     }
 
     /// <summary>

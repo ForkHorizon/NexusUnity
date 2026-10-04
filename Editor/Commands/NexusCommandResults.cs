@@ -78,9 +78,11 @@ namespace UnityMCP.Editor.Commands
         [JsonProperty("encoding")] public string Encoding { get; set; }
         /// <summary>Gets or sets compressed payload size in bytes.</summary>
         [JsonProperty("bytes")] public int Bytes { get; set; }
-        /// <summary>Gets or sets Base64 image bytes for transport consumers.</summary>
-        [JsonProperty("base64")] public string Base64 { get; set; }
-        /// <summary>Gets or sets the capture source label.</summary>
+        /// <summary>Gets or sets Base64 image bytes. Omitted when delivery is a file, so PNG and JPEG are not both returned.</summary>
+        [JsonProperty("base64", NullValueHandling = NullValueHandling.Ignore)] public string Base64 { get; set; }
+        /// <summary>Gets or sets the one image file written under Temp. Omitted when the payload is Base64.</summary>
+        [JsonProperty("file_path", NullValueHandling = NullValueHandling.Ignore)] public string FilePath { get; set; }
+        /// <summary>Gets or sets the capture source label, game_view or scene_view.</summary>
         [JsonProperty("source")] public string Source { get; set; }
         /// <summary>Gets or sets source acquisition milliseconds.</summary>
         [JsonProperty("acquisition_ms")] public double AcquisitionMs { get; set; }
