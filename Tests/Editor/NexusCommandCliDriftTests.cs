@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityMCP.Editor;
 using UnityMCP.Editor.Capture;
 using UnityMCP.Editor.Commands;
 
@@ -23,14 +24,17 @@ namespace UnityMCP.Editor.Tests
         [Test]
         public void CliArgsMatchCanonicalDescriptors()
         {
-            Type commands = FindType("UnityMCP.Editor.Pipeline", "UnityMCP.Editor.Pipeline.NexusPipelineCommands");
-            Type cliCommand = FindType("Unity.Pipeline", "Unity.Pipeline.Commands.CliCommandAttribute");
-            if (cliCommand == null)
+            const string attributeName = "Unity.Pipeline.Commands.CliCommandAttribute";
+            bool pipelineLoaded = AssemblyLoaded("Unity.Pipeline") || AssemblyLoaded("Unity.Pipeline.Attributes");
+            Type cliCommand = FindType("Unity.Pipeline", attributeName) ?? FindType("Unity.Pipeline.Attributes", attributeName);
+            if (!pipelineLoaded)
             {
                 Assert.Ignore("com.unity.pipeline is not loaded. CLI drift is checked when Pipeline is installed.");
                 return;
             }
 
+            Assert.IsNotNull(cliCommand, "Pipeline is loaded but CliCommandAttribute is not in Unity.Pipeline or Unity.Pipeline.Attributes.");
+            Type commands = FindType("UnityMCP.Editor.Pipeline", "UnityMCP.Editor.Pipeline.NexusPipelineCommands");
             Assert.IsNotNull(commands, "Pipeline is loaded but the Nexus CLI projection did not compile.");
             MethodInfo[] methods = commands.Assembly.GetTypes()
                 .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly))
@@ -59,6 +63,50 @@ namespace UnityMCP.Editor.Tests
             CollectionAssert.AreEquivalent(
                 new[] { ProjectMapCommand.Alias, GroupCompileErrorsCommand.Alias, CaptureGameViewCommand.Alias },
                 seen.ToArray());
+            Assert.AreEqual("nexus_look", CaptureGameViewCommand.LookAlias);
+            Assert.AreEqual("nexus.look", CaptureGameViewCommand.LookDotAlias);
+            AssertCliCompileBodyUsesItsMaxLogsArgument(methods);
+            AssertCliCaptureBodyReachesTheGateway(methods);
+        }
+
+        private static void AssertCliCompileBodyUsesItsMaxLogsArgument(MethodInfo[] methods)
+        {
+            MethodInfo compile = methods.Single(method =>
+                (string)Property(AttributeNamed(method, "CliCommandAttribute"), "Name") == GroupCompileErrorsCommand.Alias);
+            int seen = -1;
+            Func<int, List<LogEntry>> previous = GroupCompileErrorsCommand.ReadErrorLogs;
+            try
+            {
+                GroupCompileErrorsCommand.ReadErrorLogs = count =>
+                {
+                    seen = count;
+                    return new List<LogEntry>();
+                };
+                compile.Invoke(null, new object[] { 50, null });
+                Assert.AreEqual(50, seen, "CLI compile wrapper did not pass max_logs through.");
+                compile.Invoke(null, new object[] { 7, null });
+                Assert.AreEqual(7, seen, "CLI compile wrapper ignored its max_logs argument.");
+            }
+            finally
+            {
+                GroupCompileErrorsCommand.ReadErrorLogs = previous;
+            }
+        }
+
+        private static void AssertCliCaptureBodyReachesTheGateway(MethodInfo[] methods)
+        {
+            MethodInfo look = methods.Single(method =>
+                (string)Property(AttributeNamed(method, "CliCommandAttribute"), "Name") == CaptureGameViewCommand.Alias);
+            ObserveCapture(delegate
+            {
+                Task omitted = (Task)look.Invoke(null, new object[] { 0, 0, "jpg", 85, 768, "game", null, 0, "base64", null });
+                Assert.IsTrue(omitted.IsCompleted, "CLI omit did not reach the capture gateway.");
+            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            ObserveCapture(delegate
+            {
+                Task specified = (Task)look.Invoke(null, new object[] { 12, 9, "png", 40, 100, "game", null, 0, "base64", null });
+                Assert.IsTrue(specified.IsCompleted, "CLI arguments did not reach the capture gateway.");
+            }, CaptureFormat.Png, 12, 9, 40, 100);
         }
 
         [Test]
@@ -76,34 +124,156 @@ namespace UnityMCP.Editor.Tests
             Assert.IsNull(DefaultOf(look, "target"));
             Assert.IsNull(DefaultOf(look, "request_id"));
 
-            Assert.IsTrue(CaptureLookRequest.TryParse(new JObject(), 0, out CaptureLookCall call));
+            Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(new JObject(), 0, out CaptureLookCall call));
             Assert.IsNull(call.Rejected);
-            Assert.AreEqual(DefaultOf(look, "width"), call.Request.RequestedWidth);
-            Assert.AreEqual(DefaultOf(look, "height"), call.Request.RequestedHeight);
-            Assert.AreEqual(DefaultOf(look, "quality"), call.Request.JpegQuality);
-            Assert.AreEqual(DefaultOf(look, "max_dimension"), call.Request.MaxLongEdge);
-            Assert.AreEqual(DefaultOf(look, "instance_id"), call.Request.TargetInstanceId);
+            Assert.IsNull(call.Format);
+            Assert.AreEqual(0, call.Request.RequestedWidth);
+            Assert.AreEqual(0, call.Request.RequestedHeight);
+            Assert.AreEqual(85, call.Request.JpegQuality);
+            Assert.AreEqual(768, call.Request.MaxLongEdge);
+            Assert.AreEqual(0, call.Request.TargetInstanceId);
             Assert.IsNull(call.Request.TargetPath);
             Assert.AreEqual(CaptureView.Game, call.Request.View);
-            Assert.AreEqual(DefaultOf(look, "view"), CaptureGameViewCommand.DefaultView);
             Assert.IsFalse(call.WriteFile);
-            Assert.AreEqual(DefaultOf(look, "delivery"), CaptureGameViewCommand.DefaultDelivery);
-            Assert.IsNull(call.Format);
-            Assert.AreEqual(DefaultOf(look, "format"), CaptureGameViewCommand.FormatOrDefault(call.Format));
+            Assert.AreEqual(CaptureFormat.Jpeg, call.Request.Format);
+
+            var explicitLook = new JObject { ["width"] = 12, ["format"] = "png", ["max_dimension"] = 100 };
+            Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(explicitLook, 0, out CaptureLookCall specified));
+            Assert.AreEqual(12, specified.Request.RequestedWidth);
+            Assert.AreEqual(100, specified.Request.MaxLongEdge);
+            Assert.AreEqual(CaptureFormat.Png, specified.Request.Format);
+
+            JObject cliOmit = CaptureGameViewCommand.BuildCliArguments(0, 0, null, 85, 768, null, null, 0, null, null);
+            Assert.AreEqual(0, cliOmit.Value<int>("width"));
+            Assert.AreEqual(0, cliOmit.Value<int>("height"));
+            Assert.AreEqual(768, cliOmit.Value<int>("max_dimension"));
+            Assert.IsNull(cliOmit["format"]);
+            Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(cliOmit, 0, out CaptureLookCall fromCli));
+            Assert.AreEqual(CaptureFormat.Jpeg, fromCli.Request.Format);
+            Assert.AreEqual(0, fromCli.Request.RequestedWidth);
+            Assert.AreEqual(768, fromCli.Request.MaxLongEdge);
+
+            string captureSource = File.ReadAllText(Path.Combine(CommandsDirectory(), "CaptureGameViewCommand.cs"));
+            Assert.AreEqual(1, CountOf(captureSource, "call.Request.Format ="), "Format may be applied in exactly one place.");
+            StringAssert.Contains("TryPrepareLook(", captureSource);
+            StringAssert.Contains("BuildCliArguments(", captureSource);
 
             NexusCommandParameter[] compile = new GroupCompileErrorsCommand().Descriptor.Parameters;
+            Assert.AreEqual(50, GroupCompileErrorsCommand.DefaultMaxLogs);
             Assert.AreEqual(50, DefaultOf(compile, "max_logs"));
             ParameterInfo executeMaxLogs = typeof(GroupCompileErrorsCommand).GetMethod("Execute").GetParameters()[0];
-            Assert.AreEqual(DefaultOf(compile, "max_logs"), executeMaxLogs.DefaultValue);
-            Task<JToken> omitted = new GroupCompileErrorsCommand().ExecuteAsync(new JObject(), CancellationToken.None);
-            Assert.IsTrue(omitted.IsCompleted);
-            JObject fromHttp = (JObject)omitted.Result;
-            JObject fromDefault = GroupCompileErrorsCommand.ExecuteEnveloped((int)DefaultOf(compile, "max_logs"), null).ToJson();
-            fromHttp["meta"]["ms"] = 0;
-            fromDefault["meta"]["ms"] = 0;
-            fromHttp["data"]["execution_duration_ms"] = 0;
-            fromDefault["data"]["execution_duration_ms"] = 0;
-            Assert.AreEqual(fromDefault.ToString(Formatting.None), fromHttp.ToString(Formatting.None));
+            Assert.AreEqual(50, executeMaxLogs.DefaultValue);
+            Assert.IsTrue(GroupCompileErrorsCommand.TryReadCompileArguments(new JObject(), 0, out int omittedLogs, out string requestId, out NexusCommandEnvelope rejected));
+            Assert.IsNull(rejected);
+            Assert.IsNull(requestId);
+            Assert.AreEqual(50, omittedLogs);
+            Assert.IsTrue(GroupCompileErrorsCommand.TryReadCompileArguments(new JObject { ["max_logs"] = 7 }, 0, out int explicitLogs, out _, out _));
+            Assert.AreEqual(7, explicitLogs);
+            AssertHttpCompileUsesTheResolvedWindow();
+            AssertHttpCaptureOmitReachesTheGateway();
+        }
+
+        private static void AssertHttpCompileUsesTheResolvedWindow()
+        {
+            int seen = -1;
+            Func<int, List<LogEntry>> previous = GroupCompileErrorsCommand.ReadErrorLogs;
+            try
+            {
+                GroupCompileErrorsCommand.ReadErrorLogs = count =>
+                {
+                    seen = count;
+                    return new List<LogEntry>();
+                };
+                Task<JToken> omitted = new GroupCompileErrorsCommand().ExecuteAsync(new JObject(), CancellationToken.None);
+                Assert.IsTrue(omitted.IsCompleted);
+                Assert.AreEqual(50, seen, "HTTP omit did not request the default console window.");
+                Task<JToken> explicitWindow = new GroupCompileErrorsCommand().ExecuteAsync(new JObject { ["max_logs"] = 7 }, CancellationToken.None);
+                Assert.IsTrue(explicitWindow.IsCompleted);
+                Assert.AreEqual(7, seen, "HTTP max_logs did not reach the console read.");
+                GroupCompileErrorsCommand.Execute();
+                Assert.AreEqual(50, seen, "Execute() did not use its default window.");
+            }
+            finally
+            {
+                GroupCompileErrorsCommand.ReadErrorLogs = previous;
+            }
+        }
+
+        private static void AssertHttpCaptureOmitReachesTheGateway()
+        {
+            var command = new CaptureGameViewCommand();
+            ObserveCapture(delegate
+            {
+                Task<JToken> omitted = command.ExecuteAsync(new JObject(), CancellationToken.None);
+                Assert.IsTrue(omitted.IsCompleted, "HTTP omit did not reach the capture gateway.");
+            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            ObserveCapture(delegate
+            {
+                Task<JToken> specified = command.ExecuteAsync(new JObject
+                {
+                    ["width"] = 12,
+                    ["height"] = 9,
+                    ["format"] = "png",
+                    ["quality"] = 40,
+                    ["max_dimension"] = 100
+                }, CancellationToken.None);
+                Assert.IsTrue(specified.IsCompleted, "HTTP arguments did not reach the capture gateway.");
+            }, CaptureFormat.Png, 12, 9, 40, 100);
+            ObserveCapture(delegate
+            {
+                Task<JToken> aliases = command.ExecuteAsync(new JObject
+                {
+                    ["w"] = 640,
+                    ["h"] = 33,
+                    ["jpeg_quality"] = 11
+                }, CancellationToken.None);
+                Assert.IsTrue(aliases.IsCompleted, "HTTP alias probe did not reach the capture gateway.");
+            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            ObserveCapture(delegate
+            {
+                Task<NexusCommandEnvelope> cli = CaptureGameViewCommand.ExecuteFromCli(
+                    0, 0, null, 85, 768, "game", null, 0, "base64", null, CancellationToken.None);
+                Assert.IsTrue(cli.IsCompleted, "ExecuteFromCli omit did not reach the capture gateway.");
+            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+        }
+
+        private static void ObserveCapture(Action entry, CaptureFormat format, int width, int height, int quality, int edge)
+        {
+            CaptureFormat seenFormat = CaptureFormat.Png;
+            int seenWidth = -1;
+            int seenHeight = -1;
+            int seenQuality = -1;
+            int seenEdge = -1;
+            int calls = 0;
+            Func<CaptureRequest, CancellationToken, Task<CaptureResult>> previous = CaptureGameViewCommand.Capture;
+            try
+            {
+                CaptureGameViewCommand.Capture = (request, token) =>
+                {
+                    calls++;
+                    seenFormat = request.Format;
+                    seenWidth = request.RequestedWidth;
+                    seenHeight = request.RequestedHeight;
+                    seenQuality = request.JpegQuality;
+                    seenEdge = request.MaxLongEdge;
+                    return Task.FromResult(new CaptureResult
+                    {
+                        CompressedBytes = Array.Empty<byte>(),
+                        Format = request.Format
+                    });
+                };
+                entry();
+                Assert.AreEqual(1, calls, "The capture entry point did not call the gateway once.");
+                Assert.AreEqual(format, seenFormat);
+                Assert.AreEqual(width, seenWidth);
+                Assert.AreEqual(height, seenHeight);
+                Assert.AreEqual(quality, seenQuality);
+                Assert.AreEqual(edge, seenEdge);
+            }
+            finally
+            {
+                CaptureGameViewCommand.Capture = previous;
+            }
         }
 
         [Test]
@@ -130,6 +300,8 @@ namespace UnityMCP.Editor.Tests
             {
                 JObject tool = tools.OfType<JObject>().Single(item => item["name"]?.ToString() == id);
                 JObject properties = (JObject)tool["inputSchema"]["properties"];
+                JArray required = tool["inputSchema"]["required"] as JArray;
+                Assert.IsTrue(required == null || required.Count == 0, id + " must stay optional.");
                 foreach (JProperty property in properties.Properties())
                 {
                     Assert.IsFalse(((JObject)property.Value).ContainsKey("default"), id + "." + property.Name);
@@ -196,6 +368,24 @@ namespace UnityMCP.Editor.Tests
         private static string PackageRoot()
         {
             return Path.GetDirectoryName(Path.GetDirectoryName(CommandsDirectory()));
+        }
+
+        private static int CountOf(string text, string value)
+        {
+            int count = 0;
+            int index = 0;
+            while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += value.Length;
+            }
+
+            return count;
+        }
+
+        private static bool AssemblyLoaded(string assemblyName)
+        {
+            return AppDomain.CurrentDomain.GetAssemblies().Any(candidate => candidate.GetName().Name == assemblyName);
         }
 
         private static Type FindType(string assemblyName, string fullName)

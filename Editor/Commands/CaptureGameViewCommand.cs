@@ -58,6 +58,12 @@ namespace UnityMCP.Editor.Commands
         public NexusCommandDescriptor Descriptor { get; } = CreateDescriptor();
 
         /// <summary>
+        /// Last step before pixels are read. Tests replace this to see the request HTTP and CLI actually capture.
+        /// </summary>
+        internal static Func<CaptureRequest, CancellationToken, Task<CaptureResult>> Capture =
+            (request, token) => CaptureGateway.Shared.CaptureGameView(request, token);
+
+        /// <summary>
         /// Captures Game View or a framed Scene View and returns the canonical envelope.
         /// File delivery writes one image under Temp. It does not modify assets.
         /// </summary>
@@ -67,7 +73,7 @@ namespace UnityMCP.Editor.Commands
         public async Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
-            if (!CaptureLookRequest.TryParse(parameters, sw.ElapsedMilliseconds, out CaptureLookCall call))
+            if (!TryPrepareLook(parameters, sw.ElapsedMilliseconds, out CaptureLookCall call))
                 return call.Rejected.ToJson();
 
             NexusCommandEnvelope envelope = await ExecuteEnveloped(call, cancellationToken).ConfigureAwait(false);
@@ -102,23 +108,56 @@ namespace UnityMCP.Editor.Commands
             string requestId,
             CancellationToken cancellationToken)
         {
+            JObject parameters = BuildCliArguments(
+                width, height, format, quality, maxDimension, view, target, instanceId, delivery, requestId);
+            if (!TryPrepareLook(parameters, 0, out CaptureLookCall call))
+                return Task.FromResult(call.Rejected);
+
+            return ExecuteEnveloped(call, cancellationToken);
+        }
+
+        /// <summary>
+        /// Builds the CLI argument object without applying the jpg default. Null format stays omitted.
+        /// </summary>
+        internal static JObject BuildCliArguments(
+            int width,
+            int height,
+            string format,
+            int quality,
+            int maxDimension,
+            string view,
+            string target,
+            int instanceId,
+            string delivery,
+            string requestId)
+        {
             var parameters = new JObject
             {
                 ["width"] = width,
                 ["height"] = height,
-                ["format"] = FormatOrDefault(format),
                 ["quality"] = quality,
                 ["max_dimension"] = maxDimension,
                 ["view"] = string.IsNullOrEmpty(view) ? DefaultView : view,
                 ["delivery"] = string.IsNullOrEmpty(delivery) ? DefaultDelivery : delivery
             };
+            if (!string.IsNullOrEmpty(format)) parameters["format"] = format;
             if (!string.IsNullOrEmpty(target)) parameters["target"] = target;
             if (instanceId != 0) parameters["instance_id"] = instanceId;
             if (!string.IsNullOrEmpty(requestId)) parameters["request_id"] = requestId;
-            if (!CaptureLookRequest.TryParse(parameters, 0, out CaptureLookCall call))
-                return Task.FromResult(call.Rejected);
+            return parameters;
+        }
 
-            return ExecuteEnveloped(call, cancellationToken);
+        /// <summary>
+        /// Parses HTTP or CLI arguments and applies the omitted jpg default onto <see cref="CaptureRequest.Format"/>.
+        /// Does not capture.
+        /// </summary>
+        internal static bool TryPrepareLook(JToken parameters, long milliseconds, out CaptureLookCall call)
+        {
+            if (!CaptureLookRequest.TryParse(parameters, milliseconds, out call))
+                return false;
+
+            call.Request.Format = ParseFormat(FormatOrDefault(call.Format));
+            return true;
         }
 
         /// <summary>
@@ -133,7 +172,6 @@ namespace UnityMCP.Editor.Commands
             var sw = Stopwatch.StartNew();
             try
             {
-                call.Request.Format = ParseFormat(FormatOrDefault(call.Format));
                 NexusCaptureResult result = await ExecuteAsync(call, cancellationToken).ConfigureAwait(false);
                 return NexusCommandEnvelope.Success(result, call.RequestId, sw.ElapsedMilliseconds);
             }
@@ -152,9 +190,7 @@ namespace UnityMCP.Editor.Commands
         internal static async Task<NexusCaptureResult> ExecuteAsync(CaptureLookCall call, CancellationToken cancellationToken)
         {
             var swBase64 = Stopwatch.StartNew();
-            CaptureResult captured = await CaptureGateway.Shared
-                .CaptureGameView(call.Request, cancellationToken)
-                .ConfigureAwait(false);
+            CaptureResult captured = await Capture(call.Request, cancellationToken).ConfigureAwait(false);
             string path = null;
             string base64 = null;
             if (call.WriteFile)

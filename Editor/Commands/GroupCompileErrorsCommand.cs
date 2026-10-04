@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -25,6 +26,12 @@ namespace UnityMCP.Editor.Commands
         /// <summary>Console entries inspected when max_logs is omitted.</summary>
         public const int DefaultMaxLogs = 50;
 
+        /// <summary>
+        /// Reads recent error logs. Tests replace this to observe the integer <see cref="Execute"/> actually requests.
+        /// </summary>
+        internal static Func<int, List<UnityMCP.Editor.LogEntry>> ReadErrorLogs =
+            count => MCPServer.GetLogs(count, "Error", string.Empty);
+
         /// <summary>Gets the canonical compile-error descriptor.</summary>
         public NexusCommandDescriptor Descriptor { get; } = new NexusCommandDescriptor
         {
@@ -50,23 +57,49 @@ namespace UnityMCP.Editor.Commands
         public Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
-            if (!NexusCommandArguments.TryReadRequestId(parameters, sw.ElapsedMilliseconds, out string requestId, out NexusCommandEnvelope rejected))
+            if (!TryReadCompileArguments(parameters, sw.ElapsedMilliseconds, out int maxLogs, out string requestId, out NexusCommandEnvelope rejected))
                 return Task.FromResult<JToken>(rejected.ToJson());
-            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["max_logs"], "max_logs", requestId, sw.ElapsedMilliseconds, out int? maxLogs, out rejected))
-                return Task.FromResult<JToken>(rejected.ToJson());
-            if (maxLogs.HasValue && maxLogs.Value < 0)
+
+            return Task.FromResult<JToken>(ExecuteEnveloped(maxLogs, requestId).ToJson());
+        }
+
+        /// <summary>
+        /// Resolves an omitted <c>max_logs</c> to <see cref="DefaultMaxLogs"/>. Does not read the console.
+        /// </summary>
+        /// <param name="parameters">Optional <c>max_logs</c> integer and string <c>request_id</c>.</param>
+        /// <param name="milliseconds">Elapsed time copied into a rejection envelope.</param>
+        /// <param name="maxLogs">Resolved window. Zero is a real window, not an omit.</param>
+        /// <param name="requestId">Caller id, or null.</param>
+        /// <param name="rejected">Argument failure, or null when <paramref name="maxLogs"/> is set.</param>
+        /// <returns><c>false</c> when the arguments are rejected.</returns>
+        internal static bool TryReadCompileArguments(
+            JToken parameters,
+            long milliseconds,
+            out int maxLogs,
+            out string requestId,
+            out NexusCommandEnvelope rejected)
+        {
+            maxLogs = 0;
+            if (!NexusCommandArguments.TryReadRequestId(parameters, milliseconds, out requestId, out rejected))
+                return false;
+            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["max_logs"], "max_logs", requestId, milliseconds, out int? parsed, out rejected))
+                return false;
+            if (parsed.HasValue && parsed.Value < 0)
             {
-                return Task.FromResult<JToken>(NexusCommandEnvelope.Failure(
+                rejected = NexusCommandEnvelope.Failure(
                     NexusCommandCodes.InvalidArgument,
                     "max_logs must be zero or greater.",
                     false,
                     NexusCommandCodes.ChangeArgumentsHint,
                     null,
                     requestId,
-                    sw.ElapsedMilliseconds).ToJson());
+                    milliseconds);
+                return false;
             }
 
-            return Task.FromResult<JToken>(ExecuteEnveloped(maxLogs ?? DefaultMaxLogs, requestId).ToJson());
+            maxLogs = parsed ?? DefaultMaxLogs;
+            rejected = null;
+            return true;
         }
 
         /// <summary>
@@ -108,7 +141,7 @@ namespace UnityMCP.Editor.Commands
         public static NexusCompileErrorsResult Execute(int maxLogs = DefaultMaxLogs)
         {
             var sw = Stopwatch.StartNew();
-            var logs = MCPServer.GetLogs(maxLogs, "Error", string.Empty);
+            var logs = ReadErrorLogs(maxLogs);
             var groups = new Dictionary<string, List<string>>();
             int totalErrors = 0;
             foreach (var log in logs)
