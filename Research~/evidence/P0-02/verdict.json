@@ -1,0 +1,928 @@
+{
+  "pass": true,
+  "reasons": [],
+  "median_refresh_s": 1.909,
+  "median_domain_reload_profiling_s": 1.788,
+  "runs": [
+    {
+      "run": 0,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 3.891,
+      "tundra_s": 0.87,
+      "domain_reload_profiling_s": 1.663,
+      "refresh_s": 1.921,
+      "refresh_id": "b0b149e0fec314a889ab30fe8a29d542",
+      "compile_before": 3,
+      "compile_after": 4,
+      "reload_before": 2,
+      "reload_after": 3,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.87
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1663
+        ],
+        "refresh": [
+          {
+            "id": "a3bc85b157e1840578437afdb937e02b",
+            "total_s": 0.156,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "b0b149e0fec314a889ab30fe8a29d542",
+            "total_s": 1.921,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 768,
+            "compile_ms": 6
+          }
+        ]
+      }
+    },
+    {
+      "run": 1,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.17,
+      "tundra_s": 0.83,
+      "domain_reload_profiling_s": 1.695,
+      "refresh_s": 1.801,
+      "refresh_id": "02a2dda75176a434d817528453c9ff37",
+      "compile_before": 4,
+      "compile_after": 5,
+      "reload_before": 3,
+      "reload_after": 4,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.83
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1695
+        ],
+        "refresh": [
+          {
+            "id": "a5a94a0153c8a4625bb7f8685ba0b39f",
+            "total_s": 0.086,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "02a2dda75176a434d817528453c9ff37",
+            "total_s": 1.801,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 644,
+            "compile_ms": 4
+          }
+        ]
+      }
+    },
+    {
+      "run": 2,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.33,
+      "tundra_s": 0.83,
+      "domain_reload_profiling_s": 1.731,
+      "refresh_s": 1.822,
+      "refresh_id": "bf14035924e1a4a25975fdb0ed8a6d4c",
+      "compile_before": 5,
+      "compile_after": 6,
+      "reload_before": 4,
+      "reload_after": 5,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.83
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1731
+        ],
+        "refresh": [
+          {
+            "id": "54d69188d2f01403d9d4c31e701b9588",
+            "total_s": 0.107,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "bf14035924e1a4a25975fdb0ed8a6d4c",
+            "total_s": 1.822,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 683,
+            "compile_ms": 3
+          }
+        ]
+      }
+    },
+    {
+      "run": 3,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.313,
+      "tundra_s": 0.78,
+      "domain_reload_profiling_s": 1.684,
+      "refresh_s": 1.774,
+      "refresh_id": "7ed7e4dbdb02d4878aee50407ac81c86",
+      "compile_before": 6,
+      "compile_after": 7,
+      "reload_before": 5,
+      "reload_after": 6,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.78
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1684
+        ],
+        "refresh": [
+          {
+            "id": "fddf0ed9e9c2144cbb7df2f9975eff00",
+            "total_s": 0.115,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "7ed7e4dbdb02d4878aee50407ac81c86",
+            "total_s": 1.774,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 626,
+            "compile_ms": 3
+          }
+        ]
+      }
+    },
+    {
+      "run": 4,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.378,
+      "tundra_s": 0.86,
+      "domain_reload_profiling_s": 1.788,
+      "refresh_s": 1.909,
+      "refresh_id": "517262e0e6f89429a8d99b4cc3233074",
+      "compile_before": 7,
+      "compile_after": 8,
+      "reload_before": 6,
+      "reload_after": 7,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.86
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1788
+        ],
+        "refresh": [
+          {
+            "id": "2b866285b637e4e91a6e6229d5fe1416",
+            "total_s": 0.108,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "517262e0e6f89429a8d99b4cc3233074",
+            "total_s": 1.909,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 703,
+            "compile_ms": 1
+          }
+        ]
+      }
+    },
+    {
+      "run": 5,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.318,
+      "tundra_s": 0.86,
+      "domain_reload_profiling_s": 1.803,
+      "refresh_s": 1.914,
+      "refresh_id": "8036d981b95f74976937fbc98ae0329c",
+      "compile_before": 8,
+      "compile_after": 9,
+      "reload_before": 7,
+      "reload_after": 8,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.86
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1803
+        ],
+        "refresh": [
+          {
+            "id": "46ecd034ac2644b9bb7ec52576fb95b6",
+            "total_s": 0.111,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "8036d981b95f74976937fbc98ae0329c",
+            "total_s": 1.914,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 722,
+            "compile_ms": 1
+          }
+        ]
+      }
+    },
+    {
+      "run": 6,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.104,
+      "tundra_s": 0.8,
+      "domain_reload_profiling_s": 1.729,
+      "refresh_s": 1.833,
+      "refresh_id": "ceb9bdccd2835413896e7384929e1fba",
+      "compile_before": 9,
+      "compile_after": 10,
+      "reload_before": 8,
+      "reload_after": 9,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.8
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1729
+        ],
+        "refresh": [
+          {
+            "id": "45f4b79c4c76e4e7a9583e59e953b145",
+            "total_s": 0.121,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "ceb9bdccd2835413896e7384929e1fba",
+            "total_s": 1.833,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 690,
+            "compile_ms": 1
+          }
+        ]
+      }
+    },
+    {
+      "run": 7,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.663,
+      "tundra_s": 0.97,
+      "domain_reload_profiling_s": 1.708,
+      "refresh_s": 1.799,
+      "refresh_id": "9a99e8d66f34e4116ad7ada27fdfca97",
+      "compile_before": 10,
+      "compile_after": 11,
+      "reload_before": 9,
+      "reload_after": 10,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.97
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1708
+        ],
+        "refresh": [
+          {
+            "id": "e95aa94b841ed4f37a240c3f15f94d54",
+            "total_s": 0.106,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "9a99e8d66f34e4116ad7ada27fdfca97",
+            "total_s": 1.799,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 682,
+            "compile_ms": 2
+          }
+        ]
+      }
+    },
+    {
+      "run": 8,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.29,
+      "tundra_s": 0.81,
+      "domain_reload_profiling_s": 1.728,
+      "refresh_s": 1.823,
+      "refresh_id": "4d2993275d72043ee8abd7eb632f1519",
+      "compile_before": 11,
+      "compile_after": 12,
+      "reload_before": 10,
+      "reload_after": 11,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.81
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1728
+        ],
+        "refresh": [
+          {
+            "id": "8b9db837827ff46eaa0c65f98e517de4",
+            "total_s": 0.119,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "4d2993275d72043ee8abd7eb632f1519",
+            "total_s": 1.823,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 696,
+            "compile_ms": 3
+          }
+        ]
+      }
+    },
+    {
+      "run": 9,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.268,
+      "tundra_s": 0.89,
+      "domain_reload_profiling_s": 1.702,
+      "refresh_s": 1.809,
+      "refresh_id": "917afa70b726a4224a925767ff2f3e15",
+      "compile_before": 12,
+      "compile_after": 13,
+      "reload_before": 11,
+      "reload_after": 12,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.89
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1702
+        ],
+        "refresh": [
+          {
+            "id": "a67f7d5f63cd048738fd7e8e24290d18",
+            "total_s": 0.116,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "917afa70b726a4224a925767ff2f3e15",
+            "total_s": 1.809,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 684,
+            "compile_ms": 2
+          }
+        ]
+      }
+    },
+    {
+      "run": 10,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.394,
+      "tundra_s": 0.93,
+      "domain_reload_profiling_s": 1.792,
+      "refresh_s": 1.899,
+      "refresh_id": "28c5e475024b64be5a96e8b792327379",
+      "compile_before": 13,
+      "compile_after": 14,
+      "reload_before": 12,
+      "reload_after": 13,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.93
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1792
+        ],
+        "refresh": [
+          {
+            "id": "d87ed09208c2e46a0a4cccf2ea016ce8",
+            "total_s": 0.111,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "28c5e475024b64be5a96e8b792327379",
+            "total_s": 1.899,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 755,
+            "compile_ms": 2
+          }
+        ]
+      }
+    },
+    {
+      "run": 11,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.529,
+      "tundra_s": 0.87,
+      "domain_reload_profiling_s": 1.81,
+      "refresh_s": 1.911,
+      "refresh_id": "2b9a142ecd04c4f2aa5bc72d6d54d21b",
+      "compile_before": 14,
+      "compile_after": 15,
+      "reload_before": 13,
+      "reload_after": 14,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.87
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1810
+        ],
+        "refresh": [
+          {
+            "id": "dcf2f767f572441a8b0148a2a28a2b88",
+            "total_s": 0.125,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "2b9a142ecd04c4f2aa5bc72d6d54d21b",
+            "total_s": 1.911,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 799,
+            "compile_ms": 2
+          }
+        ]
+      }
+    },
+    {
+      "run": 12,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.256,
+      "tundra_s": 0.8,
+      "domain_reload_profiling_s": 1.749,
+      "refresh_s": 1.859,
+      "refresh_id": "79ab145c31203491491d8ecc1e48effc",
+      "compile_before": 15,
+      "compile_after": 16,
+      "reload_before": 14,
+      "reload_after": 15,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.8
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1749
+        ],
+        "refresh": [
+          {
+            "id": "b69b730a4cfab4e81b62de3c1e2dd374",
+            "total_s": 0.102,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "79ab145c31203491491d8ecc1e48effc",
+            "total_s": 1.859,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 690,
+            "compile_ms": 1
+          }
+        ]
+      }
+    },
+    {
+      "run": 13,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.465,
+      "tundra_s": 0.89,
+      "domain_reload_profiling_s": 1.819,
+      "refresh_s": 1.915,
+      "refresh_id": "523d6b66ad6ef43569e5493bf2ef7ac3",
+      "compile_before": 16,
+      "compile_after": 17,
+      "reload_before": 15,
+      "reload_after": 16,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.89
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1819
+        ],
+        "refresh": [
+          {
+            "id": "5824a3c6b8eca4b9bbec7814cb8cf064",
+            "total_s": 0.104,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "523d6b66ad6ef43569e5493bf2ef7ac3",
+            "total_s": 1.915,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 742,
+            "compile_ms": 6
+          }
+        ]
+      }
+    },
+    {
+      "run": 14,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.559,
+      "tundra_s": 0.88,
+      "domain_reload_profiling_s": 1.83,
+      "refresh_s": 1.928,
+      "refresh_id": "911474d2b155a4f768a862cd64ea8cab",
+      "compile_before": 17,
+      "compile_after": 18,
+      "reload_before": 16,
+      "reload_after": 17,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.88
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1830
+        ],
+        "refresh": [
+          {
+            "id": "fdbe340fd434a4846971e962dd7453c6",
+            "total_s": 0.122,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "911474d2b155a4f768a862cd64ea8cab",
+            "total_s": 1.928,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 788,
+            "compile_ms": 3
+          }
+        ]
+      }
+    },
+    {
+      "run": 15,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.417,
+      "tundra_s": 0.91,
+      "domain_reload_profiling_s": 1.738,
+      "refresh_s": 1.838,
+      "refresh_id": "4449873b55cf34ac784fba8e9c18344e",
+      "compile_before": 18,
+      "compile_after": 19,
+      "reload_before": 17,
+      "reload_after": 18,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.91
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1738
+        ],
+        "refresh": [
+          {
+            "id": "a2438f65a72e548c0866c48e8e80ccdb",
+            "total_s": 0.102,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "4449873b55cf34ac784fba8e9c18344e",
+            "total_s": 1.838,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 686,
+            "compile_ms": 1
+          }
+        ]
+      }
+    },
+    {
+      "run": 16,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.567,
+      "tundra_s": 0.82,
+      "domain_reload_profiling_s": 1.881,
+      "refresh_s": 2.004,
+      "refresh_id": "bd5c064fc204c49aeb7aadefc055c322",
+      "compile_before": 19,
+      "compile_after": 20,
+      "reload_before": 18,
+      "reload_after": 19,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.82
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1881
+        ],
+        "refresh": [
+          {
+            "id": "86b7e83b7c1ff44b395d2c49596cf948",
+            "total_s": 0.113,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "bd5c064fc204c49aeb7aadefc055c322",
+            "total_s": 2.004,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 782,
+            "compile_ms": 2
+          }
+        ]
+      }
+    },
+    {
+      "run": 17,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.464,
+      "tundra_s": 0.79,
+      "domain_reload_profiling_s": 1.811,
+      "refresh_s": 1.915,
+      "refresh_id": "fbad2784b018b4ba89a6ab6702091690",
+      "compile_before": 20,
+      "compile_after": 21,
+      "reload_before": 19,
+      "reload_after": 20,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.79
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1811
+        ],
+        "refresh": [
+          {
+            "id": "7ba339faa91554a4c8c869f3a0c7fe14",
+            "total_s": 0.107,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "fbad2784b018b4ba89a6ab6702091690",
+            "total_s": 1.915,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 745,
+            "compile_ms": 1
+          }
+        ]
+      }
+    },
+    {
+      "run": 18,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.401,
+      "tundra_s": 0.78,
+      "domain_reload_profiling_s": 1.878,
+      "refresh_s": 1.99,
+      "refresh_id": "fc997ac1b290d44bfa8741ce7c429899",
+      "compile_before": 21,
+      "compile_after": 22,
+      "reload_before": 20,
+      "reload_after": 21,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.78
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1878
+        ],
+        "refresh": [
+          {
+            "id": "d7e5e5bbc06a2464fbf2f08770f02568",
+            "total_s": 0.121,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "fc997ac1b290d44bfa8741ce7c429899",
+            "total_s": 1.99,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 788,
+            "compile_ms": 2
+          }
+        ]
+      }
+    },
+    {
+      "run": 19,
+      "pass": true,
+      "reasons": [],
+      "wait_s": 4.388,
+      "tundra_s": 0.81,
+      "domain_reload_profiling_s": 1.8,
+      "refresh_s": 1.931,
+      "refresh_id": "ab5107f9ba4424cff9bea950b3c79da8",
+      "compile_before": 22,
+      "compile_after": 23,
+      "reload_before": 21,
+      "reload_after": 22,
+      "first_not_ready_reason": "script_write",
+      "ready_at_before_reload": false,
+      "log": {
+        "editor_dll": true,
+        "tundra_s": [
+          0.81
+        ],
+        "forced_reload_lines": 1,
+        "begin_mono": 1,
+        "domain_reload_profiling_ms": [
+          1800
+        ],
+        "refresh": [
+          {
+            "id": "661f631f3336c43968579f5418212d86",
+            "total_s": 0.114,
+            "initiator": "RefreshV2(NoUpdateAssetOptions)"
+          },
+          {
+            "id": "ab5107f9ba4424cff9bea950b3c79da8",
+            "total_s": 1.931,
+            "initiator": "StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)"
+          }
+        ],
+        "scripting": [
+          {
+            "domain_reloads": 1,
+            "reload_ms": 683,
+            "compile_ms": 1
+          }
+        ]
+      }
+    }
+  ]
+}
