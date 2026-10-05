@@ -1,0 +1,10 @@
+{
+  "status": "CONFIRMATION_PASSED",
+  "holdout_executed": true,
+  "optimizer": {
+    "status": "CONFIRMATION_PASSED",
+    "candidate_hash": "585a8eea710edb1c5bdba2496354d2b7fbed1a2709c393bb29200981dd672c65"
+  },
+  "promotion": "SCREENING",
+  "label": "CONFIRM_PIPELINE_INTEGRATION_ONLY"
+}

@@ -1,0 +1,201 @@
+[
+  {
+    "type": "thread.started",
+    "thread_id": "01a10ddc-bf03-7393-8fb6-08e2fb01b3c8"
+  },
+  {
+    "type": "turn.started"
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_0",
+      "type": "agent_message",
+      "text": "I\u2019ll inspect the open Lab scene and update the serialized `intensity` field on its `LabMarker` component."
+    }
+  },
+  {
+    "type": "item.started",
+    "item": {
+      "id": "item_1",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_find_gameobjects",
+      "arguments": {
+        "type": "LabMarker"
+      },
+      "result": null,
+      "error": null,
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_1",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_find_gameobjects",
+      "arguments": {
+        "type": "LabMarker"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"payload\": {\"data\": {\"parameters\": {\"type\": \"LabMarker\"}, \"result\": {\"count\": 1, \"gameObjects\": [{\"assetPath\": null, \"fileId\": null, \"globalId\": \"GlobalObjectId_V1-2-44774358c901a4cec9caf5a73f5814c0-1700816992-0\", \"guid\": null, \"hierarchyPath\": \"/LabReadTarget\", \"instanceId\": 45518, \"type\": \"GameObject\"}]}, \"target\": {\"host\": \"127.0.0.1\", \"port\": 7811, \"projectPath\": \"/private/tmp/nexus-arch-lab\"}}, \"errors\": [], \"success\": true, \"warnings\": []}}"
+          }
+        ],
+        "structured_content": null
+      },
+      "error": null,
+      "status": "completed"
+    }
+  },
+  {
+    "type": "item.started",
+    "item": {
+      "id": "item_2",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_read_fields",
+      "arguments": {
+        "target": "/LabReadTarget",
+        "component": "LabMarker"
+      },
+      "result": null,
+      "error": null,
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_2",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_read_fields",
+      "arguments": {
+        "target": "/LabReadTarget",
+        "component": "LabMarker"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"payload\": {\"data\": {\"parameters\": {\"component\": \"LabMarker\", \"target\": \"/LabReadTarget\"}, \"result\": {\"fields\": [{\"arrayLength\": null, \"isArray\": false, \"name\": \"markerName\", \"path\": \"markerName\", \"propertyType\": \"String\", \"value\": \"readable\"}, {\"arrayLength\": null, \"isArray\": false, \"name\": \"intensity\", \"path\": \"intensity\", \"propertyType\": \"Float\", \"value\": 1.25}, {\"arrayLength\": null, \"isArray\": false, \"name\": \"revision\", \"path\": \"revision\", \"propertyType\": \"Integer\", \"value\": 7}], \"type\": \"LabMarker\"}, \"target\": {\"host\": \"127.0.0.1\", \"port\": 7811, \"projectPath\": \"/private/tmp/nexus-arch-lab\"}}, \"errors\": [], \"success\": true, \"warnings\": []}}"
+          }
+        ],
+        "structured_content": null
+      },
+      "error": null,
+      "status": "completed"
+    }
+  },
+  {
+    "type": "item.started",
+    "item": {
+      "id": "item_3",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_set_field",
+      "arguments": {
+        "target": "/LabReadTarget",
+        "component": "LabMarker",
+        "field": "intensity",
+        "value": "4.25"
+      },
+      "result": null,
+      "error": null,
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_3",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_set_field",
+      "arguments": {
+        "target": "/LabReadTarget",
+        "component": "LabMarker",
+        "field": "intensity",
+        "value": "4.25"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"payload\": {\"data\": {\"parameters\": {\"component\": \"LabMarker\", \"field\": \"intensity\", \"target\": \"/LabReadTarget\", \"value\": 4.25}, \"result\": {\"assetPath\": null, \"fileId\": null, \"globalId\": \"GlobalObjectId_V1-2-44774358c901a4cec9caf5a73f5814c0-1700816993-0\", \"guid\": null, \"hierarchyPath\": \"/LabReadTarget\", \"instanceId\": 45520, \"type\": \"LabMarker\"}, \"target\": {\"host\": \"127.0.0.1\", \"port\": 7811, \"projectPath\": \"/private/tmp/nexus-arch-lab\"}}, \"errors\": [], \"success\": true, \"warnings\": []}}"
+          }
+        ],
+        "structured_content": null
+      },
+      "error": null,
+      "status": "completed"
+    }
+  },
+  {
+    "type": "item.started",
+    "item": {
+      "id": "item_4",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_read_fields",
+      "arguments": {
+        "target": "/LabReadTarget",
+        "component": "LabMarker",
+        "field": "intensity",
+        "format": "value"
+      },
+      "result": null,
+      "error": null,
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_4",
+      "type": "mcp_tool_call",
+      "server": "architecture_lab",
+      "tool": "nexus_read_fields",
+      "arguments": {
+        "target": "/LabReadTarget",
+        "component": "LabMarker",
+        "field": "intensity",
+        "format": "value"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"ok\": true, \"payload\": {\"data\": {\"parameters\": {\"component\": \"LabMarker\", \"field\": \"intensity\", \"target\": \"/LabReadTarget\"}, \"result\": {\"fields\": [{\"arrayLength\": null, \"isArray\": false, \"name\": \"intensity\", \"path\": \"intensity\", \"propertyType\": \"Float\", \"value\": 4.25}], \"type\": \"LabMarker\"}, \"target\": {\"host\": \"127.0.0.1\", \"port\": 7811, \"projectPath\": \"/private/tmp/nexus-arch-lab\"}}, \"errors\": [], \"success\": true, \"warnings\": []}}"
+          }
+        ],
+        "structured_content": null
+      },
+      "error": null,
+      "status": "completed"
+    }
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_5",
+      "type": "agent_message",
+      "text": "{\"status\":\"done\"}"
+    }
+  },
+  {
+    "type": "turn.completed",
+    "usage": {
+      "input_tokens": 96010,
+      "cached_input_tokens": 82432,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 262,
+      "reasoning_output_tokens": 0
+    }
+  }
+]

@@ -1,6 +1,6 @@
 {
   "label": "SELF_CHECK",
-  "valid": 13,
+  "valid": 15,
   "invalid": 1,
   "tasks": [
     {
@@ -264,6 +264,46 @@
     {
       "task_id": "holdout.write_marker_name",
       "split": "holdout",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "0a07aa955985c85c692000707d89f9521578b900a27c256e0e9664834958568b",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "confirm_validation.read_object_name",
+      "split": "confirm_validation",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "0a07aa955985c85c692000707d89f9521578b900a27c256e0e9664834958568b",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "confirm_holdout.write_intensity",
+      "split": "confirm_holdout",
       "status": "VALID",
       "reason": null,
       "oracle_success": true,

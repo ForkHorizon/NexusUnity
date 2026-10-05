@@ -1,0 +1,1 @@
+{"ts": "2026-10-05T21:01:54.964139+00:00", "backend_command": "find_gameobjects", "arguments": {"type": "LabMarker"}, "ok": true, "exit_code": 0, "duration_ms": 1944, "result_bytes": 508, "step_count": 1, "backend_reached": true}

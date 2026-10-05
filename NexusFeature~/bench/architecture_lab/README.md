@@ -82,7 +82,7 @@ Self-check opens the lab scene through the official CLI, solves each task on tha
 bin/architecture-lab self-check
 ```
 
-Results: `evidence/self-check.json`.
+Results: `evidence/self-check.json`. On commit `1d8dbd0` the scratch editor reported 15 `VALID` tasks and 1 `INVALID` task, `search.visual_game_view`.
 
 ## Smoke
 
@@ -92,11 +92,50 @@ Smoke is four real runs: two surfaces, two self-checked tasks, one seed. It is l
 bin/architecture-lab smoke --seed 1
 ```
 
-The editor must already be ready, and both smoke tasks must be `VALID`.
+The editor must already be ready, and both smoke tasks must be `VALID`. Commit `1d8dbd0` ran this command into `evidence/smoke-final/`. Acceptance passed. The label is `SMOKE_ONLY`.
+
+## Closed loop
+
+`evolve --confirm-search` is the model loop. It loads only the requested search tasks, scores them, keeps the feasible Pareto parents, mutates those parents, and evaluates the children. `confirm --confirm-final` loads one frozen hash. `--integration` uses `tasks/confirm_validation` and `tasks/confirm_holdout` and stays at `SCREENING`.
+
+These commands were run on commit `1d8dbd0` against the scratch editor. They are integration evidence, not an architecture result:
+
+```bash
+bin/architecture-lab evolve \
+  --model gpt-6-luna \
+  --reasoning low \
+  --candidates smoke \
+  --tasks smoke \
+  --population 2 \
+  --generations 2 \
+  --max-runs 16 \
+  --max-uncached-tokens 400000 \
+  --seed 17 \
+  --label EVOLUTION_INTEGRATION_ONLY \
+  --experiment evolution-integration-s17 \
+  --confirm-search
+```
+
+```bash
+bin/architecture-lab confirm \
+  --candidate 585a8eea710edb1c5bdba2496354d2b7fbed1a2709c393bb29200981dd672c65 \
+  --integration \
+  --include-holdout \
+  --confirm-final \
+  --seed 101 \
+  --max-runs 4 \
+  --max-uncached-tokens 200000 \
+  --model gpt-6-luna \
+  --reasoning low
+```
+
+Evidence is `evidence/evolution/evolution-integration-s17/` and `evidence/confirm-integration/585a8eea710e/`. The research splits `tasks/validation` and `tasks/holdout` were not used. The large search command below was not executed.
+
+Per-run `run_identity` is the identity snapshot. The experiment row is replaced when the next generation starts, so it names the latest generation. `study_state.seed` is stored as 0 after a stop; resume uses the seed on the command. The integration confirm tasks repeat the smoke read and write prompts under new ids. They do not open the research holdout. `search.visual_game_view` stays unscored. Writes share `LabMarker`.
 
 ## Later screening
 
-Not implemented as a model loop in this version. The pieces are:
+The pieces are:
 
 1. Screening on the search split only (`lab/search/engine.py` refuses holdout and validation).
 2. Validation for candidates that passed screening.
@@ -132,7 +171,7 @@ SQLite (`evidence/smoke/runs.sqlite`) is the raw record: experiments, candidates
 - `confirm --confirm-final` loads one architecture hash, runs validation, and runs holdout only when every validation row is feasible and another model run still fits the budget. A stopped validation batch does not open the holdout files. `--integration` uses `tasks/confirm_validation` and `tasks/confirm_holdout` and does not open the research holdout or promote a candidate to `CONFIRMED`.
 - Wall time and uncached tokens are recorded. They are not parent-selection keys.
 
-The loop is covered by unit tests with a fake model. A real Luna acceptance run is a separate step and is not claimed by this section.
+Unit tests cover the loop with a fake model. The Luna runs named above are the integration evidence for this commit. They do not rank a candidate.
 
 ## Commands
 
