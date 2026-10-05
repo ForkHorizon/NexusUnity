@@ -1,0 +1,25 @@
+{
+  "difficulty": "easy",
+  "initial_state": "Pristine Lab fixture.",
+  "setup": [
+    "open_lab_scene"
+  ],
+  "allowed_environment": "lab_scratch_only",
+  "expected_mutation": "none",
+  "expected_evidence": "unity observation",
+  "cleanup": "reset_pristine",
+  "timeout_s": 240,
+  "task_id": "search.rare_console",
+  "split": "search",
+  "category": "rare",
+  "required_capability_class": "rare",
+  "prompt": "Read console status without dumping log entries. Reply with only JSON {\"compilation_failed\": true or false}. Use the provided tools. Do not use the shell.",
+  "oracle": {
+    "type": "model_json_equals_unity",
+    "field": "compilation_failed",
+    "unity_field": "compilation_failed"
+  },
+  "acceptable_capabilities": [
+    "console_status"
+  ]
+}

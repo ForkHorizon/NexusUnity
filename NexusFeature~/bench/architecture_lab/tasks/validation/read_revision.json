@@ -1,0 +1,27 @@
+{
+  "difficulty": "easy",
+  "initial_state": "Pristine Lab fixture.",
+  "setup": [
+    "open_lab_scene"
+  ],
+  "allowed_environment": "lab_scratch_only",
+  "expected_mutation": "none",
+  "expected_evidence": "unity observation",
+  "cleanup": "reset_pristine",
+  "timeout_s": 240,
+  "task_id": "validation.read_revision",
+  "split": "validation",
+  "category": "read",
+  "required_capability_class": "read",
+  "prompt": "The Lab scene is already open. Read the integer serialized field revision on the LabMarker component. Reply with only JSON {\"revision\": <number>}. Use the provided tools. Do not use the shell.",
+  "oracle": {
+    "type": "model_json_equals_unity",
+    "field": "revision",
+    "unity_field": "revision"
+  },
+  "acceptable_capabilities": [
+    "get_serialized_fields",
+    "get_component_properties",
+    "find_gameobjects"
+  ]
+}

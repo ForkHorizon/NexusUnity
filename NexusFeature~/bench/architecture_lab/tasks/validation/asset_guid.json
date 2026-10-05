@@ -1,0 +1,26 @@
+{
+  "difficulty": "easy",
+  "initial_state": "Pristine Lab fixture.",
+  "setup": [
+    "open_lab_scene"
+  ],
+  "allowed_environment": "lab_scratch_only",
+  "expected_mutation": "none",
+  "expected_evidence": "unity observation",
+  "cleanup": "reset_pristine",
+  "timeout_s": 240,
+  "task_id": "validation.asset_guid",
+  "split": "validation",
+  "category": "asset_read",
+  "required_capability_class": "asset_read",
+  "prompt": "Report the asset GUID of Assets/LabFixture/Notes/readme.txt as JSON {\"guid\":\"<guid>\"}. Use the provided tools. Do not use the shell.",
+  "oracle": {
+    "type": "model_json_equals_unity",
+    "field": "guid",
+    "unity_field": "guid"
+  },
+  "acceptable_capabilities": [
+    "find_assets",
+    "read_text_file"
+  ]
+}

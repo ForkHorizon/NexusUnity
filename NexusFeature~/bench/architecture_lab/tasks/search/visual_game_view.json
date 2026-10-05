@@ -1,0 +1,28 @@
+{
+  "difficulty": "easy",
+  "initial_state": "Pristine Lab fixture.",
+  "setup": [
+    "open_lab_scene"
+  ],
+  "allowed_environment": "lab_scratch_only",
+  "expected_mutation": "none",
+  "expected_evidence": "unity observation",
+  "cleanup": "reset_pristine",
+  "timeout_s": 240,
+  "task_id": "search.visual_game_view",
+  "split": "search",
+  "category": "visual",
+  "required_capability_class": "visual",
+  "prompt": "Capture the Game view and report the top-left pixel as JSON {\"red\": <0-255>, \"green\": <0-255>, \"blue\": <0-255>}. Use the provided tools. Do not use the shell.",
+  "oracle": {
+    "type": "model_json_equals_unity",
+    "field": "red",
+    "unity_field": "red"
+  },
+  "acceptable_capabilities": [
+    "capture_game_view",
+    "capture_scene_view",
+    "screenshot",
+    "nexus_capture_game_view"
+  ]
+}
