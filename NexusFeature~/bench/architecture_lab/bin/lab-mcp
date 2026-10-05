@@ -3,4 +3,4 @@
 ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 cd "$ROOT"
-exec python3 -m lab.adapters.mcp_server "$@"
+exec python3 -u -m lab.adapters.mcp_server "$@"

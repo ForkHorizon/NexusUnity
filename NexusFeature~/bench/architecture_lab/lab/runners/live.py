@@ -6,6 +6,7 @@ because it is a fixture check, not an optimizer.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -19,8 +20,9 @@ from lab.candidates.baselines import smoke_hidden_gateway, smoke_official_subset
 from lab.catalog.extract import load_catalog
 from lab.errors import LabError, SafetyError
 from lab.fixtures.observe import observe_state, pristine_match
+from lab.fixtures.reference import open_lab
 from lab.fixtures.reset import fingerprint, reload_lab_scene
-from lab.fixtures.selfcheck import _wait_until_settled, check_task
+from lab.fixtures.selfcheck import _wait_until_settled, check_task, plant_compile_error
 from lab.fixtures.tasks import load_tasks
 from lab.runners.matrix import SMOKE_LABEL, run_smoke_matrix
 from lab.runners.scratch import DEFAULT_PORT, DEFAULT_PROJECT, LAB_ROOT, PACKAGE_ROOT, neutralize_foreign_hooks
@@ -32,6 +34,21 @@ CATALOG_PATH = LAB_ROOT / "catalog" / "snapshots" / "pipeline-0.8.0-exp.1.json"
 EVIDENCE = LAB_ROOT / "evidence"
 SMOKE_TASKS = ("search.read_object_name", "search.write_intensity")
 WORKSPACE = Path("/tmp/nexus-arch-lab-agent")
+
+
+def _prompt_for_surface(task: dict[str, Any], surface: dict[str, Any]) -> str:
+    """Keep the instruction identical for every candidate.
+
+    Listing model-visible names here dumps a large flat surface into the prompt
+    and coaches a small gateway. The tool list is the surface under test.
+    `surface` is accepted so callers stay stable and is not read.
+    """
+    del surface
+    return (
+        task["prompt"].rstrip()
+        + "\nUse only the tools in this session's tool list. "
+        + "Do not guess a value a tool can read. Do not use the shell.\n"
+    )
 
 
 def _drop_foreign_hooks(project: Path, backend) -> None:
@@ -93,13 +110,32 @@ def execute_smoke(project: Path = DEFAULT_PROJECT, port: int = DEFAULT_PORT, uni
     if not probe["ready"]:
         raise LabError(f"editor is not ready: {probe}")
 
-    def prepare(_task):
+    def prepare(task):
         reloaded = reload_lab_scene(backend.call, project, pristine, destination)
-        observed = observe_state(backend.call)
+        observed = observe_state(backend.call, reload_scene=False)
         issues = pristine_match(observed)
         if reloaded["fingerprint"] != expected_fp or issues:
             return {"ok": False, "fingerprint": reloaded["fingerprint"], "reason": "fixture drift: " + ",".join(issues)}
-        return {"ok": True, "fingerprint": reloaded["fingerprint"]}
+        if "plant_compile_error" in (task.get("setup") or []):
+            plant_compile_error(project)
+            if not _wait_until_settled(backend.call, time.sleep):
+                return {"ok": False, "fingerprint": expected_fp, "reason": "compile error did not settle"}
+        return {"ok": True, "fingerprint": expected_fp}
+
+    def cleanup(task):
+        reloaded = reload_lab_scene(backend.call, project, pristine, destination)
+        if "plant_compile_error" in (task.get("setup") or []):
+            backend.call("recompile", {"focus": False})
+            if not _wait_until_settled(backend.call, time.sleep):
+                return {"ok": False, "fingerprint": reloaded["fingerprint"], "reason": "cleanup compile did not settle"}
+            open_lab(backend.call)
+            if not _wait_until_settled(backend.call, time.sleep):
+                return {"ok": False, "fingerprint": reloaded["fingerprint"], "reason": "cleanup reopen did not settle"}
+        observed = observe_state(backend.call, reload_scene=False)
+        issues = pristine_match(observed)
+        if reloaded["fingerprint"] != expected_fp or issues:
+            return {"ok": False, "fingerprint": reloaded["fingerprint"], "reason": "cleanup drift: " + ",".join(issues)}
+        return {"ok": True, "fingerprint": expected_fp}
 
     evidence = EVIDENCE / "smoke"
     evidence.mkdir(parents=True, exist_ok=True)
@@ -127,11 +163,20 @@ def execute_smoke(project: Path = DEFAULT_PROJECT, port: int = DEFAULT_PORT, uni
                 "reasoning": "low",
                 "mechanism": surface["mechanism_actually_used"],
                 "timeout_s": int(task["timeout_s"]),
-                "prompt": task["prompt"],
+                "prompt": _prompt_for_surface(task, surface),
             }
         )
+        # The server truncates this file on start. Read it after the process exits.
         outcome["backend_telemetry"] = _telemetry(telemetry_path)
         (evidence / f"{run_id}-events.json").write_text(json.dumps(outcome.get("events") or [], indent=2) + "\n", encoding="utf-8")
+        if outcome.get("prior_events"):
+            (evidence / f"{run_id}-prior-events.json").write_text(
+                json.dumps(outcome["prior_events"], indent=2) + "\n",
+                encoding="utf-8",
+            )
+        stderr_tail = outcome.get("stderr_tail") or ""
+        if stderr_tail:
+            (evidence / f"{run_id}-stderr.txt").write_text(stderr_tail, encoding="utf-8")
         return outcome
 
     store = RunStore(evidence / "runs.sqlite")
@@ -144,14 +189,15 @@ def execute_smoke(project: Path = DEFAULT_PROJECT, port: int = DEFAULT_PORT, uni
             expected_probe=probe,
             probe=lambda: _environment_probe(backend, project, port, unity_binary, expected_fp),
             prepare_task=prepare,
+            cleanup_task=cleanup,
             codex_run=codex_run,
             # A write is still unsaved. Reopening here would reload the file and
             # hide a real mutation from the oracle. prepare_task opens the scene.
-            observe=lambda: observe_state(backend.call, reload_scene=False),
+            observe=lambda task: _observe_task(backend.call, task),
             price_profile=load_profile(LAB_ROOT / "pricing" / "luna6.json"),
             seed=seed,
             experiment_id=f"smoke-s{seed}",
-            identity=_identity(project, port, unity_binary, expected_fp, catalog, candidates),
+            identity=_identity(project, port, unity_binary, expected_fp, catalog, candidates, probe),
         )
     finally:
         store.close()
@@ -214,7 +260,8 @@ def _environment_probe(backend: UnityCliBackend, project: Path, port: int, unity
     }
 
 
-def _identity(project, port, unity_binary, fixture_hash, catalog, candidates) -> dict[str, Any]:
+def _identity(project, port, unity_binary, fixture_hash, catalog, candidates, probe: dict[str, Any] | None = None) -> dict[str, Any]:
+    probe = probe or {}
     return {
         "label": SMOKE_LABEL,
         "lab_git": _git_head(),
@@ -223,7 +270,13 @@ def _identity(project, port, unity_binary, fixture_hash, catalog, candidates) ->
         "port": port,
         "pipeline_version": _pipeline_version(project),
         "cli_binary": str(unity_binary),
+        "cli_version": probe.get("cli_version"),
         "codex_binary": "codex",
+        "codex_version": probe.get("codex_version"),
+        "unity_version": probe.get("unity_version"),
+        "listener_pid": probe.get("listener_pid"),
+        "worktree_dirty": _worktree_dirty(),
+        "lab_content_hash": _lab_content_hash(),
         "model": "gpt-6-luna",
         "reasoning": "low",
         "fixture_hash": fixture_hash,
@@ -265,9 +318,52 @@ def _first_line(command: list[str]) -> str:
     return text.splitlines()[0] if text else ""
 
 
+def _observe_task(backend, task: dict[str, Any]) -> dict[str, Any]:
+    oracle = task.get("oracle") or {}
+    unity_field = oracle.get("unity_field")
+    return observe_state(
+        backend,
+        include_assets=unity_field in {"guid", "error_code", "compilation_failed", "file_text"}
+        or bool(oracle.get("asset_name") or oracle.get("text_path")),
+        reload_scene=False,
+        asset_name=oracle.get("asset_name"),
+        text_path=oracle.get("text_path"),
+        want_other=unity_field == "other_object_name",
+    )
+
+
 def _git_head() -> str:
     proc = subprocess.run(["git", "-C", str(PACKAGE_ROOT), "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
     return (proc.stdout or "").strip()
+
+
+def _worktree_dirty() -> bool:
+    proc = subprocess.run(
+        ["git", "-C", str(PACKAGE_ROOT), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    for line in (proc.stdout or "").splitlines():
+        if "architecture_lab/evidence/" in line:
+            continue
+        return True
+    return False
+
+
+def _lab_content_hash() -> str:
+    """Hash the lab tree except evidence, so a dirty run is not just HEAD."""
+    digest = hashlib.sha256()
+    files = [path for path in LAB_ROOT.rglob("*") if path.is_file()]
+    for path in sorted(files, key=lambda item: item.relative_to(LAB_ROOT).as_posix()):
+        relative = path.relative_to(LAB_ROOT).as_posix()
+        if relative.startswith("evidence/") or "__pycache__" in relative or relative.endswith(".pyc"):
+            continue
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
 
 
 def _norm(path: str) -> str:

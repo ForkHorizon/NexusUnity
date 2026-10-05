@@ -4,23 +4,57 @@ from __future__ import annotations
 
 import json
 import math
-import re
 from typing import Any
 
-_JSON_OBJECT = re.compile(r"\{.*\}", re.S)
-
-
 def extract_json_object(text: str) -> dict[str, Any] | None:
+    """Return the first JSON object in text.
+
+    A greedy brace match joins two objects into one invalid span and rejects a
+    correct answer. Strings are skipped so a brace inside a value is not a closer.
+    """
     if not text:
         return None
-    match = _JSON_OBJECT.search(text)
-    if not match:
-        return None
-    try:
-        value = json.loads(match.group(0))
-    except json.JSONDecodeError:
-        return None
-    return value if isinstance(value, dict) else None
+    start = 0
+    while True:
+        index = text.find("{", start)
+        if index < 0:
+            return None
+        blob = _balanced_object(text, index)
+        if blob is None:
+            return None
+        try:
+            value = json.loads(blob)
+        except json.JSONDecodeError:
+            start = index + 1
+            continue
+        if isinstance(value, dict):
+            return value
+        start = index + len(blob)
+
+
+def _balanced_object(text: str, start: int) -> str | None:
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : index + 1]
+    return None
 
 
 def model_claimed_success(text: str) -> bool:

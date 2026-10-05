@@ -9,6 +9,7 @@
   "expected_evidence": "unity observation",
   "cleanup": "reset_pristine",
   "timeout_s": 240,
+  "scoreable": false,
   "task_id": "search.visual_game_view",
   "split": "search",
   "category": "visual",

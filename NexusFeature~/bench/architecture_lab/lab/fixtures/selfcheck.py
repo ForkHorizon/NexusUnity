@@ -79,19 +79,28 @@ def check_task(
         return _invalid(task, "pristine live state mismatch: " + ",".join(problems), observation=before)
     expected_fp = reloaded["fingerprint"]
     observation = dict(before)
+    oracle = task["oracle"]
     if "plant_compile_error" in (task.get("setup") or []):
         plant_compile_error(project)
         observation["error_code"] = collect_error_code(backend, pause=pause)
-    elif task["oracle"]["type"] == "unity_field_equals":
+    elif oracle["type"] == "unity_field_equals":
         target = (find_marker(backend) or {}).get("object_name")
-        field = WRITE_FIELDS.get(task["oracle"]["unity_field"])
+        field = WRITE_FIELDS.get(oracle["unity_field"])
         if not target or not field:
             return _invalid(task, "write reference could not resolve the target")
-        write_field(backend, target, field, task["oracle"]["expected"])
+        write_field(backend, target, field, oracle["expected"])
         # Do not reopen. open_scene reloads the scene file and drops this edit.
         observation = observe_state(backend, include_assets=False, reload_scene=False)
-    elif task["required_capability_class"] in {"rare", "out_of_default", "asset_read", "diagnose"}:
-        observation = observe_state(backend, include_assets=True)
+    else:
+        observation = observe_state(
+            backend,
+            include_assets=oracle.get("unity_field") in {"guid", "error_code", "compilation_failed", "file_text"}
+            or task["required_capability_class"] in {"rare", "out_of_default", "asset_read", "diagnose"},
+            reload_scene=False,
+            asset_name=oracle.get("asset_name"),
+            text_path=oracle.get("text_path"),
+            want_other=oracle.get("unity_field") == "other_object_name",
+        )
     text = reference_text(task, observation)
     if text is None:
         return _invalid(task, "reference path produced no oracle value", observation=observation)

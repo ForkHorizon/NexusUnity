@@ -11,7 +11,15 @@ _CS = re.compile(r"\bCS\d{4}\b")
 _GUID = re.compile(r"\b[0-9a-f]{32}\b")
 
 
-def observe_state(backend, *, include_assets: bool = False, reload_scene: bool = True) -> dict[str, Any]:
+def observe_state(
+    backend,
+    *,
+    include_assets: bool = False,
+    reload_scene: bool = True,
+    asset_name: str | None = None,
+    text_path: str | None = None,
+    want_other: bool = False,
+) -> dict[str, Any]:
     """One consistent read of the fields the benchmark tasks name.
 
     reload_scene=False reads the scene that is already open. open_scene reloads
@@ -35,10 +43,14 @@ def observe_state(backend, *, include_assets: bool = False, reload_scene: bool =
         "unity_version": status.get("unityVersion"),
         "port": status.get("port"),
     }
-    if include_assets:
+    if include_assets or asset_name or text_path:
         observation["compilation_failed"] = _compilation_failed(backend("console_status", {}))
-        observation["guid"] = _guid_from_assets(backend)
+        observation["guid"] = _guid_from_assets(backend, asset_name or "readme")
         observation["error_code"] = extract_cs(backend("recompile_status", {}))
+    if text_path:
+        observation["file_text"] = _file_text(backend, text_path)
+    if want_other:
+        observation["other_object_name"] = _other_root(backend, name)
     return observation
 
 
@@ -89,14 +101,58 @@ def _find_bool(node: Any, keys: tuple[str, ...]) -> bool | None:
     return None
 
 
-def _guid_from_assets(backend) -> str | None:
+def _command_result(result: dict[str, Any]) -> Any:
+    from lab.adapters.unity_cli import command_body
+
+    payload = result.get("payload") if isinstance(result, dict) else None
+    return command_body(payload)
+
+
+def _guid_from_assets(backend, name: str = "readme") -> str | None:
     result = backend(
         "find_assets",
-        {"name": "readme", "search_in": "Assets/LabFixture/Notes", "limit": 20},
+        {"name": name, "search_in": "Assets/LabFixture/Notes", "limit": 20},
     )
+    data = _command_result(result)
+    assets = data.get("assets") if isinstance(data, dict) else None
+    if isinstance(assets, list):
+        for asset in assets:
+            if not isinstance(asset, dict):
+                continue
+            path = str(asset.get("assetPath") or "")
+            if name in path and isinstance(asset.get("guid"), str):
+                return asset["guid"]
     text = _flatten(result)
     match = _GUID.search(text)
     return match.group(0) if match else None
+
+
+def _file_text(backend, path: str) -> str | None:
+    result = backend("read_text_file", {"path": path})
+    data = _command_result(result)
+    if isinstance(data, dict) and isinstance(data.get("contents"), str):
+        return data["contents"].strip()
+    return None
+
+
+def _other_root(backend, marker_name: str | None) -> str | None:
+    result = backend("find_gameobjects", {"include_inactive": True})
+    data = _command_result(result)
+    objects = data.get("gameObjects") if isinstance(data, dict) else None
+    if not isinstance(objects, list):
+        return None
+    names = []
+    for item in objects:
+        if not isinstance(item, dict):
+            continue
+        path = str(item.get("hierarchyPath") or "")
+        leaf = path.rstrip("/").split("/")[-1]
+        if leaf:
+            names.append(leaf)
+    others = [leaf for leaf in names if leaf != marker_name]
+    if len(others) != 1:
+        return None
+    return others[0]
 
 
 def _body(result: dict[str, Any]) -> Any:

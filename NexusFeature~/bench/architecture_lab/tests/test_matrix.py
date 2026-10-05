@@ -14,7 +14,7 @@ from lab.candidates.baselines import smoke_hidden_gateway, smoke_official_subset
 from lab.catalog.extract import load_catalog
 from lab.fixtures.observe import _compilation_failed, extract_cs, observe_state, pristine_match
 from lab.fixtures.selfcheck import check_task
-from lab.runners.matrix import run_smoke_matrix
+from lab.runners.matrix import _acceptable_backend_call, _annotate_calls, run_smoke_matrix
 from lab.search.feasibility import classify_candidate
 from lab.surfaces.generate import generate_surface
 from lab.telemetry.calls import summarize_calls
@@ -144,13 +144,15 @@ class ForeignHooks(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             editor = Path(tmp) / "Assets" / "Editor"
             editor.mkdir(parents=True)
-            (editor / "YardOpen.cs").write_text("hook\n", encoding="utf-8")
+            (editor / "YardOpen.cs").write_text("[InitializeOnLoad]\nYard.unity\n", encoding="utf-8")
             (editor / "YardOpen.cs.meta").write_text("meta\n", encoding="utf-8")
             (editor / "LabFixtureReset.cs").write_text("keep\n", encoding="utf-8")
             removed = neutralize_foreign_hooks(Path(tmp))
             self.assertEqual(removed, ["YardOpen.cs"])
-            self.assertFalse((editor / "YardOpen.cs").exists())
-            self.assertTrue((editor / "YardOpen.cs.off").is_file())
+            stub = (editor / "YardOpen.cs").read_text(encoding="utf-8")
+            self.assertNotIn("InitializeOnLoad", stub)
+            self.assertNotIn("Yard.unity", stub)
+            self.assertIn("InitializeOnLoad", (editor / "YardOpen.cs.off").read_text(encoding="utf-8"))
             self.assertTrue((editor / "LabFixtureReset.cs").is_file())
             self.assertEqual(neutralize_foreign_hooks(Path(tmp)), [])
 
@@ -227,18 +229,18 @@ class Matrix(unittest.TestCase):
 
         def codex_run(surface, task, run_id):
             started["n"] += 1
-            name = surface["model_visible_names"][0]
+            name = "find_gameobjects" if "find_gameobjects" in surface["model_visible_names"] else "nexus_find_gameobjects"
             return {
                 "status": "completed",
                 "final_message": json.dumps({"object_name": "LabReadTarget", "status": "done"}),
                 "events": [{"type": "turn.completed", "usage": {"input_tokens": 20, "output_tokens": 5, "cached_input_tokens": 0}}],
-                "tool_calls": [{"exposed_name": "find_gameobjects" if "find_gameobjects" in surface["model_visible_names"] else name, "arguments": {}, "ok": True}],
+                "tool_calls": [{"exposed_name": name, "arguments": {}, "ok": True}],
                 "backend_telemetry": [{"backend_command": "find_gameobjects", "ok": True}],
                 "surface_bypass": False,
                 "usage": {"status": "MEASURED", "uncached_input_tokens": 20, "cached_input_tokens": 0, "output_tokens": 5, "total_tokens": 25, "reasoning_tokens": None},
             }
 
-        def observe():
+        def observe(task):
             return {
                 "open_ok": True,
                 "object_name": "LabReadTarget",
@@ -334,7 +336,7 @@ class Matrix(unittest.TestCase):
                 "usage": {"status": "MEASURED", "uncached_input_tokens": 10, "cached_input_tokens": 0, "output_tokens": 2, "total_tokens": 12},
             }
 
-        def observe():
+        def observe(task):
             return {"open_ok": True, "object_name": "LabReadTarget", "intensity": 1.25, "revision": 7, "marker_name": "readable", "play_mode": "stopped", "editor_status": "ready", "compiling": False}
 
         tasks = [
@@ -404,3 +406,333 @@ class Matrix(unittest.TestCase):
         data = outgoing.buffer.getvalue()
         self.assertIn(b"nexus_set_field", data)
         self.assertNotIn(b"set_serialized_field", data)
+
+    def test_mcp_ndjson_replies_with_ndjson(self):
+        surface = {
+            "tools": [{"name": "nexus_find_gameobjects", "description": "find", "inputSchema": {"type": "object"}}],
+            "lazy": [],
+            "resolution": {},
+        }
+        init = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "codex", "version": "0"}},
+        }
+        listed = {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+        raw = (json.dumps(init) + "\n" + json.dumps(listed) + "\n").encode("utf-8")
+        outgoing = _Stream()
+        serve(surface, CATALOG, lambda command, arguments: {"ok": True}, _Stream(raw), outgoing)
+        data = outgoing.buffer.getvalue()
+        self.assertNotIn(b"Content-Length", data)
+        lines = [json.loads(line) for line in data.splitlines() if line.strip()]
+        self.assertEqual(lines[0]["result"]["protocolVersion"], "2025-11-25")
+        self.assertEqual(lines[1]["result"]["tools"][0]["name"], "nexus_find_gameobjects")
+
+    def test_backend_timing_is_kept_on_the_tool_call(self):
+        surface = {
+            "resolution": {
+                "find_gameobjects": {
+                    "kind": "typed",
+                    "capability_id": "find_gameobjects",
+                    "backend_name": "find_gameobjects",
+                }
+            },
+            "lazy": [],
+        }
+        calls, _summary = _annotate_calls(
+            surface,
+            {
+                "tool_calls": [{"exposed_name": "find_gameobjects", "arguments": {}, "visible_bytes": 12}],
+                "backend_telemetry": [
+                    {
+                        "ok": True,
+                        "ts": "2026-10-05T00:00:00+00:00",
+                        "duration_ms": 40,
+                        "result_bytes": 80,
+                        "backend_command": "find_gameobjects",
+                    }
+                ],
+            },
+            {"acceptable_capabilities": ["find_gameobjects"]},
+        )
+        self.assertEqual(calls[0]["ts"], "2026-10-05T00:00:00+00:00")
+        self.assertEqual(calls[0]["duration_ms"], 40)
+        self.assertEqual(calls[0]["result_bytes"], 80)
+        self.assertEqual(calls[0]["visible_bytes"], 12)
+        self.assertTrue(calls[0]["backend_reached"])
+
+    def test_a_guess_without_a_backend_call_is_not_success(self):
+        def probe():
+            return _ready_probe()
+
+        def prepare(task):
+            return {"ok": True, "fingerprint": "abc"}
+
+        def codex_run(surface, task, run_id):
+            return {
+                "status": "completed",
+                "final_message": json.dumps({"object_name": "LabReadTarget", "status": "done"}),
+                "events": [{"usage": {"input_tokens": 8, "output_tokens": 2, "cached_input_tokens": 0}}],
+                "tool_calls": [],
+                "backend_telemetry": [],
+                "usage": {"status": "MEASURED", "uncached_input_tokens": 8, "cached_input_tokens": 0, "output_tokens": 2, "total_tokens": 10},
+            }
+
+        task = json.loads((ROOT / "tasks" / "search" / "read_object_name.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            store = RunStore(Path(tmp) / "runs.sqlite")
+            result = run_smoke_matrix(
+                catalog=CATALOG,
+                tasks=[task],
+                candidates=[smoke_official_subset(CATALOG)],
+                store=store,
+                expected_probe=probe(),
+                probe=probe,
+                prepare_task=prepare,
+                codex_run=codex_run,
+                observe=lambda task: _scene(),
+                price_profile={"uncached_input_per_million": None, "cached_input_per_million": None, "output_per_million": None},
+                seed=1,
+                experiment_id="guess",
+                identity={"label": "SMOKE_ONLY"},
+            )
+            store.close()
+        self.assertFalse(result["runs"][0]["oracle_success"])
+        self.assertTrue(result["runs"][0]["false_success"])
+        self.assertFalse(result["rows"][0]["feasible"])
+
+    def test_cleanup_failure_taints_the_other_candidate(self):
+        calls = {"cleanup": 0}
+
+        def prepare(task):
+            return {"ok": True, "fingerprint": "abc"}
+
+        def cleanup(task):
+            calls["cleanup"] += 1
+            if calls["cleanup"] == 1:
+                return {"ok": False, "fingerprint": "abc", "reason": "dirty"}
+            return {"ok": True, "fingerprint": "abc"}
+
+        def codex_run(surface, task, run_id):
+            name = "find_gameobjects" if "find_gameobjects" in surface["model_visible_names"] else "nexus_find_gameobjects"
+            return {
+                "status": "completed",
+                "final_message": json.dumps({"object_name": "LabReadTarget"}),
+                "events": [{"usage": {"input_tokens": 8, "output_tokens": 2, "cached_input_tokens": 0}}],
+                "tool_calls": [{"exposed_name": name, "arguments": {}, "ok": True}],
+                "backend_telemetry": [{"ok": True, "backend_command": "find_gameobjects"}],
+                "usage": {"status": "MEASURED", "uncached_input_tokens": 8, "cached_input_tokens": 0, "output_tokens": 2, "total_tokens": 10},
+            }
+
+        task = json.loads((ROOT / "tasks" / "search" / "read_object_name.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            store = RunStore(Path(tmp) / "runs.sqlite")
+            result = run_smoke_matrix(
+                catalog=CATALOG,
+                tasks=[task],
+                candidates=[smoke_official_subset(CATALOG), smoke_hidden_gateway(CATALOG)],
+                store=store,
+                expected_probe=_ready_probe(),
+                probe=_ready_probe,
+                prepare_task=prepare,
+                cleanup_task=cleanup,
+                codex_run=codex_run,
+                observe=lambda task: _scene(),
+                price_profile={"uncached_input_per_million": None, "cached_input_per_million": None, "output_per_million": None},
+                seed=1,
+                experiment_id="taint",
+                identity={"label": "SMOKE_ONLY"},
+            )
+            store.close()
+        self.assertTrue(all(not row["feasible"] for row in result["rows"]))
+        self.assertTrue(all("experiment_tainted" in row["reasons"] for row in result["rows"]))
+
+    def test_mechanism_mismatch_blocks_the_whole_experiment(self):
+        def codex_run(surface, task, run_id):
+            mismatch = "find_gameobjects" in surface["model_visible_names"]
+            name = "find_gameobjects" if mismatch else "nexus_find_gameobjects"
+            return {
+                "status": "mechanism_mismatch" if mismatch else "completed",
+                "mechanism_mismatch": mismatch,
+                "final_message": json.dumps({"object_name": "LabReadTarget"}),
+                "events": [{"usage": {"input_tokens": 8, "output_tokens": 2, "cached_input_tokens": 0}}],
+                "tool_calls": [{"exposed_name": name, "arguments": {}, "ok": True}],
+                "backend_telemetry": [{"ok": True}],
+                "usage": {"status": "MEASURED", "uncached_input_tokens": 8, "cached_input_tokens": 0, "output_tokens": 2, "total_tokens": 10},
+            }
+
+        task = json.loads((ROOT / "tasks" / "search" / "read_object_name.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            store = RunStore(Path(tmp) / "runs.sqlite")
+            result = run_smoke_matrix(
+                catalog=CATALOG,
+                tasks=[task],
+                candidates=[smoke_official_subset(CATALOG), smoke_hidden_gateway(CATALOG)],
+                store=store,
+                expected_probe=_ready_probe(),
+                probe=_ready_probe,
+                prepare_task=lambda task: {"ok": True, "fingerprint": "abc"},
+                codex_run=codex_run,
+                observe=lambda task: _scene(),
+                price_profile={"uncached_input_per_million": None, "cached_input_per_million": None, "output_per_million": None},
+                seed=1,
+                experiment_id="mismatch",
+                identity={"label": "SMOKE_ONLY"},
+            )
+            store.close()
+        self.assertTrue(all(not row["feasible"] for row in result["rows"]))
+        self.assertTrue(any(row["status"] == "mechanism_mismatch" for row in result["runs"]))
+
+    def test_composite_steps_share_one_telemetry_line(self):
+        from lab.adapters.mcp_server import CallLog
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "backend.jsonl"
+            path.write_text("stale\n", encoding="utf-8")
+            log = CallLog(path)
+            logged = log.wrap(lambda command, arguments: {"ok": True, "payload": {"command": command}, "exit_code": 0})
+            logged("recompile", {"focus": False})
+            logged("recompile_status", {})
+            log.flush_call()
+            lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        self.assertEqual(len(lines), 1)
+        body = json.loads(lines[0])
+        self.assertEqual(body["step_count"], 2)
+        self.assertEqual(body["backend_command"], "recompile,recompile_status")
+        self.assertTrue(body["backend_reached"])
+
+    def test_a_miss_does_not_inherit_the_next_unity_call(self):
+        surface = {
+            "resolution": {
+                "find_gameobjects": {
+                    "kind": "typed",
+                    "capability_id": "find_gameobjects",
+                    "backend_name": "find_gameobjects",
+                }
+            },
+            "lazy": [],
+        }
+        calls, _summary = _annotate_calls(
+            surface,
+            {
+                "tool_calls": [
+                    {"exposed_name": "lab_invoke", "arguments": {"name": "missing"}},
+                    {"exposed_name": "find_gameobjects", "arguments": {}, "visible_bytes": 4},
+                ],
+                "backend_telemetry": [
+                    {"backend_reached": False, "step_count": 0, "ok": False},
+                    {
+                        "backend_reached": True,
+                        "step_count": 1,
+                        "ok": True,
+                        "ts": "2026-10-05T00:00:01+00:00",
+                        "duration_ms": 15,
+                        "result_bytes": 9,
+                        "backend_command": "find_gameobjects",
+                    },
+                ],
+            },
+            {"acceptable_capabilities": ["find_gameobjects"]},
+        )
+        self.assertFalse(calls[0]["backend_reached"])
+        self.assertIsNone(calls[0]["capability_id"])
+        self.assertTrue(calls[1]["backend_reached"])
+        self.assertEqual(calls[1]["capability_id"], "find_gameobjects")
+        self.assertEqual(calls[1]["duration_ms"], 15)
+
+    def test_zero_step_call_is_still_one_telemetry_line(self):
+        from lab.adapters.mcp_server import CallLog
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "backend.jsonl"
+            log = CallLog(path)
+            log.flush_call()
+            logged = log.wrap(lambda command, arguments: {"ok": True, "payload": {"command": command}, "exit_code": 0})
+            logged("find_gameobjects", {"name": "LabReadTarget"})
+            log.flush_call()
+            lines = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        self.assertEqual(len(lines), 2)
+        self.assertFalse(lines[0]["backend_reached"])
+        self.assertEqual(lines[0]["step_count"], 0)
+        self.assertTrue(lines[1]["backend_reached"])
+        self.assertEqual(lines[1]["backend_command"], "find_gameobjects")
+
+    def test_play_mode_decoy_is_not_success(self):
+        task = json.loads((ROOT / "tasks" / "search" / "project_playmode.json").read_text(encoding="utf-8"))
+        self.assertNotIn("nexus_project_map", task["acceptable_capabilities"])
+        self.assertFalse(
+            _acceptable_backend_call(
+                [{"backend_reached": True, "capability_id": "nexus_project_map"}],
+                task,
+            )
+        )
+        self.assertTrue(
+            _acceptable_backend_call(
+                [{"backend_reached": True, "capability_id": "editor_status"}],
+                task,
+            )
+        )
+
+        def codex_run(surface, task, run_id):
+            return {
+                "status": "completed",
+                "final_message": json.dumps({"play_mode": "stopped", "status": "done"}),
+                "events": [{"usage": {"input_tokens": 8, "output_tokens": 2, "cached_input_tokens": 0}}],
+                "tool_calls": [{"exposed_name": "find_gameobjects", "arguments": {}, "ok": True}],
+                "backend_telemetry": [{"ok": True, "backend_command": "find_gameobjects", "backend_reached": True, "step_count": 1}],
+                "usage": {"status": "MEASURED", "uncached_input_tokens": 8, "cached_input_tokens": 0, "output_tokens": 2, "total_tokens": 10},
+            }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = RunStore(Path(tmp) / "runs.sqlite")
+            result = run_smoke_matrix(
+                catalog=CATALOG,
+                tasks=[task],
+                candidates=[smoke_official_subset(CATALOG)],
+                store=store,
+                expected_probe=_ready_probe(),
+                probe=_ready_probe,
+                prepare_task=lambda task: {"ok": True, "fingerprint": "abc"},
+                codex_run=codex_run,
+                observe=lambda task: _scene(),
+                price_profile={"uncached_input_per_million": None, "cached_input_per_million": None, "output_per_million": None},
+                seed=1,
+                experiment_id="playmode",
+                identity={"label": "SMOKE_ONLY"},
+            )
+            store.close()
+        self.assertFalse(result["runs"][0]["oracle_success"])
+        self.assertTrue(result["runs"][0]["false_success"])
+        self.assertFalse(result["rows"][0]["feasible"])
+
+
+def _ready_probe():
+    return {
+        "port": 7811,
+        "listener_pid": 999,
+        "project_path": "/tmp/nexus-arch-lab",
+        "pipeline_version": "0.8.0-exp.1",
+        "cli_version": "1.0.0-beta.12",
+        "codex_version": "0.160.0",
+        "unity_version": "6000.3.16f1",
+        "fixture_hash": "abc",
+        "model": "gpt-6-luna",
+        "compiling": False,
+        "play_mode": False,
+        "ready": True,
+        "agent_cwd": "/tmp/empty",
+    }
+
+
+def _scene():
+    return {
+        "open_ok": True,
+        "object_name": "LabReadTarget",
+        "intensity": 1.25,
+        "revision": 7,
+        "marker_name": "readable",
+        "play_mode": "stopped",
+        "editor_status": "ready",
+        "compiling": False,
+    }

@@ -48,30 +48,38 @@ def prepare_project(source: Path = DEFAULT_SOURCE, destination: Path = DEFAULT_P
     return {"project": str(destination), "port": str(port), "package": str(PACKAGE_ROOT)}
 
 
+_YARD_STUB = (
+    "// Parked discovery harness. This file stays so the script list is not a missing path.\n"
+    "internal static class YardOpenParked\n"
+    "{\n"
+    "}\n"
+)
+
+
 def neutralize_foreign_hooks(project: Path) -> list[str]:
-    """Park editor scripts that open a different scene on every domain reload.
+    """Replace editor scripts that open a different scene on every domain reload.
 
     The copied discovery harness starts YardOpen, which replaces the active
-    scene with DiscFixture. That would discard a lab write before the oracle.
+    scene with DiscFixture. Deleting the file leaves CS2001 in the compiler
+    response, and that error then fails every diagnose reset. The original
+    source is kept beside it as YardOpen.cs.off. The .cs path stays as a stub.
     """
     if "UnityTestForNexus" in str(project):
         raise SafetyError("refusing to edit the harness")
     editor = project / "Assets" / "Editor"
     removed = []
-    for name in ("YardOpen.cs",):
-        path = editor / name
-        if not path.is_file():
-            continue
-        parked = path.with_name(name + ".off")
-        if parked.exists():
-            parked.unlink()
-        path.rename(parked)
-        meta = path.with_suffix(path.suffix + ".meta")
-        if meta.is_file():
-            meta_parked = parked.with_suffix(parked.suffix + ".meta")
-            if meta_parked.exists():
-                meta_parked.unlink()
-            meta.rename(meta_parked)
+    name = "YardOpen.cs"
+    path = editor / name
+    parked = editor / (name + ".off")
+    if path.is_file():
+        text = path.read_text(encoding="utf-8")
+        if "InitializeOnLoad" in text or "DiscFixture" in text or "Yard.unity" in text:
+            if not parked.exists():
+                parked.write_text(text, encoding="utf-8")
+            path.write_text(_YARD_STUB, encoding="utf-8")
+            removed.append(name)
+    elif parked.is_file() and not path.exists():
+        path.write_text(_YARD_STUB, encoding="utf-8")
         removed.append(name)
     return removed
 

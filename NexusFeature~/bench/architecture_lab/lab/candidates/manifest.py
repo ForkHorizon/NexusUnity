@@ -221,16 +221,23 @@ def reachable_ids(candidate: dict[str, Any]) -> set[str]:
 
 
 def coverage_report(candidate: dict[str, Any], tasks: list[dict[str, Any]], catalog: dict[str, Any]) -> dict[str, Any]:
-    """Required classes come from the tasks being scored, not from the whole catalog."""
+    """Each scored task must be able to reach one of its own acceptable capabilities.
+
+    A class stays covered when any sibling in the class map is reachable. That
+    lets a candidate delete the tool the task actually accepts and still look
+    complete. The task's acceptable list is the requirement.
+    """
     class_map = catalog["class_map"]
     reached = reachable_ids(candidate)
     required = sorted({task["required_capability_class"] for task in tasks})
     missing = []
-    for name in required:
-        options = class_map.get(name) or []
+    for task in tasks:
+        options = list(task.get("acceptable_capabilities") or [])
+        if not options:
+            options = list(class_map.get(task["required_capability_class"]) or [])
         if not any(option in reached for option in options):
-            missing.append(name)
-    ratio = 1.0 if not required else (len(required) - len(missing)) / len(required)
+            missing.append(task["task_id"])
+    ratio = 1.0 if not tasks else (len(tasks) - len(missing)) / len(tasks)
     return {
         "required_classes": required,
         "missing_classes": missing,

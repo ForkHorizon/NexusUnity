@@ -18,7 +18,7 @@ candidate manifest
 
 The physical command set and the model-visible list are different objects. Two candidates can call the same Unity command under different names.
 
-Codex 0.160 does not update its tool list mid-run, and deferred schema retrieval is off. `dynamic_tool_list` and `deferred_retrieval` raise. Lazy exposure in this version is `describe_invoke`, `unity_tags`, or `domain_discovery`. The surface records `mechanism_actually_used`. Nothing is silently swapped.
+Codex 0.160 does not update its tool list mid-run, and deferred schema retrieval is off. `dynamic_tool_list` and `deferred_retrieval` raise. Lazy exposure in this version is `describe_invoke`, `unity_tags`, or `domain_discovery`. The surface records `mechanism_actually_used`. Nothing is silently swapped. A `tool_search` event is a mechanism mismatch and taints the experiment. A shell, image, custom tool, or foreign MCP server is a surface bypass. The runner does not paste tool names into the prompt.
 
 ## Layout
 
@@ -76,7 +76,7 @@ bin/architecture-lab editor-stop
 
 ## Fixture self-check
 
-Self-check opens the lab scene through the official CLI, solves each task on that path, runs the oracle, resets the files, and checks the live fields. A task that fails is `INVALID` and is not scored. The visual task has no deterministic pixels in v1, so it stays invalid. That is not a reason to weaken the oracle.
+Self-check opens the lab scene through the official CLI, solves each task on that path, runs the oracle, resets the files, and checks the live fields. A task that fails is `INVALID` and is not scored. The visual task has no deterministic pixels in v1, so it stays invalid and `scoreable: false`. The search loader omits it. That is not a reason to weaken the oracle. A later result does not measure visual skill.
 
 ```bash
 bin/architecture-lab self-check
@@ -113,7 +113,7 @@ bin/architecture-lab degeneracy
 
 ## Validation and holdout
 
-`load_search_tasks` is the only loader the mutation engine may call. Asking it for `validation` or `holdout` raises `HoldoutLeak`. `lab/validation/confirm.py` is the confirmation reader. `lab/search/engine.py` does not import it.
+`load_search_tasks` is the only loader the mutation engine may call. Asking it for `validation` or `holdout` raises `HoldoutLeak`. `lab/validation/confirm.py` is the confirmation reader. `lab/search/engine.py` does not import it. Validation and holdout tasks are different problems from the search tasks: another root object, another note GUID, holdout note text, and the editor version. A search success does not contain those answers.
 
 A search-set result cannot become `FINALIST` or `CONFIRMED`. Freeze requires `FINALIST`. Mutating a frozen manifest returns a new id and `GENERATED`.
 

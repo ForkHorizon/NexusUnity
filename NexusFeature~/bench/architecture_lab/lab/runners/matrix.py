@@ -37,10 +37,12 @@ def run_smoke_matrix(
     seed: int,
     experiment_id: str,
     identity: dict[str, Any],
+    cleanup_task=None,
 ) -> dict[str, Any]:
     store.add_experiment(experiment_id, SMOKE_LABEL, identity)
     surfaces = []
     records = []
+    cleanup_task = cleanup_task or prepare_task
     for candidate in candidates:
         surface = generate_surface(candidate, catalog)
         surface["candidate"] = candidate
@@ -57,6 +59,7 @@ def run_smoke_matrix(
                     expected_probe=expected_probe,
                     probe=probe,
                     prepare_task=prepare_task,
+                    cleanup_task=cleanup_task,
                     codex_run=codex_run,
                     observe=observe,
                     price_profile=price_profile,
@@ -96,8 +99,8 @@ def smoke_acceptance(records: list[dict[str, Any]], surfaces: list[dict[str, Any
             failures.append(f"{row['run_id']} has no raw events")
         if row["model"] != "gpt-6-luna":
             failures.append(f"{row['run_id']} model is {row['model']}")
-        if row["status"] == "surface_bypass":
-            failures.append(f"{row['run_id']} used a tool outside the candidate surface")
+        if row["status"] in {"surface_bypass", "mechanism_mismatch"}:
+            failures.append(f"{row['run_id']} was not the candidate surface ({row['status']})")
         if not row["oracle_evaluated"]:
             failures.append(f"{row['run_id']} oracle did not see Unity state")
     by_candidate: dict[str, list[dict[str, Any]]] = {}
@@ -116,7 +119,7 @@ def smoke_acceptance(records: list[dict[str, Any]], surfaces: list[dict[str, Any
     return {"ok": not failures, "failures": failures}
 
 
-def _one_run(*, candidate, surface, task, store, expected_probe, probe, prepare_task, codex_run, observe, price_profile, seed, experiment_id) -> dict[str, Any]:
+def _one_run(*, candidate, surface, task, store, expected_probe, probe, prepare_task, cleanup_task, codex_run, observe, price_profile, seed, experiment_id) -> dict[str, Any]:
     run_id = f"{experiment_id}-{candidate['candidate_id']}-{task['task_id']}-s{seed}"
     gate = preflight(expected_probe, probe())
     prepared = {"ok": False, "fingerprint": None, "reason": "not prepared"}
@@ -162,22 +165,36 @@ def _one_run(*, candidate, surface, task, store, expected_probe, probe, prepare_
     started = time.monotonic()
     outcome = codex_run(surface, task, run_id)
     wall_ms = int((time.monotonic() - started) * 1000)
-    observation = observe()
+    observation = observe(task)
     verdict = evaluate(task, outcome.get("final_message") or "", observation)
-    if outcome.get("surface_bypass"):
-        # A side path can change Unity and still be an invalid measurement.
+    calls, summary = _annotate_calls(surface, outcome, task)
+    # A matching sentence without an acceptable Unity call is a guess.
+    # A foreign tool or a client mechanism substitution is not that candidate.
+    if outcome.get("surface_bypass") or outcome.get("mechanism_mismatch") or not _acceptable_backend_call(calls, task):
         verdict = {
             **verdict,
             "oracle_success": False,
             "false_success": bool(verdict.get("model_claimed_success")),
         }
-    calls, summary = _annotate_calls(surface, outcome, task)
     usage = dict(outcome.get("usage") or {"status": "MISSING"})
     usage["cost"] = estimate_cost(usage, price_profile)
-    status = "surface_bypass" if outcome.get("surface_bypass") else (outcome.get("status") or "completed")
-    cleanup = prepare_task(task)
-    after = observe()
+    if outcome.get("surface_bypass"):
+        status = "surface_bypass"
+    elif outcome.get("mechanism_mismatch"):
+        status = "mechanism_mismatch"
+    else:
+        status = outcome.get("status") or "completed"
+    cleanup = cleanup_task(task)
+    after = observe(task)
     cleanup_ok = bool(cleanup.get("ok")) and not pristine_match(after) and cleanup.get("fingerprint") == prepared.get("fingerprint")
+    if not cleanup_ok:
+        # The arm may have edited Unity and then failed to restore it.
+        # Keeping the success would rank the arm that dirtied the fixture.
+        verdict = {
+            **verdict,
+            "oracle_success": False,
+            "false_success": bool(verdict.get("model_claimed_success")),
+        }
     unity_field = task["oracle"]["unity_field"]
     row = {
         **base,
@@ -202,6 +219,44 @@ def _one_run(*, candidate, surface, task, store, expected_probe, probe, prepare_
     return row
 
 
+_LAB_SERVER = "architecture_lab"
+
+
+def _acceptable_backend_call(calls: list[dict[str, Any]], task: dict[str, Any]) -> bool:
+    acceptable = set(task.get("acceptable_capabilities") or [])
+    if not acceptable:
+        return False
+    return any(bool(call.get("backend_reached")) and call.get("capability_id") in acceptable for call in calls)
+
+
+def _lab_tool_call(raw: dict[str, Any]) -> bool:
+    server = raw.get("server")
+    return server in (None, "", _LAB_SERVER)
+
+
+def _telemetry_reached(line: dict[str, Any]) -> bool:
+    """A paired line counts only when that call itself ran Unity.
+
+    Older lines omitted the flag and were written only after a backend call.
+    A zero-step line sets the flag false so it cannot donate the next call's
+    success to a miss.
+    """
+    if "backend_reached" in line:
+        return bool(line["backend_reached"])
+    steps = line.get("step_count")
+    if steps is not None:
+        return int(steps) > 0
+    return True
+
+
+def _call_field(raw: dict[str, Any], reached: dict[str, Any] | None, key: str) -> Any:
+    if raw.get(key) is not None:
+        return raw.get(key)
+    if reached is not None:
+        return reached.get(key)
+    return None
+
+
 def _annotate_calls(surface: dict[str, Any], outcome: dict[str, Any], task: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
     telemetry = list(outcome.get("backend_telemetry") or [])
     cursor = 0
@@ -209,24 +264,27 @@ def _annotate_calls(surface: dict[str, Any], outcome: dict[str, Any], task: dict
     for raw in outcome.get("tool_calls") or []:
         classified = classify_call(surface, raw)
         reached = None
-        hits_backend = classified["kind"] == "tool" or classified["exposed_name"] == "lab_invoke"
-        if hits_backend and cursor < len(telemetry):
+        # Every lab MCP call writes one line, including a miss. Consuming a
+        # line only for calls that look like tools lets a miss steal the next
+        # call's Unity result.
+        if _lab_tool_call(raw) and cursor < len(telemetry):
             reached = telemetry[cursor]
             cursor += 1
+        backend_reached = _telemetry_reached(reached) if reached is not None else False
         calls.append(
             {
-                "ts": raw.get("ts"),
+                "ts": _call_field(raw, reached, "ts"),
                 "exposed_name": classified["exposed_name"],
                 "capability_id": classified["capability_id"],
                 "backend_command": classified["backend_command"],
                 "arguments": raw.get("arguments") or {},
                 "ok": bool(reached.get("ok")) if reached else False,
-                "backend_reached": reached is not None,
+                "backend_reached": backend_reached,
                 "retry": bool(raw.get("retry")),
-                "error": None if reached and reached.get("ok") else ("backend telemetry missing" if classified["kind"] == "tool" else None),
-                "result_bytes": raw.get("result_bytes"),
+                "error": None if backend_reached and reached and reached.get("ok") else ("backend telemetry missing" if classified["kind"] == "tool" and not backend_reached else None),
+                "result_bytes": _call_field(raw, reached, "result_bytes"),
                 "visible_bytes": raw.get("visible_bytes"),
-                "duration_ms": raw.get("duration_ms"),
+                "duration_ms": _call_field(raw, reached, "duration_ms"),
             }
         )
     return calls, summarize_calls(surface, calls, set(task.get("acceptable_capabilities") or []))
@@ -234,6 +292,7 @@ def _annotate_calls(surface: dict[str, Any], outcome: dict[str, Any], task: dict
 
 def _rows(records: list[dict[str, Any]], tasks: list[dict[str, Any]], catalog: dict[str, Any]) -> list[dict[str, Any]]:
     task_by_id = {task["task_id"]: task for task in tasks}
+    tainted = _experiment_taint(records)
     grouped: dict[str, list[dict[str, Any]]] = {}
     for record in records:
         grouped.setdefault(record["candidate_hash"], []).append(record)
@@ -250,6 +309,7 @@ def _rows(records: list[dict[str, Any]], tasks: list[dict[str, Any]], catalog: d
         wall = sum(int(row["wall_ms"] or 0) for row in scored)
         false_successes = sum(1 for row in group if row.get("false_success"))
         bypasses = sum(1 for row in group if row.get("status") == "surface_bypass")
+        mismatches = sum(1 for row in group if row.get("status") == "mechanism_mismatch")
         rates: dict[str, float] = {}
         buckets: dict[str, list[bool]] = {}
         for row in group:
@@ -269,6 +329,7 @@ def _rows(records: list[dict[str, Any]], tasks: list[dict[str, Any]], catalog: d
                 "category_rates": rates,
                 "usage_status": usage_status,
                 "surface_bypasses": bypasses,
+                "mechanism_mismatches": mismatches,
             },
             {
                 "min_coverage": 1.0,
@@ -277,6 +338,14 @@ def _rows(records: list[dict[str, Any]], tasks: list[dict[str, Any]], catalog: d
                 "require_measured_usage": True,
             },
         ) if scored else {"feasible": False, "semantic_success_rate": 0.0, "reasons": ["no scored runs"]}
+        reasons = list(verdict.get("reasons") or [])
+        if tainted:
+            # A dirty fixture or a substituted mechanism poisons every arm.
+            # The clean arm must not become the winner by surviving the mess.
+            verdict["feasible"] = False
+            for reason in tainted:
+                if reason not in reasons:
+                    reasons.append(reason)
         rows.append(
             {
                 "candidate_id": group[0]["candidate_id"],
@@ -289,16 +358,27 @@ def _rows(records: list[dict[str, Any]], tasks: list[dict[str, Any]], catalog: d
                 "tool_calls_per_success": per_success(tool_calls, successes),
                 "wall_ms_per_success": per_success(wall, successes),
                 "feasible": verdict["feasible"],
-                "reasons": verdict.get("reasons"),
+                "reasons": reasons,
             }
         )
     return rows
+
+
+def _experiment_taint(records: list[dict[str, Any]]) -> list[str]:
+    reasons = []
+    if any(row.get("status") == "mechanism_mismatch" for row in records):
+        reasons.append("mechanism_mismatch")
+    if any(row.get("model_started") and not row.get("cleanup_ok") for row in records):
+        reasons.append("cleanup_taint")
+    if reasons:
+        reasons.append("experiment_tainted")
+    return reasons
 
 
 def _sum_usage(rows: list[dict[str, Any]], key: str) -> int | None:
     if not rows:
         return None
     values = [row["usage"].get(key) for row in rows]
-    if any(value is None for value in values):
+    if any(not isinstance(value, int) or isinstance(value, bool) for value in values):
         return None
     return sum(values)

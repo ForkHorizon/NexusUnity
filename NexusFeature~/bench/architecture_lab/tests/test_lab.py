@@ -30,17 +30,28 @@ from lab.search.engine import evolve_request, plan_generation
 from lab.search.feasibility import classify_candidate, per_success
 from lab.search.holdout import load_search_tasks, load_task_split
 from lab.search.mutate import mutate
-from lab.search.pareto import pareto_frontier
+from lab.search.pareto import COST_KEYS, pareto_frontier, selection_order
 from lab.search.promote import freeze, mutate_frozen, transition
 from lab.surfaces.generate import generate_surface, surfaces_differ
 from lab.telemetry.cost import estimate_cost
 from lab.telemetry.store import RunStore
-from lab.telemetry.tokens import estimate_tokens, usage_from_events
+from lab.telemetry.tokens import add_usage, estimate_tokens, usage_from_events
 from lab.validation import confirm as confirm_module
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = load_catalog(ROOT / "catalog" / "snapshots" / "pipeline-0.8.0-exp.1.json")
-READ_SECRETS = ["LabReadTarget", "readable", "1.25"]
+READ_SECRETS = [
+    "LabReadTarget",
+    "LabOther",
+    "readable",
+    "1.25",
+    "validation-seal",
+    "holdout-seal",
+    "a11ab000a11ab000a11ab000a11ab000",
+    "b22cd000b22cd000b22cd000b22cd000",
+    "c33ef000c33ef000c33ef000c33ef000",
+    "6000.3.16f1",
+]
 
 
 class CatalogAndCandidates(unittest.TestCase):
@@ -199,6 +210,7 @@ class HoldoutAndPromotion(unittest.TestCase):
         search = load_search_tasks(ROOT / "tasks")
         self.assertTrue(search)
         self.assertTrue(all(item["split"] == "search" for item in search))
+        self.assertNotIn("search.visual_game_view", {item["task_id"] for item in search})
 
     def test_search_engine_source_does_not_import_confirmation(self):
         source = (ROOT / "lab" / "search" / "engine.py").read_text(encoding="utf-8")
@@ -422,6 +434,32 @@ class SearchPlan(unittest.TestCase):
 
 
 class MeasuredUsage(unittest.TestCase):
+    def test_isolated_codex_home_has_only_the_lab_server(self):
+        from lab.adapters.codex_cli import _isolated_codex_home
+
+        home = _isolated_codex_home("/tmp/lab-mcp", ["--surface", "/tmp/surface.json"])
+        text = (home / "config.toml").read_text(encoding="utf-8")
+        self.assertIn("[mcp_servers.architecture_lab]", text)
+        self.assertIn('default_tools_approval_mode = "approve"', text)
+        self.assertNotIn("rmcp_client", text)
+        self.assertNotIn("nexus-unity", text)
+        self.assertNotIn("unityMCP", text)
+        self.assertNotIn("8080", text)
+
+    def test_token_counts_are_not_redacted(self):
+        from lab.telemetry.redact import redact
+
+        cleaned = redact(
+            {
+                "usage": {"input_tokens": 12, "output_tokens": 3, "access_token": "secret-value"},
+                "note": "Bearer abc",
+            }
+        )
+        self.assertEqual(cleaned["usage"]["input_tokens"], 12)
+        self.assertEqual(cleaned["usage"]["output_tokens"], 3)
+        self.assertEqual(cleaned["usage"]["access_token"], "<redacted>")
+        self.assertEqual(cleaned["note"], "<redacted>")
+
     def test_codex_usage_shape_is_measured(self):
         usage = usage_from_events(
             [
@@ -440,6 +478,114 @@ class MeasuredUsage(unittest.TestCase):
         self.assertEqual(usage["uncached_input_tokens"], 60)
         self.assertEqual(usage["cached_input_tokens"], 40)
         self.assertEqual(usage["reasoning_tokens"], 5)
+        self.assertEqual(usage["total_tokens"], 115)
+
+    def test_retry_usage_is_summed(self):
+        first = {"status": "MEASURED", "uncached_input_tokens": 10, "cached_input_tokens": 1, "output_tokens": 2, "reasoning_tokens": 0, "total_tokens": 13}
+        second = {"status": "MEASURED", "uncached_input_tokens": 4, "cached_input_tokens": 2, "output_tokens": 3, "reasoning_tokens": 1, "total_tokens": 9}
+        merged = add_usage(first, second)
+        self.assertEqual(merged["uncached_input_tokens"], 14)
+        self.assertEqual(merged["total_tokens"], 22)
+        self.assertEqual(merged["status"], "MEASURED")
+
+    def test_warm_cache_does_not_win_on_uncached_tokens(self):
+        later = {
+            "candidate_id": "later",
+            "candidate_hash": "b",
+            "feasible": True,
+            "uncached_tokens_per_success": 1,
+            "total_tokens_per_success": 500,
+            "wrong_tool_calls": 0,
+            "tool_calls_per_success": 1,
+            "wall_ms_per_success": 10,
+        }
+        earlier = {
+            "candidate_id": "earlier",
+            "candidate_hash": "a",
+            "feasible": True,
+            "uncached_tokens_per_success": 400,
+            "total_tokens_per_success": 100,
+            "wrong_tool_calls": 0,
+            "tool_calls_per_success": 1,
+            "wall_ms_per_success": 10,
+        }
+        frontier = pareto_frontier([later, earlier])
+        self.assertEqual([row["candidate_id"] for row in frontier], ["earlier"])
+        self.assertEqual(selection_order(frontier)[0]["candidate_id"], "earlier")
+
+    def test_lower_wall_does_not_dominate_a_shared_cache(self):
+        self.assertNotIn("wall_ms_per_success", COST_KEYS)
+        later = {
+            "candidate_id": "later",
+            "candidate_hash": "b",
+            "feasible": True,
+            "uncached_tokens_per_success": 1,
+            "total_tokens_per_success": 100,
+            "wrong_tool_calls": 0,
+            "tool_calls_per_success": 1,
+            "wall_ms_per_success": 1,
+        }
+        earlier = {
+            "candidate_id": "earlier",
+            "candidate_hash": "a",
+            "feasible": True,
+            "uncached_tokens_per_success": 400,
+            "total_tokens_per_success": 100,
+            "wrong_tool_calls": 0,
+            "tool_calls_per_success": 1,
+            "wall_ms_per_success": 5000,
+        }
+        frontier = pareto_frontier([later, earlier])
+        self.assertEqual([row["candidate_id"] for row in frontier], ["earlier", "later"])
+        self.assertEqual(selection_order(frontier)[0]["candidate_id"], "earlier")
+
+    def test_known_hashes_are_not_generated_again(self):
+        parent = smoke_official_subset(CATALOG)
+        first = plan_generation([parent], CATALOG, seed=17)
+        known = {child["candidate_hash"] for child in first["children"]}
+        second = plan_generation([parent], CATALOG, seed=17, known_hashes=known)
+        self.assertEqual(second["children"], [])
+        self.assertGreater(second["duplicates_or_rejected"], 0)
+
+    def test_foreign_tool_and_tool_search_are_not_the_candidate(self):
+        from lab.adapters.codex_cli import inspect_client_events
+
+        foreign = inspect_client_events(
+            [{"type": "item.completed", "item": {"type": "mcp_tool_call", "server": "unityMCP", "tool": "find_gameobjects"}}]
+        )
+        self.assertTrue(foreign["surface_bypass"])
+        self.assertFalse(foreign["mechanism_mismatch"])
+        searched = inspect_client_events([{"type": "item.completed", "item": {"type": "tool_search_call"}}])
+        self.assertTrue(searched["mechanism_mismatch"])
+        self.assertFalse(searched["surface_bypass"])
+        image = inspect_client_events([{"type": "item.completed", "item": {"type": "image_generation_call"}}])
+        self.assertTrue(image["surface_bypass"])
+
+    def test_two_json_objects_keep_the_first(self):
+        from lab.fixtures.oracles import extract_json_object
+
+        self.assertEqual(extract_json_object('note {"object_name": "Lab"} tail {"other": 1}'), {"object_name": "Lab"})
+        self.assertEqual(extract_json_object('{"file_text": "a}b"}'), {"file_text": "a}b"})
+
+    def test_prompt_does_not_list_the_candidate_tools(self):
+        from lab.runners.live import _prompt_for_surface
+
+        task = json.loads((ROOT / "tasks" / "search" / "read_object_name.json").read_text(encoding="utf-8"))
+        surface = generate_surface(smoke_official_subset(CATALOG), CATALOG)
+        prompt = _prompt_for_surface(task, surface)
+        self.assertNotIn("find_gameobjects", prompt)
+        self.assertNotIn("nexus_find_gameobjects", prompt)
+
+    def test_validation_and_holdout_are_not_search_clones(self):
+        search_guid = json.loads((ROOT / "tasks" / "search" / "out_of_default_guid.json").read_text(encoding="utf-8"))
+        validation_guid = json.loads((ROOT / "tasks" / "validation" / "asset_guid.json").read_text(encoding="utf-8"))
+        holdout_read = json.loads((ROOT / "tasks" / "holdout" / "read_note_text.json").read_text(encoding="utf-8"))
+        self.assertIn("readme.txt", search_guid["prompt"])
+        self.assertIn("validation-note.txt", validation_guid["prompt"])
+        self.assertNotIn("readme.txt", validation_guid["prompt"])
+        self.assertNotIn("markerName", holdout_read["prompt"])
+        self.assertNotIn("intensity", holdout_read["prompt"])
+        self.assertNotEqual(search_guid["oracle"].get("asset_name"), validation_guid["oracle"].get("asset_name"))
 
 
 if __name__ == "__main__":

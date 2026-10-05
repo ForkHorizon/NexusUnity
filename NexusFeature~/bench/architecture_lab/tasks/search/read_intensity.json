@@ -21,7 +21,6 @@
   },
   "acceptable_capabilities": [
     "get_serialized_fields",
-    "get_component_properties",
-    "find_gameobjects"
+    "get_component_properties"
   ]
 }

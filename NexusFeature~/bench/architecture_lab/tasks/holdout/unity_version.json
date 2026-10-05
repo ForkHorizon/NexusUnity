@@ -9,15 +9,15 @@
   "expected_evidence": "unity observation",
   "cleanup": "reset_pristine",
   "timeout_s": 240,
-  "task_id": "holdout.project_ready",
+  "task_id": "holdout.unity_version",
   "split": "holdout",
   "category": "project",
   "required_capability_class": "project",
-  "prompt": "Report the editor readiness status string. Reply with only JSON {\"editor_status\":\"<status>\"}. Use the provided tools. Do not use the shell.",
+  "prompt": "Report the Unity editor version string from the editor status. Reply with only JSON {\"unity_version\":\"<version>\"}. The version is not in this prompt. Use the provided tools. Do not use the shell.",
   "oracle": {
     "type": "model_json_equals_unity",
-    "field": "editor_status",
-    "unity_field": "editor_status"
+    "field": "unity_version",
+    "unity_field": "unity_version"
   },
   "acceptable_capabilities": [
     "editor_status",

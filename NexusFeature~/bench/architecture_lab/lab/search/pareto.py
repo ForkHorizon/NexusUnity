@@ -5,12 +5,15 @@ from __future__ import annotations
 from typing import Any
 
 
+# Uncached tokens stay on the report. They are not a Pareto key: a shared
+# Codex prompt cache makes a later arm look cheaper without doing less work.
+# Wall time is recorded too, and it is not a dominance or parent-selection
+# key. Arms share one Codex home and run in list order, so a later arm is
+# faster because that cache is already warm.
 COST_KEYS = (
-    "uncached_tokens_per_success",
     "total_tokens_per_success",
     "wrong_tool_calls",
     "tool_calls_per_success",
-    "wall_ms_per_success",
 )
 
 
@@ -45,8 +48,7 @@ def selection_order(frontier: list[dict[str, Any]]) -> list[dict[str, Any]]:
         frontier,
         key=lambda row: (
             row.get("wrong_tool_calls") if row.get("wrong_tool_calls") is not None else 10**12,
-            row.get("uncached_tokens_per_success") if row.get("uncached_tokens_per_success") is not None else 10**12,
-            row.get("wall_ms_per_success") if row.get("wall_ms_per_success") is not None else 10**12,
+            row.get("total_tokens_per_success") if row.get("total_tokens_per_success") is not None else 10**12,
             row.get("candidate_hash") or "",
         ),
     )

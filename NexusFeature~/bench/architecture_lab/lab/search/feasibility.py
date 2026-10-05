@@ -35,6 +35,8 @@ def classify_candidate(metrics: dict[str, Any], floors: dict[str, Any]) -> dict[
 
     if int(metrics.get("surface_bypasses") or 0) > 0:
         reasons.append("surface_bypass")
+    if int(metrics.get("mechanism_mismatches") or 0) > 0:
+        reasons.append("mechanism_mismatch")
 
     status = "INFEASIBLE" if reasons else "FEASIBLE"
     return {

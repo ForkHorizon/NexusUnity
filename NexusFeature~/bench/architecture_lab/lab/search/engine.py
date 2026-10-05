@@ -26,12 +26,18 @@ def plan_generation(
     *,
     seed: int,
     task_root=None,
+    known_hashes: set[str] | None = None,
 ) -> dict[str, Any]:
-    """Build the next generation on paper. No model calls."""
+    """Build the next generation on paper. No model calls.
+
+    `known_hashes` is every architecture already measured. Deduping only inside
+    this population would run the same candidate again against a warm cache.
+    """
     if task_root is not None:
         # Touching tasks here is limited to the search split loader.
         load_search_tasks(task_root)
-    seen = {item["architecture_hash"] for item in population}
+    seen = set(known_hashes or ())
+    seen.update(item["architecture_hash"] for item in population)
     children = []
     rejected = 0
     for offset, parent in enumerate(population):

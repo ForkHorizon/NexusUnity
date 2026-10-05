@@ -50,8 +50,14 @@ def load_task_split(root: Path, split: str, *, confirmation: bool = False) -> li
 
 
 def load_search_tasks(root: Path) -> list[dict]:
-    """The only task loader the mutation engine is allowed to call."""
-    return load_task_split(root, "search", confirmation=False)
+    """The only task loader the mutation engine is allowed to call.
+
+    A task with scoreable false failed its reference check. Scoring it would
+    either fail every candidate or invite a lowered oracle. It stays on disk
+    for the self-check and stays out of search fitness.
+    """
+    tasks = load_task_split(root, "search", confirmation=False)
+    return [task for task in tasks if task.get("scoreable", True) is not False]
 
 
 def search_metric_keys() -> set[str]:

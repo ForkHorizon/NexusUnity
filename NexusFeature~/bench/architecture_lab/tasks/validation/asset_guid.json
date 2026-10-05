@@ -13,14 +13,14 @@
   "split": "validation",
   "category": "asset_read",
   "required_capability_class": "asset_read",
-  "prompt": "Report the asset GUID of Assets/LabFixture/Notes/readme.txt as JSON {\"guid\":\"<guid>\"}. Use the provided tools. Do not use the shell.",
+  "prompt": "Report the asset GUID of Assets/LabFixture/Notes/validation-note.txt as JSON {\"guid\":\"<guid>\"}. The GUID is not in this prompt. Use the provided tools. Do not use the shell.",
   "oracle": {
     "type": "model_json_equals_unity",
     "field": "guid",
-    "unity_field": "guid"
+    "unity_field": "guid",
+    "asset_name": "validation-note"
   },
   "acceptable_capabilities": [
-    "find_assets",
-    "read_text_file"
+    "find_assets"
   ]
 }

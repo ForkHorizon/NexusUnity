@@ -20,7 +20,6 @@
     "unity_field": "play_mode"
   },
   "acceptable_capabilities": [
-    "editor_status",
-    "nexus_project_map"
+    "editor_status"
   ]
 }
