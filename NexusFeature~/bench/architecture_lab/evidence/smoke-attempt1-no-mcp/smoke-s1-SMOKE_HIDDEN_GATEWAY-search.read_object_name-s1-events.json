@@ -1,0 +1,27 @@
+[
+  {
+    "type": "thread.started",
+    "thread_id": "01a10c29-c0c2-7df0-ac2a-a40a69e0b421"
+  },
+  {
+    "type": "turn.started"
+  },
+  {
+    "type": "item.completed",
+    "item": {
+      "id": "item_0",
+      "type": "agent_message",
+      "text": "{\"object_name\":\"LabMarker\"}"
+    }
+  },
+  {
+    "type": "turn.completed",
+    "usage": {
+      "input_tokens": "<redacted>",
+      "cached_input_tokens": "<redacted>",
+      "cache_write_input_tokens": "<redacted>",
+      "output_tokens": "<redacted>",
+      "reasoning_output_tokens": "<redacted>"
+    }
+  }
+]

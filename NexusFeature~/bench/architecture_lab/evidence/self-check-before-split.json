@@ -1,0 +1,281 @@
+{
+  "label": "SELF_CHECK",
+  "valid": 13,
+  "invalid": 1,
+  "tasks": [
+    {
+      "task_id": "search.diagnose_compile",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "error_code",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "search.out_of_default_guid",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compilation_failed",
+        "compiling",
+        "editor_status",
+        "guid",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "search.project_playmode",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "search.rare_console",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compilation_failed",
+        "compiling",
+        "editor_status",
+        "guid",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "search.read_intensity",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "search.read_object_name",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "search.visual_game_view",
+      "split": "search",
+      "status": "INVALID",
+      "reason": "no deterministic pixel fixture in v1",
+      "oracle_success": false
+    },
+    {
+      "task_id": "search.write_intensity",
+      "split": "search",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "validation.asset_guid",
+      "split": "validation",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compilation_failed",
+        "compiling",
+        "editor_status",
+        "guid",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "validation.read_revision",
+      "split": "validation",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "validation.write_revision",
+      "split": "validation",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "holdout.project_ready",
+      "split": "holdout",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "holdout.read_marker_name",
+      "split": "holdout",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    },
+    {
+      "task_id": "holdout.write_marker_name",
+      "split": "holdout",
+      "status": "VALID",
+      "reason": null,
+      "oracle_success": true,
+      "fingerprint": "7bba954e32548dfce38b19bb7f919c7fe3124f4cce2130e9b89e41397e004502",
+      "observation_keys": [
+        "compiling",
+        "editor_status",
+        "intensity",
+        "marker_name",
+        "object_name",
+        "open_ok",
+        "play_mode",
+        "project_path",
+        "revision",
+        "unity_version"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1692 @@
+{
+  "candidate": {
+    "architecture": {
+      "capabilities": {
+        "add_animator_layer": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_animator_layer",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_animator_parameter": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_animator_parameter",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_animator_state": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_animator_state",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_animator_transition": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_animator_transition",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_component": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_component",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_scene_to_build": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_scene_to_build",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_timeline_clip": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_timeline_clip",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "add_timeline_track": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "add_timeline_track",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "apply_prefab_overrides": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "apply_prefab_overrides",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "attach_script": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "attach_script",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "audit": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "audit",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "audit_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "audit_status",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "bake_lighting": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "bake_lighting",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "bake_navmesh": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "bake_navmesh",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "bake_navmesh_surfaces": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "bake_navmesh_surfaces",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "bake_occlusion_culling": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "bake_occlusion_culling",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "batch": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "batch",
+          "domain": "batch",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "build": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "build",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "build_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "build_status",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "cancel_lighting_bake": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "cancel_lighting_bake",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "cancel_navmesh_bake": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "cancel_navmesh_bake",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "cancel_occlusion_bake": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "cancel_occlusion_bake",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "cancel_tests": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "cancel_tests",
+          "domain": "tests",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "capture_editor_element": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "capture_editor_element",
+          "domain": "capture",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "capture_game_view": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "capture_game_view",
+          "domain": "capture",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "capture_runtime_element": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "capture_runtime_element",
+          "domain": "capture",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "capture_scene_view": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "capture_scene_view",
+          "domain": "capture",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "cleanup_codereload": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "cleanup_codereload",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "clear_baked_lighting": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "clear_baked_lighting",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "clear_console": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "clear_console",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "clear_navmesh": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "clear_navmesh",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "clear_occlusion_culling": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "clear_occlusion_culling",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "codereload_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "codereload_status",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "console": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "console",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "console_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "console_status",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "copy_asset": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "copy_asset",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_animation_clip": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_animation_clip",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_animator_controller": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_animator_controller",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_asset": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_asset",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_folder": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_folder",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_gameobject": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_gameobject",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_gameobjects": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_gameobjects",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_prefab": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_prefab",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_prefab_variant": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_prefab_variant",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_scene": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_scene",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_script": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_script",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "create_timeline": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "create_timeline",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "delete_asset": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "delete_asset",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "delete_gameobject": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "delete_gameobject",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "editor_focus": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "editor_focus",
+          "domain": "editor",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "editor_pause": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "editor_pause",
+          "domain": "editor",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "editor_play": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "editor_play",
+          "domain": "editor",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "editor_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "editor_status",
+          "domain": "editor",
+          "exposure": "ALWAYS_VISIBLE",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "editor_stop": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "editor_stop",
+          "domain": "editor",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "eval": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "eval",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "eval_file": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "eval_file",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "find_assets": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "find_assets",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "find_gameobjects": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "find_gameobjects",
+          "domain": "gameobjects",
+          "exposure": "ALWAYS_VISIBLE",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_animation_clip": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_animation_clip",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_animator_controller": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_animator_controller",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_audio_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_audio_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_authoring_root": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_authoring_root",
+          "domain": "authoring",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_build_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_build_settings",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_component_properties": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_component_properties",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_graphics_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_graphics_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_import_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_import_settings",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_input_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_input_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_lighting_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_lighting_settings",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_material_properties": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_material_properties",
+          "domain": "materials",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_navmesh_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_navmesh_settings",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_performance_stats": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_performance_stats",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_physics_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_physics_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_player_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_player_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_quality_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_quality_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_runtime_pipeline_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_runtime_pipeline_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_scene_hierarchy": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_scene_hierarchy",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_selection": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_selection",
+          "domain": "navigation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_serialized_fields": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_serialized_fields",
+          "domain": "scripts",
+          "exposure": "ALWAYS_VISIBLE",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_shader_properties": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_shader_properties",
+          "domain": "materials",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_tags_layers": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_tags_layers",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_time_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_time_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "get_timeline": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "get_timeline",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "import_asset": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "import_asset",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "instantiate_prefab": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "instantiate_prefab",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "lighting_bake_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "lighting_bake_status",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "list_build_profiles": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "list_build_profiles",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "list_build_targets": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "list_build_targets",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "list_open_scenes": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "list_open_scenes",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "list_shaders": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "list_shaders",
+          "domain": "materials",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "list_tests": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "list_tests",
+          "domain": "tests",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "log": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "log",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "menu": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "menu",
+          "domain": "editor",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "move_asset": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "move_asset",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "navmesh_bake_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "navmesh_bake_status",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "nexus_capture_game_view": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "nexus_capture_game_view",
+          "domain": "nexus",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "nexus_group_compile_errors": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "nexus_group_compile_errors",
+          "domain": "nexus",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "nexus_project_map": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "nexus_project_map",
+          "domain": "nexus",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "occlusion_bake_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "occlusion_bake_status",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "open_scene": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "open_scene",
+          "domain": "scenes",
+          "exposure": "ALWAYS_VISIBLE",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "package_add": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "package_add",
+          "domain": "packages",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "package_list": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "package_list",
+          "domain": "packages",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "package_remove": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "package_remove",
+          "domain": "packages",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "package_resolve": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "package_resolve",
+          "domain": "packages",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "package_search": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "package_search",
+          "domain": "packages",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "package_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "package_status",
+          "domain": "packages",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "quit": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "quit",
+          "domain": "runtime",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "read_text_file": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "read_text_file",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "recompile": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "recompile",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "recompile_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "recompile_status",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "reload_file": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "reload_file",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "reload_file_editor_interpreter": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "reload_file_editor_interpreter",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "reload_file_player_interpreter": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "reload_file_player_interpreter",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "remove_animation_curve": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "remove_animation_curve",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "remove_component": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "remove_component",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "remove_scene_from_build": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "remove_scene_from_build",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "rename_asset": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "rename_asset",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "rename_gameobject": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "rename_gameobject",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "report_evals": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "report_evals",
+          "domain": "observability",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "revert_prefab_overrides": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "revert_prefab_overrides",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "run_script": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "run_script",
+          "domain": "scripts",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "run_tests": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "run_tests",
+          "domain": "tests",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "runtime_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "runtime_status",
+          "domain": "runtime",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "save_all": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "save_all",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "save_prefab_contents": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "save_prefab_contents",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "save_scene": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "save_scene",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "screenshot": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "screenshot",
+          "domain": "capture",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "search": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "search",
+          "domain": "navigation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_active": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_active",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_active_scene": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_active_scene",
+          "domain": "scenes",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_animation_curve": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_animation_curve",
+          "domain": "animation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_audio_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_audio_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_authoring_root": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_authoring_root",
+          "domain": "authoring",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_autotick": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_autotick",
+          "domain": "editor",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_build_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_build_settings",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_component_properties": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_component_properties",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_graphics_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_graphics_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_import_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_import_settings",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_input_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_input_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_layer": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_layer",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_lighting_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_lighting_settings",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_material_properties": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_material_properties",
+          "domain": "materials",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_navmesh_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_navmesh_settings",
+          "domain": "baking",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_parent": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_parent",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_physics_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_physics_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_player_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_player_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_quality_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_quality_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_runtime_pipeline_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_runtime_pipeline_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_selection": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_selection",
+          "domain": "navigation",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_serialized_field": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_serialized_field",
+          "domain": "scripts",
+          "exposure": "ALWAYS_VISIBLE",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_tag": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_tag",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_tags_layers": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_tags_layers",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_target_framerate": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_target_framerate",
+          "domain": "runtime",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_time_settings": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_time_settings",
+          "domain": "settings",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_timescale": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_timescale",
+          "domain": "runtime",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "set_transform": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "set_transform",
+          "domain": "gameobjects",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "simulate_key": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "simulate_key",
+          "domain": "runtime",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "simulate_pointer": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "simulate_pointer",
+          "domain": "runtime",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "switch_build_target": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "switch_build_target",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "switch_build_target_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "switch_build_target_status",
+          "domain": "build",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "test_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "test_status",
+          "domain": "tests",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "unpack_prefab": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "unpack_prefab",
+          "domain": "prefabs",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "wait_cancel": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "wait_cancel",
+          "domain": "wait",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "wait_for": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "wait_for",
+          "domain": "wait",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "wait_status": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "wait_status",
+          "domain": "wait",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        },
+        "write_text_file": {
+          "backend_mode": "PASSTHROUGH",
+          "backend_name": "write_text_file",
+          "domain": "assets",
+          "exposure": "DISABLED",
+          "group": null,
+          "normalizer": "raw",
+          "wrapper": null
+        }
+      },
+      "core_always_visible": [
+        "editor_status",
+        "find_gameobjects",
+        "get_serialized_fields",
+        "open_scene",
+        "set_serialized_field"
+      ],
+      "discovery_mechanism": "none",
+      "domains": {},
+      "output_normalization": "raw",
+      "schema_version": 1,
+      "surface_strategy": "atomic"
+    },
+    "architecture_hash": "585a8eea710edb1c5bdba2496354d2b7fbed1a2709c393bb29200981dd672c65",
+    "candidate_id": "SMOKE_OFFICIAL_SUBSET",
+    "catalog_hash": "f07c85a25631069615440dbeebcbf93ff366e5948d3cecb4a9e65656fc667a86",
+    "generation": 0,
+    "parent_hash": null,
+    "parent_id": null,
+    "why": "Smoke plumbing only. Not an official-baseline substitute."
+  },
+  "candidate_hash": "585a8eea710edb1c5bdba2496354d2b7fbed1a2709c393bb29200981dd672c65",
+  "candidate_id": "SMOKE_OFFICIAL_SUBSET",
+  "discovery_mechanism": "none",
+  "lazy": [],
+  "mechanism_actually_used": "none",
+  "model_visible_names": [
+    "editor_status",
+    "find_gameobjects",
+    "get_serialized_fields",
+    "open_scene",
+    "set_serialized_field"
+  ],
+  "resolution": {
+    "editor_status": {
+      "backend_mode": "PASSTHROUGH",
+      "backend_name": "editor_status",
+      "capability_id": "editor_status",
+      "composite_id": null,
+      "kind": "typed",
+      "normalizer": "raw"
+    },
+    "find_gameobjects": {
+      "backend_mode": "PASSTHROUGH",
+      "backend_name": "find_gameobjects",
+      "capability_id": "find_gameobjects",
+      "composite_id": null,
+      "kind": "typed",
+      "normalizer": "raw"
+    },
+    "get_serialized_fields": {
+      "backend_mode": "PASSTHROUGH",
+      "backend_name": "get_serialized_fields",
+      "capability_id": "get_serialized_fields",
+      "composite_id": null,
+      "kind": "typed",
+      "normalizer": "raw"
+    },
+    "open_scene": {
+      "backend_mode": "PASSTHROUGH",
+      "backend_name": "open_scene",
+      "capability_id": "open_scene",
+      "composite_id": null,
+      "kind": "typed",
+      "normalizer": "raw"
+    },
+    "set_serialized_field": {
+      "backend_mode": "PASSTHROUGH",
+      "backend_name": "set_serialized_field",
+      "capability_id": "set_serialized_field",
+      "composite_id": null,
+      "kind": "typed",
+      "normalizer": "raw"
+    }
+  },
+  "substituted": false,
+  "surface_strategy": "atomic",
+  "tools": [
+    {
+      "description": "Get detailed Unity Editor status and state information",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object"
+      },
+      "name": "editor_status"
+    },
+    {
+      "description": "Find GameObjects in loaded scenes by name, tag, component type, and/or hierarchy path (filters are combined). Returns structured identities.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "hierarchy_path": {
+            "description": "Exact hierarchy path to match (e.g. '/Root/Child').",
+            "type": "string"
+          },
+          "include_inactive": {
+            "description": "Include inactive GameObjects. Default true.",
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Exact name to match.",
+            "type": "string"
+          },
+          "tag": {
+            "description": "Tag to match (e.g. 'Player').",
+            "type": "string"
+          },
+          "type": {
+            "description": "Component type name to match (e.g. 'Rigidbody', 'UnityEngine.Camera').",
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "name": "find_gameobjects"
+    },
+    {
+      "description": "Read serialized fields of a component/asset. Returns each top-level field's name, type and value ",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "component": {
+            "description": "Component type name on the target GameObject (e.g. 'Rigidbody'). Use when 'target' is a GameObject; omit when 'target' is already a component handle.",
+            "type": "string"
+          },
+          "field": {
+            "description": "Optional single SerializedProperty path to read (e.g. 'speed' or 'items.Array.data[0]'). Omit to read all top-level fields.",
+            "type": "string"
+          },
+          "format": {
+            "description": "Output shape. Omit (default) for a full descriptor per field {name,path,propertyType,isArray,arrayLength,value}; 'value' returns just the value(s): the raw value for a single 'field', or a {name: value} map for all fields.",
+            "type": "string"
+          },
+          "target": {
+            "description": "Reference to the component or asset to read (globalId/path/guid/instanceId/hierarchyPath). May be a GameObject when 'component' is given.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "type": "object"
+      },
+      "name": "get_serialized_fields"
+    },
+    {
+      "description": "Open an existing scene from the given path.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "additive": {
+            "description": "Open additively alongside currently open scenes instead of replacing them.",
+            "type": "boolean"
+          },
+          "path": {
+            "description": "Scene path relative to the authoring root (default Assets/); the Assets/ prefix and the .unity extension are optional.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "open_scene"
+    },
+    {
+      "description": "Set a serialized field on a component/asset. Supports primitives, enums, Vector/Color/Rect/Bounds, ",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "component": {
+            "description": "Component type name on the target GameObject (e.g. 'Rigidbody'). Use when 'target' is a GameObject; omit when 'target' is already a component handle.",
+            "type": "string"
+          },
+          "field": {
+            "description": "SerializedProperty path, e.g. 'speed', 'settings.speed', or 'waypoints.Array.data[0]'.",
+            "type": "string"
+          },
+          "target": {
+            "description": "Reference to the component or asset to modify (globalId/path/guid/instanceId/hierarchyPath). May be a GameObject when 'component' is given.",
+            "type": "string"
+          },
+          "value": {
+            "description": "JSON value to assign. For object references pass an ObjectRef object (or null to clear). For enums pass the value name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "field",
+          "value"
+        ],
+        "type": "object"
+      },
+      "name": "set_serialized_field"
+    }
+  ]
+}

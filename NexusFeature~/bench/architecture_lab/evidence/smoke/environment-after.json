@@ -1,0 +1,13 @@
+{
+  "recorded": "immediately after smoke, same editor PID and binaries. The smoke sqlite identity was written before these fields were added to the runner.",
+  "unity_version": "6000.3.16f1",
+  "editor_status": "ready",
+  "compiling": false,
+  "playMode": "stopped",
+  "projectPath": "/private/tmp/nexus-arch-lab",
+  "cli_version": [
+    "1.0.0-beta.12"
+  ],
+  "codex_version": "codex-cli 0.160.0",
+  "listener_note": "port 7811"
+}

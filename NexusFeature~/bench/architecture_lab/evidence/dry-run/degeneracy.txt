@@ -1,0 +1,12 @@
+{
+  "status": "INFEASIBLE",
+  "reasons": [
+    "capability_coverage",
+    "semantic_success",
+    "category:read",
+    "category:write"
+  ],
+  "on_pareto_frontier": false,
+  "report_mentions_infeasible": true
+}
+DEGEN:0
