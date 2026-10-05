@@ -1,0 +1,6 @@
+#!/bin/sh
+# Spawned by Codex as the only MCP server for one lab run.
+ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+cd "$ROOT"
+exec python3 -m lab.adapters.mcp_server "$@"
