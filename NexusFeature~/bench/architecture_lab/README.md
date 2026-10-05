@@ -86,7 +86,7 @@ Results: `evidence/self-check.json`.
 
 ## Smoke
 
-Smoke is four real runs: two surfaces, two self-checked tasks, one seed. It is labelled `SMOKE_ONLY`. It does not rank candidates.
+Smoke is four real runs: two surfaces, two self-checked tasks, one seed. It is labelled `SMOKE_ONLY`. It does not rank candidates. New smoke writes `evidence/smoke-final/`. The earlier record in `evidence/smoke/` is left in place.
 
 ```bash
 bin/architecture-lab smoke --seed 1
@@ -126,22 +126,30 @@ SQLite (`evidence/smoke/runs.sqlite`) is the raw record: experiments, candidates
 - `editor-stop` stops the scratch editor.
 - `evolve` without `--confirm-search`, `--max-runs`, `--generations`, and `--max-uncached-tokens` exits 2 and prints a dry plan.
 - `--max-runs` above 20000 is refused.
-- This build's `evolve` still does not start model runs after the budget is accepted. Do not treat a zero exit as a finished study.
-- `confirm` always refuses in this build, including with `--confirm-final`.
+- With those flags, `evolve` loads a search-split population, runs it, keeps feasible Pareto parents, mutates, and repeats until a stop reason is stored. Stop reasons include `STOP_MAX_RUNS`, `STOP_TOKEN_BUDGET`, `STOP_TOKEN_UNKNOWN`, `STOP_GENERATION_LIMIT`, `STOP_NO_NEW_CANDIDATES`, and `STOP_NO_FEASIBLE_PARENTS`.
+- A duplicate architecture hash is stored as `DUPLICATE_CANDIDATE_SKIPPED` and is not sent to the model.
+- `--resume` continues an experiment whose stop was a run or token budget. Completed model runs are not started again. A terminal stop is not resumed.
+- `confirm --confirm-final` loads one architecture hash, runs validation, and runs holdout only when every validation row is feasible and another model run still fits the budget. A stopped validation batch does not open the holdout files. `--integration` uses `tasks/confirm_validation` and `tasks/confirm_holdout` and does not open the research holdout or promote a candidate to `CONFIRMED`.
+- Wall time and uncached tokens are recorded. They are not parent-selection keys.
 
-## Future commands
+The loop is covered by unit tests with a fake model. A real Luna acceptance run is a separate step and is not claimed by this section.
 
-Do not run these as a study until a later sprint connects the model loop. They are the interfaces:
+## Commands
+
+Defaults for `evolve` are `--candidates baselines`, `--tasks search`, and `--label SEARCH`. The smoke pair is `--candidates smoke --tasks smoke`.
 
 ```bash
 bin/architecture-lab evolve \
   --model gpt-6-luna \
   --reasoning low \
+  --candidates baselines \
+  --tasks search \
   --population 8 \
   --generations 4 \
   --max-runs 200 \
   --max-uncached-tokens 2000000 \
   --seed 17 \
+  --label SEARCH \
   --confirm-search
 ```
 
@@ -152,4 +160,4 @@ bin/architecture-lab confirm \
   --confirm-final
 ```
 
-Search and confirmation stay separate commands.
+`confirm` defaults are `--seed 101`, `--max-runs 40`, and `--max-uncached-tokens 2000000`. Search and confirmation stay separate commands. Resume an interrupted search with the same `--experiment` and `--resume`.

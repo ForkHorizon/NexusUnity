@@ -63,18 +63,18 @@ def summarize_calls(surface: dict[str, Any], calls: list[dict[str, Any]], accept
     tools = 0
     for call in calls:
         classified = classify_call(surface, call)
-        reached = bool(call.get("backend_reached") or call.get("backend_command") or classified.get("backend_command"))
-        if classified["exposed_name"] == "lab_invoke" or (classified["kind"] == "discovery" and reached):
-            # describe/invoke still executes Unity. Counting it only as discovery
-            # would let that arm look cheaper on tool_calls_per_success.
+        if classified["kind"] == "discovery":
+            # List and describe do not reach Unity. They are still model calls.
+            # Leaving them out of tool_calls lets a chatty arm look cheaper.
+            discovery += 1
+            tools += 1
+            continue
+        if classified["exposed_name"] == "lab_invoke":
             discovery += 1
             tools += 1
             capability = classified.get("capability_id")
             if capability not in acceptable:
                 wrong += 1
-            continue
-        if classified["kind"] == "discovery":
-            discovery += 1
             continue
         tools += 1
         capability = classified["capability_id"]

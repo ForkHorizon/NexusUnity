@@ -39,6 +39,7 @@ def plan_generation(
     seen = set(known_hashes or ())
     seen.update(item["architecture_hash"] for item in population)
     children = []
+    skipped = []
     rejected = 0
     for offset, parent in enumerate(population):
         child = mutate(parent, catalog, seed + offset + 1)
@@ -47,6 +48,13 @@ def plan_generation(
             continue
         if child["architecture_hash"] in seen:
             rejected += 1
+            skipped.append(
+                {
+                    "candidate_hash": child["architecture_hash"],
+                    "parent_hash": parent["architecture_hash"],
+                    "reason": "DUPLICATE_CANDIDATE_SKIPPED",
+                }
+            )
             continue
         seen.add(child["architecture_hash"])
         children.append(
@@ -63,6 +71,7 @@ def plan_generation(
         "seed": seed,
         "parents": len(population),
         "children": children,
+        "skipped": skipped,
         "duplicates_or_rejected": rejected,
         "executed": False,
     }

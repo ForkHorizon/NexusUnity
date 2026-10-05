@@ -31,10 +31,9 @@ def add_usage(left: dict[str, Any] | None, right: dict[str, Any] | None) -> dict
     """
     left = left or _empty("MISSING")
     right = right or _empty("MISSING")
-    if left.get("status") == "MISSING":
-        return dict(right)
-    if right.get("status") == "MISSING":
-        return dict(left)
+    # A missing bill is not zero and is not the other attempt's bill.
+    if left.get("status") == "MISSING" or right.get("status") == "MISSING":
+        return _empty("MISSING")
     merged: dict[str, Any] = {}
     for key in (
         "cached_input_tokens",

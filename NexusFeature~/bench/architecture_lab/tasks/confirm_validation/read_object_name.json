@@ -1,0 +1,27 @@
+{
+  "difficulty": "easy",
+  "initial_state": "Pristine Lab fixture.",
+  "setup": ["open_lab_scene"],
+  "allowed_environment": "lab_scratch_only",
+  "expected_mutation": "none",
+  "expected_evidence": "unity observation",
+  "cleanup": "reset_pristine",
+  "timeout_s": 240,
+  "task_id": "confirm_validation.read_object_name",
+  "split": "confirm_validation",
+  "category": "read",
+  "required_capability_class": "read",
+  "prompt": "The Lab scene is already open. Find the GameObject that has a component named LabMarker. Reply with only JSON {\"object_name\":\"<exact name>\"}. Use the provided tools. Do not use the shell.",
+  "oracle": {
+    "type": "model_json_equals_unity",
+    "field": "object_name",
+    "unity_field": "object_name"
+  },
+  "acceptable_capabilities": [
+    "find_gameobjects",
+    "get_scene_hierarchy",
+    "get_component_properties",
+    "search"
+  ],
+  "pipeline_only": true
+}

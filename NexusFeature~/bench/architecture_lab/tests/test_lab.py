@@ -441,6 +441,8 @@ class MeasuredUsage(unittest.TestCase):
         text = (home / "config.toml").read_text(encoding="utf-8")
         self.assertIn("[mcp_servers.architecture_lab]", text)
         self.assertIn('default_tools_approval_mode = "approve"', text)
+        self.assertIn("[features]", text)
+        self.assertIn("apps = false", text)
         self.assertNotIn("rmcp_client", text)
         self.assertNotIn("nexus-unity", text)
         self.assertNotIn("unityMCP", text)
@@ -487,6 +489,9 @@ class MeasuredUsage(unittest.TestCase):
         self.assertEqual(merged["uncached_input_tokens"], 14)
         self.assertEqual(merged["total_tokens"], 22)
         self.assertEqual(merged["status"], "MEASURED")
+        dropped = add_usage({"status": "MISSING"}, second)
+        self.assertEqual(dropped["status"], "MISSING")
+        self.assertIsNone(dropped["uncached_input_tokens"])
 
     def test_warm_cache_does_not_win_on_uncached_tokens(self):
         later = {

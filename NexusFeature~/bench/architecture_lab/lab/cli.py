@@ -1,7 +1,7 @@
 """Command line for the architecture lab.
 
-`evolve` and `confirm` refuse to launch a real study unless the explicit
-confirm flags and budgets are present. This sprint does not pass those flags.
+`evolve` and `confirm` launch a real loop only with the explicit confirm flags
+and budgets. Without those flags they still refuse before any model call.
 """
 
 from __future__ import annotations
@@ -52,11 +52,22 @@ def main(argv: list[str] | None = None) -> int:
     evolve.add_argument("--max-uncached-tokens", type=int, default=None)
     evolve.add_argument("--seed", type=int, default=17)
     evolve.add_argument("--confirm-search", action="store_true")
+    evolve.add_argument("--candidates", choices=("baselines", "smoke"), default="baselines")
+    evolve.add_argument("--tasks", choices=("search", "smoke"), default="search")
+    evolve.add_argument("--label", default="SEARCH")
+    evolve.add_argument("--resume", action="store_true")
+    evolve.add_argument("--experiment", default=None)
 
     confirm = sub.add_parser("confirm")
     confirm.add_argument("--candidate", required=True)
     confirm.add_argument("--confirm-final", action="store_true")
     confirm.add_argument("--include-holdout", action="store_true")
+    confirm.add_argument("--integration", action="store_true")
+    confirm.add_argument("--seed", type=int, default=101)
+    confirm.add_argument("--max-runs", type=int, default=40)
+    confirm.add_argument("--max-uncached-tokens", type=int, default=2_000_000)
+    confirm.add_argument("--model", default="gpt-6-luna")
+    confirm.add_argument("--reasoning", default="low")
 
     sub.add_parser("surfaces")
     sub.add_parser("prepare-project")
@@ -131,8 +142,43 @@ def main(argv: list[str] | None = None) -> int:
             plan = plan_generation(all_baselines(catalog), catalog, seed=args.seed, task_root=ROOT / "tasks")
             print(render_lineage(plan["children"]))
             return 2
-        print(json.dumps({"refused": False, "started": False, "budget": decision}, indent=2))
-        print("Budget accepted on paper. This build does not launch the search loop.")
+        from lab.runners.live import execute_evolution
+
+        experiment = args.experiment or f"evolve-{args.candidates}-s{args.seed}"
+        try:
+            payload = execute_evolution(
+                population_limit=args.population,
+                generations=args.generations,
+                max_runs=args.max_runs,
+                max_uncached_tokens=args.max_uncached_tokens,
+                seed=args.seed,
+                label=args.label,
+                candidates_name=args.candidates,
+                tasks_name=args.tasks,
+                resume=args.resume,
+                experiment_id=experiment,
+                model=args.model,
+                reasoning=args.reasoning,
+            )
+        except Exception as exc:
+            print(f"REFUSED: {exc}", file=sys.stderr)
+            return 2
+        print(payload["report"])
+        summary = payload["result"]
+        print(json.dumps(
+            {
+                "started": True,
+                "executed": summary.get("executed"),
+                "stop_reason": summary.get("stop_reason"),
+                "generation": summary.get("generation"),
+                "runs_used": summary.get("runs_used"),
+                "uncached_used": summary.get("uncached_used"),
+                "label": summary.get("label"),
+                "experiment_id": experiment,
+                "budget": decision,
+            },
+            indent=2,
+        ))
         return 0
 
     if args.command == "prepare-project":
@@ -173,8 +219,35 @@ def main(argv: list[str] | None = None) -> int:
         if not args.confirm_final:
             print("REFUSED: confirm requires --confirm-final. Holdout was not read.", file=sys.stderr)
             return 2
-        print("REFUSED: this sprint does not execute frozen confirmation.", file=sys.stderr)
-        return 2
+        from lab.runners.live import execute_confirmation
+
+        try:
+            payload = execute_confirmation(
+                candidate_hash=args.candidate,
+                include_holdout=args.include_holdout,
+                integration=args.integration,
+                seed=args.seed,
+                max_runs=args.max_runs,
+                max_uncached_tokens=args.max_uncached_tokens,
+                model=args.model,
+                reasoning=args.reasoning,
+            )
+        except Exception as exc:
+            print(f"REFUSED: {exc}", file=sys.stderr)
+            return 2
+        print(payload["report"])
+        public = payload["result"]
+        print(json.dumps(
+            {
+                "status": public.get("status"),
+                "holdout_executed": public.get("holdout_executed"),
+                "promotion": public.get("promotion"),
+                "label": public.get("label"),
+                "candidate_hash": public.get("optimizer", {}).get("candidate_hash"),
+            },
+            indent=2,
+        ))
+        return 0 if public.get("status") != "CONFIRMATION_VOID" else 2
     return 2
 
 

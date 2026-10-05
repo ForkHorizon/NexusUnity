@@ -23,6 +23,17 @@ def render_comparison(rows: list[dict[str, Any]], *, label: str) -> str:
         lines.append("This is a plumbing smoke run. It is not an architecture result.")
         lines.append("These rows are not ranked. Search, validation, and holdout were not used.")
         lines.append("")
+    elif label == "EVOLUTION_INTEGRATION_ONLY":
+        lines.append("This is a closed-loop integration run. It is not an architecture result.")
+        lines.append("These rows are not ranked.")
+        lines.append("")
+    elif label == "CONFIRM_PIPELINE_INTEGRATION_ONLY":
+        lines.append("This exercises the confirmation pipeline. It is not an architecture result.")
+        lines.append("These rows are not ranked.")
+        lines.append("")
+    else:
+        lines.append("Rows are measurements from this run. They are not an architecture ranking.")
+        lines.append("")
     lines.append("| Candidate | Hash | Success | False success | Uncached/success | Calls | Wrong tools | Feasible |")
     lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
     for row in rows:
@@ -62,10 +73,13 @@ def _fmt(value: Any) -> str:
     return str(value)
 
 
+_CLAIM_LABELS = {"SMOKE_ONLY", "EVOLUTION_INTEGRATION_ONLY", "CONFIRM_PIPELINE_INTEGRATION_ONLY"}
+
+
 def _reject_claims(text: str, label: str) -> None:
-    if label != "SMOKE_ONLY":
+    if label not in _CLAIM_LABELS:
         return
     lowered = text.lower()
     for phrase in FORBIDDEN_CLAIM_PHRASES:
         if phrase in lowered:
-            raise RuntimeError(f"smoke report used claim language: {phrase}")
+            raise RuntimeError(f"{label} report used claim language: {phrase}")

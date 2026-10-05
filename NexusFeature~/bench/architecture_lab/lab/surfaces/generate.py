@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from lab.candidates.manifest import CLIENT_UNSUPPORTED
+from lab.canonical import sha256_json
 from lab.catalog.extract import capability_index
 from lab.errors import CandidateInvalid, UnsupportedMechanism
 
@@ -66,7 +67,7 @@ def generate_surface(candidate: dict[str, Any], catalog: dict[str, Any]) -> dict
     if len(model_names) != len(set(model_names)):
         raise CandidateInvalid("surface produced duplicate tool names")
 
-    return {
+    surface = {
         "candidate_id": candidate["candidate_id"],
         "candidate_hash": candidate["architecture_hash"],
         "surface_strategy": strategy,
@@ -78,6 +79,51 @@ def generate_surface(candidate: dict[str, Any], catalog: dict[str, Any]) -> dict
         "lazy": lazy,
         "model_visible_names": model_names,
     }
+    surface["surface_hash"] = surface_hash(surface)
+    return surface
+
+
+def surface_hash(surface: dict[str, Any]) -> str:
+    """Hash the model-visible surface. A different tool list is a different surface."""
+    return sha256_json(
+        {
+            "candidate_hash": surface.get("candidate_hash"),
+            "mechanism_actually_used": surface.get("mechanism_actually_used"),
+            "surface_strategy": surface.get("surface_strategy"),
+            "model_visible_names": list(surface.get("model_visible_names") or []),
+        }
+    )
+
+
+def surface_problem(surface: dict[str, Any], candidate: dict[str, Any]) -> str | None:
+    """Return why this surface must not be scored, or None when it matches.
+
+    A hidden gateway that also shows the official Unity name is a different
+    mechanism. Scoring it would measure that leak.
+    """
+    if surface.get("substituted"):
+        return "surface was substituted"
+    if surface.get("candidate_hash") != candidate.get("architecture_hash"):
+        return "candidate_hash does not match the manifest"
+    architecture = candidate.get("architecture") or {}
+    if surface.get("mechanism_actually_used") != architecture.get("discovery_mechanism"):
+        return "mechanism_actually_used does not match the candidate"
+    if surface.get("surface_strategy") != architecture.get("surface_strategy"):
+        return "surface_strategy does not match the candidate"
+    if surface.get("surface_hash") != surface_hash(surface):
+        return "surface_hash does not match the visible tool list"
+    if architecture.get("surface_strategy") == "hidden_gateway":
+        visible = set(surface.get("model_visible_names") or [])
+        for cap_id, entry in (architecture.get("capabilities") or {}).items():
+            if entry.get("exposure") != "ALWAYS_VISIBLE":
+                continue
+            wrapper = entry.get("wrapper") or cap_id
+            backend = entry.get("backend_name")
+            if wrapper != cap_id and cap_id in visible:
+                return f"official capability {cap_id} is visible on a hidden gateway"
+            if backend and backend != wrapper and backend in visible:
+                return f"official backend {backend} is visible on a hidden gateway"
+    return None
 
 
 def _lazy_record(cap_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> dict[str, Any]:

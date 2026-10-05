@@ -76,4 +76,5 @@ def search_metric_keys() -> set[str]:
         "category_rates",
         "usage_status",
         "feasible",
+        "semantic_success_rate",
     }

@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from lab.adapters.mcp_server import serve
+from lab.adapters.normalize import apply_normalizer
 from lab.adapters.unity_cli import UnityCliBackend, parse_unity_stdout
 from lab.candidates.baselines import smoke_hidden_gateway, smoke_official_subset
 from lab.catalog.extract import load_catalog
@@ -290,7 +291,12 @@ class Matrix(unittest.TestCase):
                 price_profile={"profile_id": "luna6-unpriced", "uncached_input_per_million": None, "cached_input_per_million": None, "output_per_million": None},
                 seed=1,
                 experiment_id="smoke-ok",
-                identity={"label": "SMOKE_ONLY"},
+                identity={
+                    "label": "SMOKE_ONLY",
+                    "lab_git": "abc123",
+                    "nexus_base_commit": "596d17141b9f4929204fa018ab804b04b052a25f",
+                    "reasoning": "low",
+                },
             )
             self.assertEqual(started["n"], 2)
             self.assertTrue(result["acceptance"]["ok"], result["acceptance"])
@@ -390,6 +396,34 @@ class Matrix(unittest.TestCase):
         self.assertEqual(summary["tool_calls"], 1)
         self.assertEqual(summary["discovery_calls"], 1)
         self.assertEqual(summary["wrong_tool_calls"], 0)
+
+    def test_describe_counts_as_a_tool_call_without_reaching_unity(self):
+        surface = generate_surface(smoke_hidden_gateway(CATALOG), CATALOG)
+        summary = summarize_calls(
+            surface,
+            [{"exposed_name": "lab_describe", "arguments": {"name": "nexus_find_gameobjects"}}],
+            {"find_gameobjects"},
+        )
+        self.assertEqual(summary["discovery_calls"], 1)
+        self.assertEqual(summary["tool_calls"], 1)
+        self.assertEqual(summary["wrong_tool_calls"], 0)
+
+    def test_raw_result_does_not_reveal_the_official_command_name(self):
+        text = apply_normalizer(
+            "raw",
+            {
+                "backend_command": "find_gameobjects",
+                "exit_code": 0,
+                "ok": True,
+                "payload": {
+                    "command": "command find_gameobjects",
+                    "data": {"command": "find_gameobjects", "result": {"count": 1}},
+                    "success": True,
+                },
+            },
+        )
+        self.assertNotIn("find_gameobjects", text)
+        self.assertIn("count", text)
 
     def test_mcp_content_length_lists_only_the_surface(self):
         surface = {

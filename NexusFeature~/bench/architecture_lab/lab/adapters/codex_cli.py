@@ -62,7 +62,7 @@ class CodexCliAdapter:
         # A private CODEX_HOME keeps the user's nexus and unityMCP servers out.
         # --ignore-user-config also drops -c MCP servers on Codex 0.160, so the
         # lab writes its own config instead of using that flag.
-        home = _isolated_codex_home(wrapper, mcp_args)
+        home = _isolated_codex_home(wrapper, mcp_args, request.get("reasoning") or "low")
         command = [
             self.binary,
             "exec",
@@ -160,18 +160,27 @@ class CodexCliAdapter:
         )
 
 
-def _isolated_codex_home(command: str, args: list[str]) -> Path:
-    home = Path("/tmp/nexus-arch-lab-codex")
+CODEX_HOME = Path("/tmp/nexus-arch-lab-codex")
+
+
+def _isolated_codex_home(command: str, args: list[str], reasoning: str = "low") -> Path:
+    home = CODEX_HOME
     home.mkdir(parents=True, exist_ok=True)
     auth = home / "auth.json"
     source = Path.home() / ".codex" / "auth.json"
     if source.is_file() and not auth.exists():
         auth.symlink_to(source)
     quoted = "[" + ",".join(_toml(item) for item in args) + "]"
+    # Apps tools are client-injected and are not part of any candidate surface.
+    # Codex 0.160 accepts features.apps=false. Other client tools stay at their
+    # defaults so every candidate sees the same remainder.
     config = "\n".join(
         [
             'model = "gpt-6-luna"',
-            'model_reasoning_effort = "low"',
+            f"model_reasoning_effort = {_toml(reasoning)}",
+            "",
+            "[features]",
+            "apps = false",
             "",
             "[mcp_servers.architecture_lab]",
             f"command = {_toml(command)}",
