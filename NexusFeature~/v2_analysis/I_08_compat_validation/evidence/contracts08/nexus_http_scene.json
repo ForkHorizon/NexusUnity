@@ -1,0 +1,34 @@
+{
+  "http": 200,
+  "body": {
+    "success": true,
+    "result": {
+      "ok": true,
+      "data": {
+        "success": true,
+        "width": 768,
+        "height": 403,
+        "encoding": "png",
+        "bytes": 33818,
+        "file_path": "/private/tmp/nexus-p08-harness/Temp/NexusCapture/nexus-look-20261004225540867-62f79dca.png",
+        "source": "scene_view",
+        "acquisition_ms": 2.0483000000000002,
+        "submit_ms": 0.003,
+        "wait_ms": 5.464300000000001,
+        "getdata_ms": 0.0,
+        "encode_ms": 4.6174,
+        "base64_ms": 12.3957,
+        "main_thread_stall_ms": 6.6687,
+        "total_ms": 24.5475,
+        "editor_ticks_submit_to_done": 3
+      },
+      "error": null,
+      "meta": {
+        "ms": 12,
+        "mode": "pipeline",
+        "gen": 6,
+        "request_id": null
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "command": "nexus_group_compile_errors",
+  "result": {
+    "ok": true,
+    "data": {
+      "success": true,
+      "total_errors": 0,
+      "group_count": 0,
+      "is_compiling": false,
+      "groups": [],
+      "execution_duration_ms": 0.29450000000000004
+    },
+    "error": null,
+    "meta": {
+      "ms": 0,
+      "mode": "pipeline",
+      "gen": 37,
+      "request_id": null
+    }
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:50:44.545662Z",
+  "_http_status": 200,
+  "_client_ms": 97.0,
+  "_wire_bytes": 398
+}

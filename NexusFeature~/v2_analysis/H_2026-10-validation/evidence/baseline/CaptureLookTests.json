@@ -1,0 +1,103 @@
+{
+  "success": true,
+  "command": "run_tests",
+  "result": {
+    "Summary": {
+      "Total": 10,
+      "Passed": 10,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "Results": [
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.CropOutsideTheFrameIsNotVisible",
+        "Status": "Passed",
+        "Duration": 0.0009735,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.DefaultLongEdgeFitsTheTokenBudgetAndDoesNotUpscale",
+        "Status": "Passed",
+        "Duration": 0.0053216,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.DisabledAndUnknownTargetsFailBeforeCapture",
+        "Status": "Passed",
+        "Duration": 0.0033794,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.FileDeliveryWritesOneEncoding",
+        "Status": "Passed",
+        "Duration": 0.0025704,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.FullFrameCropUsesTheOverlayFlip",
+        "Status": "Passed",
+        "Duration": 0.0006755,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.MalformedLookArgumentsAreNotRetryable",
+        "Status": "Passed",
+        "Duration": 0.0005651,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.OmittedMaxEdgeIs768AndExplicitZeroStaysUnconstrained",
+        "Status": "Passed",
+        "Duration": 0.0003416,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.PartialCropKeepsTheSameFlipDirection",
+        "Status": "Passed",
+        "Duration": 0.0001147,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.SceneCaptureFramesATargetAndRestoresTheView",
+        "Status": "Passed",
+        "Duration": 0.0173836,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.CaptureLookTests.TinyCropIsNotVisible",
+        "Status": "Passed",
+        "Duration": 0.0002492,
+        "Message": null,
+        "StackTrace": null
+      }
+    ],
+    "Duration": 5.21,
+    "StatusPath": null,
+    "Mode": "EditMode",
+    "FilterApplied": "testname: CaptureLookTests",
+    "success": true,
+    "command": "run_tests",
+    "result": null,
+    "executionTimeMs": 5207,
+    "message": null,
+    "error": null,
+    "errorDetails": null,
+    "executedAt": "2026-10-04T21:47:56.509153Z"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:47:56.509275Z",
+  "_http_status": 200
+}

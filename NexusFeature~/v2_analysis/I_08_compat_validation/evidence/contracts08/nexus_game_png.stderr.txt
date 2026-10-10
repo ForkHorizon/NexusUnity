@@ -1,0 +1,1 @@
+error: option '--format <format>' argument 'png' is invalid. Must be one of: human, json, tsv, ndjson, github

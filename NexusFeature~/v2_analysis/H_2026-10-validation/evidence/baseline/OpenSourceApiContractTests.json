@@ -1,0 +1,75 @@
+{
+  "success": true,
+  "command": "run_tests",
+  "result": {
+    "Summary": {
+      "Total": 6,
+      "Passed": 6,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "Results": [
+      {
+        "FullName": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.ApiReferenceDocumentsRawAndBridgeSurfaces",
+        "Status": "Passed",
+        "Duration": 0.0401129,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.BridgeDirectToolsAreRegisteredOrBridgeMacros",
+        "Status": "Passed",
+        "Duration": 0.011044,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.BridgeRoutingCallsRegisteredRawMethods",
+        "Status": "Passed",
+        "Duration": 0.0074952,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.BridgeStaticToolsMatchPublicMcpSurface",
+        "Status": "Passed",
+        "Duration": 0.0077623,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.RawListToolsMatchesDispatchRegistry",
+        "Status": "Passed",
+        "Duration": 0.004726,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.RawSchemasDocumentFlexibleComponentAndReflectionInputs",
+        "Status": "Passed",
+        "Duration": 0.0086467,
+        "Message": null,
+        "StackTrace": null
+      }
+    ],
+    "Duration": 5.29,
+    "StatusPath": null,
+    "Mode": "EditMode",
+    "FilterApplied": "testname: OpenSourceApiContractTests",
+    "success": true,
+    "command": "run_tests",
+    "result": null,
+    "executionTimeMs": 5292,
+    "message": null,
+    "error": null,
+    "errorDetails": null,
+    "executedAt": "2026-10-04T21:47:32.893599Z"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:47:32.893829Z",
+  "_http_status": 200
+}

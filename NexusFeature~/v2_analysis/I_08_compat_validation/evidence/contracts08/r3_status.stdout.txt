@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "failed": true,
+  "errors": [
+    "Assets/P08ProbeErrors/Three.cs(2,22): error CS0103: The name 'nopeA' does not exist in the current context",
+    "Assets/P08ProbeErrors/Three.cs(3,22): error CS0103: The name 'nopeB' does not exist in the current context",
+    "Assets/P08ProbeErrors/Three.cs(4,22): error CS0103: The name 'nopeC' does not exist in the current context"
+  ],
+  "compilationFailed": true
+}

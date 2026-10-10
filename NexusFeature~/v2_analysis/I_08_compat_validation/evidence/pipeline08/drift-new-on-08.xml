@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.0570815">
+  <test-suite type="TestSuite" id="1000" name="nexus-p08-harness" fullname="nexus-p08-harness" runstate="Runnable" testcasecount="216" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.057082" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1241" name="UnityMCP.Editor.Tests.dll" fullname="/private/tmp/nexus-p08-harness/Library/ScriptAssemblies/UnityMCP.Editor.Tests.dll" runstate="Runnable" testcasecount="216" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.053982" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="92158" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1242" name="UnityMCP" fullname="UnityMCP" runstate="Runnable" testcasecount="216" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.053514" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1243" name="Editor" fullname="UnityMCP.Editor" runstate="Runnable" testcasecount="216" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.053117" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1244" name="Tests" fullname="UnityMCP.Editor.Tests" runstate="Runnable" testcasecount="216" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.052691" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1130" name="NexusCommandCliDriftTests" fullname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests" classname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.051454" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1133" name="CanonicalSchemasStayFreeOfCliDefaultFields" fullname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests.CanonicalSchemasStayFreeOfCliDefaultFields" methodname="CanonicalSchemasStayFreeOfCliDefaultFields" classname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests" runstate="Runnable" seed="1225270890" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.027113" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1131" name="CliArgsMatchCanonicalDescriptors" fullname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests.CliArgsMatchCanonicalDescriptors" methodname="CliArgsMatchCanonicalDescriptors" classname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests" runstate="Runnable" seed="1387617077" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.009410" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1132" name="OmittedHttpArgumentsUseTheSameDefaults" fullname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests.OmittedHttpArgumentsUseTheSameDefaults" methodname="OmittedHttpArgumentsUseTheSameDefaults" classname="UnityMCP.Editor.Tests.NexusCommandCliDriftTests" runstate="Runnable" seed="1684308819" result="Passed" start-time="2026-10-04 22:46:55Z" end-time="2026-10-04 22:46:55Z" duration="0.009981" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /tmp/nexus-p08-logs/drift-new-on-08.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

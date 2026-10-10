@@ -1,0 +1,227 @@
+{
+  "unity": "6000.3.16f1",
+  "pipeline": "0.7.0-exp.1",
+  "commit": "bfdd0f7",
+  "samples": {
+    "nexus_game_default": {
+      "client_ms": 428.1,
+      "wire_bytes": 716,
+      "http": 200,
+      "success": true,
+      "local": "/tmp/nexus_deathmatch_20261004/nexus_game_default.jpg",
+      "local_bytes": 12387,
+      "pixels": {
+        "width": 768,
+        "height": 407,
+        "bpp": 24,
+        "bottom_up": false,
+        "points": {
+          "top_center": [
+            95,
+            119,
+            155
+          ],
+          "upper": [
+            113,
+            138,
+            178
+          ],
+          "center": [
+            241,
+            255,
+            255
+          ],
+          "lower": [
+            103,
+            98,
+            92
+          ],
+          "bottom_center": [
+            104,
+            97,
+            91
+          ]
+        }
+      }
+    },
+    "nexus_game_png": {
+      "client_ms": 377.4,
+      "wire_bytes": 714,
+      "http": 200,
+      "success": true,
+      "local": "/tmp/nexus_deathmatch_20261004/nexus_game_png.png",
+      "local_bytes": 82679,
+      "pixels": {
+        "width": 768,
+        "height": 407,
+        "bpp": 32,
+        "bottom_up": false,
+        "points": {
+          "top_center": [
+            96,
+            119,
+            155
+          ],
+          "upper": [
+            112,
+            138,
+            177
+          ],
+          "center": [
+            242,
+            255,
+            255
+          ],
+          "lower": [
+            104,
+            98,
+            92
+          ],
+          "bottom_center": [
+            104,
+            97,
+            91
+          ]
+        }
+      }
+    },
+    "unity_camera": {
+      "client_ms": 1042.3,
+      "wire_bytes": 309,
+      "http": 200,
+      "success": true,
+      "local": "/tmp/nexus_deathmatch_20261004/unity_camera.png",
+      "local_bytes": 75456,
+      "pixels": {
+        "width": 768,
+        "height": 432,
+        "bpp": 24,
+        "bottom_up": false,
+        "points": {
+          "top_center": [
+            96,
+            120,
+            156
+          ],
+          "upper": [
+            112,
+            139,
+            177
+          ],
+          "center": [
+            240,
+            255,
+            255
+          ],
+          "lower": [
+            105,
+            98,
+            93
+          ],
+          "bottom_center": [
+            104,
+            97,
+            92
+          ]
+        }
+      }
+    },
+    "unity_screen_edit": {
+      "client_ms": 86.4,
+      "wire_bytes": 399,
+      "http": 400,
+      "success": false,
+      "local": null,
+      "local_bytes": null,
+      "pixels": null
+    },
+    "nexus_scene": {
+      "client_ms": 402.9,
+      "wire_bytes": 719,
+      "http": 200,
+      "success": true,
+      "local": "/tmp/nexus_deathmatch_20261004/nexus_scene.jpg",
+      "local_bytes": 12507,
+      "pixels": {
+        "width": 768,
+        "height": 403,
+        "bpp": 24,
+        "bottom_up": false,
+        "points": {
+          "top_center": [
+            102,
+            97,
+            93
+          ],
+          "upper": [
+            25,
+            189,
+            51
+          ],
+          "center": [
+            27,
+            191,
+            52
+          ],
+          "lower": [
+            32,
+            189,
+            54
+          ],
+          "bottom_center": [
+            182,
+            196,
+            197
+          ]
+        }
+      }
+    },
+    "unity_scene": {
+      "client_ms": 191.4,
+      "wire_bytes": 300,
+      "http": 200,
+      "success": true,
+      "local": "/tmp/nexus_deathmatch_20261004/unity_scene.png",
+      "local_bytes": 41640,
+      "pixels": {
+        "width": 768,
+        "height": 432,
+        "bpp": 24,
+        "bottom_up": false,
+        "points": {
+          "top_center": [
+            182,
+            195,
+            197
+          ],
+          "upper": [
+            105,
+            99,
+            100
+          ],
+          "center": [
+            106,
+            99,
+            96
+          ],
+          "lower": [
+            104,
+            98,
+            92
+          ],
+          "bottom_center": [
+            102,
+            96,
+            90
+          ]
+        }
+      }
+    }
+  },
+  "probe_after_open": {
+    "client_ms": 346.7,
+    "success": true,
+    "error": null
+  },
+  "create_ok": true
+}

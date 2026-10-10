@@ -1,0 +1,22 @@
+ASM Unity.Pipeline
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/Unity.Pipeline.dll
+TYPE Unity.Pipeline.Commands.CommandRegistry ASM Unity.Pipeline
+ASM Unity.Pipeline.Attributes
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/Unity.Pipeline.Attributes.dll
+TYPE Unity.Pipeline.Commands.CliArgAttribute ASM Unity.Pipeline.Attributes
+TYPE Unity.Pipeline.Commands.CliCommandAttribute ASM Unity.Pipeline.Attributes
+ASM Unity.Pipeline.CodeGen
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/Unity.Pipeline.CodeGen.dll
+ASM Unity.Pipeline.Editor
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/Unity.Pipeline.Editor.dll
+ASM Unity.Pipeline.IlInterpreter
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/Unity.Pipeline.IlInterpreter.dll
+ASM UnityMCP.Editor
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/UnityMCP.Editor.dll
+ASM UnityMCP.Editor.Pipeline
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/UnityMCP.Editor.Pipeline.dll
+TYPE UnityMCP.Editor.Pipeline.NexusPipelineCommands ASM UnityMCP.Editor.Pipeline
+ASM UnityMCP.Editor.Tests
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/UnityMCP.Editor.Tests.dll
+ASM UnityMCP.Runtime
+LOC /private/tmp/nexus-p08-harness/Library/ScriptAssemblies/UnityMCP.Runtime.dll

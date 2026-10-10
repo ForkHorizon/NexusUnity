@@ -1,0 +1,34 @@
+{
+  "http": 200,
+  "body": {
+    "success": true,
+    "result": {
+      "ok": true,
+      "data": {
+        "success": true,
+        "width": 768,
+        "height": 407,
+        "encoding": "jpg",
+        "bytes": 10074,
+        "file_path": "/private/tmp/nexus-p08-harness/Temp/NexusCapture/nexus-look-20261004225540841-f6ad9021.jpg",
+        "source": "game_view",
+        "acquisition_ms": 1.4626000000000001,
+        "submit_ms": 0.0037,
+        "wait_ms": 3.7297000000000002,
+        "getdata_ms": 0.0,
+        "encode_ms": 1.4847000000000001,
+        "base64_ms": 7.0891,
+        "main_thread_stall_ms": 2.9510000000000005,
+        "total_ms": 13.7871,
+        "editor_ticks_submit_to_done": 3
+      },
+      "error": null,
+      "meta": {
+        "ms": 7,
+        "mode": "pipeline",
+        "gen": 6,
+        "request_id": null
+      }
+    }
+  }
+}

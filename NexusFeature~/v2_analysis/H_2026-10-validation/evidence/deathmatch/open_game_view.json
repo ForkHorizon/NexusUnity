@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "command": "menu",
+  "result": {
+    "success": true,
+    "path": "Window/General/Game",
+    "items": null,
+    "message": "Executed menu item 'Window/General/Game'"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:52:46.063096Z",
+  "_http_status": 200,
+  "_client_ms": 92.9,
+  "_wire_bytes": 268
+}

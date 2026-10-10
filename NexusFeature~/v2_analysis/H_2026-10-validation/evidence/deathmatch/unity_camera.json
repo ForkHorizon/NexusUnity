@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "command": "capture_game_view",
+  "result": {
+    "width": 768,
+    "height": 432,
+    "encoding": "png",
+    "bytes": 75456,
+    "source": "camera:Main Camera",
+    "savedPath": "Assets/Temp/nexus-dm-unity-camera.png"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:52:49.095479Z",
+  "_http_status": 200,
+  "_client_ms": 1042.3,
+  "_wire_bytes": 309
+}

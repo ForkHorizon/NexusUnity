@@ -1,0 +1,156 @@
+[
+  {
+    "suite": "NexusCommandCliDriftTests",
+    "seconds": 5.711,
+    "http": 200,
+    "success": true,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "total": 3,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 3,
+      "Passed": 3,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "seconds": 5.31,
+    "http": 200,
+    "success": true,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "total": 9,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 9,
+      "Passed": 9,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "seconds": 5.403,
+    "http": 200,
+    "success": true,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "total": 6,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 6,
+      "Passed": 6,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "seconds": 5.329,
+    "http": 200,
+    "success": true,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "total": 17,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 17,
+      "Passed": 17,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "seconds": 6.911,
+    "http": 200,
+    "success": true,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "total": 29,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 29,
+      "Passed": 29,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "seconds": 5.701,
+    "http": 200,
+    "success": true,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "total": 10,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 10,
+      "Passed": 10,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  },
+  {
+    "suite": "CaptureLookTests",
+    "seconds": 5.307,
+    "http": 200,
+    "success": true,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0,
+    "total": 10,
+    "states": {},
+    "unique_names": 0,
+    "bad": [],
+    "summary": {
+      "Total": 10,
+      "Passed": 10,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "transport": null,
+    "message": null
+  }
+]

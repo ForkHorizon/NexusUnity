@@ -1,0 +1,96 @@
+{
+  "success": true,
+  "command": "run_tests",
+  "result": {
+    "Summary": {
+      "Total": 9,
+      "Passed": 9,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "Results": [
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CanonicalCommandSourcesDoNotReferencePipelineOrHttpListener",
+        "Status": "Passed",
+        "Duration": 0.0043904,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CanonicalIdAndAliasShareTheSameHandlerInstance",
+        "Status": "Passed",
+        "Duration": 0.0003109,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CoreEditorAssemblyHasNoHardPipelineReference",
+        "Status": "Passed",
+        "Duration": 0.0007773,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CoreProfileOmitsCaptureAndDoesNotDuplicateAliases",
+        "Status": "Passed",
+        "Duration": 0.0029573,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.GroupCompileErrorsHandlerReturnsStructuredGroups",
+        "Status": "Passed",
+        "Duration": 0.000902,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.ListToolsProjectsSharedDescriptionsAndKeepsLegacyScreenshot",
+        "Status": "Passed",
+        "Duration": 0.0074639,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.ProjectMapHandlerReturnsEditorProjectMetadata",
+        "Status": "Passed",
+        "Duration": 0.0008284,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.RegistryExposesOnlyTheThreePocCommands",
+        "Status": "Passed",
+        "Duration": 0.0002805,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.VisualProfileListsCanonicalCaptureOnly",
+        "Status": "Passed",
+        "Duration": 0.0038844,
+        "Message": null,
+        "StackTrace": null
+      }
+    ],
+    "Duration": 5.2,
+    "StatusPath": null,
+    "Mode": "EditMode",
+    "FilterApplied": "testname: NexusCommandRegistryTests",
+    "success": true,
+    "command": "run_tests",
+    "result": null,
+    "executionTimeMs": 5204,
+    "message": null,
+    "error": null,
+    "errorDetails": null,
+    "executedAt": "2026-10-04T22:40:22.118214Z"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T22:40:22.118314Z",
+  "_http_status": 200
+}

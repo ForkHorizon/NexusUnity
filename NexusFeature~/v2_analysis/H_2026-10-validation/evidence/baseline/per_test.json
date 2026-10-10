@@ -1,0 +1,506 @@
+[
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.CaptureRequestDefaultsToPngWithoutTransportFields",
+    "status": "Passed",
+    "duration_s": 0.0033013
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.CaptureResultSchemaUsesBytesNotBase64",
+    "status": "Passed",
+    "duration_s": 0.0005511
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.CaptureSourcesStayTransportIndependent",
+    "status": "Passed",
+    "duration_s": 0.1145212
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.DomainReloadHookRejectsNewCaptureWithoutGpuWait",
+    "status": "Passed",
+    "duration_s": 0.0017329
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.JpegQualityIsClampedToInclusiveRange",
+    "status": "Passed",
+    "duration_s": 0.000155
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.LegacyScreenshotResultKeepsPngSchema",
+    "status": "Passed",
+    "duration_s": 0.0005852
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.MissingGameViewFailsWithDomainError",
+    "status": "Passed",
+    "duration_s": 0.2776396
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.ParseGameViewCaptureRequestMapsOptionalSemanticOptions",
+    "status": "Passed",
+    "duration_s": 0.0010219
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.PipelineCaptureCommandDoesNotBlockOnGetResult",
+    "status": "Passed",
+    "duration_s": 0.0003359
+  },
+  {
+    "suite": "CaptureGatewayTests",
+    "name": "UnityMCP.Editor.Tests.CaptureGatewayTests.ResolveOutputSizeHonorsMaxLongEdge",
+    "status": "Passed",
+    "duration_s": 0.0001412
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.CropOutsideTheFrameIsNotVisible",
+    "status": "Passed",
+    "duration_s": 0.0009735
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.DefaultLongEdgeFitsTheTokenBudgetAndDoesNotUpscale",
+    "status": "Passed",
+    "duration_s": 0.0053216
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.DisabledAndUnknownTargetsFailBeforeCapture",
+    "status": "Passed",
+    "duration_s": 0.0033794
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.FileDeliveryWritesOneEncoding",
+    "status": "Passed",
+    "duration_s": 0.0025704
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.FullFrameCropUsesTheOverlayFlip",
+    "status": "Passed",
+    "duration_s": 0.0006755
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.MalformedLookArgumentsAreNotRetryable",
+    "status": "Passed",
+    "duration_s": 0.0005651
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.OmittedMaxEdgeIs768AndExplicitZeroStaysUnconstrained",
+    "status": "Passed",
+    "duration_s": 0.0003416
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.PartialCropKeepsTheSameFlipDirection",
+    "status": "Passed",
+    "duration_s": 0.0001147
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.SceneCaptureFramesATargetAndRestoresTheView",
+    "status": "Passed",
+    "duration_s": 0.0173836
+  },
+  {
+    "suite": "CaptureLookTests",
+    "name": "UnityMCP.Editor.Tests.CaptureLookTests.TinyCropIsNotVisible",
+    "status": "Passed",
+    "duration_s": 0.0002492
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.AlreadyReady_WhenNothingIsPending",
+    "status": "Passed",
+    "duration_s": 0.0034306
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.CompileEpoch_IncrementsWhenCompilationFinishes",
+    "status": "Passed",
+    "duration_s": 0.0004258
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.Epochs_PersistAcrossSimulatedDomainReset",
+    "status": "Passed",
+    "duration_s": 0.0003764
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.PendingRefresh_IsNotReadyUntilRefreshSettles",
+    "status": "Passed",
+    "duration_s": 0.0003749
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.PlayTransition_IsNotReady",
+    "status": "Passed",
+    "duration_s": 0.0001491
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ReloadEpoch_IncrementsOnceWhenArmedReloadIsConsumed",
+    "status": "Passed",
+    "duration_s": 0.0002114
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_FailedCompile_ProbeSettlesOnTheFollowingTick",
+    "status": "Passed",
+    "duration_s": 0.0003364
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_FailedCompile_SettlesWithoutReload",
+    "status": "Passed",
+    "duration_s": 0.0002182
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_IsNotReadyBeforeCompileStarts",
+    "status": "Passed",
+    "duration_s": 0.0005414
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_NoOpRefresh_BecomesAlreadyReadyWithoutEpochAdvance",
+    "status": "Passed",
+    "duration_s": 0.0001928
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_OverlappingArm_DoesNotTreatOldCompileAsNoOp",
+    "status": "Passed",
+    "duration_s": 0.0002575
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_PlayTransition_DoesNotCountAsQuiet",
+    "status": "Passed",
+    "duration_s": 0.0001555
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_ReloadWithoutCompile_DoesNotReportReady",
+    "status": "Passed",
+    "duration_s": 0.0001313
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_ReportsReadyOnlyAfterCompileAndReload",
+    "status": "Passed",
+    "duration_s": 0.0002525
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_SuccessFlag_DoesNotSettleWithoutReload",
+    "status": "Passed",
+    "duration_s": 0.0001633
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_SuccessfulCompile_StaysBlockedUntilReload",
+    "status": "Passed",
+    "duration_s": 0.0002303
+  },
+  {
+    "suite": "EditorReadinessTests",
+    "name": "UnityMCP.Editor.Tests.EditorReadinessTests.StatusAndWait_ShareTheSameReadyFlag",
+    "status": "Passed",
+    "duration_s": 0.0002928
+  },
+  {
+    "suite": "NexusCommandCliDriftTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandCliDriftTests.CanonicalSchemasStayFreeOfCliDefaultFields",
+    "status": "Passed",
+    "duration_s": 0.0117299
+  },
+  {
+    "suite": "NexusCommandCliDriftTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandCliDriftTests.CliArgsMatchCanonicalDescriptors",
+    "status": "Passed",
+    "duration_s": 0.0039232
+  },
+  {
+    "suite": "NexusCommandCliDriftTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandCliDriftTests.OmittedHttpArgumentsUseTheSameDefaults",
+    "status": "Passed",
+    "duration_s": 0.0031119
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.Busy_CaptureInProgress_IsNotPending",
+    "status": "Passed",
+    "duration_s": 0.0033377
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.CanonicalCaptureData_IsNotLegacyScreenshot",
+    "status": "Passed",
+    "duration_s": 0.0020181
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.CanonicalProjectMap_IsNotBareDto",
+    "status": "Passed",
+    "duration_s": 0.0012862
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.CaptureFailed_ReadbackError_IsNotTimeoutOrInternal",
+    "status": "Passed",
+    "duration_s": 0.0006742
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.ClampedQualityAndNegativeWidth_AreNotInvalidArgument",
+    "status": "Passed",
+    "duration_s": 1.2918667
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.DebugEnv_AddsStackOnlyWhenSet",
+    "status": "Passed",
+    "duration_s": 0.0008986
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.EditorNotReady_DomainReload_IsRetryable",
+    "status": "Passed",
+    "duration_s": 0.0011813
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.HttpCompileResult_MatchesProjector",
+    "status": "Passed",
+    "duration_s": 0.0013123
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.Internal_UnexpectedException_RetryableFalse_NoStack",
+    "status": "Passed",
+    "duration_s": 0.0002622
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.InvalidArgument_BadMaxLogs_DoesNotCallLogs",
+    "status": "Passed",
+    "duration_s": 0.0007901
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.InvalidArgument_NonStringRequestId_SkipsHandler",
+    "status": "Passed",
+    "duration_s": 0.0002878
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.InvalidArgument_UnsupportedFormat_BothNames",
+    "status": "Passed",
+    "duration_s": 0.0005362
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.LegacyRawMethod_HasNoEnvelope",
+    "status": "Passed",
+    "duration_s": 0.0074303
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.LegacyScreenshot_Failure_StaysFailedBody",
+    "status": "Passed",
+    "duration_s": 0.0003773
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.LegacyScreenshot_Success_HasNoEnvelope",
+    "status": "Passed",
+    "duration_s": 0.0003959
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.ListTools_AdvertisesOptionalRequestIdOnCanonicalCommands",
+    "status": "Passed",
+    "duration_s": 0.0075211
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.MetaShape_Types",
+    "status": "Passed",
+    "duration_s": 0.0014751
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.Partial_CompilingErrorList_DoesNotTrustDtoSuccess",
+    "status": "Passed",
+    "duration_s": 0.0003863
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.PipelineProjection_ReturnsEnvelopeType",
+    "status": "Passed",
+    "duration_s": 0.001603
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.RequestIdOmitted_IsNull_NotJsonRpcId",
+    "status": "Passed",
+    "duration_s": 0.0008446
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.SuccessEnvelope_AliasMatchesCanonicalId",
+    "status": "Passed",
+    "duration_s": 0.0013961
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.SuccessEnvelope_CompileErrorsAreSuccessWhenNotCompiling",
+    "status": "Passed",
+    "duration_s": 0.0005936
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.SuccessEnvelope_ProjectMap_EchoesRequestIdAndGen",
+    "status": "Passed",
+    "duration_s": 0.0007782
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.SuccessEnvelope_UnsavedSceneIsNotUnavailable",
+    "status": "Passed",
+    "duration_s": 0.0007165
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.SyncProcessJsonRpc_Capture_StaysTransportError",
+    "status": "Passed",
+    "duration_s": 0.0003688
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.Timeout_Readback_IsRetryableAndHasNoUnknownOutcome",
+    "status": "Passed",
+    "duration_s": 0.0002389
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.Unavailable_EmptySource_SameCodeDifferentMessage",
+    "status": "Passed",
+    "duration_s": 0.0002942
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.Unavailable_MissingGameView_IsResultNotJsonRpcError",
+    "status": "Passed",
+    "duration_s": 0.2670941
+  },
+  {
+    "suite": "NexusCommandEnvelopeTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandEnvelopeTests.UnknownMutationOutcomeForcesRetryableFalse",
+    "status": "Passed",
+    "duration_s": 0.00023
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CanonicalCommandSourcesDoNotReferencePipelineOrHttpListener",
+    "status": "Passed",
+    "duration_s": 0.0061983
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CanonicalIdAndAliasShareTheSameHandlerInstance",
+    "status": "Passed",
+    "duration_s": 0.0007158
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CoreEditorAssemblyHasNoHardPipelineReference",
+    "status": "Passed",
+    "duration_s": 0.001048
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.CoreProfileOmitsCaptureAndDoesNotDuplicateAliases",
+    "status": "Passed",
+    "duration_s": 0.0069942
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.GroupCompileErrorsHandlerReturnsStructuredGroups",
+    "status": "Passed",
+    "duration_s": 0.0006554
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.ListToolsProjectsSharedDescriptionsAndKeepsLegacyScreenshot",
+    "status": "Passed",
+    "duration_s": 0.0101077
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.ProjectMapHandlerReturnsEditorProjectMetadata",
+    "status": "Passed",
+    "duration_s": 0.0010147
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.RegistryExposesOnlyTheThreePocCommands",
+    "status": "Passed",
+    "duration_s": 0.0006553
+  },
+  {
+    "suite": "NexusCommandRegistryTests",
+    "name": "UnityMCP.Editor.Tests.NexusCommandRegistryTests.VisualProfileListsCanonicalCaptureOnly",
+    "status": "Passed",
+    "duration_s": 0.0033298
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "name": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.ApiReferenceDocumentsRawAndBridgeSurfaces",
+    "status": "Passed",
+    "duration_s": 0.0401129
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "name": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.BridgeDirectToolsAreRegisteredOrBridgeMacros",
+    "status": "Passed",
+    "duration_s": 0.011044
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "name": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.BridgeRoutingCallsRegisteredRawMethods",
+    "status": "Passed",
+    "duration_s": 0.0074952
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "name": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.BridgeStaticToolsMatchPublicMcpSurface",
+    "status": "Passed",
+    "duration_s": 0.0077623
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "name": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.RawListToolsMatchesDispatchRegistry",
+    "status": "Passed",
+    "duration_s": 0.004726
+  },
+  {
+    "suite": "OpenSourceApiContractTests",
+    "name": "UnityMCP.Editor.Tests.OpenSourceApiContractTests.RawSchemasDocumentFlexibleComponentAndReflectionInputs",
+    "status": "Passed",
+    "duration_s": 0.0086467
+  }
+]

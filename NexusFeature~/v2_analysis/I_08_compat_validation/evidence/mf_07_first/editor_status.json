@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "command": "editor_status",
+  "result": {
+    "status": "ready",
+    "compiling": false,
+    "domainReloadInProgress": false,
+    "playMode": "stopped",
+    "lastHeartbeat": "2026-10-04T22:49:59.121754Z",
+    "projectPath": "/Users/daliys/Daliys/UnityProjects/UnityTestForNexus",
+    "unityVersion": "6000.3.16f1"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T22:49:59.122633Z",
+  "_http_status": 200
+}

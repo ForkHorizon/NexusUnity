@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "command": "eval",
+  "result": {
+    "output": null,
+    "diagnostics": [],
+    "success": true,
+    "command": "eval",
+    "result": "created cube=-32136 dirty=False scene=",
+    "executionTimeMs": 74,
+    "message": null,
+    "error": null,
+    "errorDetails": null,
+    "executedAt": "2026-10-04T21:52:47.1806Z"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:52:47.181301Z",
+  "_http_status": 200,
+  "_client_ms": 108.4,
+  "_wire_bytes": 381
+}

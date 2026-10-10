@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "failed": true,
+  "errors": [
+    "Assets/P08ProbeErrors/One.cs(2,34): error CS0103: The name 'missingName' does not exist in the current context"
+  ],
+  "compilationFailed": true
+}

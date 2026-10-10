@@ -1,0 +1,9 @@
+Source: /tmp/nexus-p08-logs/editor-08.log
+Scratch editor PID 94542, project /tmp/nexus-p08-harness.
+These two lines are the only CS1030 hits found in that log.
+They are not present in r4_recompile.json. That call returned HTTP 401.
+They are not present in r4_status.json or r4_strict.json.
+
+1992:Assets/P08ProbeErrors/Warn.cs(2,10): warning CS1030: #warning: 'P08_WARNING_MARKER'
+2007:Assets/P08ProbeErrors/Warn.cs(2,10): warning CS1030: #warning: 'P08_WARNING_MARKER'
+2008:Reloading assemblies after finishing script compilation.

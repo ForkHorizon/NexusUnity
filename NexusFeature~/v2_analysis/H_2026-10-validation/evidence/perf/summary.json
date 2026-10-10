@@ -1,0 +1,65 @@
+{
+  "editor_status": {
+    "n": 15,
+    "ok": 15,
+    "p50_ms": 100.3,
+    "p90_ms": 102.2,
+    "max_ms": 102.6,
+    "min_ms": 93.4,
+    "bytes_p50": 398.0
+  },
+  "project_map": {
+    "n": 8,
+    "ok": 8,
+    "p50_ms": 99.3,
+    "p90_ms": 102.0,
+    "max_ms": 102.1,
+    "min_ms": 97.0,
+    "bytes_p50": 1417.0
+  },
+  "group_compile_errors": {
+    "n": 8,
+    "ok": 8,
+    "p50_ms": 100.2,
+    "p90_ms": 101.4,
+    "max_ms": 101.9,
+    "min_ms": 95.3,
+    "bytes_p50": 391.5
+  },
+  "look_default": {
+    "n": 6,
+    "ok": 6,
+    "p50_ms": 98.8,
+    "p90_ms": 100.8,
+    "max_ms": 101.0,
+    "min_ms": 94.2,
+    "bytes_p50": 429.0
+  },
+  "look_file": {
+    "n": 3,
+    "ok": 3,
+    "p50_ms": 98.1,
+    "p90_ms": 100.3,
+    "max_ms": 100.9,
+    "min_ms": 97.8,
+    "bytes_p50": 429.0
+  },
+  "unity_game_view_camera": {
+    "n": 3,
+    "ok": 3,
+    "p50_ms": 116.1,
+    "p90_ms": 133.8,
+    "max_ms": 138.2,
+    "min_ms": 49.4,
+    "bytes_p50": 100798.0
+  },
+  "look_soak": {
+    "n": 12,
+    "ok": 12,
+    "p50_ms": 99.2,
+    "p90_ms": 101.9,
+    "max_ms": 102.1,
+    "min_ms": 91.6,
+    "bytes_p50": 429.0
+  }
+}

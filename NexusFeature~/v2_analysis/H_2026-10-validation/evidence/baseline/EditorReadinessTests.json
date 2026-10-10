@@ -1,0 +1,152 @@
+{
+  "success": true,
+  "command": "run_tests",
+  "result": {
+    "Summary": {
+      "Total": 17,
+      "Passed": 17,
+      "Failed": 0,
+      "Skipped": 0,
+      "Inconclusive": 0
+    },
+    "Results": [
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.AlreadyReady_WhenNothingIsPending",
+        "Status": "Passed",
+        "Duration": 0.0034306,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.CompileEpoch_IncrementsWhenCompilationFinishes",
+        "Status": "Passed",
+        "Duration": 0.0004258,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.Epochs_PersistAcrossSimulatedDomainReset",
+        "Status": "Passed",
+        "Duration": 0.0003764,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.PendingRefresh_IsNotReadyUntilRefreshSettles",
+        "Status": "Passed",
+        "Duration": 0.0003749,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.PlayTransition_IsNotReady",
+        "Status": "Passed",
+        "Duration": 0.0001491,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ReloadEpoch_IncrementsOnceWhenArmedReloadIsConsumed",
+        "Status": "Passed",
+        "Duration": 0.0002114,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_FailedCompile_ProbeSettlesOnTheFollowingTick",
+        "Status": "Passed",
+        "Duration": 0.0003364,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_FailedCompile_SettlesWithoutReload",
+        "Status": "Passed",
+        "Duration": 0.0002182,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_IsNotReadyBeforeCompileStarts",
+        "Status": "Passed",
+        "Duration": 0.0005414,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_NoOpRefresh_BecomesAlreadyReadyWithoutEpochAdvance",
+        "Status": "Passed",
+        "Duration": 0.0001928,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_OverlappingArm_DoesNotTreatOldCompileAsNoOp",
+        "Status": "Passed",
+        "Duration": 0.0002575,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_PlayTransition_DoesNotCountAsQuiet",
+        "Status": "Passed",
+        "Duration": 0.0001555,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_ReloadWithoutCompile_DoesNotReportReady",
+        "Status": "Passed",
+        "Duration": 0.0001313,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_ReportsReadyOnlyAfterCompileAndReload",
+        "Status": "Passed",
+        "Duration": 0.0002525,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_SuccessFlag_DoesNotSettleWithoutReload",
+        "Status": "Passed",
+        "Duration": 0.0001633,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.ScriptWrite_SuccessfulCompile_StaysBlockedUntilReload",
+        "Status": "Passed",
+        "Duration": 0.0002303,
+        "Message": null,
+        "StackTrace": null
+      },
+      {
+        "FullName": "UnityMCP.Editor.Tests.EditorReadinessTests.StatusAndWait_ShareTheSameReadyFlag",
+        "Status": "Passed",
+        "Duration": 0.0002928,
+        "Message": null,
+        "StackTrace": null
+      }
+    ],
+    "Duration": 5.23,
+    "StatusPath": null,
+    "Mode": "EditMode",
+    "FilterApplied": "testname: EditorReadinessTests",
+    "success": true,
+    "command": "run_tests",
+    "result": null,
+    "executionTimeMs": 5228,
+    "message": null,
+    "error": null,
+    "errorDetails": null,
+    "executedAt": "2026-10-04T21:47:38.320568Z"
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:47:38.320785Z",
+  "_http_status": 200
+}

@@ -1,0 +1,346 @@
+{
+  "unity_omit2": {
+    "exists": true,
+    "bytes": 4476,
+    "meta": true,
+    "path": "/tmp/nexus-p08-harness/Assets/Captures/unity_omit2.png",
+    "size": [
+      640,
+      360
+    ],
+    "samples": {
+      "top": [
+        255,
+        0,
+        0
+      ],
+      "bottom": [
+        0,
+        0,
+        255
+      ],
+      "center": [
+        0,
+        255,
+        0
+      ],
+      "right": [
+        255,
+        235,
+        4
+      ],
+      "top_left": [
+        255,
+        0,
+        255
+      ]
+    },
+    "frac_red": 0.476,
+    "frac_blue": 0.4831,
+    "frac_green": 0.0237,
+    "frac_yellow": 0.0102,
+    "frac_magenta": 0.0071,
+    "frac_black": 0.0
+  },
+  "unity_screen": {
+    "exists": true,
+    "bytes": 4476,
+    "meta": true,
+    "path": "/tmp/nexus-p08-harness/Assets/Captures/unity_screen.png",
+    "size": [
+      640,
+      360
+    ],
+    "samples": {
+      "top": [
+        255,
+        0,
+        0
+      ],
+      "bottom": [
+        0,
+        0,
+        255
+      ],
+      "center": [
+        0,
+        255,
+        0
+      ],
+      "right": [
+        255,
+        235,
+        4
+      ],
+      "top_left": [
+        255,
+        0,
+        255
+      ]
+    },
+    "frac_red": 0.476,
+    "frac_blue": 0.4831,
+    "frac_green": 0.0237,
+    "frac_yellow": 0.0102,
+    "frac_magenta": 0.0071,
+    "frac_black": 0.0
+  },
+  "unity_camera": {
+    "exists": true,
+    "bytes": 4201,
+    "meta": true,
+    "path": "/tmp/nexus-p08-harness/Assets/Captures/unity_camera.png",
+    "size": [
+      640,
+      360
+    ],
+    "samples": {
+      "top": [
+        255,
+        0,
+        0
+      ],
+      "bottom": [
+        0,
+        0,
+        255
+      ],
+      "center": [
+        0,
+        255,
+        0
+      ],
+      "right": [
+        255,
+        235,
+        4
+      ],
+      "top_left": [
+        255,
+        0,
+        0
+      ]
+    },
+    "frac_red": 0.4818,
+    "frac_blue": 0.4818,
+    "frac_green": 0.0237,
+    "frac_yellow": 0.0127,
+    "frac_magenta": 0.0,
+    "frac_black": 0.0
+  },
+  "unity_scene": {
+    "exists": true,
+    "bytes": 22019,
+    "meta": true,
+    "path": "/tmp/nexus-p08-harness/Assets/Captures/unity_scene.png",
+    "size": [
+      640,
+      360
+    ],
+    "samples": {
+      "top": [
+        154,
+        153,
+        113
+      ],
+      "bottom": [
+        75,
+        57,
+        30
+      ],
+      "center": [
+        75,
+        57,
+        31
+      ],
+      "right": [
+        75,
+        57,
+        31
+      ],
+      "top_left": [
+        234,
+        250,
+        214
+      ]
+    },
+    "frac_red": 0.0,
+    "frac_blue": 0.0,
+    "frac_green": 0.0,
+    "frac_yellow": 0.0,
+    "frac_magenta": 0.0,
+    "frac_black": 0.0
+  },
+  "nexus_jpg": {
+    "exists": true,
+    "bytes": 10074,
+    "meta": false,
+    "path": "/private/tmp/nexus-p08-harness/Temp/NexusCapture/nexus-look-20261004225540841-f6ad9021.jpg",
+    "size": [
+      768,
+      407
+    ],
+    "samples": {
+      "top": [
+        254,
+        0,
+        0
+      ],
+      "bottom": [
+        0,
+        0,
+        254
+      ],
+      "center": [
+        0,
+        255,
+        1
+      ],
+      "right": [
+        255,
+        235,
+        4
+      ],
+      "top_left": [
+        255,
+        0,
+        254
+      ]
+    },
+    "frac_red": 0.4766,
+    "frac_blue": 0.4793,
+    "frac_green": 0.0227,
+    "frac_yellow": 0.0113,
+    "frac_magenta": 0.0066,
+    "frac_black": 0.0
+  },
+  "nexus_png": {
+    "exists": true,
+    "bytes": 7119,
+    "meta": false,
+    "path": "/private/tmp/nexus-p08-harness/Temp/NexusCapture/nexus-look-20261004225540854-48763ec6.png",
+    "size": [
+      768,
+      407
+    ],
+    "samples": {
+      "top": [
+        255,
+        0,
+        0
+      ],
+      "bottom": [
+        0,
+        0,
+        255
+      ],
+      "center": [
+        0,
+        255,
+        0
+      ],
+      "right": [
+        255,
+        235,
+        4
+      ],
+      "top_left": [
+        255,
+        0,
+        255
+      ]
+    },
+    "frac_red": 0.4769,
+    "frac_blue": 0.4818,
+    "frac_green": 0.023,
+    "frac_yellow": 0.0115,
+    "frac_magenta": 0.0069,
+    "frac_black": 0.0
+  },
+  "nexus_scene": {
+    "exists": true,
+    "bytes": 33818,
+    "meta": false,
+    "path": "/private/tmp/nexus-p08-harness/Temp/NexusCapture/nexus-look-20261004225540867-62f79dca.png",
+    "size": [
+      768,
+      403
+    ],
+    "samples": {
+      "top": [
+        75,
+        57,
+        30
+      ],
+      "bottom": [
+        156,
+        155,
+        115
+      ],
+      "center": [
+        75,
+        57,
+        31
+      ],
+      "right": [
+        75,
+        57,
+        31
+      ],
+      "top_left": [
+        75,
+        57,
+        30
+      ]
+    },
+    "frac_red": 0.0,
+    "frac_blue": 0.0,
+    "frac_green": 0.0,
+    "frac_yellow": 0.0,
+    "frac_magenta": 0.0,
+    "frac_black": 0.0
+  },
+  "nexus_cli_jpg": {
+    "exists": true,
+    "bytes": 10074,
+    "meta": false,
+    "path": "/private/tmp/nexus-p08-harness/Temp/NexusCapture/nexus-look-20261004225539873-9863c925.jpg",
+    "size": [
+      768,
+      407
+    ],
+    "samples": {
+      "top": [
+        254,
+        0,
+        0
+      ],
+      "bottom": [
+        0,
+        0,
+        254
+      ],
+      "center": [
+        0,
+        255,
+        1
+      ],
+      "right": [
+        255,
+        235,
+        4
+      ],
+      "top_left": [
+        255,
+        0,
+        254
+      ]
+    },
+    "frac_red": 0.4766,
+    "frac_blue": 0.4793,
+    "frac_green": 0.0227,
+    "frac_yellow": 0.0113,
+    "frac_magenta": 0.0066,
+    "frac_black": 0.0
+  }
+}

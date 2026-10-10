@@ -1,0 +1,44 @@
+{
+  "success": false,
+  "command": "recompile",
+  "data": {
+    "status": "completed",
+    "compiling": false,
+    "failed": true,
+    "compilationFailed": true,
+    "errors": [
+      {
+        "type": "compile-error",
+        "raw": "Assets/P08ProbeErrors/Three.cs(2,22): error CS0103: The name 'nopeA' does not exist in the current context",
+        "file": "Assets/P08ProbeErrors/Three.cs",
+        "line": 2,
+        "column": 22,
+        "code": "CS0103",
+        "message": "The name 'nopeA' does not exist in the current context"
+      },
+      {
+        "type": "compile-error",
+        "raw": "Assets/P08ProbeErrors/Three.cs(3,22): error CS0103: The name 'nopeB' does not exist in the current context",
+        "file": "Assets/P08ProbeErrors/Three.cs",
+        "line": 3,
+        "column": 22,
+        "code": "CS0103",
+        "message": "The name 'nopeB' does not exist in the current context"
+      },
+      {
+        "type": "compile-error",
+        "raw": "Assets/P08ProbeErrors/Three.cs(4,22): error CS0103: The name 'nopeC' does not exist in the current context",
+        "file": "Assets/P08ProbeErrors/Three.cs",
+        "line": 4,
+        "column": 22,
+        "code": "CS0103",
+        "message": "The name 'nopeC' does not exist in the current context"
+      }
+    ],
+    "warnings": [],
+    "summary": {
+      "errors": 3,
+      "warnings": 0
+    }
+  }
+}

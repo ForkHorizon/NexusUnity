@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "command": "capture_game_view",
+  "result": {
+    "width": 768,
+    "height": 432,
+    "encoding": "png",
+    "base64": {
+      "_omitted": true,
+      "chars": 100512
+    },
+    "bytes": 75384,
+    "source": "camera:Main Camera",
+    "savedPath": null
+  },
+  "executionTimeMs": null,
+  "message": null,
+  "error": null,
+  "errorDetails": null,
+  "executedAt": "2026-10-04T21:50:46.282164Z",
+  "_http_status": 200,
+  "_client_ms": 138.2,
+  "_wire_bytes": 100798
+}

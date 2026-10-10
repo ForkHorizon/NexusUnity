@@ -1,0 +1,12 @@
+{
+  "success": false,
+  "command": "unity command nexus_capture_game_view",
+  "data": null,
+  "errors": [
+    {
+      "code": "INVALID_COMMAND_ARGS",
+      "message": "Invalid arguments for nexus_capture_game_view:\n  max_dimension=768 is not a parameter. Use -- <value> instead.\n  --width expects Int32 but got format=png.\n  --height expects Int32 but got delivery=file.\n  --quality expects Int32 but got target=CenterGreen.\n  --max_dimension expects Int32 but got max_dimension=768."
+    }
+  ],
+  "warnings": []
+}

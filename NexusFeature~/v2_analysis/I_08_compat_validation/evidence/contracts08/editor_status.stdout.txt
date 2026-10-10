@@ -1,0 +1,9 @@
+{
+  "status": "ready",
+  "compiling": false,
+  "domainReloadInProgress": false,
+  "playMode": "stopped",
+  "lastHeartbeat": "2026-10-04T22:53:20.63968Z",
+  "projectPath": "/private/tmp/nexus-p08-harness",
+  "unityVersion": "6000.3.16f1"
+}
