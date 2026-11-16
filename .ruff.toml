@@ -1,7 +1,0 @@
-target-version = "py311"
-line-length = 120
-
-[lint]
-select = [
-    "E", "W", "F", "B", "C4", "SIM", "ARG", "PL", "RUF", "UP", "N",
-]

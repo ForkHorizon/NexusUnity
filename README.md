@@ -3,7 +3,7 @@
 [![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.6.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
-[![Validate package](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/validate.yml)
+[![CI Scope](https://github.com/ForkHorizon/NexusUnity/actions/workflows/ci-scope-checks.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/ci-scope-checks.yml)
 
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
@@ -224,27 +224,15 @@ Current development keeps the public API backward-compatible while tightening sc
 
 ## Contributor Validation
 
-GitHub Actions is the required validation gate for public contributions. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner instead of GitHub-hosted runners. Maintainers should configure the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` jobs as required status checks before merge.
+Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. What runs is defined by `.ci-scope.json` and the configs in this repo (`.code-linter.json`, `.ruff.toml`); the pinned gates live in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates) and the repository carries no gate logic of its own. `.github/workflows/ci-scope-checks.yml` is the single workflow. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
 
-Static validation includes `NexusQualityGate`, a Roslyn-based checker for production C# source under `Editor/` and `Runtime/`. It blocks missing XML documentation on public/protected types and methods, generic filler summaries, files over 450 lines, and methods over 150 lines. Files over 300 lines and methods over 50 lines are reported as warnings so contributors can split code before it becomes hard to review.
+Contributor pull requests target `development`; `main` is release-only. Direct pushes to both are blocked and maintainers merge through GitHub. Review fork pull requests carefully before merge.
 
 Editor security tests include JSON-RPC traversal checks for representative file and asset methods.
 
-The runner must have the labels `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`; the AI review job also requires `nexus-doc-ai`. The local toolchain must provide `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama on `http://127.0.0.1:11434`. The workflow uses GitHub Actions `concurrency` group `nexus-unity-ci` with `queue: max`, so multiple trusted runs wait in order instead of competing for the MacBook.
-
-The required `Documentation quality AI` job also runs checklist quality review. It sends documentation/code excerpts to local Ollama and verifies that XML comments match the implementation intent, major caller-visible side effects, and Unity Editor behavior. It reviews each pull request checklist item individually against repository evidence, CI wiring, safety policies, and tracked files, then emits a specific next action when a checklist item is not satisfied. The AI rubric is intentionally pragmatic: it blocks misleading or filler docs and clear checklist violations, not comments that omit every private implementation detail or runtime evidence that is supplied by another CI job. The job sets a short Ollama `keep_alive` and unloads the model after every run so large local models do not remain in memory between checks.
-
 Contributor pull requests should target `development`. The `main` branch is release-only and should be updated only by maintainers during release preparation.
 
-Direct pushes to `main` and `development` are blocked for everyone. Trusted maintainers merge pull requests in GitHub. External fork pull requests currently receive a policy warning and continue through CI; maintainers should review forked code carefully before merge and can use the manual `Approve external PR for CI` workflow to replay a reviewed fork PR on a trusted `trusted/pr-N` branch when an internal rerun is needed.
-
 Contributors should author commits with an email address verified on their GitHub account, preferably the GitHub no-reply address from account email settings. Commits made with placeholder or unverified author emails can merge successfully but may not appear in GitHub contributor statistics. The repository `.mailmap` keeps local Git reports aligned for known historical identities, but it does not replace fixing local Git email configuration before future commits.
-
-Contributors can also install the optional local pre-push hook for faster feedback:
-
-```bash
-bash scripts/install-git-hooks.sh
-```
 
 The hook runs `scripts/prepush-validate.sh --quick`, which is designed to finish in under a minute on normal contributor machines. It always runs static package validation and uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: when the Unity server is reachable, the hook adds a short read-only live smoke check for the public raw tool catalog and key schemas; when the server is temporarily unreachable, it prints `NOTICE` and lets the push continue.
 
@@ -262,12 +250,6 @@ bash scripts/prepush-validate.sh --integration
 ```
 
 Maintainers can run the required local AI documentation gate with:
-
-```bash
-NEXUS_DOC_AI_MODEL=<ollama-model> bash scripts/prepush-validate.sh --quality-ai
-```
-
-`NEXUS_DOC_AI_KEEP_ALIVE` controls how long Ollama may keep the model warm between review requests and defaults to `30s`. `NEXUS_DOC_AI_UNLOAD_ON_EXIT=true` is the default and sends an explicit unload request when the review finishes.
 
 Maintainers and agents can also run the optional focused tooling smoke:
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import sys
@@ -14,6 +15,9 @@ import urllib.request
 DEFAULT_PORT: int = 8081
 JsonObject = dict[str, Any]
 JsonRpcResponse = dict[str, Any]
+
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_url(url: str) -> str:
@@ -61,7 +65,7 @@ def _try_read_token(candidate: str) -> str | None:
         with open(candidate, encoding="utf-8") as handle:
             val = handle.read().strip()
             return val or None
-    except Exception:
+    except (OSError, UnicodeDecodeError):
         return None
 
 
@@ -132,6 +136,7 @@ def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse
                 }
             }
         except Exception as error:
+            logger.warning("Unity call %s failed", method, exc_info=True)
             return {
                 "error": {
                     "code": -32000,

@@ -3,8 +3,6 @@
 # Quality Gate & CI Policy files strictly owned by @daliys
 /.code-linter.json @daliys
 /.ruff.toml @daliys
-/.unity-quality-gate.json @daliys
-/.swift-quality-gate.json @daliys
-/.slop-review.json @daliys
+/.ci-scope.json @daliys
 /.github/workflows/ @daliys
 /.github/CODEOWNERS @daliys

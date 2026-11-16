@@ -36,8 +36,8 @@ def _read_package_version() -> str:
                 ver = data.get("version")
                 if ver:
                     return ver
-    except Exception:
-        pass
+    except (OSError, ValueError):
+        return "1.7.0"
     return "1.7.0"
 
 
@@ -232,8 +232,8 @@ def main() -> None:
                 continue
             sys.stdout.write(json.dumps(response) + "\n")
             sys.stdout.flush()
-        except Exception as e:
-            logger.error("Error in bridge loop: %s", e)
+        except Exception:
+            logger.exception("Error in bridge loop")
 
 
 if __name__ == "__main__":

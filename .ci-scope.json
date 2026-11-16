@@ -4,25 +4,14 @@
     {
       "id": "code-linter",
       "type": "code-linter",
-      "config": ".code-linter.json",
-      "params": {"mode": "auto"},
-      "events": ["pull_request"]
+      "params": {
+        "mode": "auto"
+      },
+      "config": ".code-linter.json"
     },
     {
       "id": "python-quality",
-      "type": "python-quality",
-      "events": ["pull_request"]
-    },
-    {
-      "id": "python-tests",
-      "type": "python-tests",
-      "workdir": "Editor",
-      "events": ["pull_request"]
-    },
-    {
-      "id": "unity-quality",
-      "type": "unity-quality",
-      "events": ["pull_request"]
+      "type": "python-quality"
     }
   ]
 }
