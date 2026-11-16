@@ -1,0 +1,223 @@
+name: CI Scope
+
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-scope-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: CI Scope / Checks
+    # Dedicated unified runner: it must provide the normal toolchain and the
+    # local AI runtime. Keep the VPS canary label out of this production path.
+    runs-on: [self-hosted, macOS, ARM64, ci-scope-unified]
+    env:
+      CI_SCOPE_GATES_SHA: 52e6c8b7a50c7d740346b6fd34706bc4c32b49fa
+    steps:
+      # Keep this SHA pinned. Bump it only when a reviewed ci-gates release is
+      # accepted; floating refs would make a run non-reproducible.
+      - name: Checkout ci-gates
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: ForkHorizon/ci-gates
+          ref: 52e6c8b7a50c7d740346b6fd34706bc4c32b49fa
+          path: ci-gates
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify ci-gates pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git -C ci-gates rev-parse HEAD)" == "${CI_SCOPE_GATES_SHA:?}" ]]
+
+      - name: Install trusted policy key
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+        env:
+          POLICY_PUBLIC_KEY: ${{ secrets.CI_SCOPE_POLICY_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$POLICY_PUBLIC_KEY"
+          printf '%s\n' "$POLICY_PUBLIC_KEY" > "$RUNNER_TEMP/ci-scope-policy.pub"
+          chmod 600 "$RUNNER_TEMP/ci-scope-policy.pub"
+
+      - name: Policy preflight
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CI_SCOPE_POLICY_READ_TOKEN: ${{ secrets.CI_SCOPE_POLICY_READ_TOKEN }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          POLICY_BRANCH: ${{ github.base_ref || github.event.merge_group.base_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          POLICY_BRANCH="${POLICY_BRANCH#refs/heads/}"
+          python3 ci-gates/scripts/policy_preflight_github.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --branch "$POLICY_BRANCH" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA" \
+            --gates-sha "$CI_SCOPE_GATES_SHA" \
+            --policy-url "https://ci.forkhorizon.com/api/ci/policy" \
+            --event-url "https://ci.forkhorizon.com/api/ci/policy/events" \
+            --allowed-signers "$RUNNER_TEMP/ci-scope-policy.pub" \
+            --output "$RUNNER_TEMP/ci-scope-policy.json"
+
+      - name: Checkout candidate
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: candidate
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Resolve revision range
+        id: range
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            echo "base=${{ github.event.merge_group.base_sha }}" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=HEAD^" >> "$GITHUB_OUTPUT"
+            echo "head=HEAD" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate manifest
+        run: |
+          python3 ci-gates/scripts/run-checks.py \
+            --root candidate \
+            --config candidate/.ci-scope.json \
+            --gates ci-gates \
+            --event "${{ github.event_name }}" \
+            --base "${{ steps.range.outputs.base }}" \
+            --head "${{ steps.range.outputs.head }}" \
+            --output "$RUNNER_TEMP/ci-scope" \
+            --validate-only
+
+      - name: Select trusted policy
+        id: policy
+        working-directory: candidate
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ steps.range.outputs.base }}
+        run: |
+          set -euo pipefail
+          config="$PWD/.ci-scope.json"
+          if [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "merge_group" ]]; then
+            config="$RUNNER_TEMP/ci-scope-base-policy.json"
+            git show "$BASE_SHA:.ci-scope.json" > "$config"
+          fi
+          echo "config=$config" >> "$GITHUB_OUTPUT"
+
+      - name: Materialize trusted policy files
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+        working-directory: candidate
+        env:
+          BASE_SHA: ${{ steps.range.outputs.base }}
+        run: |
+          set -euo pipefail
+          python3 - "$BASE_SHA" <<'PY'
+          import json
+          import pathlib
+          import subprocess
+          import sys
+
+          base = sys.argv[1]
+          manifest = json.loads(subprocess.check_output(["git", "show", f"{base}:.ci-scope.json"], text=True))
+          defaults = {
+              "code-linter": ".code-linter.json",
+              "swift-quality": ".swift-quality-gate.json",
+              "swift-compile": ".swift-compile-gate.json",
+              "slop-review": ".slop-review.json",
+          }
+          root = pathlib.Path.cwd().resolve()
+          for check in manifest["checks"]:
+              explicit = "config" in check
+              path = check.get("config") or defaults.get(check.get("type"))
+              if not path:
+                  continue
+              relative = pathlib.PurePosixPath(path)
+              if relative.is_absolute() or ".." in relative.parts:
+                  raise SystemExit(f"unsafe policy path: {path}")
+              target = root / pathlib.Path(relative)
+              if target.resolve(strict=False) != target:
+                  raise SystemExit(f"unsafe policy symlink: {path}")
+              try:
+                  data = subprocess.check_output(["git", "show", f"{base}:{relative}"], stderr=subprocess.STDOUT)
+              except subprocess.CalledProcessError:
+                  if explicit:
+                      raise
+                  continue
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(data)
+          PY
+
+      - name: Run checks
+        env:
+          POLICY_BRANCH: ${{ github.base_ref || github.event.merge_group.base_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          POLICY_BRANCH="${POLICY_BRANCH#refs/heads/}"
+          policy_args=()
+          if [[ -f "$RUNNER_TEMP/ci-scope-policy.json" ]]; then
+            policy_args=(
+              --policy "$RUNNER_TEMP/ci-scope-policy.json"
+              --policy-repository "$GITHUB_REPOSITORY"
+              --policy-branch "$POLICY_BRANCH"
+              --allowed-signers "$RUNNER_TEMP/ci-scope-policy.pub"
+            )
+          fi
+          python3 ci-gates/scripts/run-checks.py \
+            --root candidate \
+            --config "${{ steps.policy.outputs.config }}" \
+            --gates ci-gates \
+            --event "${{ github.event_name }}" \
+            --base "${{ steps.range.outputs.base }}" \
+            --head "${{ steps.range.outputs.head }}" \
+            --output "$RUNNER_TEMP/ci-scope" \
+            "${policy_args[@]}"
+
+      - name: Publish summary
+        if: always()
+        shell: python3 {0}
+        env:
+          REPORT: ${{ runner.temp }}/ci-scope/result.json
+        run: |
+          import json, os
+          report_path = os.environ["REPORT"]
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+          try:
+              report = json.load(open(report_path, encoding="utf-8"))
+          except (OSError, ValueError):
+              open(summary_path, "a", encoding="utf-8").write("## CI Scope\n\nResults unavailable.\n")
+          else:
+              lines = ["## CI Scope / Checks", "", f"**Status:** {report.get('status', 'unknown')}", "", "| Check | Status | Duration |", "| --- | --- | ---: |"]
+              for check in report.get("checks", []):
+                  lines.append(f"| `{check.get('id', '?')}` | {check.get('status', 'unknown')} | {check.get('duration_ms', 0)} ms |")
+              open(summary_path, "a", encoding="utf-8").write("\n".join(lines) + "\n")
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-scope
+          if-no-files-found: warn
