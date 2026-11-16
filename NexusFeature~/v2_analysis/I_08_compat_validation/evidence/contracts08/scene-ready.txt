@@ -1,5 +1,0 @@
-gpu=Metal
-gpu_name=Apple M5
-scene=
-game_view=UnityEditor.GameView
-overlay=ScreenSpaceOverlay magenta 120x48 top-left

@@ -1,7 +1,0 @@
-{"server": "unity", "method": "initialize", "params": null}
-{"server": "unity", "method": "notifications/initialized", "params": null}
-{"server": "unity", "method": "tools/list", "params": null}
-{"server": "nexus", "method": "initialize", "params": null}
-{"server": "nexus", "method": "notifications/initialized", "params": null}
-{"server": "nexus", "method": "tools/list", "params": null}
-{"server": "unity", "method": "tools/call", "params": {"_meta": {"callId": "exec-8ab0a5bd-5bcf-465d-b0d3-77f9a7aa305a", "x-codex-turn-metadata": {"session_id": "01a1022c-995b-74c2-8fa2-b40260b1fdaf", "thread_id": "01a1022c-995b-74c2-8fa2-b40260b1fdaf", "reasoning_effort": "high", "turn_id": "01a1022c-99eb-7641-bca1-7529f235ee06", "model": "gpt-6-luna", "thread_source": "user", "turn_trigger": "exec", "sandbox": "seatbelt", "sandbox_mode": "read-only", "auto_review_enabled": false, "node_repl_auto_review_required": false, "node_repl_disabled": false, "turn_started_at_unix_ms": 1791037839856, "codex_version": "0.160.0"}, "threadId": "01a1022c-995b-74c2-8fa2-b40260b1fdaf", "sessionId": "01a1022c-995b-74c2-8fa2-b40260b1fdaf", "windowId": "01a1022c-995b-74c2-8fa2-b40260b1fdaf:0", "itemId": "ctc_0c5b04d311058171016ac111d4989487d2b52568c400503aa5", "progressToken": 1}, "name": "search", "arguments": {"query": "ref:Enemy.prefab"}}}

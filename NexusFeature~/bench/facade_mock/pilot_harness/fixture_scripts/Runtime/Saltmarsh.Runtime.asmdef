@@ -1,6 +1,0 @@
-{
-    "name": "Saltmarsh.Runtime",
-    "rootNamespace": "Saltmarsh",
-    "references": ["UnityEngine.UI"],
-    "autoReferenced": true
-}

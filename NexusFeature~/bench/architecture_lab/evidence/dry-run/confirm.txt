@@ -1,2 +1,0 @@
-REFUSED: confirm requires --confirm-final. Holdout was not read.
-CONFIRM:2

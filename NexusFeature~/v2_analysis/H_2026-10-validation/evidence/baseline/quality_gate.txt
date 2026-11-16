@@ -1,6 +1,0 @@
-::warning file=Editor/MCPServerMethods.HighValue.Screenshots.cs,line=22,title=NQG012 CaptureInspectorScreenshot::Method has 52 lines; consider splitting before it exceeds 150.
-::warning file=Editor/MCPServerMethods.HighValue.Screenshots.cs,line=75,title=NQG012 TryCaptureVisualElement::Method has 75 lines; consider splitting before it exceeds 150.
-::warning file=Editor/MCPServerMethods.Tools.cs,line=1,title=NQG002::File has 328 lines; consider splitting before it exceeds 450.
-::warning file=Editor/MCPServerMethods.cs,line=1,title=NQG002::File has 313 lines; consider splitting before it exceeds 450.
-::warning file=Editor/Runtime/NexusRuntimeCapabilities.cs,line=1,title=NQG002::File has 343 lines; consider splitting before it exceeds 450.
-Nexus quality gate: 0 error(s), 5 warning(s).

@@ -1,8 +1,0 @@
-{"type":"thread.started","thread_id":"01a1022b-4a95-7e52-aa10-6dfdb569cb91"}
-{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
-{"type":"item.completed","item":{"id":"item_1","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
-{"type":"turn.started"}
-{"type":"item.started","item":{"id":"item_2","type":"mcp_tool_call","server":"nexus-unity","tool":"unity_dump_scene_graph","arguments":{"include_all_properties":false},"result":null,"error":null,"status":"in_progress"}}
-{"type":"item.completed","item":{"id":"item_2","type":"mcp_tool_call","server":"nexus-unity","tool":"unity_dump_scene_graph","arguments":{"include_all_properties":false},"result":null,"error":{"message":"MCP tool call requires approval, but approval policy is never"},"status":"failed"}}
-{"type":"item.completed","item{"type":"item.completed","item":{"id":"item_3","type":"agent_message","text":"mcp__nexus_unity__unity_dump_scene_graph({include_all_properties:false, max_depth:10})"}}
-{"type":"turn.completed","usage":{"input_tokens":67501,"cached_input_tokens":51456,"cache_write_input_tokens":0,"output_tokens":283,"reasoning_output_tokens":168}}

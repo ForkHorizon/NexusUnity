@@ -1,4 +1,0 @@
-#!/bin/sh
-ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
-exec python3 -m lab "$@"

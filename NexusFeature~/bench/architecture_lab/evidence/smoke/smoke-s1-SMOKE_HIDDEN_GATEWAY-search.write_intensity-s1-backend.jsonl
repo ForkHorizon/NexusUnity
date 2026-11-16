@@ -1,4 +1,0 @@
-{"backend_command": "editor_status", "arguments": {}, "ok": true, "exit_code": 0}
-{"backend_command": "find_gameobjects", "arguments": {"type": "LabMarker"}, "ok": true, "exit_code": 0}
-{"backend_command": "get_serialized_fields", "arguments": {"target": "GlobalObjectId_V1-2-44774358c901a4cec9caf5a73f5814c0-1700816992-0", "component": "LabMarker"}, "ok": true, "exit_code": 0}
-{"backend_command": "set_serialized_field", "arguments": {"target": "GlobalObjectId_V1-2-44774358c901a4cec9caf5a73f5814c0-1700816992-0", "component": "LabMarker", "field": "intensity", "value": "4.25"}, "ok": true, "exit_code": 0}

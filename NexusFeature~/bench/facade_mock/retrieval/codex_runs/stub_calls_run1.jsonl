@@ -1,6 +1,0 @@
-{"server": "nexus", "method": "initialize", "params": null}
-{"server": "nexus", "method": "notifications/initialized", "params": null}
-{"server": "nexus", "method": "tools/list", "params": null}
-{"server": "unity", "method": "initialize", "params": null}
-{"server": "unity", "method": "notifications/initialized", "params": null}
-{"server": "unity", "method": "tools/list", "params": null}

@@ -1,7 +1,0 @@
-{
-    "name": "Saltmarsh.Editor",
-    "rootNamespace": "Saltmarsh.EditorTools",
-    "references": ["Saltmarsh.Runtime"],
-    "includePlatforms": ["Editor"],
-    "autoReferenced": true
-}

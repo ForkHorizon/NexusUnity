@@ -1,9 +1,0 @@
-{"type":"thread.started","thread_id":"01a10230-3e28-72f1-9788-88cd76990e26"}
-{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
-{"type":"item.completed","item":{"id":"item_1","type":"error","message":"Codex is ignoring 1 unrecognized configuration setting. Check for typos or deprecated settings.\n  user (/Users/daliys/.codex/config.toml): `features.rmcp_client` is ignored."}}
-{"type":"turn.started"}
-{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"I’ll locate the Unity scene inspection tool and use it once to inspect `Canvas/HUD`."}}
-{"type":"item.started","item":{"id":"item_3","type":"mcp_tool_call","server":"nexus-unity","tool":"unity_scene","arguments":{"action":"get_scene_hierarchy"},"result":null,"error":null,"status":"in_progress"}}
-{"type":"item.completed","item":{"id":"item_3","type":"mcp_tool_call","server":"nexus-unity","tool":"unity_scene","arguments":{"action":"get_scene_hierarchy"},"result":{"content":[{"type":"text","text":"STUB: Unity Editor not connected (benchmark stub). Do not retry; report which tool and arguments you chose."}],"structured_content":null},"error":null,"status":"failed"}}
-{"type":"item.completed","item":{"id":"item_4","type":"agent_message","text":"`mcp__nexus_unity__unity_scene({action:\"get_scene_hierarchy\"})`"}}
-{"type":"turn.completed","usage":{"input_tokens":66185,"cached_input_tokens":50432,"cache_write_input_tokens":0,"output_tokens":300,"reasoning_output_tokens":170}}

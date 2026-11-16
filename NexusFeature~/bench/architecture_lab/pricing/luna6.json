@@ -1,9 +1,0 @@
-{
-  "profile_id": "luna6-unpriced",
-  "model": "gpt-6-luna",
-  "currency": "USD",
-  "uncached_input_per_million": null,
-  "cached_input_per_million": null,
-  "output_per_million": null,
-  "note": "Raw token counts are authoritative. Null prices must stay null. Do not treat a missing price as zero."
-}
