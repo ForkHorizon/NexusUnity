@@ -149,7 +149,10 @@ WAIT_TOOL: JsonObject = {
 
 WRITE_AND_COMPILE_TOOL: JsonObject = {
     "name": "unity_write_and_compile",
-    "description": "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. Use for ALL code changes.",
+    "description": (
+        "High-level macro: Writes multiple files, waits for domain reload, and returns compiler errors. "
+        "Use for ALL code changes."
+    ),
     "inputSchema": {
         "type": "object",
         "properties": {

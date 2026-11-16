@@ -85,10 +85,8 @@ namespace UnityMCP.Editor.Capture
 
         internal static Task<byte[]> ReadAndEncode(
             RenderTexture submittedRt,
-            int width,
-            int height,
-            CaptureFormat format,
-            int jpegQuality,
+            Vector2Int size,
+            CaptureRequest request,
             CaptureTimings timings,
             CancellationToken cancellationToken)
         {
@@ -98,12 +96,20 @@ namespace UnityMCP.Editor.Capture
                 throw new CaptureException(CaptureErrorCode.DomainReloadInterrupted, "Capture rejected during domain reload.");
             }
 
-            var tcs = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
-            Pending pending;
+            var pending = new Pending
+            {
+                SubmittedRt = submittedRt,
+                Width = size.x,
+                Height = size.y,
+                Format = request.Format,
+                JpegQuality = request.JpegQuality,
+                Timings = timings,
+                Tcs = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously),
+                CancellationToken = cancellationToken
+            };
             try
             {
-                pending = CreatePending(
-                    submittedRt, width, height, format, jpegQuality, timings, tcs, cancellationToken);
+                Submit(pending);
             }
             catch
             {
@@ -112,38 +118,18 @@ namespace UnityMCP.Editor.Capture
             }
 
             StartPoll(pending);
-            return tcs.Task;
+            return pending.Tcs.Task;
         }
 
-        private static Pending CreatePending(
-            RenderTexture submittedRt,
-            int width,
-            int height,
-            CaptureFormat format,
-            int jpegQuality,
-            CaptureTimings timings,
-            TaskCompletionSource<byte[]> tcs,
-            CancellationToken cancellationToken)
+        private static void Submit(Pending pending)
         {
             var swSubmit = Stopwatch.StartNew();
-            AsyncGPUReadbackRequest request = AsyncGPUReadback.Request(submittedRt);
+            pending.Request = AsyncGPUReadback.Request(pending.SubmittedRt);
             swSubmit.Stop();
-            timings.ReadbackSubmitMs = swSubmit.Elapsed.TotalMilliseconds;
-            timings.EditorTicksSubmitToDone = 0;
-            return new Pending
-            {
-                Request = request,
-                SubmittedRt = submittedRt,
-                Width = width,
-                Height = height,
-                Format = format,
-                JpegQuality = jpegQuality,
-                Timings = timings,
-                Tcs = tcs,
-                CancellationToken = cancellationToken,
-                DoneWatch = Stopwatch.StartNew(),
-                Deadline = Stopwatch.GetTimestamp() + Stopwatch.Frequency * PollTimeoutMs / 1000
-            };
+            pending.Timings.ReadbackSubmitMs = swSubmit.Elapsed.TotalMilliseconds;
+            pending.Timings.EditorTicksSubmitToDone = 0;
+            pending.DoneWatch = Stopwatch.StartNew();
+            pending.Deadline = Stopwatch.GetTimestamp() + Stopwatch.Frequency * PollTimeoutMs / 1000;
         }
 
         private static void StartPoll(Pending pending)

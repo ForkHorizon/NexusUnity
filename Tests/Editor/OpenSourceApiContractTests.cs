@@ -57,7 +57,9 @@ namespace UnityMCP.Editor.Tests
             {
                 ProjectMapCommand.Alias,
                 GroupCompileErrorsCommand.Alias,
-                CaptureGameViewCommand.Alias
+                CaptureGameViewCommand.Alias,
+                CaptureGameViewCommand.LookAlias,
+                CaptureGameViewCommand.LookDotAlias
             };
             CollectionAssert.IsEmpty(listed.Except(registered).OrderBy(x => x).ToArray(), "Every raw listed tool must be dispatchable.");
             CollectionAssert.IsEmpty(

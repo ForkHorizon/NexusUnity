@@ -38,7 +38,7 @@ namespace UnityMCP.Editor.Commands
     [Serializable]
     public sealed class NexusCompileErrorsResult
     {
-        /// <summary>Gets or sets whether the command succeeded.</summary>
+        /// <summary>Gets or sets whether a payload was produced. Stays true while compiling; the envelope ok bit and is_compiling say whether the list is complete.</summary>
         [JsonProperty("success")] public bool Success { get; set; }
         /// <summary>Gets or sets the number of CSxxxx errors found.</summary>
         [JsonProperty("total_errors")] public int TotalErrors { get; set; }
@@ -78,9 +78,11 @@ namespace UnityMCP.Editor.Commands
         [JsonProperty("encoding")] public string Encoding { get; set; }
         /// <summary>Gets or sets compressed payload size in bytes.</summary>
         [JsonProperty("bytes")] public int Bytes { get; set; }
-        /// <summary>Gets or sets Base64 image bytes for transport consumers.</summary>
-        [JsonProperty("base64")] public string Base64 { get; set; }
-        /// <summary>Gets or sets the capture source label.</summary>
+        /// <summary>Gets or sets Base64 image bytes. Omitted when delivery is a file, so PNG and JPEG are not both returned.</summary>
+        [JsonProperty("base64", NullValueHandling = NullValueHandling.Ignore)] public string Base64 { get; set; }
+        /// <summary>Gets or sets the one image file written under Temp. Omitted when the payload is Base64.</summary>
+        [JsonProperty("file_path", NullValueHandling = NullValueHandling.Ignore)] public string FilePath { get; set; }
+        /// <summary>Gets or sets the capture source label, game_view or scene_view.</summary>
         [JsonProperty("source")] public string Source { get; set; }
         /// <summary>Gets or sets source acquisition milliseconds.</summary>
         [JsonProperty("acquisition_ms")] public double AcquisitionMs { get; set; }

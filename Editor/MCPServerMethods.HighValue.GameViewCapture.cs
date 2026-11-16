@@ -21,13 +21,11 @@ namespace UnityMCP.Editor
                     .CaptureGameView(request, CancellationToken.None)
                     .ConfigureAwait(false);
                 stopwatch.Stop();
-                return CreateScreenshotResult(
-                    true,
-                    "Game View screenshot captured.",
+                var image = new ScreenshotPayload(
                     captured.CompressedBytes,
                     new Vector2Int(captured.Width, captured.Height),
-                    stopwatch.Elapsed.TotalMilliseconds,
                     format: CaptureEncoder.ToWireFormat(captured.Format));
+                return CreateScreenshotResult(true, "Game View screenshot captured.", image, stopwatch.Elapsed.TotalMilliseconds);
             }
             catch (CaptureException ex) when (ex.Code == CaptureErrorCode.GameViewUnavailable)
             {
@@ -36,13 +34,8 @@ namespace UnityMCP.Editor
             catch (CaptureException ex)
             {
                 stopwatch.Stop();
-                return CreateScreenshotResult(
-                    false,
-                    ex.Message,
-                    null,
-                    Vector2Int.zero,
-                    stopwatch.Elapsed.TotalMilliseconds,
-                    format: CaptureEncoder.ToWireFormat(request.Format));
+                var empty = new ScreenshotPayload(null, Vector2Int.zero, format: CaptureEncoder.ToWireFormat(request.Format));
+                return CreateScreenshotResult(false, ex.Message, empty, stopwatch.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -72,15 +65,33 @@ namespace UnityMCP.Editor
             throw new CaptureException(CaptureErrorCode.UnsupportedFormat, "Unsupported capture format.");
         }
 
-        internal static JObject CreateScreenshotResult(bool success, string message, byte[] imageBytes, Vector2Int size,
-            double durationMs, JToken layout = null, string format = "png")
+        /// <summary>Encoded screenshot pixels with their size, wire format, and optional UI layout.</summary>
+        internal sealed class ScreenshotPayload
         {
+            internal ScreenshotPayload(byte[] bytes, Vector2Int size, JToken layout = null, string format = "png")
+            {
+                Bytes = bytes;
+                Size = size;
+                Layout = layout;
+                Format = format;
+            }
+
+            internal byte[] Bytes { get; }
+            internal Vector2Int Size { get; }
+            internal JToken Layout { get; }
+            internal string Format { get; }
+        }
+
+        internal static JObject CreateScreenshotResult(bool success, string message, ScreenshotPayload image, double durationMs)
+        {
+            JToken layout = image.Layout;
+            string format = image.Format;
             bool hasPartialData = layout != null && layout.Type != JTokenType.Null;
-            string imageBase64 = imageBytes == null ? string.Empty : Convert.ToBase64String(imageBytes);
+            string imageBase64 = image.Bytes == null ? string.Empty : Convert.ToBase64String(image.Bytes);
             var data = new JObject
             {
-                ["width"] = size.x,
-                ["height"] = size.y,
+                ["width"] = image.Size.x,
+                ["height"] = image.Size.y,
                 ["format"] = format,
                 ["image_base64"] = imageBase64
             };

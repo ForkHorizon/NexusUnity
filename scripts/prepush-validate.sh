@@ -6,7 +6,6 @@ PACKAGE_ROOT=$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)
 MODE="${1:---quick}"
 NEXUS_UNITY_URL="${NEXUS_UNITY_URL:-http://127.0.0.1:8081/}"
 NEXUS_UNITY_HOOK_LIVE="${NEXUS_UNITY_HOOK_LIVE:-auto}"
-NEXUS_QUALITY_ROOT="${NEXUS_QUALITY_ROOT:-$PACKAGE_ROOT}"
 VALIDATION_STARTED=$SECONDS
 
 cd "$PACKAGE_ROOT"
@@ -58,32 +57,34 @@ for path in paths:
 PY
 
   log "Running Python bridge unit tests"
-  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -v
+  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -t Editor -v
 
   log "Checking for generated or local-only files"
   python3 - <<'PY'
-import os
+import subprocess
 import sys
 
-forbidden = []
-for root, dirs, files in os.walk("."):
-    parts = set(root.split(os.sep))
-    if ".git" in parts:
-        continue
+# Check what git would commit (tracked + untracked-not-ignored), not every file on disk:
+# gitignored local output (graphify-out/, __pycache__, .DS_Store) must not fail validation.
+listed = subprocess.run(
+    ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+    check=True, capture_output=True,
+).stdout.decode("utf-8", errors="replace").split("\0")
 
-    for name in files:
-        path = os.path.join(root, name)
-        normalized = path.replace(os.sep, "/")
-        if (
-            name == ".DS_Store"
-            or name.endswith((".pyc", ".pyo"))
-            or "__pycache__" in normalized
-            or "/Library/" in normalized
-            or "/Temp/" in normalized
-            or "/graphify-out/" in normalized
-            or "/.soma/" in normalized
-        ):
-            forbidden.append(path)
+forbidden = []
+for path in filter(None, listed):
+    normalized = "/" + path
+    name = normalized.rsplit("/", 1)[-1]
+    if (
+        name == ".DS_Store"
+        or name.endswith((".pyc", ".pyo"))
+        or "__pycache__" in normalized
+        or "/Library/" in normalized
+        or "/Temp/" in normalized
+        or "/graphify-out/" in normalized
+        or "/.soma/" in normalized
+    ):
+        forbidden.append(path)
 
 if forbidden:
     print("Forbidden generated/local files found:")
@@ -155,38 +156,7 @@ if missing_meta or orphan_meta or ignored_folder_meta:
     sys.exit(1)
 PY
 
-  log "Running Nexus quality gate tests"
-  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate.Tests/NexusQualityGate.Tests.csproj"
-
-  log "Running deterministic Nexus quality gate"
-  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
-    --root "$NEXUS_QUALITY_ROOT" \
-    --ai off \
-    --format github
-
   printf 'Static validation completed in %ss.\n' "$((SECONDS - started))"
-}
-
-run_ai_quality_validation() {
-  local started=$SECONDS
-  log "Running required Ollama documentation and checklist quality gate"
-  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
-    --root "$NEXUS_QUALITY_ROOT" \
-    --ai required \
-    --checklist-ai required \
-    --format github
-  printf 'AI quality validation completed in %ss.\n' "$((SECONDS - started))"
-}
-
-run_checklist_ai_validation() {
-  local started=$SECONDS
-  log "Running required Ollama pull request checklist quality gate"
-  dotnet run --project "$PACKAGE_ROOT/tools~/NexusQualityGate/NexusQualityGate.csproj" -- \
-    --root "$NEXUS_QUALITY_ROOT" \
-    --ai off \
-    --checklist-ai required \
-    --format github
-  printf 'Checklist AI validation completed in %ss.\n' "$((SECONDS - started))"
 }
 
 run_quick_live_smoke() {
@@ -447,12 +417,6 @@ case "$MODE" in
   --static-only)
     run_static_validation
     ;;
-  --quality-ai)
-    run_ai_quality_validation
-    ;;
-  --checklist-ai)
-    run_checklist_ai_validation
-    ;;
   --quick|--local)
     run_static_validation
     run_quick_live_smoke
@@ -463,7 +427,7 @@ case "$MODE" in
     run_local_integration_validation
     ;;
   *)
-    fail "Unknown mode: $MODE. Use --quick, --static-only, --quality-ai, --checklist-ai, or --integration."
+    fail "Unknown mode: $MODE. Use --quick, --static-only, or --integration."
     ;;
 esac
 

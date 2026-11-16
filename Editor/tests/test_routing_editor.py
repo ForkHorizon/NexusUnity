@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-import os
-import sys
 import unittest
 from typing import Any
 from unittest.mock import call, patch
-
-EDITOR_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if EDITOR_DIR not in sys.path:
-    sys.path.insert(0, EDITOR_DIR)
 
 from nexus_bridge import routing
 
@@ -25,9 +19,11 @@ class WriteAndCompileTests(unittest.TestCase):
             {"result": {"ok": True}},
         ]
 
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor._wait_for_compilation") as mock_wait_for_compilation:
-                response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity,
+            patch("nexus_bridge.routes_editor._wait_for_compilation") as mock_wait_for_compilation,
+        ):
+            response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
 
         self.assertEqual("Failed", response["result"]["status"])
         self.assertEqual("Failed to write some files", response["result"]["message"])
@@ -58,14 +54,16 @@ class WriteAndCompileTests(unittest.TestCase):
             }
         }
 
-        with patch("nexus_bridge.routes_editor.time.time", return_value=10.0):
-            with patch(
+        with (
+            patch("nexus_bridge.routes_editor.time.time", return_value=10.0),
+            patch(
                 "nexus_bridge._transport.call_unity", side_effect=[None, {"result": {"ok": True}}, log_response]
-            ) as mock_call_unity:
-                with patch(
-                    "nexus_bridge.routes_editor._wait_for_compilation", return_value=wait_response
-                ) as mock_wait_for_compilation:
-                    response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
+            ) as mock_call_unity,
+            patch(
+                "nexus_bridge.routes_editor._wait_for_compilation", return_value=wait_response
+            ) as mock_wait_for_compilation,
+        ):
+            response: dict[str, Any] = routing._route_write_and_compile({"files": files, "confirm": True})
 
         self.assertEqual("Failed", response["result"]["status"])
         self.assertEqual(1.5, response["result"]["time_waited_seconds"])
@@ -95,10 +93,12 @@ class RunTestsWaitTests(unittest.TestCase):
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:03Z"}},
         ]
 
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor.time.time", side_effect=[100.0, 100.0, 103.25]):
-                with patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep:
-                    response: dict[str, Any] = routing._run_tests_wait({})
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity,
+            patch("nexus_bridge.routes_editor.time.time", side_effect=[100.0, 100.0, 103.25]),
+            patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep,
+        ):
+            response: dict[str, Any] = routing._run_tests_wait({})
 
         self.assertEqual("Success", response["result"]["status"])
         self.assertEqual(3.25, response["result"]["time_waited_seconds"])
@@ -119,9 +119,11 @@ class RunTestsWaitTests(unittest.TestCase):
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:03Z"}},
         ]
 
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor.time.time", side_effect=[100.0, 100.0, 103.25]):
-                response: dict[str, Any] = routing._run_tests_wait({})
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity,
+            patch("nexus_bridge.routes_editor.time.time", side_effect=[100.0, 100.0, 103.25]),
+        ):
+            response: dict[str, Any] = routing._run_tests_wait({})
 
         self.assertEqual("Success", response["result"]["status"])
         self.assertEqual(3, mock_call_unity.call_count)
@@ -133,10 +135,12 @@ class RunTestsWaitTests(unittest.TestCase):
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
         ]
 
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results):
-            with patch("nexus_bridge.routes_editor.time.time", side_effect=[0.0, 0.0, 5.1, 5.1]):
-                with patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep:
-                    response: dict[str, Any] = routing._run_tests_wait({"timeout_seconds": 5.0})
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results),
+            patch("nexus_bridge.routes_editor.time.time", side_effect=[0.0, 0.0, 5.1, 5.1]),
+            patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep,
+        ):
+            response: dict[str, Any] = routing._run_tests_wait({"timeout_seconds": 5.0})
 
         self.assertEqual("Timeout", response["result"]["status"])
         self.assertEqual("/tmp/TestResults.xml", response["result"]["result_path"])

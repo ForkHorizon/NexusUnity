@@ -61,9 +61,9 @@ Run the Unity Editor tests for the package before submitting changes. At minimum
 
 If Unity is not available in your environment, document what you could not run and include any static checks you did run.
 
-### Documentation Quality Gate
+Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. Rules, limits and exceptions live on the CI Scope website (ci.forkhorizon.com) and the pinned gates in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates); this repository carries no CI workflow, gate config or linter settings. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
 
-Static validation runs `NexusQualityGate`, a Roslyn-based .NET tool stored under `tools~/` so Unity does not compile it. The gate fails:
+Contributor pull requests target `development`; `main` is release-only. Direct pushes to both are blocked and maintainers merge through GitHub. Review fork pull requests carefully before merge.
 
 - public/protected production C# types or methods without XML documentation;
 - XML summaries that are empty, too short, generic, or only repeat the symbol name;
@@ -71,20 +71,6 @@ Static validation runs `NexusQualityGate`, a Roslyn-based .NET tool stored under
 - production methods over 150 lines.
 
 It warns on files over 300 lines and methods over 50 lines. Test methods are exempt from XML documentation requirements, but production code under `Editor/` and `Runtime/` is not.
-
-Maintainers run the required GitHub Actions gate on a self-hosted Mac runner labeled `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci`. The AI documentation review additionally requires the `nexus-doc-ai` label. The runner must have `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama available locally with `NEXUS_DOC_AI_MODEL` set to an installed model. The workflow runs static validation, Python bridge unit tests, AI documentation review, and Unity package smoke validation, using `concurrency.queue: max` so trusted runs wait in the `nexus-unity-ci` queue instead of running in parallel on the MacBook.
-
-The AI job checks whether XML documentation matches the implementation and mentions important caller-visible Unity Editor, filesystem, server, process, or state side effects. It blocks misleading or filler comments without requiring every private helper or minor edge case. The quality gate defaults `NEXUS_DOC_AI_KEEP_ALIVE` to `30s` and unloads the Ollama model after the review so large local models do not stay resident between PR checks.
-
-External fork pull requests are welcome for review. The current policy emits a warning for fork PRs and continues the CI pipeline; maintainers should review forked code carefully before merge. If an internal rerun is needed, a maintainer can trigger `Approve external PR for CI` to copy a reviewed fork PR to `trusted/pr-N` and run validation from that trusted branch.
-
-### Optional Local Pre-Push Hook
-
-The repository includes a tracked pre-push hook for local feedback. Git does not enable tracked hooks automatically after clone, so install it once per checkout:
-
-```bash
-bash scripts/install-git-hooks.sh
-```
 
 The hook runs `scripts/prepush-validate.sh --quick`. This is the contributor default: static package checks always run, and `NEXUS_UNITY_HOOK_LIVE=auto` adds a short read-only live smoke check when the Nexus Unity server is available at `http://127.0.0.1:8081/`. If the server is temporarily unreachable or times out, the hook prints `NOTICE` and skips live smoke instead of blocking the push. Use `NEXUS_UNITY_HOOK_LIVE=required` to fail when the live server is unavailable, or `NEXUS_UNITY_HOOK_LIVE=off` to run only static checks.
 
@@ -96,10 +82,6 @@ bash scripts/prepush-validate.sh --integration
 
 Run the required local AI documentation gate explicitly when operating the maintainer self-hosted runner:
 
-```bash
-NEXUS_DOC_AI_MODEL=<ollama-model> bash scripts/prepush-validate.sh --quality-ai
-```
-
 For a faster maintainer or agent check of bridge/UI observability, run:
 
 ```bash
@@ -108,19 +90,7 @@ python3 scripts/agent-tooling-smoke.py
 
 Integration tests require the Unity project to be open with the Nexus Unity server running. If this package is not checked out under a Unity project, set `NEXUS_UNITY_PROJECT_ROOT` before running integration validation.
 
-The local hook is convenience only and can be bypassed with `git push --no-verify`; GitHub branch protection should require the `Validate package` workflow for merge enforcement.
-
 Run the slower local Ollama review before risky API, security, or release-readiness changes:
-
-```bash
-NEXUS_DOC_AI_MODEL=qwen3-coder:30b-a3b-q4_K_M scripts/prepush-validate.sh --quality-ai
-```
-
-That mode runs `NexusQualityGate --ai required --checklist-ai required`, so XML documentation and each pull request checklist item are reviewed separately with local AI evidence. To run only the checklist review during local iteration, use:
-
-```bash
-NEXUS_DOC_AI_MODEL=qwen3-coder:30b-a3b-q4_K_M scripts/prepush-validate.sh --checklist-ai
-```
 
 ## Pull Request Checklist
 

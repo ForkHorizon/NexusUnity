@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UnityMCP.Editor.Capture
 {
     /// <summary>
-    /// Nexus-owned Capture V2 gateway. Copies Game View immediately into a Nexus RT, then uses DriverOwnedReadback.
+    /// Nexus-owned Capture V2 gateway. Copies a presented Game View or framed Scene View into a Nexus RT, then uses DriverOwnedReadback.
     /// </summary>
     public sealed class CaptureGateway : ICaptureGateway
     {
@@ -26,7 +26,7 @@ namespace UnityMCP.Editor.Capture
         }
 
         /// <summary>
-        /// Captures presented Game View pixels through DriverOwnedReadback and returns compressed bytes.
+        /// Captures a presented Game View, or a Scene View framed on a target, through DriverOwnedReadback.
         /// </summary>
         /// <param name="request">Semantic capture options. Must not include transport envelopes.</param>
         /// <param name="cancellationToken">Token used to fail the logical request without destroying an in-flight GPU buffer.</param>
@@ -146,7 +146,60 @@ namespace UnityMCP.Editor.Capture
             var timings = new CaptureTimings();
             var swTotal = Stopwatch.StartNew();
             var swAcquire = Stopwatch.StartNew();
+            PreparedFrame frame = await Prepare(request, cancellationToken);
+            swAcquire.Stop();
+            timings.SourceAcquireMs = swAcquire.Elapsed.TotalMilliseconds;
 
+            byte[] encoded = await DriverOwnedReadback.ReadAndEncode(
+                frame.Texture, new Vector2Int(frame.Width, frame.Height), request, timings, cancellationToken)
+                .ConfigureAwait(false);
+
+            swTotal.Stop();
+            timings.MainThreadStallMs = timings.SourceAcquireMs + timings.ReadbackSubmitMs + timings.EncodeMs;
+            timings.TotalInternalMs = swTotal.Elapsed.TotalMilliseconds;
+            return new CaptureResult
+            {
+                CompressedBytes = encoded,
+                Format = request.Format,
+                Width = frame.Width,
+                Height = frame.Height,
+                Source = frame.Source,
+                Timings = request.IncludeTelemetry ? timings : null
+            };
+        }
+
+        private static async Task<PreparedFrame> Prepare(CaptureRequest request, CancellationToken cancellationToken)
+        {
+            GameObject target = ResolveTarget(request);
+            if (request.View == CaptureView.Scene)
+            {
+                RenderTexture scene = SceneViewCaptureSource.Capture(target, request);
+                return new PreparedFrame
+                {
+                    Texture = scene,
+                    Width = scene.width,
+                    Height = scene.height,
+                    Source = "scene_view"
+                };
+            }
+
+            return await PrepareGame(request, target, cancellationToken);
+        }
+
+        private static GameObject ResolveTarget(CaptureRequest request)
+        {
+            bool needsTarget = request.View == CaptureView.Scene
+                || request.TargetInstanceId != 0
+                || !string.IsNullOrEmpty(request.TargetPath);
+            if (!needsTarget) return null;
+            return CaptureTargetResolver.Resolve(request.TargetInstanceId, request.TargetPath);
+        }
+
+        private static async Task<PreparedFrame> PrepareGame(
+            CaptureRequest request,
+            GameObject target,
+            CancellationToken cancellationToken)
+        {
             EditorWindow gameView = GameViewCaptureSource.FindOpenGameView();
             if (gameView == null)
             {
@@ -157,31 +210,38 @@ namespace UnityMCP.Editor.Capture
             RenderTexture presented = await WaitForPresentedRt(gameView, cancellationToken);
             if (presented == null)
             {
-                throw new CaptureException(
-                    CaptureErrorCode.CaptureSourceEmpty, "Game View window has no capturable area.");
+                throw new CaptureException(CaptureErrorCode.CaptureSourceEmpty, "Game View window has no capturable area.");
             }
 
-            Vector2Int output = GameViewCaptureSource.ResolveOutputSize(presented.width, presented.height, request);
-            RenderTexture submitted = GameViewCaptureSource.CopyToOwned(presented, output.x, output.y);
-            swAcquire.Stop();
-            timings.SourceAcquireMs = swAcquire.Elapsed.TotalMilliseconds;
-
-            byte[] encoded = await DriverOwnedReadback.ReadAndEncode(
-                submitted, output.x, output.y, request.Format, request.JpegQuality,
-                timings, cancellationToken).ConfigureAwait(false);
-
-            swTotal.Stop();
-            timings.MainThreadStallMs = timings.SourceAcquireMs + timings.ReadbackSubmitMs + timings.EncodeMs;
-            timings.TotalInternalMs = swTotal.Elapsed.TotalMilliseconds;
-            return new CaptureResult
+            Vector2Int output;
+            RenderTexture submitted;
+            if (target == null)
             {
-                CompressedBytes = encoded,
-                Format = request.Format,
+                output = GameViewCaptureSource.ResolveOutputSize(presented.width, presented.height, request);
+                submitted = GameViewCaptureSource.CopyToOwned(presented, output.x, output.y);
+            }
+            else
+            {
+                RectInt crop = CaptureFraming.ProjectToRenderTexture(target, presented.width, presented.height);
+                output = GameViewCaptureSource.ResolveOutputSize(crop.width, crop.height, request);
+                submitted = GameViewCaptureSource.CopyCropped(presented, crop, output.x, output.y);
+            }
+
+            return new PreparedFrame
+            {
+                Texture = submitted,
                 Width = output.x,
                 Height = output.y,
-                Source = "game_view",
-                Timings = request.IncludeTelemetry ? timings : null
+                Source = "game_view"
             };
+        }
+
+        private struct PreparedFrame
+        {
+            public RenderTexture Texture;
+            public int Width;
+            public int Height;
+            public string Source;
         }
     }
 }

@@ -1,78 +1,103 @@
 from __future__ import annotations
 
-import os
-import sys
 import unittest
 from typing import Any
 from unittest.mock import call, patch
 
-EDITOR_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if EDITOR_DIR not in sys.path:
-    sys.path.insert(0, EDITOR_DIR)
-
 from nexus_bridge import routing
 
 
+def _idle(reason: str, compile_epoch: int, reload_epoch: int, ready: bool = True) -> dict[str, Any]:
+    return {
+        "result": {
+            "ready": ready,
+            "reason": reason,
+            "reconnect": reason == "domain_reload",
+            "epoch": {"compile": compile_epoch, "reload": reload_epoch},
+            "is_idle": ready,
+        }
+    }
+
+
+class _Clock:
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def time(self) -> float:
+        return self.now
+
+    def sleep(self, seconds: float) -> None:
+        self.now += seconds
+
+
 class WaitForCompilationTests(unittest.TestCase):
-    def test_wait_for_compilation_returns_ready_when_editor_finishes_compiling(self) -> None:
-        call_results: list[dict[str, Any]] = [
-            {"error": {"code": -32000, "message": "reload in progress"}},
-            {"result": {}},
-            {"result": {"is_compiling": False, "is_updating": False}},
-        ]
+    def _run(self, responses: list[dict[str, Any] | None], timeout: float = 30.0) -> tuple[dict[str, Any], Any]:
+        clock = _Clock()
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=responses) as mock_call_unity,
+            patch("nexus_bridge.routes_editor.time.time", clock.time),
+            patch("nexus_bridge.routes_editor.time.sleep", clock.sleep),
+        ):
+            response: dict[str, Any] = routing._wait_for_compilation(timeout=timeout)
+        return response, mock_call_unity
 
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor.time.time", side_effect=[100.0, 100.0, 101.0, 103.0]):
-                with patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep:
-                    response: dict[str, Any] = routing._wait_for_compilation(timeout=30.0)
+    def test_already_ready_returns_without_refresh(self) -> None:
+        response, mock_call_unity = self._run([_idle("already_ready", 3, 4)])
+        self.assertEqual("Ready", response["result"]["status"])
+        self.assertTrue(response["result"]["ready"])
+        self.assertEqual("already_ready", response["result"]["reason"])
+        self.assertEqual({"compile": 3, "reload": 4}, response["result"]["epoch"])
+        mock_call_unity.assert_called_once_with("is_editor_idle")
 
-        self.assertEqual({"result": {"status": "Ready", "time_waited_seconds": 3.0}}, response)
-        self.assertEqual(
-            [call("initialize"), call("initialize"), call("get_editor_state")],
-            mock_call_unity.call_args_list,
+    def test_script_write_does_not_accept_ready_until_epoch_advances(self) -> None:
+        response, mock_call_unity = self._run(
+            [
+                _idle("script_write", 3, 4, ready=False),
+                _idle("ready", 3, 4),
+                None,
+                _idle("ready", 4, 5),
+            ]
         )
-        mock_sleep.assert_has_calls([call(2.0)])
+        self.assertEqual("Ready", response["result"]["status"])
+        self.assertEqual({"compile": 4, "reload": 5}, response["result"]["epoch"])
+        self.assertEqual(4, mock_call_unity.call_count)
+        self.assertNotIn(call("refresh_asset_database"), mock_call_unity.call_args_list)
+        self.assertNotIn(call("initialize"), mock_call_unity.call_args_list)
 
-    def test_wait_for_compilation_returns_timeout_after_refresh(self) -> None:
-        call_results: list[dict[str, Any]] = [{"result": {}}, {"result": {}}]
-
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor.time.time", side_effect=[0.0, 0.0, 21.0, 21.0, 22.0]):
-                with patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep:
-                    response: dict[str, Any] = routing._wait_for_compilation(timeout=10.0)
-
-        self.assertEqual({"result": {"status": "Timeout", "time_waited_seconds": 22.0}}, response)
-        self.assertEqual(
-            [call("initialize"), call("refresh_asset_database")],
-            mock_call_unity.call_args_list,
+    def test_noop_already_ready_is_accepted_after_script_write(self) -> None:
+        response, _mock_call_unity = self._run(
+            [
+                _idle("script_write", 1, 1, ready=False),
+                _idle("already_ready", 1, 1),
+            ]
         )
-        mock_sleep.assert_called_once_with(0.5)
+        self.assertEqual("Ready", response["result"]["status"])
+        self.assertEqual("already_ready", response["result"]["reason"])
 
-    def test_wait_for_compilation_respects_timeout_smaller_than_reload_probe_window(self) -> None:
-        call_results: list[dict[str, Any]] = [{"result": {}}, {"result": {}}]
+    def test_connection_loss_is_not_success(self) -> None:
+        response, mock_call_unity = self._run([None, None], timeout=0.3)
+        self.assertEqual("Timeout", response["result"]["status"])
+        self.assertFalse(response["result"]["ready"])
+        self.assertEqual("domain_reload", response["result"]["reason"])
+        self.assertGreaterEqual(mock_call_unity.call_count, 2)
+        self.assertNotIn(call("refresh_asset_database"), mock_call_unity.call_args_list)
 
-        with patch("nexus_bridge._transport.call_unity", side_effect=call_results) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor.time.time", side_effect=[100.0, 100.0, 105.1, 105.1, 106.1]):
-                with patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep:
-                    response: dict[str, Any] = routing._wait_for_compilation(timeout=5.0)
-
-        self.assertEqual({"result": {"status": "Timeout", "time_waited_seconds": 6.1}}, response)
-        self.assertEqual(
-            [call("initialize"), call("refresh_asset_database")],
-            mock_call_unity.call_args_list,
-        )
-        mock_sleep.assert_called_once_with(0.5)
+    def test_legacy_idle_payload_without_epoch_is_not_success(self) -> None:
+        legacy = {"result": {"is_idle": True, "is_compiling": False, "is_updating": False}}
+        response, _mock_call_unity = self._run([legacy, legacy, legacy], timeout=0.3)
+        self.assertEqual("Timeout", response["result"]["status"])
+        self.assertFalse(response["result"]["ready"])
 
     def test_wait_route_delegates_compilation_condition_to_helper(self) -> None:
         expected_response: dict[str, Any] = {"result": {"status": "Ready", "time_waited_seconds": 4.5}}
 
-        with patch(
-            "nexus_bridge.routes_editor._wait_for_compilation", return_value=expected_response
-        ) as mock_wait_for_compilation:
-            with patch("nexus_bridge.routes_editor.time.time", return_value=55.0):
-                response: dict[str, Any] = routing.route_tool(
-                    "wait", {"condition": "compilation", "timeout_seconds": 12.0}
-                )
+        with (
+            patch(
+                "nexus_bridge.routes_editor._wait_for_compilation", return_value=expected_response
+            ) as mock_wait_for_compilation,
+            patch("nexus_bridge.routes_editor.time.time", return_value=55.0),
+        ):
+            response: dict[str, Any] = routing.route_tool("wait", {"condition": "compilation", "timeout_seconds": 12.0})
 
         self.assertEqual(expected_response, response)
         mock_wait_for_compilation.assert_called_once_with(timeout=12.0, start_time=55.0)

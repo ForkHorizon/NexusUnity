@@ -3,7 +3,8 @@
     "rootNamespace": "UnityMCP.Editor.Pipeline",
     "references": [
         "UnityMCP.Editor",
-        "Unity.Pipeline"
+        "Unity.Pipeline",
+        "Unity.Pipeline.Attributes"
     ],
     "includePlatforms": [
         "Editor"

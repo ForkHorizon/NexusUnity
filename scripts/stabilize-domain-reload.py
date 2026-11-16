@@ -18,6 +18,7 @@ if not (PROJ / "Assets").exists():
     sys.exit("Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at " + str(PROJ) + ").")
 
 CYCLES = 20
+HANG_MS = 120_000  # one recompile-and-recover cycle longer than this counts as a hang
 
 
 def run_cmd(args: list[str], timeout: int = 180) -> dict:
@@ -66,7 +67,7 @@ def main() -> int:
         elapsed = (time.perf_counter() - started) * 1000.0
         if recovered:
             recoveries += 1
-        if elapsed > 120_000:
+        if elapsed > HANG_MS:
             hangs += 1
         if pending_ok:
             pending_failures += 0

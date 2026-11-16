@@ -125,13 +125,17 @@ repro/
 .hermes/
 .serena/
 .soma/
+# Local research, benchmark, and planning trees. Not package content: never committed or linted.
+NexusFeature~/
+Research~/
+
+# Graphify is a local navigation tool, not package content.
 graphify-out/
-graphify-out/cache/
-graphify-out/*.meta
-graphify-out/cache.meta
-graphify-out/cost.json
-graphify-out/manifest.json
-graphify-out/.graphify_*
+graphify-out.meta
+.graphifyignore
+.graphifyignore.meta
+.pytest_cache/
+.ruff_cache/
 
 # Validation-project-only generated output
 LINT_REPORT.txt
@@ -148,6 +152,7 @@ AUDIT_FINDINGS.md*
 .projectmem/watch.pid
 .projectmem/watch.log
 .projectmem/structure.json
+.projectmem/.current_issue
 
 # Claude Code project registration is generated locally and includes the Nexus auth token.
 .mcp.json

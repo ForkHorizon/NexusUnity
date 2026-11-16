@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 from typing import Any
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 
 from . import _transport
 
 JsonObject = dict[str, Any]
 JsonRpcResponse = dict[str, Any]
+ActionHandler = Callable[[JsonObject], JsonRpcResponse]
+
+
+def _dispatch(handlers: Mapping[str, ActionHandler], action: Any, args: JsonObject) -> JsonRpcResponse | None:
+    """Run the handler registered for ``action``; None when the action is unknown or not a string."""
+    handler = handlers.get(action) if isinstance(action, str) else None
+    return handler(args) if handler is not None else None
 
 
 def _compact(params: JsonObject) -> JsonObject:

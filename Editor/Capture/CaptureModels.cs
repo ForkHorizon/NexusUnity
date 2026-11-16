@@ -1,5 +1,3 @@
-using System;
-
 namespace UnityMCP.Editor.Capture
 {
     /// <summary>
@@ -13,23 +11,13 @@ namespace UnityMCP.Editor.Capture
         Jpeg = 1
     }
 
-    /// <summary>
-    /// Domain error codes for capture failures. Transport adapters serialize these.
-    /// </summary>
-    public enum CaptureErrorCode
+    /// <summary>Editor surface captured by the canonical look command.</summary>
+    public enum CaptureView
     {
-        /// <summary>Game View window is missing or closed.</summary>
-        GameViewUnavailable = 1,
-        /// <summary>Presented Game View pixels could not be acquired.</summary>
-        CaptureSourceEmpty = 2,
-        /// <summary>Another GPU screenshot is already in flight.</summary>
-        CaptureBusy = 3,
-        /// <summary>Async GPU readback failed or timed out.</summary>
-        ReadbackFailed = 4,
-        /// <summary>Requested encoding format is not supported.</summary>
-        UnsupportedFormat = 5,
-        /// <summary>Capture was cancelled or interrupted by domain reload.</summary>
-        DomainReloadInterrupted = 6
+        /// <summary>Presented Game View, including Overlay UI composited by Unity.</summary>
+        Game = 0,
+        /// <summary>Scene View framed on a target object.</summary>
+        Scene = 1
     }
 
     /// <summary>
@@ -49,11 +37,20 @@ namespace UnityMCP.Editor.Capture
         /// <summary>Gets or sets an explicit output height. Zero keeps the source height.</summary>
         public int RequestedHeight { get; set; }
 
-        /// <summary>Gets or sets a max longest-edge constraint. Zero leaves the size unconstrained.</summary>
+        /// <summary>Gets or sets a max longest-edge constraint. Zero leaves the size unconstrained up to the encoder cap.</summary>
         public int MaxLongEdge { get; set; }
 
         /// <summary>Gets or sets whether stage timings are populated on the result.</summary>
         public bool IncludeTelemetry { get; set; }
+
+        /// <summary>Gets or sets Game View or a Scene View framed on the target.</summary>
+        public CaptureView View { get; set; } = CaptureView.Game;
+
+        /// <summary>Gets or sets an instance id to crop or frame. Zero means no id was supplied.</summary>
+        public int TargetInstanceId { get; set; }
+
+        /// <summary>Gets or sets a hierarchy path or unique object name. Null captures the full Game View.</summary>
+        public string TargetPath { get; set; }
     }
 
     /// <summary>
@@ -105,26 +102,5 @@ namespace UnityMCP.Editor.Capture
 
         /// <summary>EditorApplication.update ticks from readback submit until request.done.</summary>
         public int EditorTicksSubmitToDone { get; set; }
-    }
-
-    /// <summary>
-    /// Capture failure carrying a stable <see cref="CaptureErrorCode"/> and a human-readable message.
-    /// Thrown by the capture gateway and translated by each transport (HTTP, Pipeline) without leaking transport details.
-    /// </summary>
-    public sealed class CaptureException : Exception
-    {
-        /// <summary>
-        /// Creates a capture exception with a stable domain code.
-        /// </summary>
-        /// <param name="code">Machine-readable failure code.</param>
-        /// <param name="message">Human-readable failure message.</param>
-        public CaptureException(CaptureErrorCode code, string message)
-            : base(message)
-        {
-            Code = code;
-        }
-
-        /// <summary>Gets the domain error code.</summary>
-        public CaptureErrorCode Code { get; }
     }
 }
