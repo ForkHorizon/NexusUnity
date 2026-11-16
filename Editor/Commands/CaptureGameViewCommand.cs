@@ -83,34 +83,12 @@ namespace UnityMCP.Editor.Commands
         /// <summary>
         /// Pipeline entry. File delivery writes one image under Temp and does not modify assets.
         /// </summary>
-        /// <param name="width">Requested width, or 0 for the native size.</param>
-        /// <param name="height">Requested height, or 0 for the native size.</param>
-        /// <param name="format"><c>jpg</c> by default, or <c>png</c>.</param>
-        /// <param name="quality">JPEG quality. Values outside 1–100 are clamped.</param>
-        /// <param name="maxDimension">Longest edge. 768 is the default. 0 keeps the source size.</param>
-        /// <param name="view"><c>game</c> or <c>scene</c>.</param>
-        /// <param name="target">Object name or hierarchy path.</param>
-        /// <param name="instanceId">Object instance id. Zero means none.</param>
-        /// <param name="delivery"><c>base64</c> or <c>file</c>.</param>
-        /// <param name="requestId">Caller id echoed in meta, or null.</param>
+        /// <param name="arguments">CLI flag values. A null format stays omitted until the jpg default.</param>
         /// <param name="cancellationToken">Token used to abort the capture.</param>
         /// <returns>The canonical envelope. Argument failures do not capture.</returns>
-        public static Task<NexusCommandEnvelope> ExecuteFromCli(
-            int width,
-            int height,
-            string format,
-            int quality,
-            int maxDimension,
-            string view,
-            string target,
-            int instanceId,
-            string delivery,
-            string requestId,
-            CancellationToken cancellationToken)
+        public static Task<NexusCommandEnvelope> ExecuteFromCli(CaptureCliArguments arguments, CancellationToken cancellationToken)
         {
-            JObject parameters = BuildCliArguments(
-                width, height, format, quality, maxDimension, view, target, instanceId, delivery, requestId);
-            if (!TryPrepareLook(parameters, 0, out CaptureLookCall call))
+            if (!TryPrepareLook(BuildCliArguments(arguments), 0, out CaptureLookCall call))
                 return Task.FromResult(call.Rejected);
 
             return ExecuteEnveloped(call, cancellationToken);
@@ -119,44 +97,40 @@ namespace UnityMCP.Editor.Commands
         /// <summary>
         /// Builds the CLI argument object without applying the jpg default. Null format stays omitted.
         /// </summary>
-        internal static JObject BuildCliArguments(
-            int width,
-            int height,
-            string format,
-            int quality,
-            int maxDimension,
-            string view,
-            string target,
-            int instanceId,
-            string delivery,
-            string requestId)
+        internal static JObject BuildCliArguments(CaptureCliArguments arguments)
         {
             var parameters = new JObject
             {
-                ["width"] = width,
-                ["height"] = height,
-                ["quality"] = quality,
-                ["max_dimension"] = maxDimension,
-                ["view"] = string.IsNullOrEmpty(view) ? DefaultView : view,
-                ["delivery"] = string.IsNullOrEmpty(delivery) ? DefaultDelivery : delivery
+                ["width"] = arguments.Width,
+                ["height"] = arguments.Height,
+                ["quality"] = arguments.Quality,
+                ["max_dimension"] = arguments.MaxDimension,
+                ["view"] = string.IsNullOrEmpty(arguments.View) ? DefaultView : arguments.View,
+                ["delivery"] = string.IsNullOrEmpty(arguments.Delivery) ? DefaultDelivery : arguments.Delivery
             };
-            if (!string.IsNullOrEmpty(format)) parameters["format"] = format;
-            if (!string.IsNullOrEmpty(target)) parameters["target"] = target;
-            if (instanceId != 0) parameters["instance_id"] = instanceId;
-            if (!string.IsNullOrEmpty(requestId)) parameters["request_id"] = requestId;
+            if (!string.IsNullOrEmpty(arguments.Format)) parameters["format"] = arguments.Format;
+            if (!string.IsNullOrEmpty(arguments.Target)) parameters["target"] = arguments.Target;
+            if (arguments.InstanceId != 0) parameters["instance_id"] = arguments.InstanceId;
+            if (!string.IsNullOrEmpty(arguments.RequestId)) parameters["request_id"] = arguments.RequestId;
             return parameters;
         }
 
         /// <summary>
         /// Parses HTTP or CLI arguments and applies the omitted jpg default onto <see cref="CaptureRequest.Format"/>.
-        /// Does not capture.
+        /// An unsupported format is an <c>invalid_argument</c> rejection. Does not capture.
         /// </summary>
         internal static bool TryPrepareLook(JToken parameters, long milliseconds, out CaptureLookCall call)
         {
             if (!CaptureLookRequest.TryParse(parameters, milliseconds, out call))
                 return false;
 
-            call.Request.Format = ParseFormat(FormatOrDefault(call.Format));
+            if (!TryParseFormat(FormatOrDefault(call.Format), out CaptureFormat format))
+            {
+                call.Rejected = NexusCommandEnvelope.InvalidArgument("Unsupported capture format.", call.RequestId, milliseconds);
+                return false;
+            }
+
+            call.Request.Format = format;
             return true;
         }
 
@@ -228,17 +202,18 @@ namespace UnityMCP.Editor.Commands
             return format ?? DefaultFormat;
         }
 
-        private static CaptureFormat ParseFormat(string format)
+        private static bool TryParseFormat(string format, out CaptureFormat parsed)
         {
+            parsed = CaptureFormat.Jpeg;
             if (string.IsNullOrEmpty(format) ||
                 format.Equals("jpg", StringComparison.OrdinalIgnoreCase) ||
                 format.Equals("jpeg", StringComparison.OrdinalIgnoreCase))
             {
-                return CaptureFormat.Jpeg;
+                return true;
             }
 
-            if (format.Equals("png", StringComparison.OrdinalIgnoreCase)) return CaptureFormat.Png;
-            throw new CaptureException(CaptureErrorCode.UnsupportedFormat, "Unsupported capture format.");
+            parsed = CaptureFormat.Png;
+            return format.Equals("png", StringComparison.OrdinalIgnoreCase);
         }
 
         private static NexusCommandDescriptor CreateDescriptor()
@@ -266,5 +241,33 @@ namespace UnityMCP.Editor.Commands
                 }
             };
         }
+    }
+
+    /// <summary>
+    /// Flag values from the Pipeline <c>[CliCommand]</c> projection of <see cref="CaptureGameViewCommand"/>.
+    /// Zero and null mean the flag was not set.
+    /// </summary>
+    public sealed class CaptureCliArguments
+    {
+        /// <summary>Gets or sets the requested width, or 0 for the native size.</summary>
+        public int Width { get; set; }
+        /// <summary>Gets or sets the requested height, or 0 for the native size.</summary>
+        public int Height { get; set; }
+        /// <summary>Gets or sets <c>jpg</c> or <c>png</c>, or null to use the jpg default.</summary>
+        public string Format { get; set; }
+        /// <summary>Gets or sets JPEG quality. Values outside 1–100 are clamped.</summary>
+        public int Quality { get; set; } = CaptureGameViewCommand.DefaultJpegQuality;
+        /// <summary>Gets or sets the longest edge. 0 keeps the source size.</summary>
+        public int MaxDimension { get; set; } = CaptureGameViewCommand.DefaultMaxLongEdge;
+        /// <summary>Gets or sets <c>game</c> or <c>scene</c>, or null for game.</summary>
+        public string View { get; set; }
+        /// <summary>Gets or sets the object name or hierarchy path, or null.</summary>
+        public string Target { get; set; }
+        /// <summary>Gets or sets the object instance id. Zero means none.</summary>
+        public int InstanceId { get; set; }
+        /// <summary>Gets or sets <c>base64</c> or <c>file</c>, or null for base64.</summary>
+        public string Delivery { get; set; }
+        /// <summary>Gets or sets the caller id echoed in meta, or null.</summary>
+        public string RequestId { get; set; }
     }
 }

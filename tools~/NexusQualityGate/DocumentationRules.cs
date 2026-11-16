@@ -130,11 +130,11 @@ public static class DocumentationRules
 
     public static QualityGateIssue Error(string code, string message, string file, int line, string? symbol = null)
     {
-        return new QualityGateIssue(QualityGateSeverity.Error, code, message, file, line, symbol);
+        return new QualityGateIssue { Severity = QualityGateSeverity.Error, Code = code, Message = message, File = file, Line = line, Symbol = symbol };
     }
 
     public static QualityGateIssue Warning(string code, string message, string file, int line, string? symbol = null)
     {
-        return new QualityGateIssue(QualityGateSeverity.Warning, code, message, file, line, symbol);
+        return new QualityGateIssue { Severity = QualityGateSeverity.Warning, Code = code, Message = message, File = file, Line = line, Symbol = symbol };
     }
 }

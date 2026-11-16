@@ -28,97 +28,64 @@ namespace UnityMCP.Editor.Commands
         /// <summary>Parses look arguments. Omitted max edge becomes 768. Explicit 0 stays unconstrained.</summary>
         internal static bool TryParse(JToken parameters, long milliseconds, out CaptureLookCall call)
         {
-            call = new CaptureLookCall();
-            if (!NexusCommandArguments.TryReadRequestId(parameters, milliseconds, out string requestId, out NexusCommandEnvelope rejected))
-                return Fail(call, rejected);
-            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["width"], "width", requestId, milliseconds, out int? width, out rejected))
-                return Fail(call, rejected);
-            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["height"], "height", requestId, milliseconds, out int? height, out rejected))
-                return Fail(call, rejected);
-            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["quality"], "quality", requestId, milliseconds, out int? quality, out rejected))
-                return Fail(call, rejected);
-            if (!NexusCommandArguments.TryReadOptionalString(parameters?["format"], "format", requestId, milliseconds, out string format, out rejected))
-                return Fail(call, rejected);
-            if (!TryReadEdge(parameters, requestId, milliseconds, out int maxEdge, out rejected))
-                return Fail(call, rejected);
-            if (!TryReadView(parameters, requestId, milliseconds, out CaptureView view, out string target, out int instanceId, out bool writeFile, out rejected))
-                return Fail(call, rejected);
+            call = new CaptureLookCall { Request = new CaptureRequest { IncludeTelemetry = true } };
+            bool parsed = NexusCommandArguments.TryOpen(parameters, milliseconds, out NexusCommandArguments arguments)
+                && TryReadImage(arguments, call)
+                && TryReadView(arguments, call);
+            call.RequestId = arguments.RequestId;
+            call.Rejected = arguments.Rejected;
+            return parsed;
+        }
 
-            call.RequestId = requestId;
+        private static bool TryReadImage(NexusCommandArguments arguments, CaptureLookCall call)
+        {
+            string edgeName = arguments.Has("max_dimension") ? "max_dimension" : "max_long_edge";
+            if (!arguments.TryReadInt("width", out int? width)
+                || !arguments.TryReadInt("height", out int? height)
+                || !arguments.TryReadInt("quality", out int? quality)
+                || !arguments.TryReadString("format", out string format)
+                || !arguments.TryReadInt(edgeName, out int? maxEdge))
+            {
+                return false;
+            }
+
+            CaptureRequest request = call.Request;
+            request.RequestedWidth = width ?? 0;
+            request.RequestedHeight = height ?? 0;
+            request.JpegQuality = quality ?? CaptureGameViewCommand.DefaultJpegQuality;
+            request.MaxLongEdge = maxEdge ?? CaptureGameViewCommand.DefaultMaxLongEdge;
             call.Format = format;
-            call.WriteFile = writeFile;
-            call.Request = new CaptureRequest
-            {
-                JpegQuality = quality ?? CaptureGameViewCommand.DefaultJpegQuality,
-                RequestedWidth = width ?? 0,
-                RequestedHeight = height ?? 0,
-                MaxLongEdge = maxEdge,
-                IncludeTelemetry = true,
-                View = view,
-                TargetInstanceId = instanceId,
-                TargetPath = target
-            };
             return true;
         }
 
-        private static bool TryReadEdge(JToken parameters, string requestId, long milliseconds, out int maxEdge, out NexusCommandEnvelope rejected)
+        private static bool TryReadView(NexusCommandArguments arguments, CaptureLookCall call)
         {
-            JToken edge = parameters?["max_dimension"];
-            string edgeName = "max_dimension";
-            if (edge == null || edge.Type == JTokenType.Null)
+            if (!arguments.TryReadString("view", out string viewText)
+                || !arguments.TryReadString("target", out string target)
+                || !arguments.TryReadInt("instance_id", out int? id)
+                || !arguments.TryReadString("delivery", out string delivery))
             {
-                edge = parameters?["max_long_edge"];
-                edgeName = "max_long_edge";
-            }
-
-            if (!NexusCommandArguments.TryReadOptionalInt(edge, edgeName, requestId, milliseconds, out int? parsed, out rejected))
-            {
-                maxEdge = 0;
                 return false;
             }
-
-            maxEdge = parsed ?? CaptureGameViewCommand.DefaultMaxLongEdge;
-            return true;
-        }
-
-        private static bool TryReadView(
-            JToken parameters,
-            string requestId,
-            long milliseconds,
-            out CaptureView view,
-            out string target,
-            out int instanceId,
-            out bool writeFile,
-            out NexusCommandEnvelope rejected)
-        {
-            view = CaptureView.Game;
-            target = null;
-            instanceId = 0;
-            writeFile = false;
-            if (!NexusCommandArguments.TryReadOptionalString(parameters?["view"], "view", requestId, milliseconds, out string viewText, out rejected))
-                return false;
-            if (!NexusCommandArguments.TryReadOptionalString(parameters?["target"], "target", requestId, milliseconds, out target, out rejected))
-                return false;
-            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["instance_id"], "instance_id", requestId, milliseconds, out int? id, out rejected))
-                return false;
-            if (!NexusCommandArguments.TryReadOptionalString(parameters?["delivery"], "delivery", requestId, milliseconds, out string delivery, out rejected))
-                return false;
 
             viewText = string.IsNullOrEmpty(viewText) ? CaptureGameViewCommand.DefaultView : viewText;
             delivery = string.IsNullOrEmpty(delivery) ? CaptureGameViewCommand.DefaultDelivery : delivery;
-            if (!TryViewToken(viewText, out view))
-                return Reject(requestId, milliseconds, "view must be game or scene.", out rejected);
+            int instanceId = id ?? 0;
+            if (!TryViewToken(viewText, out CaptureView view))
+                return arguments.Reject("view must be game or scene.");
             if (delivery != CaptureGameViewCommand.DefaultDelivery && delivery != "file")
-                return Reject(requestId, milliseconds, "delivery must be base64 or file.", out rejected);
+                return arguments.Reject("delivery must be base64 or file.");
             if (target != null && target.Trim().Length == 0)
-                return Reject(requestId, milliseconds, "target must be a non-empty name or hierarchy path.", out rejected);
-            instanceId = id ?? 0;
+                return arguments.Reject("target must be a non-empty name or hierarchy path.");
             if (instanceId != 0 && !string.IsNullOrEmpty(target))
-                return Reject(requestId, milliseconds, "Pass instance_id or target, not both.", out rejected);
+                return arguments.Reject("Pass instance_id or target, not both.");
             if (view == CaptureView.Scene && instanceId == 0 && string.IsNullOrEmpty(target))
-                return Reject(requestId, milliseconds, "Scene View capture requires a target.", out rejected);
+                return arguments.Reject("Scene View capture requires a target.");
 
-            writeFile = delivery == "file";
+            call.Request.View = view;
+            call.Request.TargetInstanceId = instanceId;
+            call.Request.TargetPath = target;
+            call.WriteFile = delivery == "file";
             return true;
         }
 
@@ -137,25 +104,6 @@ namespace UnityMCP.Editor.Commands
             }
 
             view = CaptureView.Game;
-            return false;
-        }
-
-        private static bool Reject(string requestId, long milliseconds, string message, out NexusCommandEnvelope rejected)
-        {
-            rejected = NexusCommandEnvelope.Failure(
-                NexusCommandCodes.InvalidArgument,
-                message,
-                false,
-                NexusCommandCodes.ChangeArgumentsHint,
-                null,
-                requestId,
-                milliseconds);
-            return false;
-        }
-
-        private static bool Fail(CaptureLookCall call, NexusCommandEnvelope rejected)
-        {
-            call.Rejected = rejected;
             return false;
         }
     }

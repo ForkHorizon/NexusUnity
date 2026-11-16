@@ -20,6 +20,8 @@ if not (PROJ / "Assets").exists():
 
 WARMUPS = 20
 MEASURED = 100
+BLOCKING_STALL_MS = 40  # median main-thread stall above this counts as a blocking regression
+NORMALIZE_SIZE = (1600, 900)
 
 
 def run_cmd(args: list[str], timeout: int = 60) -> dict:
@@ -77,7 +79,7 @@ def main() -> int:
     # Do not pass format=png: global --format collides, and named args bind the next flag.
     png = variant(["nexus_capture_game_view", "0", "0", "png"])
     q50 = variant(["nexus_capture_game_view", "0", "0", "jpg", "50"])
-    norm = variant(["nexus_capture_game_view", "1600", "900", "jpg"])
+    norm = variant(["nexus_capture_game_view", str(NORMALIZE_SIZE[0]), str(NORMALIZE_SIZE[1]), "jpg"])
     bad = variant(["nexus_capture_game_view", "0", "0", "bmp"])
 
     stalls = [s["main_thread_stall_ms"] for s in samples if isinstance(s["main_thread_stall_ms"], (int, float))]
@@ -93,7 +95,7 @@ def main() -> int:
         "roundtrip_p50_ms": statistics.median(rounds) if rounds else None,
         "stall_p50_ms": statistics.median(stalls) if stalls else None,
         "wait_p50_ms": statistics.median(waits) if waits else None,
-        "blocking_regression": (statistics.median(stalls) if stalls else 0) > 40,
+        "blocking_regression": (statistics.median(stalls) if stalls else 0) > BLOCKING_STALL_MS,
         "png": {
             "ok": png.get("encoding") == "png" and png.get("success"),
             "width": png.get("width"),
@@ -101,7 +103,7 @@ def main() -> int:
         },
         "quality50": {"ok": q50.get("success"), "bytes": q50.get("bytes")},
         "normalize_1600x900": {
-            "ok": norm.get("width") == 1600 and norm.get("height") == 900,
+            "ok": (norm.get("width"), norm.get("height")) == NORMALIZE_SIZE,
             "width": norm.get("width"),
             "height": norm.get("height"),
         },

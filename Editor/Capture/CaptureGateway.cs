@@ -151,8 +151,8 @@ namespace UnityMCP.Editor.Capture
             timings.SourceAcquireMs = swAcquire.Elapsed.TotalMilliseconds;
 
             byte[] encoded = await DriverOwnedReadback.ReadAndEncode(
-                frame.Texture, frame.Width, frame.Height, request.Format, request.JpegQuality,
-                timings, cancellationToken).ConfigureAwait(false);
+                frame.Texture, new Vector2Int(frame.Width, frame.Height), request, timings, cancellationToken)
+                .ConfigureAwait(false);
 
             swTotal.Stop();
             timings.MainThreadStallMs = timings.SourceAcquireMs + timings.ReadbackSubmitMs + timings.EncodeMs;

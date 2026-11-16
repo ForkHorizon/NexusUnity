@@ -213,14 +213,16 @@ public sealed class RoslynQualityScanner
             if (sideEffectIssue is not null)
                 result.Add(sideEffectIssue);
 
-            result.DocumentationCandidates.Add(new DocumentationCandidate(
-                file.RelativePath,
-                line,
-                symbol,
-                declaration.Kind().ToString(),
-                RoslynSyntaxHelpers.BuildSignature(declaration),
-                xml,
-                codeExcerpt));
+            result.DocumentationCandidates.Add(new DocumentationCandidate
+            {
+                File = file.RelativePath,
+                Line = line,
+                Symbol = symbol,
+                Kind = declaration.Kind().ToString(),
+                Signature = RoslynSyntaxHelpers.BuildSignature(declaration),
+                Documentation = xml,
+                CodeExcerpt = codeExcerpt,
+            });
         }
     }
 

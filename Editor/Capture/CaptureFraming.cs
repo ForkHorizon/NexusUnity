@@ -25,13 +25,13 @@ namespace UnityMCP.Editor.Capture
             offset = new Vector2(u0, v0 + sv);
         }
 
-        /// <summary>Intersects a bottom-left pixel rect with the render texture.</summary>
-        internal static RectInt IntersectPixels(float minX, float minY, float maxX, float maxY, int rtWidth, int rtHeight)
+        /// <summary>Intersects the bottom-left pixel rect spanned by two corners with the render texture.</summary>
+        internal static RectInt IntersectPixels(Vector2 cornerA, Vector2 cornerB, int rtWidth, int rtHeight)
         {
-            int x0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(minX, maxX)), 0, rtWidth);
-            int y0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(minY, maxY)), 0, rtHeight);
-            int x1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(minX, maxX)), 0, rtWidth);
-            int y1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(minY, maxY)), 0, rtHeight);
+            int x0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(cornerA.x, cornerB.x)), 0, rtWidth);
+            int y0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(cornerA.y, cornerB.y)), 0, rtHeight);
+            int x1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(cornerA.x, cornerB.x)), 0, rtWidth);
+            int y1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(cornerA.y, cornerB.y)), 0, rtHeight);
             return new RectInt(x0, y0, Mathf.Max(0, x1 - x0), Mathf.Max(0, y1 - y0));
         }
 
@@ -102,18 +102,16 @@ namespace UnityMCP.Editor.Capture
             rect.GetWorldCorners(corners);
             float screenW = Screen.width > 0 ? Screen.width : rtWidth;
             float screenH = Screen.height > 0 ? Screen.height : rtHeight;
-            float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue, float.MinValue);
             for (int i = 0; i < 4; i++)
             {
-                float x = corners[i].x / screenW * rtWidth;
-                float y = corners[i].y / screenH * rtHeight;
-                minX = Mathf.Min(minX, x);
-                minY = Mathf.Min(minY, y);
-                maxX = Mathf.Max(maxX, x);
-                maxY = Mathf.Max(maxY, y);
+                var pixel = new Vector2(corners[i].x / screenW * rtWidth, corners[i].y / screenH * rtHeight);
+                min = Vector2.Min(min, pixel);
+                max = Vector2.Max(max, pixel);
             }
 
-            return IntersectPixels(minX, minY, maxX, maxY, rtWidth, rtHeight);
+            return IntersectPixels(min, max, rtWidth, rtHeight);
         }
 
         private static RectInt RendererRect(GameObject target, Camera camera, int rtWidth, int rtHeight)
@@ -121,7 +119,8 @@ namespace UnityMCP.Editor.Capture
             Bounds bounds = WorldBounds(target);
             Vector3 ext = bounds.extents;
             Vector3 center = bounds.center;
-            float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue, float.MinValue);
             bool any = false;
             for (int i = 0; i < 8; i++)
             {
@@ -131,17 +130,16 @@ namespace UnityMCP.Editor.Capture
                     (i & 4) == 0 ? -ext.z : ext.z);
                 Vector3 screen = camera.WorldToScreenPoint(world);
                 if (screen.z <= 0f) continue;
-                float x = screen.x / Mathf.Max(1, camera.pixelWidth) * rtWidth;
-                float y = screen.y / Mathf.Max(1, camera.pixelHeight) * rtHeight;
-                minX = Mathf.Min(minX, x);
-                minY = Mathf.Min(minY, y);
-                maxX = Mathf.Max(maxX, x);
-                maxY = Mathf.Max(maxY, y);
+                var pixel = new Vector2(
+                    screen.x / Mathf.Max(1, camera.pixelWidth) * rtWidth,
+                    screen.y / Mathf.Max(1, camera.pixelHeight) * rtHeight);
+                min = Vector2.Min(min, pixel);
+                max = Vector2.Max(max, pixel);
                 any = true;
             }
 
             if (!any) return new RectInt(0, 0, 0, 0);
-            return IntersectPixels(minX, minY, maxX, maxY, rtWidth, rtHeight);
+            return IntersectPixels(min, max, rtWidth, rtHeight);
         }
 
         private static Camera ActiveCamera()

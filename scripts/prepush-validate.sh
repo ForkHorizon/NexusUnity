@@ -58,32 +58,34 @@ for path in paths:
 PY
 
   log "Running Python bridge unit tests"
-  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -v
+  PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s Editor/tests -t Editor -v
 
   log "Checking for generated or local-only files"
   python3 - <<'PY'
-import os
+import subprocess
 import sys
 
-forbidden = []
-for root, dirs, files in os.walk("."):
-    parts = set(root.split(os.sep))
-    if ".git" in parts:
-        continue
+# Check what git would commit (tracked + untracked-not-ignored), not every file on disk:
+# gitignored local output (graphify-out/, __pycache__, .DS_Store) must not fail validation.
+listed = subprocess.run(
+    ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+    check=True, capture_output=True,
+).stdout.decode("utf-8", errors="replace").split("\0")
 
-    for name in files:
-        path = os.path.join(root, name)
-        normalized = path.replace(os.sep, "/")
-        if (
-            name == ".DS_Store"
-            or name.endswith((".pyc", ".pyo"))
-            or "__pycache__" in normalized
-            or "/Library/" in normalized
-            or "/Temp/" in normalized
-            or "/graphify-out/" in normalized
-            or "/.soma/" in normalized
-        ):
-            forbidden.append(path)
+forbidden = []
+for path in filter(None, listed):
+    normalized = "/" + path
+    name = normalized.rsplit("/", 1)[-1]
+    if (
+        name == ".DS_Store"
+        or name.endswith((".pyc", ".pyo"))
+        or "__pycache__" in normalized
+        or "/Library/" in normalized
+        or "/Temp/" in normalized
+        or "/graphify-out/" in normalized
+        or "/.soma/" in normalized
+    ):
+        forbidden.append(path)
 
 if forbidden:
     print("Forbidden generated/local files found:")

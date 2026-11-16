@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-import os
-import sys
 import unittest
 from typing import Any
 from unittest.mock import Mock, call, patch
-
-EDITOR_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if EDITOR_DIR not in sys.path:
-    sys.path.insert(0, EDITOR_DIR)
 
 from nexus_bridge import routing
 
@@ -17,9 +11,11 @@ class RouteToolDispatchTests(unittest.TestCase):
     def test_route_tool_uses_registered_handler(self) -> None:
         handler = Mock(return_value={"result": {"handled": True}})
 
-        with patch.dict(routing._HANDLERS, {"synthetic": handler}, clear=True):
-            with patch("nexus_bridge._transport.call_unity") as mock_call_unity:
-                response: dict[str, Any] = routing.route_tool("synthetic", {"value": 7})
+        with (
+            patch.dict(routing._HANDLERS, {"synthetic": handler}, clear=True),
+            patch("nexus_bridge._transport.call_unity") as mock_call_unity,
+        ):
+            response: dict[str, Any] = routing.route_tool("synthetic", {"value": 7})
 
         self.assertEqual({"result": {"handled": True}}, response)
         handler.assert_called_once_with({"value": 7})
@@ -59,15 +55,27 @@ class RouteToolDispatchTests(unittest.TestCase):
                 ({"instance_id": 42, "component_name": "BoxCollider"},),
             ),
             (
+                "component_manager",
+                {"action": "set_property", "instance_id": 42, "property_name": "m_Mass", "value": 2.5},
+                "set_property",
+                ({"instance_id": 42, "property_name": "m_Mass", "value": 2.5},),
+            ),
+            (
+                "asset_manager",
+                {"action": "create_prefab", "instance_id": 42, "path": "Assets/P.prefab"},
+                "create_prefab",
+                ({"instance_id": 42, "path": "Assets/P.prefab"},),
+            ),
+            (
                 "search_manager",
                 {"strategy": "path", "query": "/Canvas/Button"},
                 "find_by_path",
                 ({"path": "/Canvas/Button"},),
             ),
-            ("asset_manager", {"action": "refresh"}, "refresh_asset_database", tuple()),
-            ("editor_controller", {"action": "get_state"}, "get_editor_state", tuple()),
-            ("ui_automation", {"action": "list_windows"}, "ui_list_windows", tuple()),
-            ("playerprefs_manager", {"action": "list"}, "list_player_prefs", tuple()),
+            ("asset_manager", {"action": "refresh"}, "refresh_asset_database", ()),
+            ("editor_controller", {"action": "get_state"}, "get_editor_state", ()),
+            ("ui_automation", {"action": "list_windows"}, "ui_list_windows", ()),
+            ("playerprefs_manager", {"action": "list"}, "list_player_prefs", ()),
         ]
 
         for route_name, route_args, unity_method, unity_params in test_cases:

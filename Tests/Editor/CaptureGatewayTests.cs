@@ -92,7 +92,7 @@ namespace UnityMCP.Editor.Tests
         {
             byte[] png = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3 };
             JObject result = MCPServerMethods.CreateScreenshotResult(
-                true, "Game View screenshot captured.", png, new Vector2Int(64, 32), 1.5);
+                true, "Game View screenshot captured.", new MCPServerMethods.ScreenshotPayload(png, new Vector2Int(64, 32)), 1.5);
 
             Assert.AreEqual("Success", result["status"]?.ToString());
             Assert.IsTrue(result["success"]?.Value<bool>() ?? false);

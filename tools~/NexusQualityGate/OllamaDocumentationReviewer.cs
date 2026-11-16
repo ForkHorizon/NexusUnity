@@ -207,7 +207,15 @@ public sealed class OllamaDocumentationReviewer
         if (!string.IsNullOrWhiteSpace(verdict.SuggestedDoc))
             message += " Suggested doc: " + verdict.SuggestedDoc;
 
-        return new QualityGateIssue(severity, "NQG210", message, candidate.File, candidate.Line, candidate.Symbol);
+        return new QualityGateIssue
+        {
+            Severity = severity,
+            Code = "NQG210",
+            Message = message,
+            File = candidate.File,
+            Line = candidate.Line,
+            Symbol = candidate.Symbol,
+        };
     }
 
     private string BuildCacheKey(DocumentationCandidate candidate)

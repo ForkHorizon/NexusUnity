@@ -6,6 +6,7 @@ import json
 import math
 import os
 import sys
+from http import HTTPStatus
 from typing import Any
 import urllib.error
 import urllib.request
@@ -120,7 +121,7 @@ def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse
             with urllib.request.urlopen(req, timeout=UNITY_TIMEOUT_SECONDS) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as error:
-            if error.code == 401 and attempt == 0:
+            if error.code == HTTPStatus.UNAUTHORIZED and attempt == 0:
                 continue
             # Distinguish "the server answered and refused" from "unreachable";
             # reporting a 401 as unreachable sends debugging the wrong way.

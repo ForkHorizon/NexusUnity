@@ -7,9 +7,11 @@ from typing import Any
 
 from . import _transport
 from .routes_base import (
+    ActionHandler,
     JsonObject,
     JsonRpcResponse,
     _compact,
+    _dispatch,
     _error_object,
     _invalid_action,
     _result_object,
@@ -80,9 +82,7 @@ def _epoch_value(epoch: object, key: str) -> int:
     return value if isinstance(value, int) else 0
 
 
-def _compilation_result(
-    status: str, ready: bool, reason: str, epoch: JsonObject, start_time: float
-) -> JsonRpcResponse:
+def _compilation_result(status: str, ready: bool, reason: str, epoch: JsonObject, start_time: float) -> JsonRpcResponse:
     return {
         "result": {
             "status": status,
@@ -189,70 +189,40 @@ def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
     }
 
 
-def _dispatch_editor_action(action: str | None, args: JsonObject) -> JsonRpcResponse | None:
-    if action == "undo":
-        return _transport.call_unity("undo")
-    if action == "redo":
-        return _transport.call_unity("redo")
-    if action == "play":
-        return _transport.call_unity("toggle_play_mode", {"value": args.get("state")})
-    if action == "pause":
-        return _transport.call_unity("pause_play_mode", {"value": args.get("state")})
-    if action == "step":
-        return _transport.call_unity("step_frame")
-    if action == "menu":
-        return _transport.call_unity("execute_menu_item", {"item_path": args.get("item_path")})
-    if action == "read_logs":
-        return _transport.call_unity("read_logs", {"count": args.get("count", 100)})
-    if action == "clear_logs":
-        return _transport.call_unity("clear_logs")
-    if action == "get_state":
-        return _transport.call_unity("get_editor_state")
-    if action == "get_server_status":
-        return _transport.call_unity("get_server_status")
-    if action == "refresh_assets":
-        return _transport.call_unity("refresh_asset_database")
-    if action == "run_tests":
-        return _transport.call_unity(
-            "run_tests", _compact({"mode": args.get("mode", "EditMode"), "filter": args.get("filter")})
-        )
-    if action == "get_test_results":
-        return _transport.call_unity("get_test_results", _compact({"result_path": args.get("result_path")}))
-    if action == "run_tests_wait":
-        return _run_tests_wait(args)
-    if action == "get_tool_usage_stats":
-        return _transport.call_unity("get_tool_usage_stats")
-    if action == "reset_tool_usage_stats":
-        return _transport.call_unity("reset_tool_usage_stats")
-    return None
+def _call(method: str) -> ActionHandler:
+    return lambda _args: _transport.call_unity(method)
+
+
+_EDITOR_ACTIONS: dict[str, ActionHandler] = {
+    "undo": _call("undo"),
+    "redo": _call("redo"),
+    "play": lambda args: _transport.call_unity("toggle_play_mode", {"value": args.get("state")}),
+    "pause": lambda args: _transport.call_unity("pause_play_mode", {"value": args.get("state")}),
+    "step": _call("step_frame"),
+    "menu": lambda args: _transport.call_unity("execute_menu_item", {"item_path": args.get("item_path")}),
+    "read_logs": lambda args: _transport.call_unity("read_logs", {"count": args.get("count", 100)}),
+    "clear_logs": _call("clear_logs"),
+    "get_state": _call("get_editor_state"),
+    "get_server_status": _call("get_server_status"),
+    "refresh_assets": _call("refresh_asset_database"),
+    "run_tests": lambda args: _transport.call_unity(
+        "run_tests", _compact({"mode": args.get("mode", "EditMode"), "filter": args.get("filter")})
+    ),
+    "get_test_results": lambda args: _transport.call_unity(
+        "get_test_results", _compact({"result_path": args.get("result_path")})
+    ),
+    "run_tests_wait": lambda args: _run_tests_wait(args),  # noqa: PLW0108 - late-bound so the helper stays patchable
+    "get_tool_usage_stats": _call("get_tool_usage_stats"),
+    "reset_tool_usage_stats": _call("reset_tool_usage_stats"),
+}
 
 
 def _route_editor_controller(args: JsonObject) -> JsonRpcResponse:
     action = args.get("action")
-    result = _dispatch_editor_action(action, args)
+    result = _dispatch(_EDITOR_ACTIONS, action, args)
     if result is not None:
         return result
-    return _invalid_action(
-        action,
-        [
-            "undo",
-            "redo",
-            "play",
-            "pause",
-            "step",
-            "menu",
-            "read_logs",
-            "clear_logs",
-            "get_state",
-            "get_server_status",
-            "refresh_assets",
-            "run_tests",
-            "get_test_results",
-            "run_tests_wait",
-            "get_tool_usage_stats",
-            "reset_tool_usage_stats",
-        ],
-    )
+    return _invalid_action(action, list(_EDITOR_ACTIONS))
 
 
 def _is_condition_ready(condition: str, target_state: bool) -> bool:

@@ -434,7 +434,15 @@ public sealed class OllamaChecklistReviewer
         if (!string.IsNullOrWhiteSpace(verdict.NextAction))
             message += " Next action: " + verdict.NextAction;
 
-        return new QualityGateIssue(severity, "NQG310", message, item.File, item.Line, item.Symbol);
+        return new QualityGateIssue
+        {
+            Severity = severity,
+            Code = "NQG310",
+            Message = message,
+            File = item.File,
+            Line = item.Line,
+            Symbol = item.Symbol,
+        };
     }
 
     private string BuildCacheKey(ChecklistItem item, string evidence)

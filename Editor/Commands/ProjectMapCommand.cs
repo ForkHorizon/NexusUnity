@@ -49,9 +49,9 @@ namespace UnityMCP.Editor.Commands
         public Task<JToken> ExecuteAsync(JToken parameters, CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
-            if (!NexusCommandArguments.TryReadRequestId(parameters, sw.ElapsedMilliseconds, out string requestId, out NexusCommandEnvelope rejected))
-                return Task.FromResult<JToken>(rejected.ToJson());
-            return Task.FromResult<JToken>(ExecuteEnveloped(requestId).ToJson());
+            if (!NexusCommandArguments.TryOpen(parameters, sw.ElapsedMilliseconds, out NexusCommandArguments arguments))
+                return Task.FromResult<JToken>(arguments.Rejected.ToJson());
+            return Task.FromResult<JToken>(ExecuteEnveloped(arguments.RequestId).ToJson());
         }
 
         /// <summary>

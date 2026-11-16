@@ -265,7 +265,7 @@ namespace UnityMCP.Editor
             bool refreshInvoked = Get(RefreshInvokedKey) == 1;
             bool reloadArmed = Get(ReloadArmedKey) == 1;
             bool compiling = _isCompiling || Get(CompileInFlightKey) > 0;
-            string blocking = BlockingReason(reloadArmed, _isPlayTransition, compiling, scriptWrite, pending, refreshInvoked, _isUpdating);
+            string blocking = BlockingReason(reloadArmed, compiling, scriptWrite, pending, refreshInvoked);
             bool ready = blocking == null;
             return new Snapshot(
                 ready,
@@ -280,14 +280,14 @@ namespace UnityMCP.Editor
                 pending);
         }
 
-        static string BlockingReason(bool reloadArmed, bool playTransition, bool compiling, bool scriptWrite, bool pending, bool refreshInvoked, bool updating)
+        static string BlockingReason(bool reloadArmed, bool compiling, bool scriptWrite, bool pending, bool refreshInvoked)
         {
             if (reloadArmed) return ReasonDomainReload;
-            if (playTransition) return ReasonPlayTransition;
+            if (_isPlayTransition) return ReasonPlayTransition;
             if (compiling) return ReasonCompiling;
             if (scriptWrite) return ReasonScriptWrite;
             if (pending && !refreshInvoked) return ReasonPendingRefresh;
-            if (updating) return ReasonImporting;
+            if (_isUpdating) return ReasonImporting;
             if (pending) return ReasonPendingRefresh;
             return null;
         }

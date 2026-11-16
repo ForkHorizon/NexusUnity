@@ -10,6 +10,7 @@ namespace UnityMCP.Editor.Pipeline
     /// </summary>
     /// <remarks>
     /// This assembly is excluded when <c>com.unity.pipeline</c> is not installed. It must not contain Nexus business logic.
+    /// Pipeline binds one CLI flag per method parameter, so this file is the only path in <c>.code-linter.json</c> ignore.
     /// Capture returns <see cref="Task"/> so Pipeline can await GPU completion off the Unity main thread.
     /// </remarks>
     public static class NexusPipelineCommands
@@ -55,9 +56,20 @@ namespace UnityMCP.Editor.Pipeline
             [CliArg("delivery", CaptureGameViewCommand.DeliveryDescription)] string delivery = CaptureGameViewCommand.DefaultDelivery,
             [CliArg("request_id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
-            return CaptureGameViewCommand.ExecuteFromCli(
-                width, height, format, quality, maxDimension, view, target, instanceId, delivery, requestId,
-                CancellationToken.None);
+            var arguments = new CaptureCliArguments
+            {
+                Width = width,
+                Height = height,
+                Format = format,
+                Quality = quality,
+                MaxDimension = maxDimension,
+                View = view,
+                Target = target,
+                InstanceId = instanceId,
+                Delivery = delivery,
+                RequestId = requestId
+            };
+            return CaptureGameViewCommand.ExecuteFromCli(arguments, CancellationToken.None);
         }
     }
 }

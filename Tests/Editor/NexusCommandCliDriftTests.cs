@@ -101,12 +101,12 @@ namespace UnityMCP.Editor.Tests
             {
                 Task omitted = (Task)look.Invoke(null, new object[] { 0, 0, "jpg", 85, 768, "game", null, 0, "base64", null });
                 Assert.IsTrue(omitted.IsCompleted, "CLI omit did not reach the capture gateway.");
-            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            }, Expect(CaptureFormat.Jpeg, 0, 0, 85, 768));
             ObserveCapture(delegate
             {
                 Task specified = (Task)look.Invoke(null, new object[] { 12, 9, "png", 40, 100, "game", null, 0, "base64", null });
                 Assert.IsTrue(specified.IsCompleted, "CLI arguments did not reach the capture gateway.");
-            }, CaptureFormat.Png, 12, 9, 40, 100);
+            }, Expect(CaptureFormat.Png, 12, 9, 40, 100));
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual(100, specified.Request.MaxLongEdge);
             Assert.AreEqual(CaptureFormat.Png, specified.Request.Format);
 
-            JObject cliOmit = CaptureGameViewCommand.BuildCliArguments(0, 0, null, 85, 768, null, null, 0, null, null);
+            JObject cliOmit = CaptureGameViewCommand.BuildCliArguments(new CaptureCliArguments { Quality = 85, MaxDimension = 768 });
             Assert.AreEqual(0, cliOmit.Value<int>("width"));
             Assert.AreEqual(0, cliOmit.Value<int>("height"));
             Assert.AreEqual(768, cliOmit.Value<int>("max_dimension"));
@@ -206,7 +206,7 @@ namespace UnityMCP.Editor.Tests
             {
                 Task<JToken> omitted = command.ExecuteAsync(new JObject(), CancellationToken.None);
                 Assert.IsTrue(omitted.IsCompleted, "HTTP omit did not reach the capture gateway.");
-            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            }, Expect(CaptureFormat.Jpeg, 0, 0, 85, 768));
             ObserveCapture(delegate
             {
                 Task<JToken> specified = command.ExecuteAsync(new JObject
@@ -218,7 +218,7 @@ namespace UnityMCP.Editor.Tests
                     ["max_dimension"] = 100
                 }, CancellationToken.None);
                 Assert.IsTrue(specified.IsCompleted, "HTTP arguments did not reach the capture gateway.");
-            }, CaptureFormat.Png, 12, 9, 40, 100);
+            }, Expect(CaptureFormat.Png, 12, 9, 40, 100));
             ObserveCapture(delegate
             {
                 Task<JToken> aliases = command.ExecuteAsync(new JObject
@@ -228,22 +228,30 @@ namespace UnityMCP.Editor.Tests
                     ["jpeg_quality"] = 11
                 }, CancellationToken.None);
                 Assert.IsTrue(aliases.IsCompleted, "HTTP alias probe did not reach the capture gateway.");
-            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            }, Expect(CaptureFormat.Jpeg, 0, 0, 85, 768));
             ObserveCapture(delegate
             {
                 Task<NexusCommandEnvelope> cli = CaptureGameViewCommand.ExecuteFromCli(
-                    0, 0, null, 85, 768, "game", null, 0, "base64", null, CancellationToken.None);
+                    new CaptureCliArguments { View = "game", Delivery = "base64" }, CancellationToken.None);
                 Assert.IsTrue(cli.IsCompleted, "ExecuteFromCli omit did not reach the capture gateway.");
-            }, CaptureFormat.Jpeg, 0, 0, 85, 768);
+            }, Expect(CaptureFormat.Jpeg, 0, 0, 85, 768));
         }
 
-        private static void ObserveCapture(Action entry, CaptureFormat format, int width, int height, int quality, int edge)
+        private static CaptureRequest Expect(CaptureFormat format, int width, int height, int quality, int edge)
         {
-            CaptureFormat seenFormat = CaptureFormat.Png;
-            int seenWidth = -1;
-            int seenHeight = -1;
-            int seenQuality = -1;
-            int seenEdge = -1;
+            return new CaptureRequest
+            {
+                Format = format,
+                RequestedWidth = width,
+                RequestedHeight = height,
+                JpegQuality = quality,
+                MaxLongEdge = edge
+            };
+        }
+
+        private static void ObserveCapture(Action entry, CaptureRequest expected)
+        {
+            CaptureRequest seen = null;
             int calls = 0;
             Func<CaptureRequest, CancellationToken, Task<CaptureResult>> previous = CaptureGameViewCommand.Capture;
             try
@@ -251,11 +259,7 @@ namespace UnityMCP.Editor.Tests
                 CaptureGameViewCommand.Capture = (request, token) =>
                 {
                     calls++;
-                    seenFormat = request.Format;
-                    seenWidth = request.RequestedWidth;
-                    seenHeight = request.RequestedHeight;
-                    seenQuality = request.JpegQuality;
-                    seenEdge = request.MaxLongEdge;
+                    seen = request;
                     return Task.FromResult(new CaptureResult
                     {
                         CompressedBytes = Array.Empty<byte>(),
@@ -264,11 +268,11 @@ namespace UnityMCP.Editor.Tests
                 };
                 entry();
                 Assert.AreEqual(1, calls, "The capture entry point did not call the gateway once.");
-                Assert.AreEqual(format, seenFormat);
-                Assert.AreEqual(width, seenWidth);
-                Assert.AreEqual(height, seenHeight);
-                Assert.AreEqual(quality, seenQuality);
-                Assert.AreEqual(edge, seenEdge);
+                Assert.AreEqual(expected.Format, seen.Format);
+                Assert.AreEqual(expected.RequestedWidth, seen.RequestedWidth);
+                Assert.AreEqual(expected.RequestedHeight, seen.RequestedHeight);
+                Assert.AreEqual(expected.JpegQuality, seen.JpegQuality);
+                Assert.AreEqual(expected.MaxLongEdge, seen.MaxLongEdge);
             }
             finally
             {

@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-import os
-import sys
 import unittest
 from typing import Any
 from unittest.mock import call, patch
-
-EDITOR_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if EDITOR_DIR not in sys.path:
-    sys.path.insert(0, EDITOR_DIR)
 
 from nexus_bridge import routing
 
@@ -39,10 +33,12 @@ class _Clock:
 class WaitForCompilationTests(unittest.TestCase):
     def _run(self, responses: list[dict[str, Any] | None], timeout: float = 30.0) -> tuple[dict[str, Any], Any]:
         clock = _Clock()
-        with patch("nexus_bridge._transport.call_unity", side_effect=responses) as mock_call_unity:
-            with patch("nexus_bridge.routes_editor.time.time", clock.time):
-                with patch("nexus_bridge.routes_editor.time.sleep", clock.sleep):
-                    response: dict[str, Any] = routing._wait_for_compilation(timeout=timeout)
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=responses) as mock_call_unity,
+            patch("nexus_bridge.routes_editor.time.time", clock.time),
+            patch("nexus_bridge.routes_editor.time.sleep", clock.sleep),
+        ):
+            response: dict[str, Any] = routing._wait_for_compilation(timeout=timeout)
         return response, mock_call_unity
 
     def test_already_ready_returns_without_refresh(self) -> None:
@@ -95,13 +91,13 @@ class WaitForCompilationTests(unittest.TestCase):
     def test_wait_route_delegates_compilation_condition_to_helper(self) -> None:
         expected_response: dict[str, Any] = {"result": {"status": "Ready", "time_waited_seconds": 4.5}}
 
-        with patch(
-            "nexus_bridge.routes_editor._wait_for_compilation", return_value=expected_response
-        ) as mock_wait_for_compilation:
-            with patch("nexus_bridge.routes_editor.time.time", return_value=55.0):
-                response: dict[str, Any] = routing.route_tool(
-                    "wait", {"condition": "compilation", "timeout_seconds": 12.0}
-                )
+        with (
+            patch(
+                "nexus_bridge.routes_editor._wait_for_compilation", return_value=expected_response
+            ) as mock_wait_for_compilation,
+            patch("nexus_bridge.routes_editor.time.time", return_value=55.0),
+        ):
+            response: dict[str, Any] = routing.route_tool("wait", {"condition": "compilation", "timeout_seconds": 12.0})
 
         self.assertEqual(expected_response, response)
         mock_wait_for_compilation.assert_called_once_with(timeout=12.0, start_time=55.0)

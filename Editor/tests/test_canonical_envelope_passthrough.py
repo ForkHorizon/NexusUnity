@@ -10,10 +10,6 @@ import unittest
 from typing import Any
 from unittest.mock import patch
 
-EDITOR_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if EDITOR_DIR not in sys.path:
-    sys.path.insert(0, EDITOR_DIR)
-
 from nexus_bridge import _transport as transport_module
 
 
@@ -37,9 +33,8 @@ class _FakeHttpResponse:
 
 
 def _reload_transport() -> Any:
-    with patch.dict(os.environ, {}, clear=True):
-        with patch.object(sys, "argv", ["nexus_unity_bridge.py"]):
-            return importlib.reload(transport_module)
+    with patch.dict(os.environ, {}, clear=True), patch.object(sys, "argv", ["nexus_unity_bridge.py"]):
+        return importlib.reload(transport_module)
 
 
 class CanonicalEnvelopePassthroughTests(unittest.TestCase):

@@ -31,6 +31,8 @@ namespace UnityMCP.Editor.Commands
 
         /// <summary>Hint for a permanent argument failure.</summary>
         public const string ChangeArgumentsHint = "Change the arguments. Do not send the same arguments again.";
+        /// <summary>Hint for an unexpected failure.</summary>
+        public const string InternalHint = "The command failed before it could finish. Do not retry it blindly.";
         /// <summary>Hint used when a mutation's outcome cannot be known.</summary>
         public const string UnknownOutcomeHint =
             "The outcome is unknown. Do not retry this call. Inspect the editor before doing anything else.";
@@ -56,6 +58,18 @@ namespace UnityMCP.Editor.Commands
         [JsonProperty("outcome", NullValueHandling = NullValueHandling.Ignore)] public string Outcome { get; set; }
         /// <summary>Gets or sets a stack trace when <c>NEXUS_DEBUG</c> is set.</summary>
         [JsonProperty("stack_trace", NullValueHandling = NullValueHandling.Ignore)] public string StackTrace { get; set; }
+
+        /// <summary>Creates an error description for <see cref="NexusCommandEnvelope.Failure"/>. Does not modify the project.</summary>
+        /// <param name="code">Stable code from <see cref="NexusCommandCodes"/>.</param>
+        /// <param name="message">Human-readable failure text.</param>
+        /// <param name="retryable">Whether the same call is safe to send again.</param>
+        /// <param name="hint">Agent-facing next step, or null for the standard hint.</param>
+        /// <param name="outcome">Set to <c>unknown</c> only when a mutation's outcome cannot be known.</param>
+        /// <returns>A new error description.</returns>
+        public static NexusCommandError Create(string code, string message, bool retryable, string hint, string outcome = null)
+        {
+            return new NexusCommandError { Code = code, Message = message, Retryable = retryable, Hint = hint, Outcome = outcome };
+        }
     }
 
     /// <summary>
@@ -107,58 +121,57 @@ namespace UnityMCP.Editor.Commands
         }
 
         /// <summary>
-        /// Builds a failure. An <paramref name="outcome"/> of <c>unknown</c> forces <c>retryable</c> false.
+        /// Builds a failure. An <see cref="NexusCommandError.Outcome"/> of <c>unknown</c> forces <c>retryable</c> false.
+        /// Empty message or hint get the standard text.
         /// </summary>
-        /// <param name="code">Stable code.</param>
-        /// <param name="message">Human-readable failure text.</param>
-        /// <param name="retryable">Whether the same call is safe to send again.</param>
-        /// <param name="hint">Agent-facing next step.</param>
+        /// <param name="error">Code, message, retryable, hint, and optional outcome. Its stack trace is ignored.</param>
         /// <param name="data">Partial payload, or null.</param>
         /// <param name="requestId">Caller id to echo, or null.</param>
         /// <param name="milliseconds">Elapsed handler time.</param>
-        /// <param name="outcome">Set to <c>unknown</c> only when a mutation's outcome cannot be known.</param>
         /// <param name="stackSource">Exception whose stack is included only when <c>NEXUS_DEBUG</c> is set.</param>
         /// <returns>An envelope with <c>ok</c> false.</returns>
         public static NexusCommandEnvelope Failure(
-            string code,
-            string message,
-            bool retryable,
-            string hint,
+            NexusCommandError error,
             object data,
             string requestId,
             long milliseconds,
-            string outcome = null,
             Exception stackSource = null)
         {
-            if (string.Equals(outcome, NexusCommandCodes.UnknownOutcome, StringComparison.Ordinal))
-            {
-                retryable = false;
-                hint = NexusCommandCodes.UnknownOutcomeHint;
-            }
-
-            string stack = null;
-            if (stackSource != null && IsDebugEnabled())
-                stack = stackSource.StackTrace;
-
+            bool unknown = string.Equals(error.Outcome, NexusCommandCodes.UnknownOutcome, StringComparison.Ordinal);
+            bool retryable = !unknown && error.Retryable;
+            string hint = unknown ? NexusCommandCodes.UnknownOutcomeHint : error.Hint;
+            string stack = stackSource != null && IsDebugEnabled() ? stackSource.StackTrace : null;
             return new NexusCommandEnvelope
             {
                 Ok = false,
                 Data = Box(data),
                 Error = new NexusCommandError
                 {
-                    Code = code,
-                    Message = string.IsNullOrEmpty(message) ? "The command failed." : message,
+                    Code = error.Code,
+                    Message = string.IsNullOrEmpty(error.Message) ? "The command failed." : error.Message,
                     Retryable = retryable,
-                    Hint = string.IsNullOrEmpty(hint)
-                        ? (retryable
-                            ? "The same call can be sent again."
-                            : "Do not send the same call again until the cause is understood.")
-                        : hint,
-                    Outcome = outcome,
+                    Hint = string.IsNullOrEmpty(hint) ? DefaultHint(retryable) : hint,
+                    Outcome = error.Outcome,
                     StackTrace = string.IsNullOrEmpty(stack) ? null : stack
                 },
                 Meta = CreateMeta(requestId, milliseconds)
             };
+        }
+
+        /// <summary>
+        /// Builds a non-retryable <c>invalid_argument</c> failure. The call did not run and changed nothing.
+        /// </summary>
+        /// <param name="message">Which argument is wrong and why.</param>
+        /// <param name="requestId">Caller id to echo, or null.</param>
+        /// <param name="milliseconds">Elapsed handler time.</param>
+        /// <returns>An envelope with <c>ok</c> false and <c>data</c> null.</returns>
+        public static NexusCommandEnvelope InvalidArgument(string message, string requestId, long milliseconds)
+        {
+            return Failure(
+                NexusCommandError.Create(NexusCommandCodes.InvalidArgument, message, false, NexusCommandCodes.ChangeArgumentsHint),
+                null,
+                requestId,
+                milliseconds);
         }
 
         /// <summary>
@@ -173,26 +186,18 @@ namespace UnityMCP.Editor.Commands
             Exception ex = Unwrap(exception) ?? exception;
             if (ex is CaptureException capture) return NexusCaptureErrors.FromCapture(capture, requestId, milliseconds);
             if (ex is ArgumentException || ex is FormatException || ex is OverflowException || ex is JsonReaderException)
-            {
-                return Failure(
-                    NexusCommandCodes.InvalidArgument,
-                    ex.Message,
-                    false,
-                    NexusCommandCodes.ChangeArgumentsHint,
-                    null,
-                    requestId,
-                    milliseconds);
-            }
+                return InvalidArgument(ex.Message, requestId, milliseconds);
 
             return Failure(
-                NexusCommandCodes.Internal,
-                ex == null || string.IsNullOrEmpty(ex.Message) ? "The command failed." : ex.Message,
-                false,
-                "The command failed before it could finish. Do not retry it blindly.",
+                NexusCommandError.Create(
+                    NexusCommandCodes.Internal,
+                    ex == null || string.IsNullOrEmpty(ex.Message) ? "The command failed." : ex.Message,
+                    false,
+                    NexusCommandCodes.InternalHint),
                 null,
                 requestId,
                 milliseconds,
-                stackSource: ex);
+                ex);
         }
 
         /// <summary>
@@ -207,10 +212,11 @@ namespace UnityMCP.Editor.Commands
             if (data != null && data.IsCompiling)
             {
                 return Failure(
-                    NexusCommandCodes.Partial,
-                    "The editor is compiling, so this error list may be incomplete.",
-                    true,
-                    "Wait until compilation finishes, then call again. Do not treat this list as complete.",
+                    NexusCommandError.Create(
+                        NexusCommandCodes.Partial,
+                        "The editor is compiling, so this error list may be incomplete.",
+                        true,
+                        "Wait until compilation finishes, then call again. Do not treat this list as complete."),
                     data,
                     requestId,
                     milliseconds);
@@ -251,6 +257,13 @@ namespace UnityMCP.Editor.Commands
             while (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1)
                 exception = aggregate.InnerExceptions[0];
             return exception;
+        }
+
+        private static string DefaultHint(bool retryable)
+        {
+            return retryable
+                ? "The same call can be sent again."
+                : "Do not send the same call again until the cause is understood.";
         }
 
         private static bool IsDebugEnabled()

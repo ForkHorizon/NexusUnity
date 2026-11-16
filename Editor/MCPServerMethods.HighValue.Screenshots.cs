@@ -41,8 +41,9 @@ namespace UnityMCP.Editor
             if (size.x <= 0 || size.y <= 0)
             {
                 stopwatch.Stop();
-                return CreateScreenshotResult(false, "Inspector window has no capturable area.", null,
-                    new Vector2Int(Mathf.Max(0, size.x), Mathf.Max(0, size.y)), stopwatch.Elapsed.TotalMilliseconds, layout);
+                return CreateScreenshotResult(false, "Inspector window has no capturable area.",
+                    new ScreenshotPayload(null, new Vector2Int(Mathf.Max(0, size.x), Mathf.Max(0, size.y)), layout),
+                    stopwatch.Elapsed.TotalMilliseconds);
             }
 
             // 1. In-engine UI Toolkit VisualElement capture
@@ -50,8 +51,8 @@ namespace UnityMCP.Editor
             if (visualElementPng != null)
             {
                 stopwatch.Stop();
-                return CreateScreenshotResult(true, "Inspector screenshot captured.", visualElementPng, veSize,
-                    stopwatch.Elapsed.TotalMilliseconds, layout);
+                return CreateScreenshotResult(true, "Inspector screenshot captured.",
+                    new ScreenshotPayload(visualElementPng, veSize, layout), stopwatch.Elapsed.TotalMilliseconds);
             }
 
             // 2. Fallback to surface pixel read
@@ -63,13 +64,13 @@ namespace UnityMCP.Editor
                 if (png == null) continue;
 
                 stopwatch.Stop();
-                return CreateScreenshotResult(true, "Inspector screenshot captured.", png, size,
-                    stopwatch.Elapsed.TotalMilliseconds, layout);
+                return CreateScreenshotResult(true, "Inspector screenshot captured.",
+                    new ScreenshotPayload(png, size, layout), stopwatch.Elapsed.TotalMilliseconds);
             }
 
             stopwatch.Stop();
             return CreateScreenshotResult(false, "Inspector screenshot could not be read from the editor surface.",
-                null, size, stopwatch.Elapsed.TotalMilliseconds, layout);
+                new ScreenshotPayload(null, size, layout), stopwatch.Elapsed.TotalMilliseconds);
         }
 
         private static byte[] TryCaptureVisualElement(VisualElement element, out Vector2Int size)
@@ -79,64 +80,12 @@ namespace UnityMCP.Editor
 
             try
             {
-                var candidateTypes = GetVisualElementCaptureTypes();
-                foreach (var extType in candidateTypes)
+                foreach (Type extType in GetVisualElementCaptureTypes())
                 {
                     if (extType == null) continue;
-
-                    // 1. Try CaptureToRenderTexture(VisualElement)
-                    var captureMethod = extType.GetMethod("CaptureToRenderTexture",
-                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(VisualElement) }, null);
-                    if (captureMethod != null)
-                    {
-                        var rt = captureMethod.Invoke(null, new object[] { element }) as RenderTexture;
-                        if (rt != null)
-                        {
-                            try
-                            {
-                                size = new Vector2Int(rt.width, rt.height);
-                                return EncodeRenderTextureToPng(rt);
-                            }
-                            finally
-                            {
-                                rt.Release();
-                                UnityEngine.Object.DestroyImmediate(rt);
-                            }
-                        }
-                    }
-
-                    // 2. Try TryCaptureIntoRenderTexture(VisualElement, RenderTexture)
-                    var tryCaptureMethod = extType.GetMethod("TryCaptureIntoRenderTexture",
-                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(VisualElement), typeof(RenderTexture) }, null);
-                    if (tryCaptureMethod != null)
-                    {
-                        float ppp = EditorGUIUtility.pixelsPerPoint;
-                        float rawWidth = float.IsNaN(element.layout.width) || element.layout.width <= 0
-                            ? (float.IsNaN(element.worldBound.width) ? 0 : element.worldBound.width)
-                            : element.layout.width;
-                        float rawHeight = float.IsNaN(element.layout.height) || element.layout.height <= 0
-                            ? (float.IsNaN(element.worldBound.height) ? 0 : element.worldBound.height)
-                            : element.layout.height;
-
-                        int width = Mathf.Max(1, Mathf.RoundToInt(rawWidth * ppp));
-                        int height = Mathf.Max(1, Mathf.RoundToInt(rawHeight * ppp));
-                        var tempRt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
-                        tempRt.Create();
-                        try
-                        {
-                            bool success = (bool)tryCaptureMethod.Invoke(null, new object[] { element, tempRt });
-                            if (success)
-                            {
-                                size = new Vector2Int(width, height);
-                                return EncodeRenderTextureToPng(tempRt);
-                            }
-                        }
-                        finally
-                        {
-                            tempRt.Release();
-                            UnityEngine.Object.DestroyImmediate(tempRt);
-                        }
-                    }
+                    byte[] png = CaptureToRenderTexture(extType, element, out size)
+                        ?? TryCaptureIntoRenderTexture(extType, element, out size);
+                    if (png != null) return png;
                 }
             }
             catch (Exception e)
@@ -145,7 +94,66 @@ namespace UnityMCP.Editor
                     $"[MCP_SCREENSHOT] VisualElement capture failed: {e.Message}");
             }
 
+            size = Vector2Int.zero;
             return null;
+        }
+
+        // Strategy 1: CaptureToRenderTexture(VisualElement) returns a texture this method owns and releases.
+        private static byte[] CaptureToRenderTexture(Type extType, VisualElement element, out Vector2Int size)
+        {
+            size = Vector2Int.zero;
+            MethodInfo captureMethod = extType.GetMethod("CaptureToRenderTexture",
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(VisualElement) }, null);
+            if (!(captureMethod?.Invoke(null, new object[] { element }) is RenderTexture rt)) return null;
+
+            try
+            {
+                size = new Vector2Int(rt.width, rt.height);
+                return EncodeRenderTextureToPng(rt);
+            }
+            finally
+            {
+                rt.Release();
+                UnityEngine.Object.DestroyImmediate(rt);
+            }
+        }
+
+        // Strategy 2: TryCaptureIntoRenderTexture(VisualElement, RenderTexture) fills a texture sized from the layout.
+        private static byte[] TryCaptureIntoRenderTexture(Type extType, VisualElement element, out Vector2Int size)
+        {
+            size = Vector2Int.zero;
+            MethodInfo tryCaptureMethod = extType.GetMethod("TryCaptureIntoRenderTexture",
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(VisualElement), typeof(RenderTexture) }, null);
+            if (tryCaptureMethod == null) return null;
+
+            Vector2Int pixels = VisualElementPixelSize(element);
+            var tempRt = new RenderTexture(pixels.x, pixels.y, 24, RenderTextureFormat.ARGB32);
+            tempRt.Create();
+            try
+            {
+                if (!(bool)tryCaptureMethod.Invoke(null, new object[] { element, tempRt })) return null;
+                size = pixels;
+                return EncodeRenderTextureToPng(tempRt);
+            }
+            finally
+            {
+                tempRt.Release();
+                UnityEngine.Object.DestroyImmediate(tempRt);
+            }
+        }
+
+        private static Vector2Int VisualElementPixelSize(VisualElement element)
+        {
+            float ppp = EditorGUIUtility.pixelsPerPoint;
+            float rawWidth = float.IsNaN(element.layout.width) || element.layout.width <= 0
+                ? (float.IsNaN(element.worldBound.width) ? 0 : element.worldBound.width)
+                : element.layout.width;
+            float rawHeight = float.IsNaN(element.layout.height) || element.layout.height <= 0
+                ? (float.IsNaN(element.worldBound.height) ? 0 : element.worldBound.height)
+                : element.layout.height;
+            return new Vector2Int(
+                Mathf.Max(1, Mathf.RoundToInt(rawWidth * ppp)),
+                Mathf.Max(1, Mathf.RoundToInt(rawHeight * ppp)));
         }
 
         private static Type[] _visualElementCaptureTypes;

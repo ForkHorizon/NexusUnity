@@ -6,26 +6,28 @@ public enum QualityGateSeverity
     Error,
 }
 
-public sealed record QualityGateIssue(
-    QualityGateSeverity Severity,
-    string Code,
-    string Message,
-    string File,
-    int Line,
-    string? Symbol = null)
+public sealed record QualityGateIssue
 {
+    public required QualityGateSeverity Severity { get; init; }
+    public required string Code { get; init; }
+    public required string Message { get; init; }
+    public required string File { get; init; }
+    public required int Line { get; init; }
+    public string? Symbol { get; init; }
+
     public bool IsError => Severity == QualityGateSeverity.Error;
 }
 
-public sealed record DocumentationCandidate(
-    string File,
-    int Line,
-    string Symbol,
-    string Kind,
-    string Signature,
-    string Documentation,
-    string CodeExcerpt)
+public sealed record DocumentationCandidate
 {
+    public required string File { get; init; }
+    public required int Line { get; init; }
+    public required string Symbol { get; init; }
+    public required string Kind { get; init; }
+    public required string Signature { get; init; }
+    public required string Documentation { get; init; }
+    public required string CodeExcerpt { get; init; }
+
     public string CacheInput => string.Join("\n---\n", File, Line.ToString(), Symbol, Kind, Signature, Documentation, CodeExcerpt);
 }
 

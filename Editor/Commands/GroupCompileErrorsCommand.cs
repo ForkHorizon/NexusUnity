@@ -80,25 +80,15 @@ namespace UnityMCP.Editor.Commands
             out NexusCommandEnvelope rejected)
         {
             maxLogs = 0;
-            if (!NexusCommandArguments.TryReadRequestId(parameters, milliseconds, out requestId, out rejected))
-                return false;
-            if (!NexusCommandArguments.TryReadOptionalInt(parameters?["max_logs"], "max_logs", requestId, milliseconds, out int? parsed, out rejected))
-                return false;
-            if (parsed.HasValue && parsed.Value < 0)
-            {
-                rejected = NexusCommandEnvelope.Failure(
-                    NexusCommandCodes.InvalidArgument,
-                    "max_logs must be zero or greater.",
-                    false,
-                    NexusCommandCodes.ChangeArgumentsHint,
-                    null,
-                    requestId,
-                    milliseconds);
-                return false;
-            }
+            int? parsed = null;
+            bool valid = NexusCommandArguments.TryOpen(parameters, milliseconds, out NexusCommandArguments arguments)
+                && arguments.TryReadInt("max_logs", out parsed)
+                && (!parsed.HasValue || parsed.Value >= 0 || arguments.Reject("max_logs must be zero or greater."));
+            requestId = arguments.RequestId;
+            rejected = arguments.Rejected;
+            if (!valid) return false;
 
             maxLogs = parsed ?? DefaultMaxLogs;
-            rejected = null;
             return true;
         }
 
@@ -113,14 +103,7 @@ namespace UnityMCP.Editor.Commands
             var sw = Stopwatch.StartNew();
             if (maxLogs < 0)
             {
-                return NexusCommandEnvelope.Failure(
-                    NexusCommandCodes.InvalidArgument,
-                    "max_logs must be zero or greater.",
-                    false,
-                    NexusCommandCodes.ChangeArgumentsHint,
-                    null,
-                    requestId,
-                    sw.ElapsedMilliseconds);
+                return NexusCommandEnvelope.InvalidArgument("max_logs must be zero or greater.", requestId, sw.ElapsedMilliseconds);
             }
 
             try

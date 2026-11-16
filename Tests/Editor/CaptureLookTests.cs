@@ -36,7 +36,7 @@ namespace UnityMCP.Editor.Tests
         [Test]
         public void CropOutsideTheFrameIsNotVisible()
         {
-            RectInt outside = CaptureFraming.IntersectPixels(5000f, 5000f, 5100f, 5100f, 1920, 1080);
+            RectInt outside = CaptureFraming.IntersectPixels(new Vector2(5000f, 5000f), new Vector2(5100f, 5100f), 1920, 1080);
             Assert.AreEqual(0, outside.width);
             var ex = Assert.Throws<CaptureException>(() => CaptureFraming.RequireVisible(outside));
             Assert.AreEqual(CaptureErrorCode.TargetNotVisible, ex.Code);
@@ -45,7 +45,7 @@ namespace UnityMCP.Editor.Tests
         [Test]
         public void TinyCropIsNotVisible()
         {
-            RectInt tiny = CaptureFraming.IntersectPixels(1f, 1f, 3f, 8f, 100, 100);
+            RectInt tiny = CaptureFraming.IntersectPixels(new Vector2(1f, 1f), new Vector2(3f, 8f), 100, 100);
             Assert.Less(tiny.width, CaptureFraming.MinimumCropPixels);
             Assert.Throws<CaptureException>(() => CaptureFraming.RequireVisible(tiny));
         }

@@ -6,46 +6,48 @@ namespace UnityMCP.Editor.Commands
     /// Reads canonical command arguments before the handler runs.
     /// A rejected argument does not call the handler and does not modify the project.
     /// </summary>
-    internal static class NexusCommandArguments
+    internal sealed class NexusCommandArguments
     {
-        internal static bool TryReadRequestId(
-            JToken parameters,
-            long milliseconds,
-            out string requestId,
-            out NexusCommandEnvelope rejected)
-        {
-            requestId = null;
-            rejected = null;
-            JToken token = parameters?["request_id"];
-            if (token == null || token.Type == JTokenType.Null) return true;
-            if (token.Type != JTokenType.String)
-            {
-                rejected = Reject("request_id must be a string.", null, milliseconds);
-                return false;
-            }
+        private readonly JToken _parameters;
+        private readonly long _milliseconds;
 
-            requestId = token.Value<string>();
+        private NexusCommandArguments(JToken parameters, long milliseconds)
+        {
+            _parameters = parameters;
+            _milliseconds = milliseconds;
+        }
+
+        /// <summary>Gets the caller id echoed in meta, or null when omitted.</summary>
+        internal string RequestId { get; private set; }
+
+        /// <summary>Gets the first argument failure, or null while every argument read so far is valid.</summary>
+        internal NexusCommandEnvelope Rejected { get; private set; }
+
+        /// <summary>Starts reading and validates the optional string <c>request_id</c>.</summary>
+        /// <returns><c>false</c> with <see cref="Rejected"/> set when <c>request_id</c> is not a string.</returns>
+        internal static bool TryOpen(JToken parameters, long milliseconds, out NexusCommandArguments arguments)
+        {
+            arguments = new NexusCommandArguments(parameters, milliseconds);
+            JToken token = parameters?["request_id"];
+            if (IsOmitted(token)) return true;
+            if (token.Type != JTokenType.String) return arguments.Reject("request_id must be a string.");
+            arguments.RequestId = token.Value<string>();
             return true;
         }
 
-        internal static bool TryReadOptionalInt(
-            JToken token,
-            string name,
-            string requestId,
-            long milliseconds,
-            out int? value,
-            out NexusCommandEnvelope rejected)
+        /// <summary>Returns whether the caller sent a non-null value for <paramref name="name"/>.</summary>
+        internal bool Has(string name)
+        {
+            return !IsOmitted(_parameters?[name]);
+        }
+
+        /// <summary>Reads an optional integer. Omitted or null leaves <paramref name="value"/> null.</summary>
+        internal bool TryReadInt(string name, out int? value)
         {
             value = null;
-            rejected = null;
-            if (token == null || token.Type == JTokenType.Null || token.Type == JTokenType.Undefined)
-                return true;
-            if (token.Type != JTokenType.Integer)
-            {
-                rejected = Reject(name + " must be an integer.", requestId, milliseconds);
-                return false;
-            }
-
+            JToken token = _parameters?[name];
+            if (IsOmitted(token)) return true;
+            if (token.Type != JTokenType.Integer) return Reject(name + " must be an integer.");
             try
             {
                 value = token.Value<int>();
@@ -53,43 +55,31 @@ namespace UnityMCP.Editor.Commands
             }
             catch (System.Exception)
             {
-                rejected = Reject(name + " must be an integer.", requestId, milliseconds);
-                return false;
+                return Reject(name + " must be an integer.");
             }
         }
 
-        internal static bool TryReadOptionalString(
-            JToken token,
-            string name,
-            string requestId,
-            long milliseconds,
-            out string value,
-            out NexusCommandEnvelope rejected)
+        /// <summary>Reads an optional string. Omitted or null leaves <paramref name="value"/> null.</summary>
+        internal bool TryReadString(string name, out string value)
         {
             value = null;
-            rejected = null;
-            if (token == null || token.Type == JTokenType.Null || token.Type == JTokenType.Undefined)
-                return true;
-            if (token.Type != JTokenType.String)
-            {
-                rejected = Reject(name + " must be a string.", requestId, milliseconds);
-                return false;
-            }
-
+            JToken token = _parameters?[name];
+            if (IsOmitted(token)) return true;
+            if (token.Type != JTokenType.String) return Reject(name + " must be a string.");
             value = token.Value<string>();
             return true;
         }
 
-        private static NexusCommandEnvelope Reject(string message, string requestId, long milliseconds)
+        /// <summary>Records an <c>invalid_argument</c> failure and returns <c>false</c>.</summary>
+        internal bool Reject(string message)
         {
-            return NexusCommandEnvelope.Failure(
-                NexusCommandCodes.InvalidArgument,
-                message,
-                false,
-                NexusCommandCodes.ChangeArgumentsHint,
-                null,
-                requestId,
-                milliseconds);
+            Rejected = NexusCommandEnvelope.InvalidArgument(message, RequestId, _milliseconds);
+            return false;
+        }
+
+        private static bool IsOmitted(JToken token)
+        {
+            return token == null || token.Type == JTokenType.Null || token.Type == JTokenType.Undefined;
         }
     }
 }

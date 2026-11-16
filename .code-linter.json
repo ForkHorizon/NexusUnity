@@ -12,15 +12,12 @@
   "ignore": [
     ".ci-gates",
     ".git",
-    "Tests~",
-    "Tests",
-    "tools~",
-    "Editor/tests",
     "ThirdParty",
     "Plugins",
     "*.designer.cs",
     "*.generated.*",
-    "*.g.cs"
+    "*.g.cs",
+    "Editor/Pipeline/NexusPipelineCommands.cs"
   ],
   "language_overrides": {}
 }
