@@ -159,7 +159,7 @@ For scene work, prefer manager tools:
 
 ## Contributor Validation
 
-Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. What runs is defined by `.ci-scope.json` and the configs in this repo (`.code-linter.json`, `.ruff.toml`); the pinned gates live in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates) and the repository carries no gate logic of its own. `.github/workflows/ci-scope-checks.yml` is the single workflow. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
+Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. What runs is defined by `.ci-scope.json` and the configs in this repo (`.code-linter.json`, the standard limits: 600 lines per file, 80 per function); the pinned gates live in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates) and the repository carries no gate logic of its own. `.github/workflows/ci-scope-checks.yml` is the single workflow. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
 
 Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
 

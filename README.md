@@ -224,7 +224,7 @@ Current development keeps the public API backward-compatible while tightening sc
 
 ## Contributor Validation
 
-Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. What runs is defined by `.ci-scope.json` and the configs in this repo (`.code-linter.json`, `.ruff.toml`); the pinned gates live in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates) and the repository carries no gate logic of its own. `.github/workflows/ci-scope-checks.yml` is the single workflow. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
+Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. What runs is defined by `.ci-scope.json` and the configs in this repo (`.code-linter.json`, the standard limits: 600 lines per file, 80 per function); the pinned gates live in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates) and the repository carries no gate logic of its own. `.github/workflows/ci-scope-checks.yml` is the single workflow. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
 
 Contributor pull requests target `development`; `main` is release-only. Direct pushes to both are blocked and maintainers merge through GitHub. Review fork pull requests carefully before merge.
 

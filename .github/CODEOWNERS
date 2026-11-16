@@ -2,7 +2,6 @@
 
 # Quality Gate & CI Policy files strictly owned by @daliys
 /.code-linter.json @daliys
-/.ruff.toml @daliys
 /.ci-scope.json @daliys
 /.github/workflows/ @daliys
 /.github/CODEOWNERS @daliys
