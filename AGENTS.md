@@ -57,7 +57,7 @@ Default mode: light. Do not spend tokens on memory tools for small, obvious, sin
 
 - projectmem: use for bugs, regressions, multi-step changes, repeated attempts, or architecture decisions. For small self-contained edits, skip full memory startup and use targeted history checks only when useful.
 - `.projectmem/config.toml`, `PROJECT_MAP.md`, and `plan.md` are shared project configuration. The append-only event log, issue files, generated summary/structure, watcher state, and generated `CLAUDE.md` bridge are local and ignored.
-- This package uses the tracked `.githooks` directory. When `pjm` is installed, its `pre-commit`, `post-commit`, and `post-merge` wrappers provide warnings and local auto-capture; do not run `pjm hooks install`, which assumes `.git/hooks` exists.
+- This package uses the tracked `.githooks` directory. When `pjm` is installed, its `pre-commit`, `post-commit`, and `post-merge` wrappers provide warnings and local auto-capture; do not run `pjm hooks install`, which assumes `.git/hooks` exists. Run `bash scripts/install-git-hooks.sh` once per clone: with the global CI Scope hook it links these hooks into `.git/hooks` (so the CI Scope commit check runs first), otherwise it sets `core.hooksPath=.githooks`. Never set a repo-local `core.hooksPath` by hand: it turns the CI Scope commit check off.
 - Verify that the projectmem MCP server is bound to this package before using write tools. If it is bound elsewhere, use the local `pjm` CLI from this package root instead.
 <!-- SOMA_MEMORY_TOOLS_END -->
 
