@@ -10,6 +10,7 @@ Supports two modes:
 """
 
 import argparse
+import importlib
 import json
 import logging
 import os
@@ -66,9 +67,13 @@ logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)s: %(message)s",
 )
 
-# Package imports must follow the bytecode flag, the sys.path bootstrap, and the logging setup above.
-from nexus_bridge.schemas import STATIC_TOOLS, STATIC_RESOURCES  # noqa: E402
-from nexus_bridge.routing import route_tool  # noqa: E402
+# nexus_bridge reads NEXUS_UNITY_PORT and argv when it is imported, and must not write bytecode into the
+# Unity package, so it is imported only after the setup above.
+_schemas = importlib.import_module("nexus_bridge.schemas")
+_routing = importlib.import_module("nexus_bridge.routing")
+STATIC_TOOLS = _schemas.STATIC_TOOLS
+STATIC_RESOURCES = _schemas.STATIC_RESOURCES
+route_tool = _routing.route_tool
 
 logger = logging.getLogger("nexus_bridge")
 

@@ -10,7 +10,8 @@ namespace UnityMCP.Editor.Pipeline
     /// </summary>
     /// <remarks>
     /// This assembly is excluded when <c>com.unity.pipeline</c> is not installed. It must not contain Nexus business logic.
-    /// Pipeline binds one CLI flag per method parameter, so this file is the only path in <c>.code-linter.json</c> ignore.
+    /// Pipeline binds one CLI flag per method parameter and the ten capture flags are locked to the HTTP descriptor,
+    /// so this file is listed in <c>.code-linter.json</c> ignore. Keep it a thin binding with no logic.
     /// Capture returns <see cref="Task"/> so Pipeline can await GPU completion off the Unity main thread.
     /// </remarks>
     public static class NexusPipelineCommands

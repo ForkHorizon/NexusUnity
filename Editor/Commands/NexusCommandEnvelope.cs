@@ -1,3 +1,4 @@
+// Canonical command envelope {ok, data, error, meta}, its codes, and error mapping.
 using System;
 using System.Reflection;
 using Newtonsoft.Json;

@@ -1,3 +1,4 @@
+// Capture V2 source that frames the Scene View on a target and renders it.
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;

@@ -1,3 +1,4 @@
+// EditMode tests for canonical look capture: framing, cropping, delivery, and arguments.
 using System;
 using System.IO;
 using System.Threading;

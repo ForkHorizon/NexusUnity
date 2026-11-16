@@ -1,3 +1,4 @@
+// EditMode tests for canonical envelope codes, meta, and argument rejection.
 using System;
 using System.Collections;
 using System.Collections.Generic;

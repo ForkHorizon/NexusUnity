@@ -1,3 +1,4 @@
+// EditMode tests for the Editor readiness predicate and its epochs.
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 

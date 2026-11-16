@@ -193,6 +193,11 @@ def _call(method: str) -> ActionHandler:
     return lambda _args: _transport.call_unity(method)
 
 
+def _run_tests_wait_action(args: JsonObject) -> JsonRpcResponse:
+    """Look up _run_tests_wait at call time so callers and tests can replace it."""
+    return _run_tests_wait(args)
+
+
 _EDITOR_ACTIONS: dict[str, ActionHandler] = {
     "undo": _call("undo"),
     "redo": _call("redo"),
@@ -211,7 +216,7 @@ _EDITOR_ACTIONS: dict[str, ActionHandler] = {
     "get_test_results": lambda args: _transport.call_unity(
         "get_test_results", _compact({"result_path": args.get("result_path")})
     ),
-    "run_tests_wait": lambda args: _run_tests_wait(args),  # noqa: PLW0108 - late-bound so the helper stays patchable
+    "run_tests_wait": _run_tests_wait_action,
     "get_tool_usage_stats": _call("get_tool_usage_stats"),
     "reset_tool_usage_stats": _call("reset_tool_usage_stats"),
 }

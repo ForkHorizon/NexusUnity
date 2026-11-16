@@ -1,19 +1,13 @@
+// EditMode tests for HTTP, CLI, and legacy projections of the canonical envelope.
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.TestTools;
-using UnityMCP.Editor.Capture;
 using UnityMCP.Editor.Commands;
-using UnityMCP.Editor.Runtime;
 
 namespace UnityMCP.Editor.Tests
 {

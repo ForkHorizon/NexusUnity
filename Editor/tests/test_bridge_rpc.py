@@ -1,3 +1,5 @@
+"""Tests for the bridge JSON-RPC method table in nexus_unity_bridge.py."""
+
 from __future__ import annotations
 
 import importlib

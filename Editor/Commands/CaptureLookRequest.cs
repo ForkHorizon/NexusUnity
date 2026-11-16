@@ -1,3 +1,4 @@
+// Parses and validates canonical look-capture arguments before any capture runs.
 using Newtonsoft.Json.Linq;
 using UnityMCP.Editor.Capture;
 

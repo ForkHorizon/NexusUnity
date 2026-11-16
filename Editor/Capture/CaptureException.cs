@@ -1,3 +1,4 @@
+// Capture V2 failure codes and the exception that carries them to transport adapters.
 using System;
 
 namespace UnityMCP.Editor.Capture

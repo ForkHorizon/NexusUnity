@@ -1,3 +1,4 @@
+// Reads and validates canonical command arguments into invalid_argument rejections.
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor.Commands

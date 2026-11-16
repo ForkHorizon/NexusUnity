@@ -53,7 +53,8 @@
     "*.min.js",
     "*.pb.*",
     "*.snap",
-    "*.snapshot"
+    "*.snapshot",
+    "Editor/Pipeline/NexusPipelineCommands.cs"
   ],
   "language_overrides": {}
 }

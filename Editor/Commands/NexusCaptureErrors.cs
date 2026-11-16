@@ -1,3 +1,4 @@
+// Maps Capture V2 failures onto canonical envelope error codes and hints.
 using UnityMCP.Editor.Capture;
 
 namespace UnityMCP.Editor.Commands

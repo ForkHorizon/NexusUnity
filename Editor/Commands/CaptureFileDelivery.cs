@@ -1,3 +1,4 @@
+// Writes one canonical capture image under the project Temp directory.
 using System;
 using System.Globalization;
 using System.IO;

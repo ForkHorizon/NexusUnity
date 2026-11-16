@@ -1,3 +1,4 @@
+// Capture V2 crop, projection, and blit math for target framing.
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;

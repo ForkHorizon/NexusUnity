@@ -1,3 +1,4 @@
+// Editor readiness wire projection and test hooks.
 using System;
 using System.Threading;
 using Newtonsoft.Json.Linq;

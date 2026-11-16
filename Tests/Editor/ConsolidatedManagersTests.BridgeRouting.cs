@@ -1,3 +1,4 @@
+// C# mirror of the Python bridge manager routing used by the manager tests.
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor.Tests {

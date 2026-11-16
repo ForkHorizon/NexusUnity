@@ -1,3 +1,4 @@
+// EditMode tests that lock Pipeline CLI parameters to the canonical descriptors.
 using System;
 using System.Collections.Generic;
 using System.IO;

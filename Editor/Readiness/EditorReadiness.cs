@@ -1,3 +1,4 @@
+// Single Editor readiness predicate shared by status, initialize, and waits.
 using System;
 using System.Threading;
 using UnityEditor;
