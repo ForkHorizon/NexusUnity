@@ -3,7 +3,6 @@
 [![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.6.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
-[![CI Scope](https://github.com/ForkHorizon/NexusUnity/actions/workflows/ci-scope-checks.yml/badge.svg)](https://github.com/ForkHorizon/NexusUnity/actions/workflows/ci-scope-checks.yml)
 
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
@@ -224,7 +223,7 @@ Current development keeps the public API backward-compatible while tightening sc
 
 ## Contributor Validation
 
-Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. What runs is defined by `.ci-scope.json` and the configs in this repo (`.code-linter.json`, the standard limits: 600 lines per file, 80 per function); the pinned gates live in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates) and the repository carries no gate logic of its own. `.github/workflows/ci-scope-checks.yml` is the single workflow. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
+Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. Rules, limits and exceptions live on the CI Scope website (ci.forkhorizon.com) and the pinned gates in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates); this repository carries no CI workflow, gate config or linter settings. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
 
 Contributor pull requests target `development`; `main` is release-only. Direct pushes to both are blocked and maintainers merge through GitHub. Review fork pull requests carefully before merge.
 

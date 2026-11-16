@@ -1,7 +1,5 @@
 * @daliys
 
-# Quality Gate & CI Policy files strictly owned by @daliys
-/.code-linter.json @daliys
-/.ci-scope.json @daliys
+# CI policy files owned by @daliys
 /.github/workflows/ @daliys
 /.github/CODEOWNERS @daliys
