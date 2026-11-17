@@ -202,6 +202,8 @@ namespace UnityMCP.Editor.Capture
             CancellationToken cancellationToken)
         {
             EditorWindow gameView = GameViewCaptureSource.FindOpenGameView();
+            // ponytail: strict by design. Pipeline 1.0.0 `capture game_view` auto-opens a Game View; Nexus does not
+            // change the user's window layout and returns retryable `unavailable` instead.
             if (gameView == null)
             {
                 throw new CaptureException(CaptureErrorCode.GameViewUnavailable, "Game View window not found or not open.");

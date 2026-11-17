@@ -9,8 +9,16 @@ All notable public changes to Nexus Unity are documented here.
 - **Breaking (Unity CLI):** Pipeline CLI flags are kebab-case on every Pipeline version: `--max-logs`, `--max-dimension`, `--instance-id`, `--request-id`. HTTP/MCP keys stay snake_case.
 - `nexus.capture_game_view` takes the image encoding as `encoding` (`jpg` or `png`). HTTP still accepts the deprecated `format` key when `encoding` is absent, and `max_long_edge` when `max_dimension` is absent. `list_tools` advertises `encoding`.
 - On Pipeline 1.0.0 or newer, the three Nexus commands declare `CommandEffect.ReadOnly`, so `unity command` and MCP clients see them as read-only.
+- `get_server_status.runtime.legacy` no longer reports the stale `1.0.0-beta.10` Unity CLI observation. The `unity_cli_stable` gate passes with `not_probed_in_editor (1.0.x GA released upstream)`, `runtime.unity_cli.prerelease` and `stable_1_0_or_newer` are `null` (the Editor never runs the `unity` executable), and `requires` lists only the remaining prerequisites. Legacy HTTP stays supported and `deprecated` stays `false`.
+- **Breaking for large scenes:** `dump_scene_graph` and `compact_scene_snapshot` return at most 200 nodes by default (depth-first). Results add `node_count` and `truncated`, and a `hint` when truncated. Pass `max_nodes: 0` for the previous unlimited output.
+
+### Deprecated
+- `unity_dump_scene_graph` is deprecated. Its MCP schema now lists the existing `compact` flag and the new `max_nodes`. It stays available until a bounded `nexus_snapshot` ships.
+- The `Integrations` client installers (`MCPCliInstaller`) are frozen and maintenance-only. With `com.unity.pipeline` 1.0.0+, use `unity setup <client>` and `unity mcp configure <client>`.
 
 ### Fixed
+- `com.unity.pipeline` versions with any SemVer pre-release suffix (for example `1.0.0-pre.1`) now count as pre-release. Before, only `exp`, `preview`, `alpha`, and `beta` did.
+- Removed the `CS0618` warning for `EditorUtility.InstanceIDToObject` in capture target resolution on Unity 6000.3+.
 - `nexus.capture_game_view` rejects an unsupported encoding with `Unsupported capture encoding. Use jpg or png.` instead of `Unsupported capture format.`
 - `scripts/stabilize-pipeline-capture.py` and `scripts/stabilize-domain-reload.py` work again: they read the `{ok, data, error, meta}` envelope, use `--encoding` and other named flags, and call the grouped `nexus` / `script recompile` commands on Pipeline 1.0.0+ (shared helper `scripts/_unity_cli.py`).
 - Package EditMode `ServerPortTests` failed when another Unity project's Nexus server owned the default port and Pipeline 1.0.0 was the selected runtime (the server correctly stays stopped then). The tests now start the server on their own free loopback port. `Start_WithPort0_AssignsDynamicPort` is renamed `Start_OnFreeLoopbackPort_BindsThatPort`, because the port setting never resolves to 0.
