@@ -191,7 +191,7 @@ See `API_REFERENCE.MD` for the complete raw and MCP tool catalogs.
 
 ## Compatibility Notes
 
-Version 1.6.1 keeps the public API backward-compatible while tightening schemas and documentation:
+Version 1.6.2 keeps the public API backward-compatible while tightening schemas and documentation:
 
 - Use `unity_write_and_compile` for code-edit workflows. Older references to `unity_apply_code_change` are outdated and should not be used for the public MCP bridge.
 - `update_component` accepts the preferred `properties` object and the legacy `json_data` string form.
@@ -268,7 +268,7 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 The latest public release is `1.6.2`. Record user-visible work under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
-When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new dated release section, update the visible version strings, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.6.1` and `v1.6.1`. Reserve patch bumps for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new dated release section, update the visible version strings, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.6.2` and `v1.6.2`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 
@@ -277,6 +277,8 @@ Please use GitHub Issues for reproducible bugs and focused feature requests. Sec
 To support ongoing development, use the repository Sponsor button configured through GitHub Sponsors.
 
 ## Release Notes
+
+The `1.6.2` patch fixes Claude Code and other Claude clients, which saw the nine manager tools (`unity_scene_manager`, `unity_hierarchy_manager`, `unity_component_manager`, `unity_search_manager`, `unity_asset_manager`, `unity_editor_controller`, `unity_ui_automation`, `unity_wait`, `unity_playerprefs_manager`) with no parameters in 1.6.1, so every call failed with `Invalid action: None`. `tools/list` now advertises one flat object schema per tool. Routing, validation, and the raw HTTP API are unchanged. After updating, restart the MCP client so it reloads the tool list.
 
 The `1.6.1` release ships the former `1.7.0` development line. It adds canonical `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` commands with one `{ok, data, error, meta}` envelope, Capture V2 (JPEG by default, Scene View framing, target crop, file delivery), optional Unity Pipeline support with an `auto` runtime mode, and a single Editor readiness signal that does not report ready before a compile and domain reload finish. It also keeps AI clients connected: the server survives the package test run, the bridge finds the current token from any working directory, a stopped server gets a clear error, and the bridge no longer blocks on its own log output. After updating, run `Auto Setup` again for each client. See the `1.6.1` changelog entry for upgrade notes and known issues.
 
