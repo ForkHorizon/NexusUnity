@@ -248,3 +248,15 @@ Returns a scene-wide dependency map.
 
 ### `unity_lint_project`
 Runs the deterministic project audit.
+
+## Canonical `nexus.*` commands
+
+| HTTP / MCP name | Unity CLI (Pipeline 1.0.0+) | Unity CLI (Pipeline < 1.0) | Parameters (HTTP key / CLI flag) |
+| --- | --- | --- | --- |
+| `nexus.project_map` | `unity command nexus project_map` | `unity command nexus_project_map` | `request_id` / `--request-id` |
+| `nexus.group_compile_errors` | `unity command nexus group_compile_errors` | `unity command nexus_group_compile_errors` | `max_logs` / `--max-logs` (default 50; `0` reads no entries), `request_id` |
+| `nexus.capture_game_view` | `unity command nexus capture_game_view` | `unity command nexus_capture_game_view` | `width`, `height`, `encoding` (`jpg` default or `png`), `quality`, `max_dimension` / `--max-dimension`, `view`, `target`, `instance_id` / `--instance-id`, `delivery` (`base64` or `file`), `request_id` |
+
+- CLI flags are the HTTP key in kebab-case. Pipeline 1.0.0 reserves `--format`, `--json`, `--fields`, `--verbose`, `--omit-nulls`, `--log-level`, and `--log-format` for itself, so the capture image encoding is `--encoding`, not `--format`.
+- On Pipeline 1.0.0+ all three commands declare `CommandEffect.ReadOnly`, so the command catalog reports `readOnly: true`.
+- HTTP still accepts the deprecated keys `format` (used only when `encoding` is absent) and `max_long_edge` (used only when `max_dimension` is absent).

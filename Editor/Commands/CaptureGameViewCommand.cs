@@ -26,7 +26,7 @@ namespace UnityMCP.Editor.Commands
         public const int DefaultMaxLongEdge = 768;
         /// <summary>JPEG quality used when quality is omitted. Values outside 1–100 are clamped later.</summary>
         public const int DefaultJpegQuality = 85;
-        /// <summary>Image encoding used when format is omitted. The other encoding is png.</summary>
+        /// <summary>Image encoding used when encoding is omitted. The other encoding is png.</summary>
         public const string DefaultFormat = "jpg";
         /// <summary>View used when view is omitted. Scene is the other accepted value.</summary>
         public const string DefaultView = "game";
@@ -39,8 +39,12 @@ namespace UnityMCP.Editor.Commands
         public const string WidthDescription = "Target width in pixels (0 for native Game View width).";
         /// <summary>Shared height parameter description.</summary>
         public const string HeightDescription = "Target height in pixels (0 for native Game View height).";
-        /// <summary>Shared format parameter description.</summary>
-        public const string FormatDescription = "Image encoding format: 'jpg' (default) or 'png'. Only one encoding is returned.";
+        /// <summary>Shared encoding parameter description.</summary>
+        /// <remarks>
+        /// Named <c>encoding</c>, not <c>format</c>: Pipeline 1.0.0 reserves <c>--format</c> for its own output format.
+        /// HTTP still accepts the deprecated <c>format</c> key when <c>encoding</c> is absent.
+        /// </remarks>
+        public const string EncodingDescription = "Image encoding: 'jpg' (default) or 'png'. Only one encoding is returned.";
         /// <summary>Shared quality parameter description.</summary>
         public const string QualityDescription = "JPEG compression quality (1-100, default 85).";
         /// <summary>Shared max-dimension parameter description.</summary>
@@ -84,7 +88,7 @@ namespace UnityMCP.Editor.Commands
         /// <summary>
         /// Pipeline entry. File delivery writes one image under Temp and does not modify assets.
         /// </summary>
-        /// <param name="arguments">CLI flag values. A null format stays omitted until the jpg default.</param>
+        /// <param name="arguments">CLI flag values. A null encoding stays omitted until the jpg default.</param>
         /// <param name="cancellationToken">Token used to abort the capture.</param>
         /// <returns>The canonical envelope. Argument failures do not capture.</returns>
         public static Task<NexusCommandEnvelope> ExecuteFromCli(CaptureCliArguments arguments, CancellationToken cancellationToken)
@@ -96,7 +100,7 @@ namespace UnityMCP.Editor.Commands
         }
 
         /// <summary>
-        /// Builds the CLI argument object without applying the jpg default. Null format stays omitted.
+        /// Builds the CLI argument object without applying the jpg default. Null encoding stays omitted.
         /// </summary>
         internal static JObject BuildCliArguments(CaptureCliArguments arguments)
         {
@@ -109,7 +113,7 @@ namespace UnityMCP.Editor.Commands
                 ["view"] = string.IsNullOrEmpty(arguments.View) ? DefaultView : arguments.View,
                 ["delivery"] = string.IsNullOrEmpty(arguments.Delivery) ? DefaultDelivery : arguments.Delivery
             };
-            if (!string.IsNullOrEmpty(arguments.Format)) parameters["format"] = arguments.Format;
+            if (!string.IsNullOrEmpty(arguments.Encoding)) parameters["encoding"] = arguments.Encoding;
             if (!string.IsNullOrEmpty(arguments.Target)) parameters["target"] = arguments.Target;
             if (arguments.InstanceId != 0) parameters["instance_id"] = arguments.InstanceId;
             if (!string.IsNullOrEmpty(arguments.RequestId)) parameters["request_id"] = arguments.RequestId;
@@ -197,7 +201,7 @@ namespace UnityMCP.Editor.Commands
             };
         }
 
-        /// <summary>Uses jpg when the caller omits format.</summary>
+        /// <summary>Uses jpg when the caller omits encoding.</summary>
         internal static string FormatOrDefault(string format)
         {
             return format ?? DefaultFormat;
@@ -231,7 +235,7 @@ namespace UnityMCP.Editor.Commands
                 {
                     NexusCommandParameter.Optional("width", "integer", WidthDescription, 0),
                     NexusCommandParameter.Optional("height", "integer", HeightDescription, 0),
-                    NexusCommandParameter.Optional("format", "string", FormatDescription, DefaultFormat),
+                    NexusCommandParameter.Optional("encoding", "string", EncodingDescription, DefaultFormat),
                     NexusCommandParameter.Optional("quality", "integer", QualityDescription, DefaultJpegQuality),
                     NexusCommandParameter.Optional("max_dimension", "integer", MaxDimensionDescription, DefaultMaxLongEdge),
                     NexusCommandParameter.Optional("view", "string", ViewDescription, DefaultView),
@@ -255,7 +259,7 @@ namespace UnityMCP.Editor.Commands
         /// <summary>Gets or sets the requested height, or 0 for the native size.</summary>
         public int Height { get; set; }
         /// <summary>Gets or sets <c>jpg</c> or <c>png</c>, or null to use the jpg default.</summary>
-        public string Format { get; set; }
+        public string Encoding { get; set; }
         /// <summary>Gets or sets JPEG quality. Values outside 1–100 are clamped.</summary>
         public int Quality { get; set; } = CaptureGameViewCommand.DefaultJpegQuality;
         /// <summary>Gets or sets the longest edge. 0 keeps the source size.</summary>

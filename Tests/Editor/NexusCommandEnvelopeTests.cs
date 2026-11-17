@@ -87,8 +87,9 @@ namespace UnityMCP.Editor.Tests
         public void InvalidArgument_UnsupportedFormat_BothNames()
         {
             foreach (string name in new[] { "nexus.capture_game_view", "nexus_capture_game_view" })
+            foreach (string key in new[] { "encoding", "format" })
             {
-                JObject parsed = RpcAsyncCompleted(name, new JObject { ["format"] = "bmp" }, 9);
+                JObject parsed = RpcAsyncCompleted(name, new JObject { [key] = "bmp" }, 9);
                 Assert.IsNull(parsed["error"], parsed.ToString(Formatting.None));
                 JObject result = Result(parsed);
                 Assert.IsFalse(result["ok"].Value<bool>());

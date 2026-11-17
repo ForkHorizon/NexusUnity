@@ -11,7 +11,7 @@ namespace UnityMCP.Editor.Commands
     {
         /// <summary>Gets or sets the capture request. Format is filled by the command after the jpg default.</summary>
         internal CaptureRequest Request { get; set; }
-        /// <summary>Gets or sets the raw format string, or null when omitted.</summary>
+        /// <summary>Gets or sets the raw encoding string, or null when omitted.</summary>
         internal string Format { get; set; }
         /// <summary>Gets or sets the caller id echoed in meta.</summary>
         internal string RequestId { get; set; }
@@ -40,11 +40,13 @@ namespace UnityMCP.Editor.Commands
 
         private static bool TryReadImage(NexusCommandArguments arguments, CaptureLookCall call)
         {
+            // Deprecated aliases are read only when the canonical key is absent: max_long_edge and format.
             string edgeName = arguments.Has("max_dimension") ? "max_dimension" : "max_long_edge";
+            string encodingName = arguments.Has("encoding") ? "encoding" : "format";
             if (!arguments.TryReadInt("width", out int? width)
                 || !arguments.TryReadInt("height", out int? height)
                 || !arguments.TryReadInt("quality", out int? quality)
-                || !arguments.TryReadString("format", out string format)
+                || !arguments.TryReadString(encodingName, out string format)
                 || !arguments.TryReadInt(edgeName, out int? maxEdge))
             {
                 return false;
