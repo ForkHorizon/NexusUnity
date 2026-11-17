@@ -69,12 +69,25 @@ def _try_read_token(candidate: str) -> str | None:
         return None
 
 
-def _read_token_file() -> str | None:
-    candidates = (
+def _token_file_candidates() -> list[str]:
+    candidates = [
         os.path.join(os.getcwd(), "Library", "NexusUnityAuthToken.txt"),
         os.path.join(os.getcwd(), "..", "..", "Library", "NexusUnityAuthToken.txt"),
-    )
-    for candidate in candidates:
+    ]
+    # MCP clients often start the bridge outside the project (a global config, any working
+    # directory), so also look in every folder above the bridge itself. That finds the project
+    # Library whether the bridge was deployed to the project root or runs from the package.
+    folder = os.path.dirname(os.path.abspath(__file__))
+    while True:
+        candidates.append(os.path.join(folder, "Library", "NexusUnityAuthToken.txt"))
+        parent = os.path.dirname(folder)
+        if parent == folder:
+            return candidates
+        folder = parent
+
+
+def _read_token_file() -> str | None:
+    for candidate in _token_file_candidates():
         token = _try_read_token(candidate)
         if token:
             return token
@@ -102,6 +115,19 @@ def _resolve_auth_token(force_reload: bool = False) -> str | None:
 
 
 AUTH_TOKEN: str | None = _resolve_auth_token()
+
+
+def _unreachable_message(error: Exception) -> str:
+    message = f"Unity Server unreachable. Error: {error}"
+    reason = getattr(error, "reason", error)
+    if isinstance(reason, ConnectionRefusedError):
+        # Nothing listens on the port: the editor is closed, or the server was stopped and
+        # Unity remembers that across reloads and restarts.
+        message += (
+            f" Nothing is listening on {UNITY_URL}. Open the Unity project, then click"
+            " 'Start Server' in Window > Nexus Unity, or set NEXUS_UNITY_PORT if the server uses another port."
+        )
+    return message
 
 
 def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse:
@@ -136,11 +162,9 @@ def call_unity(method: str, params: JsonObject | None = None) -> JsonRpcResponse
                 }
             }
         except Exception as error:
-            logger.warning("Unity call %s failed", method, exc_info=True)
-            return {
-                "error": {
-                    "code": -32000,
-                    "message": f"Unity Server unreachable. Error: {error}",
-                }
-            }
+            # Readiness polling hits network errors twice a second during a domain reload. A traceback
+            # for each one floods stderr and blocks a client that does not read it, so only unexpected
+            # errors carry one.
+            logger.warning("Unity call %s failed: %s", method, error, exc_info=not isinstance(error, OSError))
+            return {"error": {"code": -32000, "message": _unreachable_message(error)}}
     return {"error": {"code": -32000, "message": "Unity Server authorization failed."}}
