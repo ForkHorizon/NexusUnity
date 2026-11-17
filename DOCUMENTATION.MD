@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.6.1`
+Version: `1.6.2`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -196,7 +196,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Latest public release: `1.6.1`.
+- Latest public release: `1.6.2`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -208,7 +208,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.1`.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.2`.
 
 During normal development:
 

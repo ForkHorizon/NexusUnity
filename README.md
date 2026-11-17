@@ -1,19 +1,19 @@
 # Nexus Unity
 
-[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.6.1)
+[![Tag](https://img.shields.io/github/v/tag/ForkHorizon/NexusUnity?sort=semver&label=release)](https://github.com/ForkHorizon/NexusUnity/releases/tag/v1.6.2)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity)](package.json)
 
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.6.1`
+- Version: `1.6.2`
 - License: `MIT`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
 
-Latest public release: `1.6.1`.
+Latest public release: `1.6.2`.
 
 The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
@@ -58,7 +58,7 @@ https://github.com/ForkHorizon/NexusUnity.git
 For reproducible installs, pin the public release tag:
 
 ```text
-https://github.com/ForkHorizon/NexusUnity.git#v1.6.1
+https://github.com/ForkHorizon/NexusUnity.git#v1.6.2
 ```
 
 Nexus Unity does not declare Unity Project Auditor packages. Its lint tool always runs Nexus style and scene checks, and only includes Unity Project Auditor findings when the host project explicitly has compatible Project Auditor rules installed.
@@ -266,7 +266,7 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-The latest public release is `1.6.1`. Record user-visible work under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
+The latest public release is `1.6.2`. Record user-visible work under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
 When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new dated release section, update the visible version strings, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.6.1` and `v1.6.1`. Reserve patch bumps for urgent compatible hotfixes.
 
