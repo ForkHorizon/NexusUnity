@@ -38,8 +38,8 @@ def _read_package_version() -> str:
                 if ver:
                     return ver
     except (OSError, ValueError):
-        return "1.7.0"
-    return "1.7.0"
+        return "1.6.1"
+    return "1.6.1"
 
 
 BRIDGE_VERSION = _read_package_version()

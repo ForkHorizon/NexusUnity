@@ -1,3 +1,4 @@
+// Capture V2 request, result, format and timing models.
 namespace UnityMCP.Editor.Capture
 {
     /// <summary>

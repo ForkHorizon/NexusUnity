@@ -1,3 +1,4 @@
+// EditMode tests for runtime mode selection between Legacy HTTP and Pipeline.
 using System.IO;
 using System.Net;
 using System.Net.Sockets;

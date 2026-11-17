@@ -1,3 +1,4 @@
+// Unity Pipeline transport adapter that detects Pipeline without referencing its types.
 namespace UnityMCP.Editor.Runtime
 {
     /// <summary>

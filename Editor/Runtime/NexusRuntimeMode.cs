@@ -1,3 +1,4 @@
+// Requested Nexus transport runtime: legacy, pipeline or auto.
 namespace UnityMCP.Editor.Runtime
 {
     /// <summary>

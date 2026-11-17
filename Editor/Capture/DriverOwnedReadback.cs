@@ -1,3 +1,4 @@
+// Asynchronous GPU readback for Capture V2 that never waits synchronously for the GPU.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

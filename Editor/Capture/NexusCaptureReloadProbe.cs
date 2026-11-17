@@ -1,3 +1,4 @@
+// Acceptance probe: a capture still pending on the GPU survives an Editor domain reload.
 using System;
 using System.IO;
 using System.Threading;

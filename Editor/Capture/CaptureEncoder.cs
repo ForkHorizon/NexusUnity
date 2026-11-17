@@ -1,3 +1,4 @@
+// Encodes GPU readback pixels to JPEG or PNG on the Unity main thread.
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;

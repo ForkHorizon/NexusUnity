@@ -7,8 +7,7 @@ This checklist is for publishing `com.forkhorizon.nexus.unity` as an open source
 - Package id: `com.forkhorizon.nexus.unity`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 - License: `MIT`
-- Latest public version: `1.6.0`
-- Current development target: `1.7.0`
+- Latest public version: `1.6.1`
 - Minimum Unity version: `6000.0`
 
 ## Development Versioning
@@ -24,11 +23,11 @@ Public contribution flow:
 
 Use `CHANGELOG.md` as the source of truth during development:
 
-- Add user-visible behavior, API, documentation, and validation changes under `[1.7.0] - Unreleased`.
+- Add user-visible behavior, API, documentation, and validation changes under `[Unreleased]`.
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.7.0`. GitHub release tags, titles, and announcements use the same semantic version: `v1.7.0` for the next release.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.6.1`. GitHub release tags, titles, and announcements use the same semantic version, for example `v1.6.1`.
 
 When preparing the release, choose the version by semantic versioning:
 
@@ -40,7 +39,7 @@ When preparing the release, choose the version by semantic versioning:
 
 1. Verify `Assets/NexusUnity/package.json`:
    - `name` is `com.forkhorizon.nexus.unity`.
-   - `version` matches the Unity package version, currently `1.7.0`.
+   - `version` matches the Unity package version, currently `1.6.1`.
    - `license` is `MIT`.
    - Repository, documentation, changelog, and license URLs point to the public repository.
 2. Verify docs:
@@ -51,19 +50,18 @@ When preparing the release, choose the version by semantic versioning:
    - `SECURITY.md` and `CONTRIBUTING.md` are present.
 3. Verify package contents:
    - Include `Editor/`, `Runtime/`, `README.md`, `DOCUMENTATION.MD`, `API_REFERENCE.MD`, `CHANGELOG.md`, `LICENSE.md`, `SECURITY.md`, `CONTRIBUTING.md`, and required `.meta` files.
-   - Exclude `.soma/`, `graphify-out/`, `.jules/`, `.DS_Store`, `__pycache__/`, `*.pyc`, Unity `Library/`, temporary validation projects, native bridge binaries without source/build instructions, and `.meta` files under Unity-ignored folders such as `tools~/` and `Tests~/`.
+   - Exclude `.soma/`, `graphify-out/`, `.jules/`, `.DS_Store`, `__pycache__/`, `*.pyc`, Unity `Library/`, temporary validation projects, native bridge binaries without source/build instructions, and `.meta` files under Unity-ignored `~` folders.
 4. Verify security posture:
    - Server binds to loopback only.
    - Origin validation rejects non-loopback origins.
    - Request payload limits are enforced for HTTP and WebSocket paths.
    - File writes remain inside the Unity project root.
 5. Run validation:
-   - Confirm the self-hosted runner is online with `self-hosted`, `macOS`, `ARM64`, `nexus-unity-ci`, and `nexus-doc-ai` labels.
-   - Confirm the runner has `python3`, `dotnet`, Unity `6000.4.3f1`, and Ollama available locally.
+   - The `CI Scope` check passes on the release pull request. Edits or moves of existing tests need owner approval in the CI Scope Inbox first.
    - Unity package compile.
    - Editor tests for path security, server port behavior, API contract, consolidated managers, and bridge contract consistency.
-   - `python3 -m unittest discover -s Editor/tests -v` for the Python bridge unit test suite.
-   - `bash scripts/prepush-validate.sh --quick` for the contributor gate.
+   - `python3 -m unittest discover -s Editor/tests -t Editor` for the Python bridge unit test suite.
+   - `bash scripts/prepush-validate.sh --quick` for static package validation.
    - `bash scripts/prepush-validate.sh --integration` when a local Unity project is available.
    - Public API stress audit comparing raw `list_tools` with the MCP bridge catalog and exercising mutating tools in a disposable namespace.
    - Optional project auditor/lint pass.
@@ -84,10 +82,10 @@ The patch component is always included in public tags. Reserve patch bumps for u
 Release changes flow through a final pull request into `main`.
 
 1. Create a release PR from `development` or `release/*` to `main`.
-2. Confirm the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` checks pass on the self-hosted Mac runner.
+2. Confirm the `CI Scope` check passes, and run Unity compile and the EditMode suite locally (they are not part of the check).
 3. Resolve all review conversations.
 4. Merge the release PR manually.
-5. Create and push the matching GitHub release tag.
+5. Create and push the matching GitHub release tag, publish the GitHub release, then merge `main` back into `development`.
 
 ## Post-release Smoke Test
 

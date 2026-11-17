@@ -1,3 +1,4 @@
+// Legacy HTTP transport adapter that starts and stops the loopback listener.
 namespace UnityMCP.Editor.Runtime
 {
     /// <summary>

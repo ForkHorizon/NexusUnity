@@ -1,10 +1,10 @@
 # Nexus Unity API Reference
 
-Version: `1.7.0` (development)
+Version: `1.6.1`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the current 1.7.0 development schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
+- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.1 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`.
 
 ## Raw HTTP JSON-RPC
@@ -18,7 +18,7 @@ curl -s http://127.0.0.1:8081/ \
   -d '{"jsonrpc":"2.0","method":"get_server_status","params":{},"id":1}'
 ```
 
-Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge; rerun Auto Setup after restarting Unity if the token is stale. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
+Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge. The token persists across Unity restarts, and when it is missing or rejected the bridge rereads the project's `Library/NexusUnityAuthToken.txt`. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
 
 Schema compatibility notes:
 

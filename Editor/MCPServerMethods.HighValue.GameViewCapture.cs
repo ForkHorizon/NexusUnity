@@ -1,3 +1,4 @@
+// Legacy capture_game_view_screenshot method built on the Capture V2 gateway.
 using System;
 using System.Diagnostics;
 using System.Threading;

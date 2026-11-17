@@ -1,3 +1,4 @@
+// Tool profiles that decide which tools list_tools advertises.
 using System;
 using System.Collections.Generic;
 

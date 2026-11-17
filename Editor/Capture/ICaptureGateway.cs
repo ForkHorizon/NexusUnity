@@ -1,3 +1,4 @@
+// Transport-independent entry point for Game View capture.
 using System.Threading;
 using System.Threading.Tasks;
 

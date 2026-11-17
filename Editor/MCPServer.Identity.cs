@@ -40,7 +40,7 @@ namespace UnityMCP.Editor
             }
             catch { }
 
-            return "1.7.0";
+            return "1.6.1";
         }
 
         internal static string AuthToken => EnsureAuthToken();

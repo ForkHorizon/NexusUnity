@@ -2,7 +2,22 @@
 
 All notable public changes to Nexus Unity are documented here.
 
-## [1.7.0] - Unreleased
+## [Unreleased]
+
+## [1.6.1] - 2026-11-17
+
+This release ships the work previously tracked as the `1.7.0` development line: canonical `nexus.*` commands with one response envelope, Capture V2, optional Unity Pipeline support, reliable Editor readiness, and fixes that keep AI clients connected to the server.
+
+### Upgrade notes
+- After updating the package, run `Auto Setup` again for each AI client in `Window > Nexus Unity > Integrations`, then reload the client (`/mcp` in Claude Code). This redeploys the project-root bridge, which older setups copied once and never updated.
+- Remove any global `nexus-unity` MCP entry (for example in `claude_desktop_config.json`) that points to another project's bridge. Prefer the project-scoped config that Auto Setup writes.
+- `nexus.capture_game_view` returns JPEG at a 768 px longest edge by default. Pass `format: "png"` or `max_dimension: 0` for the previous output. Legacy `capture_game_view_screenshot` is unchanged.
+- C# callers of `NexusCommandEnvelope.Failure` must build the error with `NexusCommandError.Create`. The JSON on the wire is unchanged.
+- Package EditMode tests moved from `Tests~/Editor` to `Tests/Editor`. Add the package to `testables` in `Packages/manifest.json` to run them.
+
+### Known issues
+- With `com.unity.pipeline` 1.0.0, the Pipeline CLI rejects `--format` for `nexus_capture_game_view` before Nexus receives it. Omit the flag (JPEG is the default) or call the command through the MCP bridge or HTTP.
+- Stopping the server from `Window > Nexus Unity` also turns off auto-start for later editor sessions. Click `Start Server` again to turn it back on.
 
 ### Added
 - Canonical Nexus commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (HTTP aliases `nexus_*`) share one handler and description each. When `com.unity.pipeline` is installed, optional `[CliCommand]` wrappers in `UnityMCP.Editor.Pipeline` project the same handlers; Pipeline is not a package dependency.
@@ -12,7 +27,7 @@ All notable public changes to Nexus Unity are documented here.
 ### Changed
 - CI moved fully to CI Scope: the repository has no CI workflow, `.ci-scope.json`, `.code-linter.json` or `.ruff.toml`; rules, limits and exceptions live on the CI Scope website and the pinned gates in `ci-gates`. Removed the old in-repo gate machinery: `tools~/NexusQualityGate*` (Roslyn and Ollama review), `.unity-quality-gate.json`, the `.githooks/pre-push` hook, the `Validate package`, `Unity quality gate` and `Approve external PR` workflows, and the `--quality-ai` / `--checklist-ai` modes of `scripts/prepush-validate.sh`. Python uses the ci-gates strict ruff config. Unity compile and EditMode tests are not in the CI check; run them locally.
 - C# envelope API: `NexusCommandEnvelope.Failure(NexusCommandError, data, requestId, ms, stackSource)` takes an error built with `NexusCommandError.Create(code, message, retryable, hint, outcome)` instead of nine loose arguments, and `NexusCommandEnvelope.InvalidArgument(message, requestId, ms)` builds the common non-retryable rejection. `CaptureGameViewCommand.ExecuteFromCli` takes one `CaptureCliArguments` object. Wire JSON is unchanged.
-- Quality gates check the package code without blanket waivers: Python bridge code passes the ci-gates strict ruff config (blind `except Exception` handlers narrowed or logged), and `Tests/`, `Editor/tests/` and `tools~/` are scanned too.
+- Quality gates check the package code without blanket waivers: Python bridge code passes the ci-gates strict ruff config (blind `except Exception` handlers narrowed or logged), and `Tests/` and `Editor/tests/` are scanned too.
 - Python bridge tests run with `unittest discover -s Editor/tests -t Editor` and no longer edit `sys.path` per module.
 - `nexus.capture_game_view` (aliases `nexus_look` and `nexus.look`) defaults to JPEG and a 768 px longest edge. Pass `max_dimension` 1024 to opt in, or 0 for the previous unconstrained size. `view:"scene"` frames a target in the Scene View and restores the camera pose. `target` or `instance_id` crops a Game View capture to that object. `delivery:"file"` writes one image under the project `Temp/NexusCapture` directory and omits Base64. The response never includes both PNG and JPEG. Legacy `capture_game_view_screenshot` stays PNG and full-size.
 - Pipeline `[CliCommand]` parameters for `nexus_project_map`, `nexus_group_compile_errors`, and `nexus_capture_game_view` are locked to the canonical descriptor: same name, description, JSON type, order, and default. An EditMode test fails if one side adds, removes, or retargets a parameter. `list_tools` schemas are unchanged and still omit CLI default fields. `nexus_look` stays an unlisted alias, not a fourth command.
@@ -20,13 +35,16 @@ All notable public changes to Nexus Unity are documented here.
 - Package EditMode tests live under a single `Tests/Editor` suite (guarded by `UNITY_INCLUDE_TESTS`, so consumers only compile it when the test framework is installed and the package is listed in their `Packages/manifest.json` `testables`). Historical `Tests~/Editor` was merged into that suite and removed. The test asmdef uses Unity's `overrideReferences` + `Newtonsoft.Json.dll` / `nunit.framework.dll`.
 - Runtime `get_server_status` now returns a main-thread-published snapshot. Requested mode is cached so the HTTP listener does not read EditorPrefs off-thread.
 - Inspector/window screenshots use `EditorWindowPixelCapture` (ReadPixels). Game View remains Capture V2 DriverOwnedReadback only.
-- Research reports and spike scripts are kept locally under `Research~/`; they are not compiled or committed.
 - Extracted Game View capture into a transport-independent Capture V2 gateway (`ICaptureGateway`) using `AsyncGPUReadback.Request` plus `GetData<byte>()` (DriverOwnedReadback). Legacy `capture_game_view_screenshot` keeps its structured PNG JSON schema by default and now accepts optional `format`, `quality` / `jpeg_quality`, `width`, `height`, `max_long_edge`, and `include_telemetry` parameters. Canonical `nexus.capture_game_view` uses that same gateway with a JPEG default matching the hybrid proof of concept.
 - Pipeline `[CliCommand]` Game View capture now returns `Task<NexusCaptureResult>` so Unity Pipeline can await GPU completion off the main thread. Production capture never calls `WaitForCompletion` or `.GetResult()` on the Unity main thread.
 - `list_tools` can filter by profile (`core`, `visual`, `scene`, `compat`). Canonical ids are advertised once; transport aliases remain dispatchable.
 - Pipeline health probing validates session PID liveness and Unity-like process identity, caches last-healthy state across domain reload, and reports `runtime.unity_cli` / `runtime.pipeline.detected|experimental|supported` without shelling out to the Unity CLI.
 
 ### Fixed
+- Running the package EditMode tests no longer leaves the editor without a Nexus server. `ServerPortTests` stops the live server, and `MCPServer.Stop()` also turns off auto-start, so after a test run nothing listened on 8081 until someone clicked `Start Server`. A test setup fixture now restarts the server if it was running before the tests.
+- The bridge finds `Library/NexusUnityAuthToken.txt` from any working directory by also searching the folders above the bridge script, so a client that starts the bridge outside the project root no longer gets HTTP 401 with a stale configured token.
+- The bridge no longer writes a full traceback to stderr for every failed call. Readiness polling during a domain reload hits network errors twice a second, and the traceback flood filled the stderr pipe of a client that does not read it, which blocked the bridge inside a call (`apply_code_change` hung for 35 minutes in the live harness). Network errors now log one line; unexpected errors keep the traceback.
+- When nothing listens on the server port, the bridge error now names the URL and says to open the project and click `Start Server` in `Window > Nexus Unity`, instead of only `Unity Server unreachable`.
 - `unity_component_manager` `set_property` sent `property_name: "m_Name"` for every call, renaming the object instead of setting the requested property. It now forwards `property_name` and `value`.
 - `nexus.capture_game_view` with an unsupported `format` (for example `bmp`) returned a JSON-RPC `-32000` error. It now returns an `invalid_argument` envelope and does not capture.
 - Optional Pipeline commands compile on `com.unity.pipeline` 0.7 and 0.8. 0.8 moved `CliCommandAttribute` and `CliArgAttribute` into assembly `Unity.Pipeline.Attributes` without a type forwarder. `UnityMCP.Editor.Pipeline` references that assembly beside `Unity.Pipeline`, which still contains the attributes on 0.7.
@@ -36,9 +54,7 @@ All notable public changes to Nexus Unity are documented here.
 - Capture: readback timeouts no longer busy-loop or poll forever, encode failures no longer wedge the capture gate, the Game View wait resumes on the main thread, and capture size is capped at 8192 per edge.
 - Runtime: Pipeline health probe retries and re-runs when the runtime mode changes; the Unity version gate accepts 6000 and newer.
 - `batch_execute` reports async capture methods with a clear error; `find_objects` also matches the literal name; `list_tools` accepts array params.
-- Reworked Game View, Inspector, and UI window screenshot capture to use Unity-native in-engine render textures and VisualElement captures with safe surface readback fallback instead of macOS `screencapture`.
-- Added synchronous editor tracker rebuild for targeted Inspector captures (`instance_id`), resolved MSAA render textures, guarded against background desktop screen scraping via `isApplicationActive`, and provided structured PNG results while preserving legacy client compatibility.
-- Added comprehensive screenshot stress-test tooling (`scripts/screenshot-stress-test.py`) and in-engine regression tests (`CaptureScreenshotStressTestRapidChurn`) covering rapid burst captures, multi-threaded swarms, selection churn invariants, and dynamic window geometry resizes.
+- Game View, Inspector, and UI window screenshots use Unity in-engine render textures and VisualElement captures instead of macOS `screencapture`. Targeted Inspector captures (`instance_id`) rebuild the editor tracker first, MSAA render textures are resolved, and the screen-pixel fallback is skipped while Unity is not the active application, so the desktop behind it is never read.
 
 ## [1.6.0] - 2026-08-23
 ### Security

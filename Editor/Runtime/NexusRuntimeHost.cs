@@ -1,3 +1,4 @@
+// Coordinates the transport adapters and publishes the runtime status snapshot.
 using System.Threading;
 using Newtonsoft.Json.Linq;
 

@@ -1,3 +1,4 @@
+// Canonical nexus.project_map handler that reports project, scene and graphics state.
 using System;
 using System.Diagnostics;
 using System.IO;

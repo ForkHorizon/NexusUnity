@@ -1,3 +1,4 @@
+// Runtime transport preference (legacy, pipeline or auto) stored in EditorPrefs.
 using UnityEditor;
 using UnityEngine;
 using UnityMCP.Editor.Runtime;

@@ -1,3 +1,4 @@
+// Transport-independent description of a canonical Nexus command and its parameters.
 namespace UnityMCP.Editor.Commands
 {
     /// <summary>

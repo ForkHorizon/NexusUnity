@@ -1,3 +1,4 @@
+// ReadPixels capture for Inspector and other Editor windows (not the Game View path).
 using System;
 using UnityEditor;
 using UnityEditorInternal;

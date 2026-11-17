@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.7.0` (development)
+Version: `1.6.1`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -21,7 +21,7 @@ Open `Window > Nexus Unity` and click `Start Server`. The default port is `8081`
 The server:
 
 - Binds to loopback use only.
-- Restarts after Unity domain reloads when the previous session was running.
+- Restarts after Unity domain reloads and editor restarts when it was running. `Stop` turns that off until `Start Server` is clicked again.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
 - Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, `get_tool_usage_stats`, and `reset_tool_usage_stats` for robust automation loops.
 - Serves fast-path health and wait calls from one published readiness snapshot when they run on the listener thread. Waits do not span a domain reload; clients re-poll after reconnect. `epoch.compile` and `epoch.reload` survive the reload.
@@ -61,7 +61,7 @@ When Nexus Unity writes an existing user or project config, it preserves unrelat
 Nexus Unity is a local developer tool and should be used only with trusted local clients.
 
 - HTTP and WebSocket requests must target loopback hosts.
-- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`. Only `get_server_status` and `shutdown_server` are exempt, matched on the JSON-RPC `method` field.
+- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`. The token persists in `Library/NexusUnityAuthToken.txt` across editor restarts; when the configured token is missing or rejected, the bridge rereads that file, searching from its working directory and from the folders above the bridge script. Only `get_server_status` and `shutdown_server` are exempt, matched on the JSON-RPC `method` field.
 - WebSocket and HTTP requests are processed asynchronously on background worker threads, ensuring the server accept loop remains non-blocking for concurrent clients.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
@@ -84,15 +84,15 @@ Manual or root-deployed path:
 python3 nexus_unity_bridge.py
 ```
 
-Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, `NEXUS_UNITY_TIMEOUT_SECONDS`, and `NEXUS_UNITY_AUTH_TOKEN`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
+Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, `NEXUS_UNITY_TIMEOUT_SECONDS`, and `NEXUS_UNITY_AUTH_TOKEN`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`. Network errors log one line without a traceback, so clients that do not read the bridge's stderr are not blocked by a full pipe.
 
 The bridge is modular:
 
 - `nexus_unity_bridge.py`: MCP loop and CLI entry point.
 - `nexus_bridge/_transport.py`: Unity JSON-RPC URL, port, timeout, and HTTP transport helpers.
 - `nexus_bridge/client.py`: HTTP JSON-RPC client.
-- `nexus_bridge/routing.py`: manager routing and macro behavior.
-- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources served through `resources/list` and `resources/read`.
+- `nexus_bridge/routing.py` with `routes_*.py`: manager routing and macro behavior.
+- `nexus_bridge/schemas.py` with `schemas_*.py`: public MCP tool schemas and static read-only MCP resources served through `resources/list` and `resources/read`.
 
 When deploying from the Unity UI, Nexus Unity copies both `nexus_unity_bridge.py` and the full `nexus_bridge/` package to the project root so the bridge can run from a stable path.
 
@@ -124,7 +124,7 @@ MCP bridge:
 
 ## Current Compatibility Decisions
 
-The current development line preserves backward compatibility while correcting public contracts found during API stress validation:
+Version 1.6.1 preserves backward compatibility while correcting public contracts found during API stress validation:
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
@@ -182,6 +182,8 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 ## Troubleshooting
 
 - Server does not start: change the port in project settings and restart the server window.
+- Client reports `Unity Server unreachable ... Nothing is listening`: the Nexus server is stopped. Open `Window > Nexus Unity` and click `Start Server`. Stopping the server, from the window or from code, also turns off auto-start for later editor sessions.
+- Client gets HTTP 401 or talks to the wrong project: remove any global `nexus-unity` entry (for example in the Claude Desktop config) that points to another project's bridge or holds an old token. Use the project-scoped `.mcp.json` from Auto Setup; the bridge reads the current token from the project `Library` folder.
 - MCP client cannot import `nexus_bridge`: redeploy the bridge from `Window > Nexus Unity > Server`, or point the client directly at the package path.
 - Tool returns `Method not found`: compare the raw Unity catalog from `list_tools` with the MCP catalog in `API_REFERENCE.MD`.
 - File write denied: ensure the target path resolves inside the Unity project root.
@@ -194,30 +196,29 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Latest public release: `1.6.0`.
-- Current development target: `1.7.0`.
+- Latest public release: `1.6.1`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
-- Keep contributor tooling and package-internal tests under Unity-ignored folders such as `tools~/` and `Tests~/` without `.meta` files; Unity will not import those folders, and root `~.meta` entries break immutable PackageCache installs.
+- Package EditMode tests live in `Tests/Editor` with an asmdef guarded by `UNITY_INCLUDE_TESTS`, so consumers compile them only when the package is listed in `testables`. Keep any other contributor tooling under Unity-ignored `~` folders without `.meta` files; Unity does not import those folders, and root `~.meta` entries break immutable PackageCache installs.
 - Do not declare Unity Project Auditor packages as Nexus dependencies. Nexus audit support uses reflection when a host project explicitly installs compatible Project Auditor rules; direct dependencies can add duplicate immutable `.meta` GUID warnings or no-module Console spam during clean installs.
 
 ## Development Versioning Policy
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The current development package line is `1.7.0`; the latest released tag is `v1.6.0`.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.1`.
 
 During normal development:
 
-- Add all user-visible API, behavior, docs, and validation changes to `[1.7.0] - Unreleased` in `CHANGELOG.md`.
-- Keep `package.json` and visible docs on `1.7.0` throughout this release-preparation line.
+- Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
+- Keep `package.json` and visible docs on the latest shipped version until a release is prepared.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
 
 - Choose the next semantic version based on accumulated changes.
-- Move `[1.7.0] - Unreleased` entries into the new dated release section.
+- Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, `v1.7.0` for package version `1.7.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.6.1` for package version `1.6.1`.
