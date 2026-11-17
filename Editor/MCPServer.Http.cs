@@ -82,7 +82,7 @@ namespace UnityMCP.Editor
             }
         }
 
-        private static void HandleHttpRequest(HttpListenerContext context)
+        private static async Task HandleHttpRequestAsync(HttpListenerContext context)
         {
             try
             {
@@ -102,14 +102,15 @@ namespace UnityMCP.Editor
 
                 if (!TryReadRequestBody(context, out string requestJson)) return;
 
-                bool isProbeMethod = !string.IsNullOrEmpty(requestJson) && (requestJson.Contains("\"get_server_status\"") || requestJson.Contains("\"shutdown_server\""));
+                bool isProbeMethod = IsProbeMethod(requestJson);
                 if (!IsAuthorized(context) && !isProbeMethod)
                 {
                     RejectUnauthorized(context);
                     return;
                 }
 
-                WriteJsonResponse(context, MCPServerMethods.ProcessJsonRpc(requestJson));
+                string responseJson = await MCPServerMethods.ProcessJsonRpcAsync(requestJson).ConfigureAwait(false);
+                WriteJsonResponse(context, responseJson);
             }
             catch (ObjectDisposedException) { }
             catch (System.Net.HttpListenerException) { }
@@ -118,6 +119,27 @@ namespace UnityMCP.Editor
             {
                 NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Error handling HTTP request: {e.Message}");
             }
+        }
+
+        // Only these two methods may skip auth, and only when they are the actual JSON-RPC method
+        // (a substring match would let any method smuggle the name in its params).
+        private static bool IsProbeMethod(string requestJson)
+        {
+            if (string.IsNullOrEmpty(requestJson)) return false;
+            try
+            {
+                string method = Newtonsoft.Json.Linq.JObject.Parse(requestJson)["method"]?.ToString();
+                return method == "get_server_status" || method == "shutdown_server";
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static void HandleHttpRequest(HttpListenerContext context)
+        {
+            _ = HandleHttpRequestAsync(context);
         }
 
         // Reads the request body with a hard size cap. Returns false (and closes
@@ -226,7 +248,8 @@ namespace UnityMCP.Editor
                 {
                     ms.Position = 0;
                     using var reader = new StreamReader(ms, Encoding.UTF8, false, 1024, leaveOpen: true);
-                    string response = MCPServerMethods.ProcessJsonRpc(reader);
+                    string requestJson = reader.ReadToEnd();
+                    string response = await MCPServerMethods.ProcessJsonRpcAsync(requestJson).ConfigureAwait(false);
                     if (ws.State == WebSocketState.Open)
                     {
                         var respBuffer = Encoding.UTF8.GetBytes(response);

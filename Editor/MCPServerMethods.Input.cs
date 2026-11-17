@@ -96,8 +96,8 @@ namespace UnityMCP.Editor
         {
             var mouse = Mouse.current;
             if (mouse == null) throw new Exception("No active mouse device found.");
-
-            string action = p["action"]?.ToString() ?? "click";
+            
+            string action = p["action"]?.ToString() ?? "click"; 
             Vector2 pos = GetScreenPosition(p);
             int buttonIdx = p["button"]?.Value<int>() ?? 0;
 
@@ -132,7 +132,7 @@ namespace UnityMCP.Editor
         private static JToken SimulateTouch(JToken p)
         {
             var touch = Touchscreen.current;
-            if (touch == null)
+            if (touch == null) 
             {
                 touch = InputSystem.AddDevice<Touchscreen>();
             }
@@ -189,9 +189,9 @@ namespace UnityMCP.Editor
 
             QueueCrossFrameMouseClick(mouse, state, MouseButton.Left);
 
-            return new JObject
-            {
-                ["status"] = "Success",
+            return new JObject 
+            { 
+                ["status"] = "Success", 
                 ["screen_position"] = new JObject { ["x"] = finalPos.x, ["y"] = finalPos.y },
                 ["object_name"] = target.name
             };

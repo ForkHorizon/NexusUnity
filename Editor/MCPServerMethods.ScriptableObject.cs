@@ -28,7 +28,7 @@ namespace UnityMCP.Editor
         {
             var so = GetScriptableObject(p);
             var defaults = ScriptableObject.CreateInstance(so.GetType());
-
+            
             var sObj = new SerializedObject(so);
             var sDefaults = new SerializedObject(defaults);
 
@@ -72,7 +72,7 @@ namespace UnityMCP.Editor
                 if (so == null) throw new Exception($"ScriptableObject not found at path: {path}");
                 return so;
             }
-
+            
             EntityId id = ExtractId(p, idKey);
             if (!id.Equals(default(EntityId)))
             {
@@ -139,13 +139,13 @@ namespace UnityMCP.Editor
             JObject result = new JObject();
             SerializedProperty prop = serializedObj.GetIterator();
             bool enterChildren = true;
-
+            
             while (prop.Next(enterChildren))
             {
                 enterChildren = false;
                 try { result[prop.name] = SerializeProperty(prop, detailed); } catch { }
             }
-
+            
             result["status"] = "Success";
             result["type"] = so.GetType().Name;
             result["name"] = so.name;
@@ -167,8 +167,8 @@ namespace UnityMCP.Editor
             serializedObj.ApplyModifiedProperties();
             AssetDatabase.SaveAssets();
 
-            return new JObject
-            {
+            return new JObject 
+            { 
                 ["status"] = errors.Count > 0 ? "Partial Success" : "Success",
                 ["updated_count"] = updatedCount,
                 ["errors"] = errors
@@ -188,11 +188,11 @@ namespace UnityMCP.Editor
             AssetDatabase.CreateAsset(instance, path);
             AssetDatabase.SaveAssets();
 
-            return new JObject
-            {
-                ["status"] = "Success",
-                ["path"] = path,
-                ["instance_id"] = instance.GetRawId()
+            return new JObject 
+            { 
+                ["status"] = "Success", 
+                ["path"] = path, 
+                ["instance_id"] = instance.GetRawId() 
             };
         }
 
@@ -206,11 +206,11 @@ namespace UnityMCP.Editor
             AssetDatabase.SaveAssets();
 
             var newAsset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(dest);
-            return new JObject
-            {
-                ["status"] = "Success",
-                ["path"] = dest,
-                ["instance_id"] = newAsset != null ? newAsset.GetRawId() : 0
+            return new JObject 
+            { 
+                ["status"] = "Success", 
+                ["path"] = dest, 
+                ["instance_id"] = newAsset != null ? newAsset.GetRawId() : 0 
             };
         }
 
@@ -223,7 +223,7 @@ namespace UnityMCP.Editor
             if (type == null) throw new Exception($"Type '{typeName}' not found or is not an inspectable Component/ScriptableObject");
 
             JArray result = new JArray();
-
+            
             // For ScriptableObjects and Components, we use SerializedObject to get serializable fields
             if (typeof(ScriptableObject).IsAssignableFrom(type))
             {
@@ -235,10 +235,10 @@ namespace UnityMCP.Editor
                 while (prop.Next(enterChildren))
                 {
                     enterChildren = false;
-                    result.Add(new JObject
-                    {
-                        ["name"] = prop.name,
-                        ["type"] = prop.propertyType.ToString(),
+                    result.Add(new JObject 
+                    { 
+                        ["name"] = prop.name, 
+                        ["type"] = prop.propertyType.ToString(), 
                         ["displayName"] = prop.displayName,
                         ["tooltip"] = prop.tooltip
                     });
@@ -247,7 +247,7 @@ namespace UnityMCP.Editor
             }
             else
             {
-                // Generic reflection for non-Unity objects if needed,
+                // Generic reflection for non-Unity objects if needed, 
                 // but usually users want this for Unity serializable types.
                 var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var f in fields)

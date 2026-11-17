@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from . import _transport
 from .routes_base import (
+    ActionHandler,
     JsonObject,
     JsonRpcResponse,
     _alias,
     _apply_created_transform,
     _compact,
+    _dispatch,
     _invalid_action,
     _transform_params,
 )
@@ -64,35 +66,29 @@ def _dispatch_hierarchy_create(action: str | None, args: JsonObject) -> JsonRpcR
     return None
 
 
-def _dispatch_hierarchy_modify(action: str | None, args: JsonObject) -> JsonRpcResponse | None:
-    if action == "set_name":
-        return _transport.call_unity(
-            "set_property",
-            {
-                "instance_id": args.get("instance_id"),
-                "property_name": "m_Name",
-                "value": args.get("name") or args.get("new_name"),
-            },
-        )
-    if action == "set_transform":
-        return _transport.call_unity("set_transform", _transform_params(args))
-    if action == "destroy":
-        return _transport.call_unity("destroy_game_object", {"instance_id": args.get("instance_id")})
-    if action == "duplicate":
-        return _transport.call_unity("duplicate_object", {"instance_id": args.get("instance_id")})
-    if action == "set_active":
-        return _transport.call_unity(
-            "set_active", {"instance_id": args.get("instance_id"), "active": args.get("active")}
-        )
-    if action == "set_parent":
-        return _transport.call_unity(
-            "set_parent", {"instance_id": args.get("instance_id"), "parent_id": args.get("parent_id")}
-        )
-    if action == "set_sibling_index":
-        return _transport.call_unity(
-            "set_sibling_index", {"instance_id": args.get("instance_id"), "index": args.get("index")}
-        )
-    return None
+def _instance_call(method: str, *keys: str) -> ActionHandler:
+    """Handler that sends ``instance_id`` plus the named argument keys, unchanged."""
+    return lambda args: _transport.call_unity(
+        method, {"instance_id": args.get("instance_id"), **{key: args.get(key) for key in keys}}
+    )
+
+
+_HIERARCHY_MODIFY_ACTIONS: dict[str, ActionHandler] = {
+    "set_name": lambda args: _transport.call_unity(
+        "set_property",
+        {
+            "instance_id": args.get("instance_id"),
+            "property_name": "m_Name",
+            "value": args.get("name") or args.get("new_name"),
+        },
+    ),
+    "set_transform": lambda args: _transport.call_unity("set_transform", _transform_params(args)),
+    "destroy": _instance_call("destroy_game_object"),
+    "duplicate": _instance_call("duplicate_object"),
+    "set_active": _instance_call("set_active", "active"),
+    "set_parent": _instance_call("set_parent", "parent_id"),
+    "set_sibling_index": _instance_call("set_sibling_index", "index"),
+}
 
 
 def _route_hierarchy_manager(args: JsonObject) -> JsonRpcResponse:
@@ -107,7 +103,7 @@ def _route_hierarchy_manager(args: JsonObject) -> JsonRpcResponse:
     created = _dispatch_hierarchy_create(action, args)
     if created is not None:
         return created
-    modified = _dispatch_hierarchy_modify(action, args)
+    modified = _dispatch(_HIERARCHY_MODIFY_ACTIONS, action, args)
     if modified is not None:
         return modified
     return _invalid_action(
@@ -131,55 +127,23 @@ def _route_hierarchy_manager(args: JsonObject) -> JsonRpcResponse:
     )
 
 
+_COMPONENT_ACTIONS: dict[str, ActionHandler] = {
+    "add": _instance_call("add_component", "component_name"),
+    "remove": _instance_call("remove_component", "component_name"),
+    "inspect": _instance_call("inspect_component", "component_name"),
+    "get_schema": _instance_call("get_component_schema", "component_name"),
+    "update_properties": _instance_call("update_component", "component_name", "properties"),
+    "set_property": _instance_call("set_property", "property_name", "value"),
+    "set_enabled": _instance_call("set_enabled", "component_name", "enabled"),
+}
+
+
 def _route_component_manager(args: JsonObject) -> JsonRpcResponse:
     action = args.get("action")
-    if action == "add":
-        return _transport.call_unity(
-            "add_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")}
-        )
-    if action == "remove":
-        return _transport.call_unity(
-            "remove_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")}
-        )
-    if action == "inspect":
-        return _transport.call_unity(
-            "inspect_component", {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")}
-        )
-    if action == "get_schema":
-        return _transport.call_unity(
-            "get_component_schema",
-            {"instance_id": args.get("instance_id"), "component_name": args.get("component_name")},
-        )
-    if action == "update_properties":
-        return _transport.call_unity(
-            "update_component",
-            {
-                "instance_id": args.get("instance_id"),
-                "component_name": args.get("component_name"),
-                "properties": args.get("properties"),
-            },
-        )
-    if action == "set_property":
-        return _transport.call_unity(
-            "set_property",
-            {
-                "instance_id": args.get("instance_id"),
-                "property_name": "m_Name",
-                "value": args.get("value"),
-            },
-        )
-    if action == "set_enabled":
-        return _transport.call_unity(
-            "set_enabled",
-            {
-                "instance_id": args.get("instance_id"),
-                "component_name": args.get("component_name"),
-                "enabled": args.get("enabled"),
-            },
-        )
-    return _invalid_action(
-        action, ["add", "remove", "inspect", "get_schema", "update_properties", "set_property", "set_enabled"]
-    )
+    result = _dispatch(_COMPONENT_ACTIONS, action, args)
+    if result is not None:
+        return result
+    return _invalid_action(action, list(_COMPONENT_ACTIONS))
 
 
 def _route_search_manager(args: JsonObject) -> JsonRpcResponse:
@@ -204,50 +168,37 @@ def _route_search_manager(args: JsonObject) -> JsonRpcResponse:
     }
 
 
+def _path_call(method: str) -> ActionHandler:
+    return lambda args: _transport.call_unity(method, {"path": args.get("path")})
+
+
+_ASSET_ACTIONS: dict[str, ActionHandler] = {
+    "search": lambda args: _transport.call_unity("list_assets", {"filter": args.get("filter")}),
+    "explore": _path_call("explore_asset"),
+    "create_material": lambda args: _transport.call_unity(
+        "create_material",
+        _compact(
+            {
+                "name": args.get("name"),
+                "shader": args.get("shader"),
+                "path": args.get("path"),
+                "base_color": args.get("base_color") or args.get("color"),
+                "emission_color": args.get("emission_color") or args.get("emission"),
+            }
+        ),
+    ),
+    "import": _path_call("import_asset"),
+    "refresh": lambda _args: _transport.call_unity("refresh_asset_database"),
+    "instantiate_prefab": _path_call("instantiate_prefab"),
+    "create_prefab": _instance_call("create_prefab", "path"),
+    "apply_overrides": _instance_call("apply_prefab_overrides"),
+    "revert_overrides": _instance_call("revert_prefab_overrides"),
+}
+
+
 def _route_asset_manager(args: JsonObject) -> JsonRpcResponse:
     action = args.get("action")
-    if action == "search":
-        return _transport.call_unity("list_assets", {"filter": args.get("filter")})
-    if action == "explore":
-        return _transport.call_unity("explore_asset", {"path": args.get("path")})
-    if action == "create_material":
-        return _transport.call_unity(
-            "create_material",
-            _compact(
-                {
-                    "name": args.get("name"),
-                    "shader": args.get("shader"),
-                    "path": args.get("path"),
-                    "base_color": args.get("base_color") or args.get("color"),
-                    "emission_color": args.get("emission_color") or args.get("emission"),
-                }
-            ),
-        )
-    if action == "import":
-        return _transport.call_unity("import_asset", {"path": args.get("path")})
-    if action == "refresh":
-        return _transport.call_unity("refresh_asset_database")
-    if action == "instantiate_prefab":
-        return _transport.call_unity("instantiate_prefab", {"path": args.get("path")})
-    if action == "create_prefab":
-        return _transport.call_unity(
-            "create_prefab", {"instance_id": args.get("instance_id"), "path": args.get("path")}
-        )
-    if action == "apply_overrides":
-        return _transport.call_unity("apply_prefab_overrides", {"instance_id": args.get("instance_id")})
-    if action == "revert_overrides":
-        return _transport.call_unity("revert_prefab_overrides", {"instance_id": args.get("instance_id")})
-    return _invalid_action(
-        action,
-        [
-            "search",
-            "explore",
-            "create_material",
-            "import",
-            "refresh",
-            "instantiate_prefab",
-            "create_prefab",
-            "apply_overrides",
-            "revert_overrides",
-        ],
-    )
+    result = _dispatch(_ASSET_ACTIONS, action, args)
+    if result is not None:
+        return result
+    return _invalid_action(action, list(_ASSET_ACTIONS))

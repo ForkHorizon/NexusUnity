@@ -62,7 +62,7 @@ namespace UnityMCP.Editor
             string name = p?["name"]?.ToString();
             string tag = p?["tag"]?.ToString();
             string typeName = p?["type"]?.ToString();
-
+            
             IEnumerable<GameObject> results;
 
             if (!string.IsNullOrEmpty(typeName))
@@ -110,7 +110,7 @@ namespace UnityMCP.Editor
                 {
                     try
                     {
-                        return regex.IsMatch(go.name);
+                        return regex.IsMatch(go.name) || go.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0;
                     }
                     catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
                     {

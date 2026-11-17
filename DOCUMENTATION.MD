@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.6.0`
+Version: `1.6.1`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -21,10 +21,10 @@ Open `Window > Nexus Unity` and click `Start Server`. The default port is `8081`
 The server:
 
 - Binds to loopback use only.
-- Restarts after Unity domain reloads when the previous session was running.
+- Restarts after Unity domain reloads and editor restarts when it was running. `Stop` turns that off until `Start Server` is clicked again.
 - Tracks session id, session generation, last heartbeat, play mode, compile/import state, and last error.
 - Provides `get_server_status`, `ping_main_thread`, `wait_for_asset_import_idle`, `wait_for_editor_idle`, `get_test_results`, `get_tool_usage_stats`, and `reset_tool_usage_stats` for robust automation loops.
-- Serves fast-path health and wait calls from cached editor state when they run on the listener thread.
+- Serves fast-path health and wait calls from one published readiness snapshot when they run on the listener thread. Waits do not span a domain reload; clients re-poll after reconnect. `epoch.compile` and `epoch.reload` survive the reload.
 
 ## Unity Editor Menu
 
@@ -61,7 +61,7 @@ When Nexus Unity writes an existing user or project config, it preserves unrelat
 Nexus Unity is a local developer tool and should be used only with trusted local clients.
 
 - HTTP and WebSocket requests must target loopback hosts.
-- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`.
+- HTTP and WebSocket requests require the per-session `X-Nexus-Unity-Token` header; generated MCP configs pass it to the Python bridge as `NEXUS_UNITY_AUTH_TOKEN`. The token persists in `Library/NexusUnityAuthToken.txt` across editor restarts; when the configured token is missing or rejected, the bridge rereads that file, searching from its working directory and from the folders above the bridge script. Only `get_server_status` and `shutdown_server` are exempt, matched on the JSON-RPC `method` field.
 - WebSocket and HTTP requests are processed asynchronously on background worker threads, ensuring the server accept loop remains non-blocking for concurrent clients.
 - Browser origins are validated to reduce CSRF and DNS rebinding exposure; non-loopback origins are rejected.
 - File operations resolve paths and enforce the Unity project root boundary.
@@ -84,15 +84,15 @@ Manual or root-deployed path:
 python3 nexus_unity_bridge.py
 ```
 
-Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, `NEXUS_UNITY_TIMEOUT_SECONDS`, and `NEXUS_UNITY_AUTH_TOKEN`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`.
+Bridge connection settings can be overridden with `NEXUS_UNITY_URL`, `NEXUS_UNITY_PORT`, `NEXUS_UNITY_TIMEOUT_SECONDS`, and `NEXUS_UNITY_AUTH_TOKEN`. A positional port argument is still supported for existing MCP client configs, and invalid port values fall back to the positional port or default port. Bridge logging defaults to `DEBUG` and can be changed with `NEXUS_UNITY_LOG_LEVEL`. Network errors log one line without a traceback, so clients that do not read the bridge's stderr are not blocked by a full pipe.
 
 The bridge is modular:
 
 - `nexus_unity_bridge.py`: MCP loop and CLI entry point.
 - `nexus_bridge/_transport.py`: Unity JSON-RPC URL, port, timeout, and HTTP transport helpers.
 - `nexus_bridge/client.py`: HTTP JSON-RPC client.
-- `nexus_bridge/routing.py`: manager routing and macro behavior.
-- `nexus_bridge/schemas.py`: public MCP tool schemas and static read-only MCP resources served through `resources/list` and `resources/read`.
+- `nexus_bridge/routing.py` with `routes_*.py`: manager routing and macro behavior.
+- `nexus_bridge/schemas.py` with `schemas_*.py`: public MCP tool schemas and static read-only MCP resources served through `resources/list` and `resources/read`.
 
 When deploying from the Unity UI, Nexus Unity copies both `nexus_unity_bridge.py` and the full `nexus_bridge/` package to the project root so the bridge can run from a stable path.
 
@@ -104,8 +104,11 @@ Raw HTTP JSON-RPC:
 - Intended for diagnostics, custom integrations, and direct automation.
 - The complete raw catalog is returned by `list_tools`.
 - Runtime schemas intentionally include compatibility fields where needed; for example `update_component` accepts both `properties` and the legacy `json_data` payload, `create_scene` accepts `path` / `open_if_exists`, `create_primitive` accepts transform/material fields, and `create_material` accepts an optional explicit asset `path` plus visible color fields.
-- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries with scoped non-passing test messages, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA.
-- `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls.
+- Agent diagnostics include `get_test_results` for Unity `TestResults*.xml` summaries with scoped non-passing test messages, `get_tool_usage_stats` / `reset_tool_usage_stats` for scoped in-memory call counters and timing, and `ui_get_window_rect` / `ui_set_window_rect` / `ui_capture_window_snapshot` for resize-based editor UI QA. `capture_game_view_screenshot` and `capture_inspector_screenshot` return structured image data with dimensions, base64 image bytes, and capture duration while preserving legacy successful fields. Game View defaults to PNG and optionally accepts JPEG, quality, and downscale parameters.
+- Experimental canonical commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` are available over Legacy HTTP and return one envelope (`ok`, `data`, `error`, `meta`). Capture defaults to JPEG at a 768 px longest edge, can crop to an object, and can frame a Scene View on a target. `nexus_look` is an unlisted alias. If `com.unity.pipeline` is installed, the same handlers are also registered as optional `[CliCommand]`s for `unity mcp` / `unity command`, with the same parameter names and defaults, and return that same envelope. Pipeline remains optional; Nexus compiles and runs without it. Legacy raw tools keep their existing JSON.
+- **Support matrix:** Unity 6000.0+. With a healthy `com.unity.pipeline` session, runtime `auto` prefers Pipeline / persistent `unity mcp`. Without Pipeline, Legacy HTTP/MCP on loopback is the compatibility backend. `com.unity.pipeline` is not a package dependency. Runtime mode (`legacy` / `pipeline` / `auto`) is in Project Settings > Nexus Unity. Set `legacy` to force HTTP. Explicit `pipeline` does not fall back to HTTP. Legacy HTTP remains fully supported until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release.
+- Legacy HTTP sunset: Legacy remains fully supported. It is not fully deprecated while Unity CLI is pre-release and `com.unity.pipeline` is experimental. Removal is not scheduled until Unity CLI 1.0 stable, non-experimental Pipeline, and one Nexus stable release after Pipeline-primary `auto`.
+- `batch_execute` runs requests serially, accepts at most 50 requests, and rejects nested `batch_execute` calls. Asynchronous capture methods must be called directly, not inside a batch.
 
 MCP bridge:
 
@@ -121,7 +124,7 @@ MCP bridge:
 
 ## Current Compatibility Decisions
 
-The current development line preserves backward compatibility while correcting public contracts found during API stress validation:
+Version 1.6.1 preserves backward compatibility while correcting public contracts found during API stress validation:
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
@@ -131,7 +134,7 @@ The current development line preserves backward compatibility while correcting p
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `get_game_object` includes transform state and a compact component list for cheap write verification; use `inspect_component` for full component properties.
-- Script writes require `confirm: true`, then readiness probes remain busy while the scheduled asset refresh is pending so agents do not race Unity domain reload.
+- Script writes require `confirm: true`, then readiness probes remain busy while the scheduled asset refresh is pending so agents do not race Unity domain reload. A write during an in-flight compile stays busy until a later compile reloads. On macOS that refresh waits for Editor focus, or 15 seconds.
 - Play Mode transitions keep readiness probes busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts an optional explicit `path` plus `base_color` / `color` and `emission_color`, so automation can isolate generated materials in a known project folder and make them visibly distinct.
 - `write_file` and `write_files_batch` create missing parent directories after path validation; `.cs` writes require `confirm: true`.
@@ -156,27 +159,11 @@ For scene work, prefer manager tools:
 
 ## Contributor Validation
 
-Nexus Unity uses GitHub Actions as the contributor enforcement gate. The `Validate package` workflow runs on a maintainer-owned self-hosted Mac runner, not GitHub-hosted runners. It runs the `PR target policy`, `Static validation`, `Python unit tests`, `Documentation quality AI`, and `Unity package smoke` jobs on trusted pushes and pull requests.
+Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scope GitHub App; the checks run on a maintainer-owned Mac. Rules, limits and exceptions live on the CI Scope website (ci.forkhorizon.com) and the pinned gates in [ForkHorizon/ci-gates](https://github.com/ForkHorizon/ci-gates); this repository carries no CI workflow, gate config or linter settings. Unity compile and EditMode tests are not part of this check: run `scripts/prepush-validate.sh --integration` and the Unity EditMode suite locally before merging.
 
 Contributor pull requests target `development`. The `main` branch is release-only and should receive changes only when maintainers prepare or publish a release.
 
-Direct pushes to `main` and `development` are blocked for everyone, including maintainers. Trusted maintainers merge pull requests through GitHub; release changes reach `main` only through a release pull request from `development` or `release/*`. External fork pull requests currently emit a `PR target policy` warning and continue through the same CI pipeline; maintainers should review forked code carefully before merge. When an internal rerun is needed, the manual `Approve external PR for CI` workflow can copy a reviewed fork PR to a trusted `trusted/pr-N` branch and trigger validation there.
-
 Commit authors should use an email address verified on their GitHub account, preferably the GitHub no-reply address shown in account email settings. GitHub contributor statistics depend on account-linked commit identities, so commits made with placeholder or unverified emails may not be attributed even when the pull request is merged. The repository `.mailmap` records known historical identity mappings for local Git reporting; future commits should still be made with the correct verified email.
-
-The local runner must have `self-hosted`, `macOS`, `ARM64`, and `nexus-unity-ci` labels. The AI documentation job additionally requires `nexus-doc-ai`. The runner environment must provide `python3`, `dotnet`, Unity `6000.4.3f1` at `/Applications/Unity/Hub/Editor/6000.4.3f1/Unity.app/Contents/MacOS/Unity`, and Ollama on `http://127.0.0.1:11434`. Workflow-level `concurrency` uses group `nexus-unity-ci` with `queue: max`, so trusted CI runs are processed one at a time and up to 100 pending runs can wait instead of being canceled.
-
-For local feedback, contributors can run `bash scripts/install-git-hooks.sh` once per checkout. This configures Git to use the tracked `.githooks/pre-push` hook, which runs `scripts/prepush-validate.sh --quick` before push. The quick hook always performs package metadata validation, Python bridge compilation, Unity `.meta` pairing checks, Python bridge unit tests, `NexusQualityGate` tests, and the deterministic Roslyn quality gate. It uses `NEXUS_UNITY_HOOK_LIVE=auto` by default: reachable Unity servers run the read-only live smoke check, while temporary server timeouts print `NOTICE` and do not block the push. Use `NEXUS_UNITY_HOOK_LIVE=required` when a live server must be enforced, or `NEXUS_UNITY_HOOK_LIVE=off` for static-only local feedback.
-
-`NexusQualityGate` lives under `tools~/` so Unity ignores the .NET/Roslyn source while GitHub Actions and local scripts can build it. The deterministic gate scans production C# source under `Editor/` and `Runtime/`, fails public/protected types and methods without meaningful XML documentation, fails files over 450 lines, and fails methods over 150 lines. It warns for files over 300 lines and methods over 50 lines.
-
-The required AI quality review runs on the same maintainer-owned runner and requires the additional `nexus-doc-ai` label. The workflow defaults to the local `qwen3-coder:30b-a3b-q4_K_M` model. The AI rubric is pragmatic: it fails misleading, filler, or materially incomplete docs, but it does not require every private helper, minor edge case, or implementation detail.
-
-The same job also runs `NexusQualityGate --checklist-ai required`. That mode reads `.github/pull_request_template.md`, reviews every checkbox item as an independent local-Ollama prompt, and emits a separate `NQG310` annotation with a next action when the repository evidence, CI wiring, docs, or tracked-file inventory clearly contradicts the checklist item. It is intentionally evidence-based: runtime results such as Unity package compilation can be supplied by separate CI jobs, while clear safety issues like tracked generated caches, missing public-doc updates, or unsafe local-only changes are blocked by the checklist AI review.
-
-The reviewer sends `NEXUS_DOC_AI_KEEP_ALIVE` to Ollama on each request, defaults it to `30s`, and unloads the model at the end of the review. The workflow also has an `always()` cleanup step that unloads the same model even when validation fails. For pull requests, the job executes the quality tool from the trusted base branch and treats the pull request checkout as input data. While bootstrapping quality-gate changes, it falls back to the candidate tool when the trusted base branch does not contain `NexusQualityGate` yet or has not learned the `--checklist-ai` option.
-
-The Unity smoke job creates a temporary project under `$RUNNER_TEMP`, installs the candidate package through `file:$GITHUB_WORKSPACE`, imports it with the local Unity editor, scans the Unity log for C# compiler errors and orphan/immutable `.meta` warnings, and verifies that required package dependencies resolved in `packages-lock.json` without Unity Project Auditor packages.
 
 Full local integration validation is explicit:
 
@@ -186,7 +173,7 @@ bash scripts/prepush-validate.sh --integration
 
 Integration validation requires the Unity project to be open and the Nexus Unity server to be running on `http://127.0.0.1:8081/`.
 
-For a focused agent tooling check, run `python3 scripts/agent-tooling-smoke.py`. It exercises server status, raw catalog discovery, scoped usage stats, Nexus Unity window UI automation, snapshot capture, and bridge-side `run_tests_wait` without writing repo-tracked files.
+For a focused agent tooling check, run `python3 scripts/agent-tooling-smoke.py`. It exercises server status, raw catalog discovery, scoped usage stats, Nexus Unity window UI automation, snapshot capture, 20 consecutive Game View and Inspector PNG captures, and bridge-side `run_tests_wait` without writing repo-tracked files.
 
 Before release, maintainers should run a public API stress audit that compares raw `list_tools` output with the MCP bridge catalog, exercises read-only and mutating tool groups in a disposable namespace, and verifies cleanup of generated assets and PlayerPrefs keys.
 
@@ -195,6 +182,8 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 ## Troubleshooting
 
 - Server does not start: change the port in project settings and restart the server window.
+- Client reports `Unity Server unreachable ... Nothing is listening`: the Nexus server is stopped. Open `Window > Nexus Unity` and click `Start Server`. Stopping the server, from the window or from code, also turns off auto-start for later editor sessions.
+- Client gets HTTP 401 or talks to the wrong project: remove any global `nexus-unity` entry (for example in the Claude Desktop config) that points to another project's bridge or holds an old token. Use the project-scoped `.mcp.json` from Auto Setup; the bridge reads the current token from the project `Library` folder.
 - MCP client cannot import `nexus_bridge`: redeploy the bridge from `Window > Nexus Unity > Server`, or point the client directly at the package path.
 - Tool returns `Method not found`: compare the raw Unity catalog from `list_tools` with the MCP catalog in `API_REFERENCE.MD`.
 - File write denied: ensure the target path resolves inside the Unity project root.
@@ -207,24 +196,24 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Public release version: `1.6.0`.
+- Latest public release: `1.6.1`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
 - Do not ship generated caches, local agent folders, `.jules/`, `.DS_Store`, Python bytecode, or native bridge binaries without corresponding source and build instructions.
-- Keep contributor tooling and package-internal tests under Unity-ignored folders such as `tools~/` and `Tests~/` without `.meta` files; Unity will not import those folders, and root `~.meta` entries break immutable PackageCache installs.
+- Package EditMode tests live in `Tests/Editor` with an asmdef guarded by `UNITY_INCLUDE_TESTS`, so consumers compile them only when the package is listed in `testables`. Keep any other contributor tooling under Unity-ignored `~` folders without `.meta` files; Unity does not import those folders, and root `~.meta` entries break immutable PackageCache installs.
 - Do not declare Unity Project Auditor packages as Nexus dependencies. Nexus audit support uses reflection when a host project explicitly installs compatible Project Auditor rules; direct dependencies can add duplicate immutable `.meta` GUID warnings or no-module Console spam during clean installs.
 
 ## Development Versioning Policy
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. Use forms like `1.6.0` for the package version, `v1.6.0` for tags, and `1.6.0` for release titles.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.1`.
 
 During normal development:
 
 - Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
-- Do not change `package.json` from `1.6.0` unless the change is part of a release-preparation commit.
+- Keep `package.json` and visible docs on the latest shipped version until a release is prepared.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
@@ -232,4 +221,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.6.0` for package version `1.6.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.6.1` for package version `1.6.1`.

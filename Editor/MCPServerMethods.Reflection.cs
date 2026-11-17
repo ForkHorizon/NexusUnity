@@ -20,7 +20,7 @@ namespace UnityMCP.Editor
         {
             _methods["symbol_index"] = SymbolIndex;
             _methods["invoke_method"] = InvokeMethod;
-
+            
             // Trigger initial scan
             StartIndexing();
         }
@@ -30,13 +30,13 @@ namespace UnityMCP.Editor
             tools.Add(CreateTool("symbol_index", "Index and search all compiled symbols (Classes, Methods, Fields)", new JObject
             {
                 ["query"] = new JObject { ["type"] = "string", ["description"] = "Fuzzy or Regex search query" },
-                ["type_filter"] = new JObject {
-                    ["type"] = "string",
+                ["type_filter"] = new JObject { 
+                    ["type"] = "string", 
                     ["enum"] = new JArray("Class", "Method", "Field"),
                     ["description"] = "Optional: Filter by symbol type"
                 }
             }));
-
+            
             tools.Add(CreateTool("invoke_method", "Invoke a C# method on a component", new JObject
             {
                 ["instance_id"] = new JObject { ["type"] = "integer" },
@@ -58,13 +58,13 @@ namespace UnityMCP.Editor
 
         private static JToken InvokeMethod(JToken p)
         {
-            if (p == null || p["instance_id"] == null || p["method_name"] == null)
+            if (p == null || p["instance_id"] == null || p["method_name"] == null) 
                 throw new Exception("instance_id and method_name required");
 
             object target = ResolveTarget(p);
             string methodName = p["method_name"].ToString();
             var argsArray = p["arguments"] as JArray ?? new JArray();
-
+            
             var method = ResolveMethod(target, methodName, argsArray);
             var invokeArgs = PrepareArguments(method, argsArray);
 

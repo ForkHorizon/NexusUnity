@@ -56,7 +56,7 @@ namespace UnityMCP.Editor
         private static CancellationTokenSource _cts;
         private static int? _cliPortOverride;
         private const int _MAX_LOGS = 5000;
-
+        
         private static string GetDeterministicProjectKey()
         {
             int hash = 17;
@@ -67,7 +67,7 @@ namespace UnityMCP.Editor
         private static string _prefsKeyCached;
         private static string StablePrefsKey => _prefsKeyCached ?? (_prefsKeyCached = GetDeterministicProjectKey());
         private static string AuthSessionStateKey => StablePrefsKey + "_AuthToken";
-
+        
         private static int _mainThreadId = -1;
         public static int MainThreadId => _mainThreadId;
 
@@ -86,6 +86,7 @@ namespace UnityMCP.Editor
             IsPlayModeTransitionCached =
                 EditorApplication.isPlayingOrWillChangePlaymode != EditorApplication.isPlaying;
             UnityVersionCached = Application.unityVersion;
+            EditorReadiness.NotifyEditorTick(IsCompilingCached, IsUpdatingCached, IsPlayModeTransitionCached);
         }
 
         static MCPServer()
@@ -112,7 +113,7 @@ namespace UnityMCP.Editor
                 SessionState.SetInt("MCP_SessionGen", SessionGeneration);
                 EnsureAuthToken();
             }
-
+            
             RefreshMainThreadCachedState();
             Application.runInBackground = true;
             #if UNITY_EDITOR_OSX
@@ -120,6 +121,7 @@ namespace UnityMCP.Editor
             AppNapBypass.Enable();
             #endif
             MCPServerMethods.Init();
+            Runtime.NexusRuntimeHost.OnEditorInit();
             InitTimeline();
 
             SubscribeEditorEvents();

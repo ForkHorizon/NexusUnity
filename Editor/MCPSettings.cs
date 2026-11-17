@@ -12,7 +12,7 @@ namespace UnityMCP.Editor
     /// Preference values are cached because EditorPrefs access is only safe from the editor main thread. Changing settings affects
     /// the local server port and which Nexus Unity service messages are written to the Unity Console.
     /// </remarks>
-    public static class MCPSettings
+    public static partial class MCPSettings
     {
         private const string _PORT_KEY = "UnityMCP_Server_Port";
         private const string _CONSOLE_LOG_MODE_KEY = "UnityMCP_Console_Log_Mode";
@@ -112,6 +112,11 @@ namespace UnityMCP.Editor
 
         private static bool CanUseEditorPrefs()
         {
+            if (_settingsMainThreadId == -1 && Thread.CurrentThread.ManagedThreadId == MCPServer.MainThreadId)
+            {
+                _settingsMainThreadId = Thread.CurrentThread.ManagedThreadId;
+            }
+
             return _settingsMainThreadId != -1 && Thread.CurrentThread.ManagedThreadId == _settingsMainThreadId;
         }
 
@@ -185,12 +190,14 @@ namespace UnityMCP.Editor
                     EditorGUILayout.Space();
                     DrawServerSettings();
                     GUILayout.Space(12);
+                    DrawRuntimeSettings();
+                    GUILayout.Space(12);
                     DrawConsoleLoggingSettings();
                     GUILayout.Space(10);
                     GUILayout.Label(new GUIContent("Changes to port require server restart.", "Restart the server from the Nexus Unity control panel after changing this setting"), EditorStyles.helpBox);
                 },
 
-                keywords = new HashSet<string>(new[] { "MCP", "Server", "Port", "AI", "Logs", "Console", "Logging" })
+                keywords = new HashSet<string>(new[] { "MCP", "Server", "Port", "AI", "Logs", "Console", "Logging", "Runtime", "Pipeline", "Legacy" })
             };
 
             return provider;

@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor
@@ -19,30 +18,24 @@ namespace UnityMCP.Editor
 
         private static JToken Initialize(JToken p)
         {
-            if (MCPServer.IsCompilingCached || MCPServer.IsUpdatingCached || MCPServer.IsPlayModeTransitionCached || DateTime.UtcNow < _scriptRefreshBusyUntilUtc)
-                throw new Exception("Unity editor is busy compiling, importing assets, or changing play mode.");
+            EditorReadiness.PublishFromEditor();
+            EditorReadiness.Snapshot readiness = EditorReadiness.Published;
+            if (!readiness.Ready)
+                throw new Exception("Unity editor is not ready (" + readiness.Reason + ").");
             return new JObject { ["protocolVersion"] = "2024-11-05", ["serverInfo"] = new JObject { ["name"] = "Unity MCP Server", ["version"] = MCPServer.Version } };
         }
 
         private static JToken GetServerStatus(JToken p)
         {
-            bool isCompiling = MCPServer.IsCompilingCached;
-            bool isUpdating = MCPServer.IsUpdatingCached;
-            bool isPlaying = MCPServer.IsPlayingCached;
-            bool isPaused = MCPServer.IsPausedCached;
-            bool isPlayModeTransition = MCPServer.IsPlayModeTransitionCached;
-            bool isScriptRefreshPending = DateTime.UtcNow < _scriptRefreshBusyUntilUtc;
+            EditorReadiness.Snapshot readiness = EditorReadiness.Published;
+            string busyReason = EditorReadiness.BusyReason(readiness);
             bool isMainThreadResponsive = (DateTime.UtcNow - MCPServer.LastMainThreadTickUtc).TotalSeconds < 5;
-
-            string busyReason = "idle";
-            if (isCompiling) busyReason = "compiling";
-            else if (isUpdating || isScriptRefreshPending) busyReason = "importing";
-            else if (isPlayModeTransition) busyReason = "play_mode_transition";
 
             return new JObject {
                 ["serverAlive"] = MCPServer.IsRunning,
                 ["state"] = MCPServer.State.ToString(),
                 ["busyReason"] = busyReason,
+                ["readiness"] = EditorReadiness.ToJson(readiness),
                 ["lastError"] = MCPServer.LastError,
                 ["port"] = MCPServer.Port,
                 ["sessionId"] = MCPServer.SessionId,
@@ -52,19 +45,20 @@ namespace UnityMCP.Editor
                 ["editorConnected"] = true,
                 ["mainThreadResponsive"] = isMainThreadResponsive,
                 ["editorState"] = new JObject {
-                    ["isPlaying"] = isPlaying,
-                    ["isCompiling"] = isCompiling,
-                    ["isImporting"] = isUpdating || isScriptRefreshPending,
-                    ["isPaused"] = isPaused,
-                    ["isPlayModeTransition"] = isPlayModeTransition
+                    ["isPlaying"] = MCPServer.IsPlayingCached,
+                    ["isCompiling"] = readiness.IsCompiling,
+                    ["isImporting"] = readiness.IsUpdating || busyReason == "importing",
+                    ["isPaused"] = MCPServer.IsPausedCached,
+                    ["isPlayModeTransition"] = readiness.IsPlayTransition
                 },
                 ["commandState"] = new JObject {
                     ["acceptsReadCommands"] = true,
-                    ["acceptsWriteCommands"] = !isCompiling && !isUpdating && !isPlayModeTransition && !isScriptRefreshPending,
+                    ["acceptsWriteCommands"] = readiness.Ready,
                     ["busyReason"] = busyReason
                 },
                 ["lastHeartbeatUtc"] = MCPServer.LastMainThreadTickUtc.ToString("o"),
-                ["sessionGeneration"] = MCPServer.SessionGeneration
+                ["sessionGeneration"] = MCPServer.SessionGeneration,
+                ["runtime"] = Runtime.NexusRuntimeHost.ToStatusJson()
             };
         }
 
@@ -80,7 +74,7 @@ namespace UnityMCP.Editor
 
         private static JToken WaitForReady(JToken p)
         {
-            return !EditorApplication.isCompiling && !EditorApplication.isUpdating;
+            return EditorReadiness.Published.Ready;
         }
     }
 }

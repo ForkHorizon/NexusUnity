@@ -92,17 +92,17 @@ namespace UnityMCP.Editor
         {
             if (p == null || p["path"] == null) throw new System.Exception("path is required");
             string path = ValidateAssetPath(p["path"].ToString());
-
+            
             var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefabAsset == null) throw new System.Exception($"Prefab not found at {path}");
 
             AssetDatabase.OpenAsset(prefabAsset);
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
-
+            
             if (stage != null)
             {
-                return new JObject {
-                    ["status"] = "Success",
+                return new JObject { 
+                    ["status"] = "Success", 
                     ["message"] = $"Opened Prefab Stage for {prefabAsset.name}",
                     ["stage_path"] = stage.assetPath
                 };
@@ -114,7 +114,7 @@ namespace UnityMCP.Editor
         {
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
             if (stage == null) return new JObject { ["status"] = "Failed", ["message"] = "No Prefab Stage is currently open" };
-
+            
             StageUtility.GoToMainStage();
             return new JObject { ["status"] = "Success", ["message"] = "Returned to Main Stage" };
         }
@@ -147,11 +147,11 @@ namespace UnityMCP.Editor
             if (p == null || p["instance_ids"] == null) throw new System.Exception("instance_ids (array) is required");
             var ids = p["instance_ids"] as JArray;
             if (ids == null) throw new System.Exception("instance_ids must be an array");
-
+            
             var objects = ids.Select(token => MCPServerMethods.IdToObject(MCPServerMethods.ExtractIdFromToken(token)))
                              .Where(o => o != null)
                              .ToArray();
-
+            
             Selection.objects = objects;
             return new JObject { ["status"] = "Success", ["message"] = $"Selected {objects.Length} objects" };
         }
@@ -206,7 +206,7 @@ namespace UnityMCP.Editor
 
             SerializedObject so = new SerializedObject(obj);
             SerializedProperty prop = so.FindProperty(p["property_name"].ToString());
-
+            
             if (prop == null) throw new System.Exception($"Property '{p["property_name"]}' not found on {obj.name}");
 
             Undo.RecordObject(obj, $"Set {p["property_name"]}");

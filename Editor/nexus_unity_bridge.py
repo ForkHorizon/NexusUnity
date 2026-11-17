@@ -10,16 +10,17 @@ Supports two modes:
 """
 
 import argparse
-import sys
-
-sys.dont_write_bytecode = True
-
+import importlib
 import json
 import logging
 import os
+import sys
 import threading
 import time
 from typing import Any
+
+# Set before the package modules below are imported so no __pycache__ lands inside the Unity package.
+sys.dont_write_bytecode = True
 
 # Ensure the Editor directory is in sys.path so we can import the module locally
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,9 +37,9 @@ def _read_package_version() -> str:
                 ver = data.get("version")
                 if ver:
                     return ver
-    except Exception:
-        pass
-    return "1.5.0"
+    except (OSError, ValueError):
+        return "1.6.1"
+    return "1.6.1"
 
 
 BRIDGE_VERSION = _read_package_version()
@@ -66,8 +67,13 @@ logging.basicConfig(
     format="%(asctime)s %(name)s %(levelname)s: %(message)s",
 )
 
-from nexus_bridge.schemas import STATIC_TOOLS, STATIC_RESOURCES
-from nexus_bridge.routing import route_tool
+# nexus_bridge reads NEXUS_UNITY_PORT and argv when it is imported, and must not write bytecode into the
+# Unity package, so it is imported only after the setup above.
+_schemas = importlib.import_module("nexus_bridge.schemas")
+_routing = importlib.import_module("nexus_bridge.routing")
+STATIC_TOOLS = _schemas.STATIC_TOOLS
+STATIC_RESOURCES = _schemas.STATIC_RESOURCES
+route_tool = _routing.route_tool
 
 logger = logging.getLogger("nexus_bridge")
 
@@ -154,28 +160,54 @@ def _handle_tool_call(request: dict, req_id) -> dict:
     }
 
 
+def _rpc_initialize(_request: dict, req_id: Any) -> dict:
+    res = {
+        "protocolVersion": "2024-11-05",
+        "capabilities": {"tools": {}, "resources": {}, "prompts": {}},
+        "serverInfo": {"name": "NexusUnity-Bridge", "version": BRIDGE_VERSION},
+    }
+    return {"jsonrpc": "2.0", "id": req_id, "result": res}
+
+
+def _rpc_list_tools(_request: dict, req_id: Any) -> dict:
+    return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
+
+
+def _rpc_list_resources(_request: dict, req_id: Any) -> dict:
+    return {"jsonrpc": "2.0", "id": req_id, "result": {"resources": STATIC_RESOURCES}}
+
+
+def _rpc_read_resource(request: dict, req_id: Any) -> dict:
+    resource_response = read_resource(request.get("params", {}).get("uri", ""))
+    return {"jsonrpc": "2.0", "id": req_id, **resource_response}
+
+
+def _rpc_call_tool(request: dict, req_id: Any) -> dict:
+    return _handle_tool_call(request, req_id)
+
+
+_RPC_METHODS = {
+    "initialize": _rpc_initialize,
+    "tools/list": _rpc_list_tools,
+    "listTools": _rpc_list_tools,
+    "list_tools": _rpc_list_tools,
+    "resources/list": _rpc_list_resources,
+    "listResources": _rpc_list_resources,
+    "resources/read": _rpc_read_resource,
+    "readResource": _rpc_read_resource,
+    "tools/call": _rpc_call_tool,
+    "callTool": _rpc_call_tool,
+}
+
+
 def _handle_rpc_request(request: dict):
     """Build a JSON-RPC response for one request, or None when there is nothing
     to send back (a notification with no id)."""
     method = request.get("method")
     req_id = request.get("id")
-
-    if method == "initialize":
-        res = {
-            "protocolVersion": "2024-11-05",
-            "capabilities": {"tools": {}, "resources": {}, "prompts": {}},
-            "serverInfo": {"name": "NexusUnity-Bridge", "version": BRIDGE_VERSION},
-        }
-        return {"jsonrpc": "2.0", "id": req_id, "result": res}
-    if method in ["tools/list", "listTools", "list_tools"]:
-        return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": STATIC_TOOLS}}
-    if method in ["resources/list", "listResources"]:
-        return {"jsonrpc": "2.0", "id": req_id, "result": {"resources": STATIC_RESOURCES}}
-    if method in ["resources/read", "readResource"]:
-        resource_response = read_resource(request.get("params", {}).get("uri", ""))
-        return {"jsonrpc": "2.0", "id": req_id, **resource_response}
-    if method in ["tools/call", "callTool"]:
-        return _handle_tool_call(request, req_id)
+    handler = _RPC_METHODS.get(method) if isinstance(method, str) else None
+    if handler is not None:
+        return handler(request, req_id)
     if req_id is not None:
         return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": "Method not found"}}
     return None
@@ -205,8 +237,8 @@ def main() -> None:
                 continue
             sys.stdout.write(json.dumps(response) + "\n")
             sys.stdout.flush()
-        except Exception as e:
-            logger.error("Error in bridge loop: %s", e)
+        except Exception:
+            logger.exception("Error in bridge loop")
 
 
 if __name__ == "__main__":

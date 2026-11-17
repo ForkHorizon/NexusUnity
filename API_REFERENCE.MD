@@ -1,10 +1,10 @@
 # Nexus Unity API Reference
 
-Version: `1.6.0`
+Version: `1.6.1`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 117 Unity Editor methods returned by `list_tools`.
+- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.1 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`.
 
 ## Raw HTTP JSON-RPC
@@ -18,7 +18,7 @@ curl -s http://127.0.0.1:8081/ \
   -d '{"jsonrpc":"2.0","method":"get_server_status","params":{},"id":1}'
 ```
 
-Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge; rerun Auto Setup after restarting Unity if the token is stale. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
+Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge. The token persists across Unity restarts, and when it is missing or rejected the bridge rereads the project's `Library/NexusUnityAuthToken.txt`. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
 
 Schema compatibility notes:
 
@@ -29,8 +29,8 @@ Schema compatibility notes:
 - Vector3 fields accept either `{ "x": 0, "y": 1, "z": 0 }` or `[0, 1, 0]`.
 - `set_transform` accepts `position`, `rotation` / `eulerAngles`, and `scale` / `localScale`.
 - `get_game_object` returns `transform.position`, `transform.rotation`, `transform.scale`, and compact `components` data for cheap read-back verification.
-- Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) use cached editor state because they may run on the listener thread.
-- After script writes, readiness probes remain busy until the scheduled asset refresh window has passed.
+- Fast-path health calls (`get_server_status`, `attach_existing_session`, `wait_for_asset_import_idle`, and `wait_for_editor_idle`) read a published readiness snapshot because they may run on the listener thread. `get_server_status.readiness` and `is_editor_idle` share `ready`, `reason`, `reconnect`, and `epoch.compile` / `epoch.reload`. `wait_for_editor_idle` keeps `status` (`Ready`, `Timeout`, `Reloading`) and adds those fields. `Reloading` means the HTTP call stopped because a domain reload is armed; poll again after reconnect. `unity_wait` with `condition: compilation` re-polls `is_editor_idle` and does not call `refresh_asset_database` on its own.
+- After script writes, readiness stays not-ready (`reason: script_write`, then `compiling` or `domain_reload`) until a compile that started after that write reloads and `epoch.reload` advances. A second write during an in-flight compile does not become ready on the older reload. A failed compile settles once the editor is quiet, with `epoch.compile` advanced and `epoch.reload` unchanged; the failure flag is read on the following editor tick because it is stale inside `compilationFinished`. A refresh that compiles nothing returns `reason: already_ready`. On macOS the script refresh waits until the Editor is focused, or 15 seconds, so an unfocused refresh does not settle as a no-op. `wait_for_ready` uses the same predicate and still returns a bare boolean.
 - During Play Mode transitions, readiness probes remain busy until Unity finishes entering or exiting Play Mode.
 - `create_material` accepts optional `path`, `base_color` / `color`, and `emission_color` so callers can create visible materials in a chosen folder.
 - `write_file` and `write_files_batch` create missing parent directories after path validation.
@@ -74,6 +74,9 @@ Schema compatibility notes:
 - `list_player_prefs` / `unity_list_player_prefs`
 - `capture_inspector_screenshot` / `unity_capture_inspector_screenshot`
 - `capture_game_view_screenshot` / `unity_capture_game_view_screenshot`
+- `nexus.project_map` / `unity_nexus.project_map`
+- `nexus.group_compile_errors` / `unity_nexus.group_compile_errors`
+- `nexus.capture_game_view` / `unity_nexus.capture_game_view`
 - `generate_mermaid_diagram` / `unity_generate_mermaid_diagram`
 - `semantic_find` / `unity_semantic_find`
 - `enforce_forced_defaults` / `unity_enforce_forced_defaults`
@@ -157,7 +160,27 @@ Schema compatibility notes:
 - `ui_click` / `unity_ui_click`
 - `ui_input_text` / `unity_ui_input_text`
 
-`batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls.
+`batch_execute` accepts at most 50 requests and rejects nested `batch_execute` calls. Asynchronous methods (`capture_game_view_screenshot`, `nexus.capture_game_view`) cannot run inside a batch and return an error asking you to call them directly.
+
+### Screenshot results
+
+`capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format`, and `image_base64`. The default Game View format remains `png`. Optional Game View parameters are `format` (`png` or `jpg`/`jpeg`), `quality` / `jpeg_quality` (1–100, JPEG only), `width`, `height`, `max_long_edge`, and `include_telemetry`. Output size is capped at 8192 pixels on the longest edge. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
+
+Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (and their `nexus_*` aliases) share one handler and description per command. Each returns the same envelope on Legacy HTTP and, when `com.unity.pipeline` is installed, from the optional Pipeline `[CliCommand]`. Those CLI parameters use the same name, description, order, and default as the canonical descriptor. `list_tools` still publishes type and description only.
+
+```json
+{"ok": true, "data": {}, "error": null, "meta": {"ms": 0, "mode": "legacy", "gen": 1, "request_id": null}}
+```
+
+`data` is the command payload. `nexus.capture_game_view` defaults to JPEG with a 768 px longest edge (`max_dimension` 1024 opts in; 0 keeps the source size). `view` is `game` or `scene`. A `target` name/path or `instance_id` crops Game View to that object, or frames the Scene View on it. `delivery:"file"` returns `file_path` and omits `base64`; the default returns `base64` only. `source` is `game_view` or `scene_view`. Aliases `nexus_look` and `nexus.look` call the same command and are not listed twice. `meta.gen` is the editor session generation (`sessionGeneration` on `get_server_status`), not `compile_epoch`. `meta.mode` is the effective runtime, `legacy` or `pipeline`. A string `request_id` argument is copied into `meta.request_id` and is not the JSON-RPC `id`. These reads are not cached.
+
+`ok: false` is still a JSON-RPC `result`. `error` has `code`, `message`, `retryable`, and `hint`. Codes are `invalid_argument` (not retryable), `unavailable`, `busy`, `timeout` (a failed read, retryable), `capture_failed`, `partial` (compiler errors collected while the editor is compiling; `data` is kept and may be incomplete), `editor_not_ready`, and `internal` (not retryable). Read `ok` and `error`, not `data.success`. `data.success` only means the handler produced a payload. An unknown mutation outcome is `error.outcome: "unknown"` and is never retryable. Stack traces are omitted unless `NEXUS_DEBUG` is set. Legacy raw methods, including `capture_game_view_screenshot`, keep their current JSON. Transport failures such as parse errors and `Timeout waiting for Main Thread` stay JSON-RPC errors.
+
+`get_server_status` includes an additive `runtime` object: `requested` and `effective` are `legacy`, `pipeline`, or `auto`; `eligible` is true when Unity 6000, the Pipeline package, Nexus command registration, a session port file, and a healthy loopback probe all pass. The Project Settings **Runtime** mode defaults to `auto`, which prefers Pipeline on eligible installs and Legacy otherwise. Set the mode to `legacy` to force HTTP immediately. Explicit `pipeline` does not silently fall back to HTTP. HTTP remains supported and is not removed.
+
+`runtime.legacy` publishes the sunset ledger: `deprecated` is false until maturity gates pass, `still_supported` is true, `sunset_status` is `announced`, and `removal` is `not_scheduled`. Removal requires Unity CLI 1.0 stable, non-experimental `com.unity.pipeline`, and one Nexus stable release after Pipeline-primary `auto`. `runtime.unity_cli` is informational (`detected`, `version`, `prerelease`, `stable_1_0_or_newer`); the Editor does not shell out to `unity --version`. `runtime.pipeline` includes `detected`, `version`, `experimental`, `supported`, plus health/session fields. `runtime.legacy_unavailable_reason` is `foreign_project` when another Unity project owns port 8081.
+
+`list_tools` accepts optional `profile`: `core`, `visual`, `scene`, or `compat`. Canonical command ids are listed once; `nexus_*` aliases stay dispatchable without being advertised twice.
 
 ## MCP Bridge Tools
 

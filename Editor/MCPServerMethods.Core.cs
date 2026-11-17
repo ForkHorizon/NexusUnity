@@ -199,7 +199,7 @@ namespace UnityMCP.Editor
             bool structured = p?["structured"]?.Value<bool>() ?? false;
 
             var logs = MCPServer.GetLogsSince(cursor, severities, searchText);
-
+            
             if (structured)
             {
                 logs = CollapseLogs(logs);
@@ -215,10 +215,10 @@ namespace UnityMCP.Editor
         }
 
         private static JToken ClearLogs(JToken p) { MCPServer.ClearLogs(); return new JObject { ["status"] = "Success", ["message"] = "Logs cleared" }; }
-        private static JToken TestCoroutine(JToken p) {
+        private static JToken TestCoroutine(JToken p) { 
             NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[MCP_EXECUTE] test_coroutine");
             EditorApplication.delayCall += () => NexusEditorLog.Log(NexusLogCategory.Diagnostics, "[MCP] Delay call complete");
-            return new JObject { ["status"] = "Success", ["message"] = "Started" };
+            return new JObject { ["status"] = "Success", ["message"] = "Started" }; 
         }
 
         // Cache the tool definitions since they are static and do not change during the session.

@@ -24,7 +24,7 @@ namespace UnityMCP.Editor
         {
             string key = p["key"].ToString();
             string type = p["type"]?.ToString() ?? "string";
-
+            
             if (type == "int") return PlayerPrefs.GetInt(key, p["default"]?.Value<int>() ?? 0);
             if (type == "float") return PlayerPrefs.GetFloat(key, p["default"]?.Value<float>() ?? 0f);
             return PlayerPrefs.GetString(key, p["default"]?.ToString() ?? "");
@@ -35,11 +35,11 @@ namespace UnityMCP.Editor
             string key = p["key"].ToString();
             string type = p["type"]?.ToString() ?? "string";
             JToken value = p["value"];
-
+            
             if (type == "int") PlayerPrefs.SetInt(key, value.Value<int>());
             else if (type == "float") PlayerPrefs.SetFloat(key, value.Value<float>());
             else PlayerPrefs.SetString(key, value.ToString());
-
+            
             PlayerPrefs.Save();
             return "Success";
         }
@@ -277,10 +277,12 @@ namespace UnityMCP.Editor
                 }
             }
 
-            return new JObject {
+            return new JObject { 
                 ["prefs"] = result,
                 ["bundleIdentifier"] = PlayerSettings.applicationIdentifier
             };
         }
     }
 }
+
+

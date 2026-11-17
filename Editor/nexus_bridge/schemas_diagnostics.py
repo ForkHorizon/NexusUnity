@@ -32,7 +32,9 @@ PLAYERPREFS_MANAGER_TOOL: JsonObject = {
                 "required": ["action", "key", "value"],
             },
             {
-                "description": "Delete a PlayerPref entry by key; use key 'all' with confirm true to clear all PlayerPrefs",
+                "description": (
+                    "Delete a PlayerPref entry by key; use key 'all' with confirm true to clear all PlayerPrefs"
+                ),
                 "properties": {
                     "action": {"const": "delete"},
                     "key": {"type": "string"},

@@ -115,8 +115,8 @@ namespace UnityMCP.Editor
 
             if (currentSnapshot == null || currentSnapshot.Count == 0)
             {
-                return new JObject {
-                    ["status"] = "Success",
+                return new JObject { 
+                    ["status"] = "Success", 
                     ["symbols"] = new JArray(),
                     ["message"] = _isIndexing ? "Index is being built..." : "Index is empty"
                 };
@@ -134,8 +134,8 @@ namespace UnityMCP.Editor
                 ["metadata"] = s.Metadata
             }).ToList();
 
-            return new JObject {
-                ["status"] = "Success",
+            return new JObject { 
+                ["status"] = "Success", 
                 ["symbols"] = new JArray(resultList),
                 ["count"] = resultList.Count,
                 ["is_indexing"] = _isIndexing
@@ -160,7 +160,7 @@ namespace UnityMCP.Editor
             }
             catch (ArgumentException)
             {
-                return source.Where(s => s.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                return source.Where(s => s.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 || 
                                        (s.Namespace != null && s.Namespace.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0));
             }
         }

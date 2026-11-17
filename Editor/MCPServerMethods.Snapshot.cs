@@ -54,11 +54,11 @@ namespace UnityMCP.Editor
                 }
             }
 
-            return new JObject
-            {
+            return new JObject 
+            { 
                 ["status"] = "Success",
                 ["scene_name"] = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-                ["hierarchy"] = roots
+                ["hierarchy"] = roots 
             };
         }
 

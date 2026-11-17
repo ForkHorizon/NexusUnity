@@ -46,7 +46,7 @@ namespace UnityMCP.Editor
         public static string RunAudit(bool silent)
         {
             var result = new JObject();
-
+            
             try
             {
                 RunUnityProjectAuditor(result, silent);

@@ -159,6 +159,7 @@ namespace UnityMCP.Editor
             if (type == null) return null;
 
             if (!typeof(Component).IsAssignableFrom(type)) return null;
+            if (type == typeof(Component) || type == typeof(Behaviour) || type == typeof(MonoBehaviour) || type == typeof(Collider)) return null;
             if (type.IsAbstract || type.IsInterface) return null;
 
             return type;
@@ -172,6 +173,7 @@ namespace UnityMCP.Editor
             if (type == null) return null;
 
             if (!typeof(ScriptableObject).IsAssignableFrom(type)) return null;
+            if (type == typeof(ScriptableObject)) return null;
             if (type.IsAbstract || type.IsInterface) return null;
 
             return type;

@@ -125,13 +125,17 @@ repro/
 .hermes/
 .serena/
 .soma/
+# Local research, benchmark, and planning trees. Not package content: never committed or linted.
+NexusFeature~/
+Research~/
+
+# Graphify is a local navigation tool, not package content.
 graphify-out/
-graphify-out/cache/
-graphify-out/*.meta
-graphify-out/cache.meta
-graphify-out/cost.json
-graphify-out/manifest.json
-graphify-out/.graphify_*
+graphify-out.meta
+.graphifyignore
+.graphifyignore.meta
+.pytest_cache/
+.ruff_cache/
 
 # Validation-project-only generated output
 LINT_REPORT.txt
@@ -148,9 +152,41 @@ AUDIT_FINDINGS.md*
 .projectmem/watch.pid
 .projectmem/watch.log
 .projectmem/structure.json
+.projectmem/.current_issue
 
 # Claude Code project registration is generated locally and includes the Nexus auth token.
 .mcp.json
 .mcp.json.bak-*
 CLAUDE.md
+CLAUDE.md.meta
 AGENTS.md.soma-backup-*
+
+# Generated research / benchmark output (keep scripts and reports; ignore result dumps)
+capture-validation-results.*
+capture-validation-results.*.meta
+capture_spikes_report.json
+capture_spikes_report.json.meta
+architecture-benchmark-results.*
+architecture-benchmark-results.*.meta
+agent-tasks-benchmark.json
+agent-tasks-benchmark.json.meta
+ambiguity-validation-results.json
+ambiguity-validation-results.json.meta
+nexus-mcp-tools.json
+nexus-mcp-tools.json.meta
+unity-cli-commands.json
+unity-cli-commands.json.meta
+unity-mcp-tools.json
+unity-mcp-tools.json.meta
+unity-pipeline-commands.json
+unity-pipeline-commands.json.meta
+captures/
+captures.meta
+stabilize-pipeline-capture-results.json
+stabilize-pipeline-capture-results.json.meta
+stabilize-domain-reload-results.json
+stabilize-domain-reload-results.json.meta
+
+# Local Assets-harness symlink so Unity Test Runner can load Tests~/Editor
+EditModeTests/
+EditModeTests.meta

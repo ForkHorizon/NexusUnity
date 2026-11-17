@@ -50,10 +50,10 @@ namespace UnityMCP.Editor
         private static JToken SerializeManagedReference(SerializedProperty prop, bool detailed)
         {
             if (prop.managedReferenceValue == null) return JValue.CreateNull();
-
+            
             JObject result = new JObject();
             result["_type"] = prop.managedReferenceFullTypename;
-
+            
             SerializedProperty child = prop.Copy();
             SerializedProperty end = prop.GetEndProperty();
             if (child.Next(true))

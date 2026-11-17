@@ -25,15 +25,16 @@ namespace UnityMCP.Editor
         private static bool _isMainThread => Thread.CurrentThread.ManagedThreadId == _mainThreadId;
 
         private static readonly Dictionary<string, Func<JToken, JToken>> _methods = new Dictionary<string, Func<JToken, JToken>>();
+        private static readonly Dictionary<string, Func<JToken, System.Threading.Tasks.Task<JToken>>> _asyncMethods = new Dictionary<string, Func<JToken, System.Threading.Tasks.Task<JToken>>>();
 
         internal static void Init()
         {
-            if (_mainThreadId == -1)
+            if (_mainThreadId == -1) 
             {
                 _mainThreadId = Thread.CurrentThread.ManagedThreadId;
                 NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] Main Thread ID captured: {_mainThreadId}");
             }
-
+            
             if (!_isMainThread)
             {
                 NexusEditorLog.Warning(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init called from non-main thread. Registration skipped to avoid state corruption.");
@@ -44,6 +45,7 @@ namespace UnityMCP.Editor
             CacheEnvironmentPaths();
             NexusEditorLog.Log(NexusLogCategory.Api, "[MCP] MCPServerMethods.Init starting...");
             _methods.Clear();
+            _asyncMethods.Clear();
             ClearCache();
             RegisterCoreMethods();
             RegisterSceneMethods();
@@ -64,7 +66,8 @@ namespace UnityMCP.Editor
             RegisterTimelineMethods();
             RegisterContextMethods();
             RegisterDeltaMethods();
-            NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} methods.");        }
+            Commands.NexusLegacyCommandProjection.Register(_methods, _asyncMethods);
+            NexusEditorLog.Log(NexusLogCategory.Api, $"[MCP] MCPServerMethods.Init completed. Registered {_methods.Count} sync and {_asyncMethods.Count} async methods.");        }
 
         /// <summary>
         /// Parses and processes a JSON-RPC request string for the local Nexus Unity server.
@@ -109,12 +112,69 @@ namespace UnityMCP.Editor
             catch (Exception e) { return CreateErrorResponse(null, -32700, $"Parse error (Reader): {e.Message}"); }
         }
 
+        /// <summary>
+        /// Asynchronously processes a JSON-RPC request string for the local Nexus Unity server.
+        /// </summary>
+        /// <remarks>
+        /// When the requested method is registered in the asynchronous methods table, execution awaits the task
+        /// asynchronously without blocking the calling worker thread. Synchronous methods fall back to
+        /// the standard synchronous request processor.
+        /// </remarks>
+        public static async System.Threading.Tasks.Task<string> ProcessJsonRpcAsync(string json)
+        {
+            try
+            {
+                JObject request = JObject.Parse(json);
+                JToken id = request["id"];
+                string method = request["method"]?.ToString();
+                if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
+
+                if (_asyncMethods.TryGetValue(method, out var asyncFunc))
+                {
+                    try
+                    {
+                        JToken result = await asyncFunc(request["params"]).ConfigureAwait(false);
+                        return CreateJsonResponse(id, result);
+                    }
+                    catch (Exception e)
+                    {
+                        return CreateExceptionResponse(id, e);
+                    }
+                }
+
+                return ProcessJsonRequest(request);
+            }
+            catch (Exception e)
+            {
+                return CreateErrorResponse(null, -32700, $"Parse error: {e.Message}");
+            }
+        }
+
         private static string ProcessJsonRequest(JObject request)
         {
             JToken id = request["id"];
             string method = request["method"]?.ToString();
             if (method == null) return CreateErrorResponse(id, -32600, "Method missing");
 
+            if (_asyncMethods.TryGetValue(method, out var asyncFunc))
+            {
+                if (_isMainThread)
+                {
+                    return CreateErrorResponse(id, -32000,
+                        "Asynchronous capture methods cannot complete synchronously on the Unity main thread. Use ProcessJsonRpcAsync.");
+                }
+
+                try
+                {
+                    JToken syncResult = asyncFunc(request["params"]).GetAwaiter().GetResult();
+                    return CreateJsonResponse(id, syncResult);
+                }
+                catch (Exception e)
+                {
+                    return CreateExceptionResponse(id, e);
+                }
+            }
+            
             // Fast-path health checks run on the listener/current thread.
             // Handlers here must only read cached or thread-safe process state.
             if (method == "get_server_status" || method == "attach_existing_session" || method == "wait_for_asset_import_idle" || method == "wait_for_editor_idle") {
@@ -155,8 +215,8 @@ namespace UnityMCP.Editor
             using (var signal = new ManualResetEventSlim(false))
             {
                 MCPServer.Enqueue(() => {
-                    try {
-                        result = ExecuteMethod(method, requestParams);
+                    try { 
+                        result = ExecuteMethod(method, requestParams); 
                     }
                     catch (Exception e) { caughtException = e; }
                     finally { signal.Set(); }
@@ -229,6 +289,9 @@ namespace UnityMCP.Editor
                 {
                     return func(p);
                 }
+
+                if (method != null && _asyncMethods.ContainsKey(method))
+                    throw new Exception($"'{method}' is asynchronous and cannot run inside batch_execute or a synchronous dispatch. Call it directly.");
 
                 throw new Exception($"Method not found: {method}");
             }

@@ -48,7 +48,7 @@ namespace UnityMCP.Editor
 
             bool detailed = p["detailed"]?.Value<bool>() ?? false;
             JArray fieldsFilter = p["fields"] as JArray;
-
+            
             SerializedObject so = new SerializedObject(comp);
             JObject result = new JObject();
 
@@ -60,7 +60,7 @@ namespace UnityMCP.Editor
                     var prop = FindPropertyFuzzy(so, fieldName);
                     if (prop != null)
                     {
-                        try { result[fieldName] = SerializeProperty(prop, detailed); }
+                        try { result[fieldName] = SerializeProperty(prop, detailed); } 
                         catch (Exception e) { NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Serialization error for {fieldName}: {e.Message}"); }
                     }
                 }
@@ -72,7 +72,7 @@ namespace UnityMCP.Editor
                 while (prop.Next(enterChildren))
                 {
                     enterChildren = false; // Only enter children for the root
-                    try { result[prop.name] = SerializeProperty(prop, detailed); }
+                    try { result[prop.name] = SerializeProperty(prop, detailed); } 
                     catch (Exception e) { NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Serialization error for {prop.name}: {e.Message}"); }
                 }
             }
@@ -97,7 +97,7 @@ namespace UnityMCP.Editor
                 var prop = FindPropertyFuzzy(so, fieldName);
                 if (prop != null)
                 {
-                    try { result[fieldName] = SerializeProperty(prop, false); }
+                    try { result[fieldName] = SerializeProperty(prop, false); } 
                     catch (Exception e) { NexusEditorLog.Warning(NexusLogCategory.Api, $"[MCP] Serialization error for {fieldName}: {e.Message}"); }
                 }
                 else
@@ -153,9 +153,9 @@ namespace UnityMCP.Editor
             int updatedCount = UpdateComponentProperties(so, data, errors);
 
             so.ApplyModifiedProperties();
-
-            return new JObject
-            {
+            
+            return new JObject 
+            { 
                 ["status"] = errors.Count == 0 ? "Success" : (updatedCount > 0 ? "Partial" : "Failed"),
                 ["updated_count"] = updatedCount,
                 ["errors"] = errors

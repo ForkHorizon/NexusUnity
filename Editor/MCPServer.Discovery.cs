@@ -17,6 +17,10 @@ namespace UnityMCP.Editor
         // URL confuses simple readability linters that strip comments before
         // strings, so we never place a brace on the same line as this literal.
         private static string LoopbackUrl => $"http://127.0.0.1:{_port}/";
+        private static bool _foreignProjectOwnsPort;
+
+        /// <summary>True when another Unity project already owns the configured Legacy HTTP port.</summary>
+        internal static bool ForeignProjectOwnsLegacyPort => _foreignProjectOwnsPort;
 
         private static System.Net.Http.StringContent JsonRpcContent(string method)
         {
@@ -80,6 +84,7 @@ namespace UnityMCP.Editor
 
             if (remoteProjectPath != localProjectPath)
             {
+                _foreignProjectOwnsPort = true;
                 NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Existing MCP server found on port {_port}. Project does NOT match current workspace. Action required: choose another port or stop the other session. Remote project: {remoteProjectPath} (PID: {remotePid})");
                 return true;
             }
@@ -137,6 +142,7 @@ namespace UnityMCP.Editor
         // if another instance/app owns it (state is set accordingly).
         private static async Task<bool> TryClaimBusyPort()
         {
+            _foreignProjectOwnsPort = false;
             if (await IsAnotherMcpInstanceRunning())
             {
                 _state = ServerState.Attached;

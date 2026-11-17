@@ -14,7 +14,7 @@ namespace UnityMCP.Editor
         private static void RegisterHighValueMethods()
         {
             _methods["capture_inspector_screenshot"] = CaptureInspectorScreenshot;
-            _methods["capture_game_view_screenshot"] = CaptureGameViewScreenshot;
+            _asyncMethods["capture_game_view_screenshot"] = CaptureGameViewScreenshotAsync;
             _methods["generate_mermaid_diagram"] = GenerateMermaidDiagram;
             _methods["semantic_find"] = SemanticFind;
         }
@@ -36,10 +36,10 @@ namespace UnityMCP.Editor
                 }
             }
 
-            return new JObject
-            {
-                ["status"] = "Success",
-                ["mermaid"] = sb.ToString()
+            return new JObject 
+            { 
+                ["status"] = "Success", 
+                ["mermaid"] = sb.ToString() 
             };
         }
 

@@ -36,7 +36,7 @@ namespace UnityMCP.Editor
         private static void RegisterDeltaMethods()
         {
             _methods["scene_delta"] = SceneDelta;
-
+            
             // Register for changes
             ObjectChangeEvents.changesPublished -= OnChangesPublished;
             ObjectChangeEvents.changesPublished += OnChangesPublished;

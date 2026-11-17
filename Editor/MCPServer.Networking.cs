@@ -22,6 +22,7 @@ namespace UnityMCP.Editor
                 _listener.Prefixes.Add($"http://localhost:{_port}/");
                 _listener.Start();
                 _state = ServerState.Running;
+                PublishRuntimeSnapshot();
                 _ = Task.Run(() => ServerLoop(_cts.Token));
                 NexusEditorLog.Log(NexusLogCategory.Server, $"[MCP] Server started on port {_port}", true);
             }
@@ -31,6 +32,7 @@ namespace UnityMCP.Editor
                 _state = ServerState.Error;
                 string owner = GetPortOwner(_port);
                 LastError = $"{e.Message} (Port {_port} owner: {owner})";
+                PublishRuntimeSnapshot();
                 NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Server failed to start: {LastError}");
             }
         }
@@ -100,7 +102,17 @@ namespace UnityMCP.Editor
         {
             try
             {
-                if (IsPortBusy(_port) && !await TryClaimBusyPort()) return;
+                if (IsPortBusy(_port) && !await TryClaimBusyPort())
+                {
+                    if (_foreignProjectOwnsPort && Runtime.NexusRuntimeHost.CanSkipLegacyHttpBind())
+                    {
+                        LastError = "Legacy HTTP port is owned by another Unity project. Pipeline remains the selected runtime.";
+                        _state = ServerState.Stopped;
+                        PublishRuntimeSnapshot();
+                        NexusEditorLog.Warning(NexusLogCategory.Server, "[MCP] " + LastError);
+                    }
+                    return;
+                }
 
                 if (token.IsCancellationRequested) return;
                 #if UNITY_EDITOR_OSX
@@ -112,6 +124,7 @@ namespace UnityMCP.Editor
             {
                 _state = ServerState.Error;
                 LastError = e.Message;
+                PublishRuntimeSnapshot();
                 NexusEditorLog.Error(NexusLogCategory.Server, $"[MCP] Server start error: {e.Message}");
             }
         }
@@ -158,6 +171,18 @@ namespace UnityMCP.Editor
                 }
                 _state = ServerState.Stopped;
             }
+            PublishRuntimeSnapshot();
+        }
+
+        private static void PublishRuntimeSnapshot()
+        {
+            if (Thread.CurrentThread.ManagedThreadId == _mainThreadId)
+            {
+                Runtime.NexusRuntimeHost.PublishSnapshot();
+                return;
+            }
+
+            Enqueue(Runtime.NexusRuntimeHost.PublishSnapshot);
         }
     }
 }

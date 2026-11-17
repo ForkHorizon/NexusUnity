@@ -30,7 +30,7 @@ namespace UnityMCP.Editor
 
             bool detailed = p["detailed"]?.Value<bool>() ?? false;
             var so = new SerializedObject(obj);
-
+            
             JObject result = new JObject();
             var prop = so.GetIterator();
             bool enterChildren = true;
@@ -44,7 +44,7 @@ namespace UnityMCP.Editor
             result["type"] = obj.GetType().Name;
             result["name"] = obj.name;
             result["instance_id"] = obj.GetRawId();
-
+            
             return result;
         }
 

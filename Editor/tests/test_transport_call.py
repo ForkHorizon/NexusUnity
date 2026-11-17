@@ -5,12 +5,9 @@ import json
 import os
 import sys
 import unittest
+import urllib.error
 from typing import Any
 from unittest.mock import patch
-
-EDITOR_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if EDITOR_DIR not in sys.path:
-    sys.path.insert(0, EDITOR_DIR)
 
 from nexus_bridge import _transport as transport_module
 
@@ -35,9 +32,8 @@ class _FakeHttpResponse:
 
 
 def _reload_transport_module(environment: dict[str, str], argv: list[str]) -> Any:
-    with patch.dict(os.environ, environment, clear=True):
-        with patch.object(sys, "argv", argv):
-            return importlib.reload(transport_module)
+    with patch.dict(os.environ, environment, clear=True), patch.object(sys, "argv", argv):
+        return importlib.reload(transport_module)
 
 
 class CallUnityTests(unittest.TestCase):
@@ -96,17 +92,18 @@ class CallUnityTests(unittest.TestCase):
 
     def test_call_unity_retries_once_with_reloaded_token_on_401(self) -> None:
         transport: Any = _reload_transport_module({"NEXUS_UNITY_AUTH_TOKEN": "stale-token"}, ["nexus_unity_bridge.py"])
-        import urllib.error
 
         unauthorized = urllib.error.HTTPError(transport.UNITY_URL, 401, "Unauthorized", {}, None)
         success = _FakeHttpResponse(b'{"result": {"ok": true}}')
 
-        with patch.object(transport, "_read_token_file", return_value="fresh-token"):
-            with patch(
+        with (
+            patch.object(transport, "_read_token_file", return_value="fresh-token"),
+            patch(
                 "nexus_bridge._transport.urllib.request.urlopen",
                 side_effect=[unauthorized, success],
-            ) as mock_urlopen:
-                response: dict[str, Any] = transport.call_unity("get_state")
+            ) as mock_urlopen,
+        ):
+            response: dict[str, Any] = transport.call_unity("get_state")
 
         self.assertEqual({"result": {"ok": True}}, response)
         self.assertEqual(2, mock_urlopen.call_count)
@@ -116,16 +113,17 @@ class CallUnityTests(unittest.TestCase):
 
     def test_call_unity_reports_401_as_auth_failure_not_unreachable(self) -> None:
         transport: Any = _reload_transport_module({"NEXUS_UNITY_AUTH_TOKEN": "stale-token"}, ["nexus_unity_bridge.py"])
-        import urllib.error
 
         unauthorized = urllib.error.HTTPError(transport.UNITY_URL, 401, "Unauthorized", {}, None)
 
-        with patch.object(transport, "_read_token_file", return_value="still-stale"):
-            with patch(
+        with (
+            patch.object(transport, "_read_token_file", return_value="still-stale"),
+            patch(
                 "nexus_bridge._transport.urllib.request.urlopen",
                 side_effect=[unauthorized, unauthorized],
-            ):
-                response: dict[str, Any] = transport.call_unity("get_state")
+            ),
+        ):
+            response: dict[str, Any] = transport.call_unity("get_state")
 
         self.assertIn("error", response)
         self.assertIn("401", response["error"]["message"])

@@ -39,7 +39,7 @@ namespace UnityMCP.Editor
         {
             if (p?["path"] == null) throw new Exception("path required");
             string path = ValidateAssetPath(p["path"].ToString());
-
+            
             string mainGuid = AssetDatabase.AssetPathToGUID(path);
             if (string.IsNullOrEmpty(mainGuid)) throw new Exception($"Asset not found at path: {path}");
 
@@ -47,7 +47,7 @@ namespace UnityMCP.Editor
             if (allAssets == null || allAssets.Length == 0) throw new Exception($"No assets loaded at path: {path}");
 
             var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
-
+            
             JObject result = new JObject { ["guid"] = mainGuid };
             JArray subAssetsArr = new JArray();
 
@@ -61,7 +61,7 @@ namespace UnityMCP.Editor
                     else subAssetsArr.Add(assetData);
                 }
             }
-
+            
             result["sub_assets"] = subAssetsArr;
             return result;
         }
@@ -145,10 +145,10 @@ namespace UnityMCP.Editor
 
         private static JToken RefreshAssetDatabase(JToken p)
         {
-            if (DateTime.UtcNow < _scriptRefreshBusyUntilUtc)
-            {
-                return new JObject { ["status"] = "Compiling", ["is_compiling"] = false, ["is_updating"] = true, ["compiler_errors"] = new JArray() };
-            }
+            EditorReadiness.PublishFromEditor();
+            EditorReadiness.Snapshot readiness = EditorReadiness.Published;
+            if (EditorReadiness.BlocksForcedRefresh(readiness))
+                return new JObject { ["status"] = "Compiling", ["is_compiling"] = readiness.IsCompiling, ["is_updating"] = true, ["compiler_errors"] = new JArray() };
 
             #if UNITY_EDITOR_OSX
             // Signal AppNapBypass to bring Unity to the foreground so compilation can happen.
@@ -168,9 +168,9 @@ namespace UnityMCP.Editor
             var logs = MCPServer.GetLogs(20, "Error", "");
             var compilerErrors = logs.Where(l => l.Message.Contains("error CS")).Select(l => l.Message).ToList();
 
-            return new JObject
-            {
-                ["status"] = compilerErrors.Count > 0 ? "Error" : (EditorApplication.isCompiling ? "Compiling" : "Success"),
+            return new JObject 
+            { 
+                ["status"] = compilerErrors.Count > 0 ? "Error" : (EditorApplication.isCompiling ? "Compiling" : "Success"), 
                 ["is_compiling"] = EditorApplication.isCompiling,
                 ["is_updating"] = EditorApplication.isUpdating,
                 ["compiler_errors"] = new JArray(compilerErrors)
