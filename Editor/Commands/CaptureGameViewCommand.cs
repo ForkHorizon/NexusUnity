@@ -131,7 +131,7 @@ namespace UnityMCP.Editor.Commands
 
             if (!TryParseFormat(FormatOrDefault(call.Format), out CaptureFormat format))
             {
-                call.Rejected = NexusCommandEnvelope.InvalidArgument("Unsupported capture format.", call.RequestId, milliseconds);
+                call.Rejected = NexusCommandEnvelope.InvalidArgument("Unsupported capture encoding. Use jpg or png.", call.RequestId, milliseconds);
                 return false;
             }
 

@@ -7,16 +7,12 @@ Does not call Nexus HTTP. Requires a running Editor with Pipeline on 7800+.
 from __future__ import annotations
 
 import json
-import os
 import statistics
-import subprocess
 import sys
 import time
 from pathlib import Path
 
-PROJ = Path(__file__).resolve().parents[3]  # Unity project root from Assets/NexusUnity/scripts
-if not (PROJ / "Assets").exists():
-    sys.exit("Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at " + str(PROJ) + ").")
+from _unity_cli import nexus
 
 WARMUPS = 20
 MEASURED = 100
@@ -24,28 +20,9 @@ BLOCKING_STALL_MS = 40  # median main-thread stall above this counts as a blocki
 NORMALIZE_SIZE = (1600, 900)
 
 
-def run_cmd(args: list[str], timeout: int = 60) -> dict:
-    env = os.environ.copy()
-    env["UNITY_NO_BANNER"] = "1"
-    env["UNITY_NON_INTERACTIVE"] = "1"
-    proc = subprocess.run(
-        ["unity", "command", "--project-path", str(PROJ), "--json", "--result-only", "--timeout", str(timeout), *args],
-        capture_output=True,
-        text=True,
-        env=env,
-        timeout=timeout + 10,
-        check=False,
-    )
-    raw = (proc.stdout or proc.stderr or "").strip()
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {"success": False, "parse_error": raw[:500], "returncode": proc.returncode}
-
-
-def variant(args: list[str]) -> dict:
+def variant(*flags: str) -> dict:
     t0 = time.perf_counter()
-    data = run_cmd(args)
+    data = nexus("capture_game_view", *flags)
     data["_roundtrip_ms"] = (time.perf_counter() - t0) * 1000.0
     return data
 
@@ -55,7 +32,7 @@ def main() -> int:
     errors = 0
     for i in range(WARMUPS + MEASURED):
         t0 = time.perf_counter()
-        data = run_cmd(["nexus_capture_game_view"])
+        data = nexus("capture_game_view")
         rt = (time.perf_counter() - t0) * 1000.0
         ok = bool(data.get("success")) and data.get("encoding") == "jpg" and data.get("width", 0) > 0
         if not ok:
@@ -75,12 +52,13 @@ def main() -> int:
                 }
             )
 
-    # CLI args are positional (width, height, format, quality, max_dimension).
-    # Do not pass format=png: global --format collides, and named args bind the next flag.
-    png = variant(["nexus_capture_game_view", "0", "0", "png"])
-    q50 = variant(["nexus_capture_game_view", "0", "0", "jpg", "50"])
-    norm = variant(["nexus_capture_game_view", str(NORMALIZE_SIZE[0]), str(NORMALIZE_SIZE[1]), "jpg"])
-    bad = variant(["nexus_capture_game_view", "0", "0", "bmp"])
+    # Encoding is --encoding: Pipeline reserves --format for its own output format.
+    png = variant("--encoding", "png")
+    q50 = variant("--encoding", "jpg", "--quality", "50")
+    norm = variant(
+        "--width", str(NORMALIZE_SIZE[0]), "--height", str(NORMALIZE_SIZE[1]), "--encoding", "jpg", "--max-dimension", "0"
+    )
+    bad = variant("--encoding", "bmp")
 
     stalls = [s["main_thread_stall_ms"] for s in samples if isinstance(s["main_thread_stall_ms"], (int, float))]
     waits = [s["wait_ms"] for s in samples if isinstance(s["wait_ms"], (int, float))]

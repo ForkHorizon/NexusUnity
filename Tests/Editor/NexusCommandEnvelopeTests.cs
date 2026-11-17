@@ -97,7 +97,7 @@ namespace UnityMCP.Editor.Tests
                 Assert.IsFalse(result["error"]["retryable"].Value<bool>());
                 Assert.IsFalse(string.IsNullOrEmpty(result["error"]["hint"]?.ToString()));
                 Assert.AreEqual(JTokenType.Null, result["data"].Type);
-                Assert.AreEqual("Unsupported capture format.", result["error"]["message"].Value<string>());
+                Assert.AreEqual("Unsupported capture encoding. Use jpg or png.", result["error"]["message"].Value<string>());
                 AssertNoPending(result);
                 AssertNoStack(result);
             }
