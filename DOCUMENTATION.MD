@@ -41,6 +41,8 @@ Console logging defaults to `Important`, which keeps the Unity Console focused o
 
 ## MCP Client Configuration
 
+With `com.unity.pipeline` 1.0.0+ installed, with `com.unity.pipeline` 1.0.0+ installed, prefer Unity's own setup: `unity setup <client>` (or `unity setup all`) installs the Unity plugin and skills, and `unity mcp configure <client>` writes the `unity mcp` server entry, which also exposes the `nexus` command group. The Nexus `Integrations` installers are frozen (maintenance-only): they still configure the Legacy `nexus-unity` bridge, but get no new clients.
+
 The `Integrations` tab builds all snippets from the resolved Python interpreter and the project-root bridge path `nexus_unity_bridge.py`. Auto setup deploys the bridge first. JSON-style clients use `mcpServers.nexus-unity`, VS Code-compatible clients use `.vscode/mcp.json` with `servers.nexus-unity`, Claude Code uses a project-root `.mcp.json` with `mcpServers.nexus-unity`, and Codex uses `[mcp_servers.nexus-unity]` in TOML.
 
 Claude Code and Claude Desktop are distinct products with distinct config locations. The Claude Code card registers `nexus-unity` in `<projectRoot>/.mcp.json` (via the `claude` CLI when it is on `PATH`, otherwise by writing the file directly). If the CLI cannot remove a stale registration, setup skips its add command and writes `.mcp.json` directly instead; the CLI error is logged for diagnosis. The Claude Desktop card writes the desktop app config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows). Claude Code does not read the desktop config.

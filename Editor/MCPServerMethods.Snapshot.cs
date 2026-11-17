@@ -9,6 +9,34 @@ namespace UnityMCP.Editor
 {
     public static partial class MCPServerMethods
     {
+        /// <summary>Default node cap for dump_scene_graph / compact_scene_snapshot; max_nodes 0 disables it.</summary>
+        internal const int DefaultSnapshotMaxNodes = 200;
+
+        // ponytail: one shared counter, depth-first; a fair per-branch budget can come with nexus_snapshot.
+        internal sealed class SnapshotWalk
+        {
+            internal int MaxDepth = 5;
+            internal bool IncludeAllProperties;
+            internal bool Compact;
+            internal int Remaining = int.MaxValue;
+            internal int Count;
+            internal bool Truncated;
+
+            internal SnapshotWalk WithMaxNodes(int maxNodes)
+            {
+                Remaining = maxNodes > 0 ? maxNodes : int.MaxValue;
+                return this;
+            }
+
+            internal bool Take()
+            {
+                if (Remaining <= 0) { Truncated = true; return false; }
+                Remaining--;
+                Count++;
+                return true;
+            }
+        }
+
         private static void RegisterSnapshotMethods()
         {
             _methods["dump_scene_graph"] = DumpSceneGraph;
@@ -23,20 +51,23 @@ namespace UnityMCP.Editor
             return DumpSceneGraph(jo);
         }
 
-        private static JToken DumpSceneGraph(JToken p)
+        internal static JToken DumpSceneGraph(JToken p)
         {
             var rootId = ExtractId(p, "root_id");
-            int maxDepth = p?["max_depth"]?.Value<int>() ?? 5;
-            bool includeAllProperties = p?["include_all_properties"]?.Value<bool>() ?? false;
-            bool compact = p?["compact"]?.Value<bool>() ?? false;
+            var walk = new SnapshotWalk
+            {
+                MaxDepth = p?["max_depth"]?.Value<int>() ?? 5,
+                IncludeAllProperties = p?["include_all_properties"]?.Value<bool>() ?? false,
+                Compact = p?["compact"]?.Value<bool>() ?? false
+            }.WithMaxNodes(p?["max_nodes"]?.Value<int>() ?? DefaultSnapshotMaxNodes);
 
             JArray roots = new JArray();
             if (rootId != default)
             {
                 var rootGo = IdToObject(rootId) as GameObject;
-                if (rootGo != null)
+                if (rootGo != null && walk.Take())
                 {
-                    roots.Add(SerializeSceneNode(rootGo, 0, maxDepth, includeAllProperties, compact));
+                    roots.Add(SerializeSceneNode(rootGo, 0, walk));
                 }
             }
             else
@@ -49,20 +80,29 @@ namespace UnityMCP.Editor
                     activeScene.GetRootGameObjects(rootGOs);
                     foreach (var go in rootGOs)
                     {
-                        roots.Add(SerializeSceneNode(go, 0, maxDepth, includeAllProperties, compact));
+                        if (!walk.Take()) break;
+                        roots.Add(SerializeSceneNode(go, 0, walk));
                     }
                 }
             }
 
-            return new JObject 
-            { 
+            var result = new JObject
+            {
                 ["status"] = "Success",
                 ["scene_name"] = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-                ["hierarchy"] = roots 
+                ["hierarchy"] = roots,
+                ["node_count"] = walk.Count,
+                ["truncated"] = walk.Truncated
             };
+            if (walk.Truncated)
+            {
+                result["hint"] = "Node limit reached. Pass root_id, a smaller max_depth, compact=true, or a larger max_nodes (0 = no limit).";
+            }
+
+            return result;
         }
 
-        internal static JObject SerializeSceneNode(GameObject go, int currentDepth, int maxDepth, bool includeAllProperties, bool compact = false)
+        internal static JObject SerializeSceneNode(GameObject go, int currentDepth, SnapshotWalk walk)
         {
             JObject node = new JObject
             {
@@ -70,7 +110,7 @@ namespace UnityMCP.Editor
                 ["instance_id"] = go.GetRawId()
             };
 
-            if (compact)
+            if (walk.Compact)
             {
                 node["components"] = SerializeComponentNames(go);
             }
@@ -79,15 +119,16 @@ namespace UnityMCP.Editor
                 node["active"] = go.activeSelf;
                 node["tag"] = go.tag;
                 node["layer"] = LayerMask.LayerToName(go.layer);
-                node["components"] = SerializeComponentSnapshots(go, includeAllProperties);
+                node["components"] = SerializeComponentSnapshots(go, walk.IncludeAllProperties);
             }
 
-            if (currentDepth < maxDepth)
+            if (currentDepth < walk.MaxDepth)
             {
                 JArray children = new JArray();
                 foreach (Transform child in go.transform)
                 {
-                    children.Add(SerializeSceneNode(child.gameObject, currentDepth + 1, maxDepth, includeAllProperties, compact));
+                    if (!walk.Take()) break;
+                    children.Add(SerializeSceneNode(child.gameObject, currentDepth + 1, walk));
                 }
                 if (children.Count > 0) node["children"] = children;
             }
