@@ -4,6 +4,9 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- Claude Code and other Claude clients saw the nine manager tools (`unity_scene_manager`, `unity_hierarchy_manager`, `unity_component_manager`, `unity_search_manager`, `unity_asset_manager`, `unity_editor_controller`, `unity_ui_automation`, `unity_wait`, `unity_playerprefs_manager`) with no parameters, so every call failed with `Invalid action: None`. Their input schemas used `oneOf` at the top level, which Claude's tool API does not accept. `tools/list` now advertises one flat object schema per tool: all parameters, the action key as a required `enum`, and each action's required parameters in its description. Routing and per-action validation are unchanged.
+
 ## [1.6.1] - 2026-11-17
 
 This release ships the work previously tracked as the `1.7.0` development line: canonical `nexus.*` commands with one response envelope, Capture V2, optional Unity Pipeline support, reliable Editor readiness, and fixes that keep AI clients connected to the server.
