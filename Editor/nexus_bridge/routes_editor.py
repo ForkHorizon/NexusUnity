@@ -21,21 +21,29 @@ from .schemas import MCP_TOOLS
 
 def _poll_test_results(
     start_time: float, timeout: float, poll_interval: float, prev_time: str | None, result_path: str | None
-) -> JsonRpcResponse | None:
+) -> tuple[JsonRpcResponse | None, str | None]:
+    """Poll until new results appear; returns (response or None on timeout, last unreachable error)."""
+    last_unreachable: str | None = None
     while time.time() - start_time < timeout:
         params = {"result_path": result_path} if result_path else {}
         current_resp = _transport.call_unity("get_test_results", params)
-        if current_resp and "error" in current_resp:
-            return current_resp
-
-        payload = _result_object(current_resp)
-        if payload.get("status") == "Success" and payload.get("timestamp_utc") != prev_time:
-            test_results = dict(payload)
-            test_results["time_waited_seconds"] = round(time.time() - start_time, 2)
-            return {"result": test_results}
+        error = current_resp.get("error") if current_resp else None
+        if error:
+            message = str(error.get("message", ""))
+            # The package tests stop and restart the server, and a run can trigger a domain reload,
+            # so the server drops out for a few seconds mid-run. Keep polling until the timeout.
+            if not message.startswith("Unity Server unreachable"):
+                return current_resp, last_unreachable
+            last_unreachable = message
+        else:
+            payload = _result_object(current_resp)
+            if payload.get("status") == "Success" and payload.get("timestamp_utc") != prev_time:
+                test_results = dict(payload)
+                test_results["time_waited_seconds"] = round(time.time() - start_time, 2)
+                return {"result": test_results}, last_unreachable
 
         time.sleep(poll_interval)
-    return None
+    return None, last_unreachable
 
 
 def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
@@ -57,7 +65,7 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
         return {"result": trigger_payload}
 
     result_path = trigger_payload.get("result_path")
-    polled = _poll_test_results(start_time, timeout, poll_interval, prev_time, result_path)
+    polled, last_unreachable = _poll_test_results(start_time, timeout, poll_interval, prev_time, result_path)
     if polled is not None:
         return polled
 
@@ -69,6 +77,8 @@ def _run_tests_wait(args: JsonObject) -> JsonRpcResponse:
     }
     if isinstance(result_path, str):
         timeout_result["result_path"] = result_path
+    if last_unreachable:
+        timeout_result["last_error"] = last_unreachable
     return {"result": timeout_result}
 
 

@@ -148,6 +148,60 @@ class RunTestsWaitTests(unittest.TestCase):
         self.assertEqual("Timed out waiting for a new Unity TestResults XML file.", response["result"]["message"])
         mock_sleep.assert_called_once_with(1.0)
 
+    def test_run_tests_wait_keeps_polling_while_the_server_restarts(self) -> None:
+        unreachable = {"error": {"code": -32000, "message": "Unity Server unreachable. Error: refused"}}
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Submitted", "result_path": "/tmp/TestResults.xml"}},
+            unreachable,
+            unreachable,
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:09Z"}},
+        ]
+
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results),
+            patch("nexus_bridge.routes_editor.time.time", side_effect=[0.0, 0.0, 1.0, 2.0, 3.0]),
+            patch("nexus_bridge.routes_editor.time.sleep") as mock_sleep,
+        ):
+            response: dict[str, Any] = routing._run_tests_wait({})
+
+        self.assertEqual("2026-06-11T00:00:09Z", response["result"]["timestamp_utc"])
+        self.assertEqual(2, mock_sleep.call_count)
+
+    def test_run_tests_wait_reports_the_last_unreachable_error_on_timeout(self) -> None:
+        unreachable = {"error": {"code": -32000, "message": "Unity Server unreachable. Error: refused"}}
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Submitted"}},
+            unreachable,
+        ]
+
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results),
+            patch("nexus_bridge.routes_editor.time.time", side_effect=[0.0, 0.0, 5.1, 5.1]),
+            patch("nexus_bridge.routes_editor.time.sleep"),
+        ):
+            response: dict[str, Any] = routing._run_tests_wait({"timeout_seconds": 5.0})
+
+        self.assertEqual("Timeout", response["result"]["status"])
+        self.assertEqual(unreachable["error"]["message"], response["result"]["last_error"])
+
+    def test_run_tests_wait_returns_other_errors_immediately(self) -> None:
+        refused = {"error": {"code": -32000, "message": "Unity Server returned HTTP 403 Forbidden."}}
+        call_results: list[dict[str, Any]] = [
+            {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},
+            {"result": {"status": "Submitted"}},
+            refused,
+        ]
+
+        with (
+            patch("nexus_bridge._transport.call_unity", side_effect=call_results),
+            patch("nexus_bridge.routes_editor.time.time", side_effect=[0.0, 0.0]),
+        ):
+            response: dict[str, Any] = routing._run_tests_wait({})
+
+        self.assertEqual(refused, response)
+
     def test_run_tests_wait_returns_non_submitted_trigger_without_polling(self) -> None:
         call_results: list[dict[str, Any]] = [
             {"result": {"status": "Success", "timestamp_utc": "2026-06-11T00:00:00Z"}},

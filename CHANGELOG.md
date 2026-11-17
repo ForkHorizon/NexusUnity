@@ -17,6 +17,7 @@ All notable public changes to Nexus Unity are documented here.
 - The `Integrations` client installers (`MCPCliInstaller`) are frozen and maintenance-only. With `com.unity.pipeline` 1.0.0+, use `unity setup <client>` and `unity mcp configure <client>`.
 
 ### Fixed
+- `unity_editor_controller` `run_tests_wait` no longer fails with `Unity Server unreachable` partway through a run. The package EditMode tests stop and restart the server, so polling briefly lost the connection and returned that error. The bridge now keeps polling until results appear or `timeout_seconds` ends; a timeout reports the last connection error as `last_error`.
 - `com.unity.pipeline` versions with any SemVer pre-release suffix (for example `1.0.0-pre.1`) now count as pre-release. Before, only `exp`, `preview`, `alpha`, and `beta` did.
 - Removed the `CS0618` warning for `EditorUtility.InstanceIDToObject` in capture target resolution on Unity 6000.3+.
 - `nexus.capture_game_view` rejects an unsupported encoding with `Unsupported capture encoding. Use jpg or png.` instead of `Unsupported capture format.`
