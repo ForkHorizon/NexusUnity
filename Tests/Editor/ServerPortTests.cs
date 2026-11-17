@@ -96,27 +96,20 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
-        public async Task Start_WithPort0_AssignsDynamicPort()
+        public async Task Start_OnFreeLoopbackPort_BindsThatPort()
         {
             LogAssert.ignoreFailingMessages = true;
+            int originalPort = MCPServer.Port;
             try
             {
-                int originalPort = MCPSettings.Port;
-                MCPSettings.Port = 0;
-
-                try
-                {
-                    await StartTestServerAsync();
-                    Assert.Greater(MCPServer.Port, 0, "Server should have a dynamic port > 0");
-                }
-                finally
-                {
-                    MCPServer.Stop();
-                    MCPSettings.Port = originalPort;
-                }
+                int port = await StartTestServerAsync();
+                Assert.AreEqual(port, MCPServer.Port, "Server should bind the port it was given.");
+                Assert.IsTrue(IsPortBusy(port), "Server should listen on its port.");
             }
             finally
             {
+                MCPServer.Stop();
+                MCPServer.Port = originalPort;
                 LogAssert.ignoreFailingMessages = false;
             }
         }
@@ -135,45 +128,41 @@ namespace UnityMCP.Editor.Tests
         public async Task WebSocketConnection_DoesNotBlockConcurrentHttpRequests()
         {
             LogAssert.ignoreFailingMessages = true;
+            int originalPort = MCPServer.Port;
             try
             {
-                int originalPort = MCPSettings.Port;
-                MCPSettings.Port = 0;
+                int port = await StartTestServerAsync();
+                string token = MCPServer.AuthToken;
 
-                try
+                using (var ws = new System.Net.WebSockets.ClientWebSocket())
                 {
-                    await StartTestServerAsync();
-                    int port = MCPServer.Port;
-                    string token = MCPServer.AuthToken;
+                    ws.Options.SetRequestHeader("X-Nexus-Unity-Token", token);
+                    var connectTask = ws.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/"), CancellationToken.None);
+                    var completedTask = await Task.WhenAny(connectTask, Task.Delay(2000));
+                    Assert.AreEqual(connectTask, completedTask, "WebSocket should connect within 2s");
 
-                    using (var ws = new System.Net.WebSockets.ClientWebSocket())
+                    await VerifyConcurrentHttpRequestAsync(port, token);
+
+                    if (ws.State == System.Net.WebSockets.WebSocketState.Open)
                     {
-                        ws.Options.SetRequestHeader("X-Nexus-Unity-Token", token);
-                        var connectTask = ws.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/"), CancellationToken.None);
-                        var completedTask = await Task.WhenAny(connectTask, Task.Delay(2000));
-                        Assert.AreEqual(connectTask, completedTask, "WebSocket should connect within 2s");
-
-                        await VerifyConcurrentHttpRequestAsync(port, token);
-
-                        if (ws.State == System.Net.WebSockets.WebSocketState.Open)
-                        {
-                            await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "Test done", CancellationToken.None);
-                        }
+                        await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "Test done", CancellationToken.None);
                     }
-                }
-                finally
-                {
-                    MCPServer.Stop();
-                    MCPSettings.Port = originalPort;
                 }
             }
             finally
             {
+                MCPServer.Stop();
+                MCPServer.Port = originalPort;
                 LogAssert.ignoreFailingMessages = false;
             }
         }
 
-        private async Task StartTestServerAsync()
+        /// <summary>
+        /// Starts the server on a free loopback port, never the default one, so another Editor that owns the default
+        /// port (with Pipeline selected, Start then stays Stopped by design) cannot fail these tests.
+        /// </summary>
+        /// <returns>The port the test server was given.</returns>
+        private async Task<int> StartTestServerAsync()
         {
             if (MCPServer.State != ServerState.Stopped)
             {
@@ -181,6 +170,8 @@ namespace UnityMCP.Editor.Tests
                 await Task.Delay(200);
             }
 
+            int port = FreeLoopbackPort();
+            MCPServer.Port = port;
             MCPServer.Start();
             int timeout = 50;
             while (MCPServer.State == ServerState.Starting && timeout-- > 0)
@@ -189,6 +180,32 @@ namespace UnityMCP.Editor.Tests
             }
 
             Assert.AreEqual(ServerState.Running, MCPServer.State, "Server should be running");
+            return port;
+        }
+
+        private static int FreeLoopbackPort()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            return port;
+        }
+
+        private static bool IsPortBusy(int port)
+        {
+            try
+            {
+                using (var client = new TcpClient())
+                {
+                    client.Connect(IPAddress.Loopback, port);
+                    return true;
+                }
+            }
+            catch (SocketException)
+            {
+                return false;
+            }
         }
 
         private async Task VerifyConcurrentHttpRequestAsync(int port, string token)

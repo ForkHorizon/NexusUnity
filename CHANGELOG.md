@@ -4,7 +4,17 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Changed
+- **Breaking (Unity CLI):** with `com.unity.pipeline` 1.0.0 or newer, the Nexus Pipeline commands move into the `nexus` group: `unity command nexus project_map`, `unity command nexus group_compile_errors`, `unity command nexus capture_game_view`. The global `nexus_*` names remain on older Pipeline versions. HTTP and MCP names are unchanged.
+- **Breaking (Unity CLI):** Pipeline CLI flags are kebab-case on every Pipeline version: `--max-logs`, `--max-dimension`, `--instance-id`, `--request-id`. HTTP/MCP keys stay snake_case.
+- `nexus.capture_game_view` takes the image encoding as `encoding` (`jpg` or `png`). HTTP still accepts the deprecated `format` key when `encoding` is absent, and `max_long_edge` when `max_dimension` is absent. `list_tools` advertises `encoding`.
+- On Pipeline 1.0.0 or newer, the three Nexus commands declare `CommandEffect.ReadOnly`, so `unity command` and MCP clients see them as read-only.
+
 ### Fixed
+- `nexus.capture_game_view` rejects an unsupported encoding with `Unsupported capture encoding. Use jpg or png.` instead of `Unsupported capture format.`
+- `scripts/stabilize-pipeline-capture.py` and `scripts/stabilize-domain-reload.py` work again: they read the `{ok, data, error, meta}` envelope, use `--encoding` and other named flags, and call the grouped `nexus` / `script recompile` commands on Pipeline 1.0.0+ (shared helper `scripts/_unity_cli.py`).
+- Package EditMode `ServerPortTests` failed when another Unity project's Nexus server owned the default port and Pipeline 1.0.0 was the selected runtime (the server correctly stays stopped then). The tests now start the server on their own free loopback port. `Start_WithPort0_AssignsDynamicPort` is renamed `Start_OnFreeLoopbackPort_BindsThatPort`, because the port setting never resolves to 0.
+- `unity command ... --encoding png` now switches the capture to PNG. The old `--format png` flag never reached Nexus, because Pipeline 1.0.0 reserves `--format` for its own output format.
 - Claude Code and other Claude clients saw the nine manager tools (`unity_scene_manager`, `unity_hierarchy_manager`, `unity_component_manager`, `unity_search_manager`, `unity_asset_manager`, `unity_editor_controller`, `unity_ui_automation`, `unity_wait`, `unity_playerprefs_manager`) with no parameters, so every call failed with `Invalid action: None`. Their input schemas used `oneOf` at the top level, which Claude's tool API does not accept. `tools/list` now advertises one flat object schema per tool: all parameters, the action key as a required `enum`, and each action's required parameters in its description. Routing and per-action validation are unchanged.
 
 ## [1.6.1] - 2026-11-17

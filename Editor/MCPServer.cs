@@ -185,7 +185,11 @@ namespace UnityMCP.Editor
         }
         #endif
 
-        public static int Port => _port;
+        /// <summary>
+        /// Gets the port the server binds or attached to. Tests set it to a free loopback port before <see cref="Start"/>
+        /// so they never contend for the default port with another Editor.
+        /// </summary>
+        public static int Port { get => _port; internal set => _port = value; }
         public static bool IsRunning => _state == ServerState.Running;
     }
 }

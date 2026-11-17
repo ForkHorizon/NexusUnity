@@ -22,6 +22,11 @@
             "name": "com.unity.pipeline",
             "expression": "0.0.0-exp",
             "define": "NEXUS_HAS_PIPELINE"
+        },
+        {
+            "name": "com.unity.pipeline",
+            "expression": "1.0.0",
+            "define": "NEXUS_PIPELINE_1_0_OR_NEWER"
         }
     ],
     "noEngineReferences": false

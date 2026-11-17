@@ -22,10 +22,16 @@ namespace UnityMCP.Editor.Tests
     /// </summary>
     public class NexusCommandCliDriftTests
     {
+        private const string CliCommandFullName = "Unity.Pipeline.Commands.CliCommandAttribute";
+        private const string CliArgFullName = "Unity.Pipeline.Commands.CliArgAttribute";
+
+        /// <summary>Pipeline 1.0.0 executor options, read before any command parameter binds. No Nexus flag may use one.</summary>
+        private static readonly string[] ReservedPipelineOptions = { "format", "json", "fields", "verbose", "omit-nulls", "log-level", "log-format" };
+
         [Test]
         public void CliArgsMatchCanonicalDescriptors()
         {
-            const string attributeName = "Unity.Pipeline.Commands.CliCommandAttribute";
+            const string attributeName = CliCommandFullName;
             bool pipelineLoaded = AssemblyLoaded("Unity.Pipeline") || AssemblyLoaded("Unity.Pipeline.Attributes");
             Type cliCommand = FindType("Unity.Pipeline", attributeName) ?? FindType("Unity.Pipeline.Attributes", attributeName);
             if (!pipelineLoaded)
@@ -39,15 +45,17 @@ namespace UnityMCP.Editor.Tests
             Assert.IsNotNull(commands, "Pipeline is loaded but the Nexus CLI projection did not compile.");
             MethodInfo[] methods = commands.Assembly.GetTypes()
                 .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly))
-                .Where(method => AttributeNamed(method, "CliCommandAttribute") != null)
+                .Where(method => AttributeNamed(method, CliCommandFullName) != null)
                 .ToArray();
 
             Assert.AreEqual(NexusCommandRegistry.All.Count, methods.Length, "Each canonical command has one CLI wrapper.");
             var seen = new HashSet<string>();
             foreach (MethodInfo method in methods)
             {
-                object commandAttribute = AttributeNamed(method, "CliCommandAttribute");
-                string cliName = (string)Property(commandAttribute, "Name");
+                object commandAttribute = AttributeNamed(method, CliCommandFullName);
+                Assert.AreSame(cliCommand, commandAttribute.GetType(), "A decoy attribute with the same short name is not the Pipeline CliCommand.");
+                string cliName = CliAlias(commandAttribute);
+                AssertGroupAndEffect(cliName, commandAttribute);
                 string help = (string)Property(commandAttribute, "Description");
                 Assert.IsTrue(seen.Add(cliName), "Duplicate CLI command " + cliName);
 
@@ -68,12 +76,38 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual("nexus.look", CaptureGameViewCommand.LookDotAlias);
             AssertCliCompileBodyUsesItsMaxLogsArgument(methods);
             AssertCliCaptureBodyReachesTheGateway(methods);
+            AssertCliCaptureForwardsViewAndDelivery(methods);
+        }
+
+        /// <summary>
+        /// The Nexus alias a CLI command answers to: <c>nexus capture_game_view</c> on Pipeline 1.0.0+ maps to
+        /// <c>nexus_capture_game_view</c>; older Pipelines register that global name directly.
+        /// </summary>
+        private static string CliAlias(object commandAttribute)
+        {
+            PropertyInfo group = commandAttribute.GetType().GetProperty("Group");
+            string name = (string)Property(commandAttribute, "Name");
+            string groupName = group == null ? null : (string)group.GetValue(commandAttribute);
+            return groupName == null || groupName == "global" ? name : groupName + "_" + name;
+        }
+
+        /// <summary>Pipeline 1.0.0+ exposes Group and Effect: every Nexus command is grouped and read-only there.</summary>
+        private static void AssertGroupAndEffect(string cliName, object commandAttribute)
+        {
+            PropertyInfo effect = commandAttribute.GetType().GetProperty("Effect");
+            if (effect == null) return;
+            Assert.AreEqual("ReadOnly", effect.GetValue(commandAttribute).ToString(), cliName + " must declare CommandEffect.ReadOnly.");
+            Assert.AreEqual("nexus", (string)Property(commandAttribute, "Group"), cliName + " must be in the nexus group.");
+        }
+
+        private static MethodInfo CliMethod(MethodInfo[] methods, string alias)
+        {
+            return methods.Single(method => CliAlias(AttributeNamed(method, CliCommandFullName)) == alias);
         }
 
         private static void AssertCliCompileBodyUsesItsMaxLogsArgument(MethodInfo[] methods)
         {
-            MethodInfo compile = methods.Single(method =>
-                (string)Property(AttributeNamed(method, "CliCommandAttribute"), "Name") == GroupCompileErrorsCommand.Alias);
+            MethodInfo compile = CliMethod(methods, GroupCompileErrorsCommand.Alias);
             int seen = -1;
             Func<int, List<LogEntry>> previous = GroupCompileErrorsCommand.ReadErrorLogs;
             try
@@ -87,6 +121,8 @@ namespace UnityMCP.Editor.Tests
                 Assert.AreEqual(50, seen, "CLI compile wrapper did not pass max_logs through.");
                 compile.Invoke(null, new object[] { 7, null });
                 Assert.AreEqual(7, seen, "CLI compile wrapper ignored its max_logs argument.");
+                compile.Invoke(null, new object[] { 0, null });
+                Assert.AreEqual(0, seen, "CLI max_logs 0 must stay 0, not fall back to the default 50.");
             }
             finally
             {
@@ -96,8 +132,7 @@ namespace UnityMCP.Editor.Tests
 
         private static void AssertCliCaptureBodyReachesTheGateway(MethodInfo[] methods)
         {
-            MethodInfo look = methods.Single(method =>
-                (string)Property(AttributeNamed(method, "CliCommandAttribute"), "Name") == CaptureGameViewCommand.Alias);
+            MethodInfo look = CliMethod(methods, CaptureGameViewCommand.Alias);
             ObserveCapture(delegate
             {
                 Task omitted = (Task)look.Invoke(null, new object[] { 0, 0, "jpg", 85, 768, "game", null, 0, "base64", null });
@@ -110,6 +145,42 @@ namespace UnityMCP.Editor.Tests
             }, Expect(CaptureFormat.Png, 12, 9, 40, 100));
         }
 
+        private static void AssertCliCaptureForwardsViewAndDelivery(MethodInfo[] methods)
+        {
+            MethodInfo look = CliMethod(methods, CaptureGameViewCommand.Alias);
+            CaptureRequest seen = null;
+            Func<CaptureRequest, CancellationToken, Task<CaptureResult>> previous = CaptureGameViewCommand.Capture;
+            try
+            {
+                CaptureGameViewCommand.Capture = (request, token) =>
+                {
+                    seen = request;
+                    return Task.FromResult(new CaptureResult { CompressedBytes = Array.Empty<byte>(), Format = request.Format });
+                };
+                var scene = (Task<NexusCommandEnvelope>)look.Invoke(null, new object[] { 0, 0, "jpg", 85, 768, "scene", "Main Camera", 0, "base64", null });
+                Assert.IsTrue(scene.Result.Ok, "CLI scene view with a target must capture.");
+                Assert.AreEqual(CaptureView.Scene, seen.View, "CLI wrapper dropped its view argument.");
+                Assert.AreEqual("Main Camera", seen.TargetPath, "CLI wrapper dropped its target argument.");
+
+                seen = null;
+                AssertCliRejected(look, new object[] { 0, 0, "jpg", 85, 768, "sky", null, 0, "base64", null }, "view");
+                AssertCliRejected(look, new object[] { 0, 0, "jpg", 85, 768, "game", null, 0, "inline", null }, "delivery");
+                Assert.IsNull(seen, "A rejected view or delivery must not capture.");
+            }
+            finally
+            {
+                CaptureGameViewCommand.Capture = previous;
+            }
+        }
+
+        private static void AssertCliRejected(MethodInfo look, object[] arguments, string argument)
+        {
+            var envelope = ((Task<NexusCommandEnvelope>)look.Invoke(null, arguments)).Result;
+            Assert.IsFalse(envelope.Ok, "CLI wrapper did not forward " + argument + ".");
+            Assert.AreEqual(NexusCommandCodes.InvalidArgument, envelope.Error.Code);
+            StringAssert.Contains(argument, envelope.Error.Message);
+        }
+
         [Test]
         public void OmittedHttpArgumentsUseTheSameDefaults()
         {
@@ -117,7 +188,8 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual(0, DefaultOf(look, "width"));
             Assert.AreEqual(0, DefaultOf(look, "height"));
             Assert.AreEqual(0, DefaultOf(look, "instance_id"));
-            Assert.AreEqual("jpg", DefaultOf(look, "format"));
+            Assert.AreEqual("jpg", DefaultOf(look, "encoding"));
+            Assert.IsFalse(look.Any(parameter => parameter.Name == "format"), "format is reserved by Pipeline; the descriptor uses encoding.");
             Assert.AreEqual(85, DefaultOf(look, "quality"));
             Assert.AreEqual(768, DefaultOf(look, "max_dimension"));
             Assert.AreEqual("game", DefaultOf(look, "view"));
@@ -138,7 +210,7 @@ namespace UnityMCP.Editor.Tests
             Assert.IsFalse(call.WriteFile);
             Assert.AreEqual(CaptureFormat.Jpeg, call.Request.Format);
 
-            var explicitLook = new JObject { ["width"] = 12, ["format"] = "png", ["max_dimension"] = 100 };
+            var explicitLook = new JObject { ["width"] = 12, ["encoding"] = "png", ["max_dimension"] = 100 };
             Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(explicitLook, 0, out CaptureLookCall specified));
             Assert.AreEqual(12, specified.Request.RequestedWidth);
             Assert.AreEqual(100, specified.Request.MaxLongEdge);
@@ -148,6 +220,7 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual(0, cliOmit.Value<int>("width"));
             Assert.AreEqual(0, cliOmit.Value<int>("height"));
             Assert.AreEqual(768, cliOmit.Value<int>("max_dimension"));
+            Assert.IsNull(cliOmit["encoding"]);
             Assert.IsNull(cliOmit["format"]);
             Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(cliOmit, 0, out CaptureLookCall fromCli));
             Assert.AreEqual(CaptureFormat.Jpeg, fromCli.Request.Format);
@@ -170,8 +243,22 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual(50, omittedLogs);
             Assert.IsTrue(GroupCompileErrorsCommand.TryReadCompileArguments(new JObject { ["max_logs"] = 7 }, 0, out int explicitLogs, out _, out _));
             Assert.AreEqual(7, explicitLogs);
+            Assert.IsTrue(GroupCompileErrorsCommand.TryReadCompileArguments(new JObject { ["max_logs"] = 0 }, 0, out int zeroLogs, out _, out _));
+            Assert.AreEqual(0, zeroLogs, "HTTP max_logs 0 must stay 0, not fall back to the default 50.");
+            AssertDeprecatedCaptureAliases();
             AssertHttpCompileUsesTheResolvedWindow();
             AssertHttpCaptureOmitReachesTheGateway();
+        }
+
+        /// <summary>Locks the HTTP-only deprecated keys: each is read only when its canonical key is absent.</summary>
+        private static void AssertDeprecatedCaptureAliases()
+        {
+            Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(new JObject { ["format"] = "png" }, 0, out CaptureLookCall legacyFormat));
+            Assert.AreEqual(CaptureFormat.Png, legacyFormat.Request.Format, "Deprecated HTTP format must still select png.");
+            Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(new JObject { ["encoding"] = "jpg", ["format"] = "png" }, 0, out CaptureLookCall encodingWins));
+            Assert.AreEqual(CaptureFormat.Jpeg, encodingWins.Request.Format, "encoding must win over deprecated format.");
+            Assert.IsTrue(CaptureGameViewCommand.TryPrepareLook(new JObject { ["max_long_edge"] = 512 }, 0, out CaptureLookCall legacyEdge));
+            Assert.AreEqual(512, legacyEdge.Request.MaxLongEdge, "Deprecated HTTP max_long_edge must still apply.");
         }
 
         private static void AssertHttpCompileUsesTheResolvedWindow()
@@ -193,6 +280,16 @@ namespace UnityMCP.Editor.Tests
                 Assert.AreEqual(7, seen, "HTTP max_logs did not reach the console read.");
                 GroupCompileErrorsCommand.Execute();
                 Assert.AreEqual(50, seen, "Execute() did not use its default window.");
+                GroupCompileErrorsCommand.ReadErrorLogs = count => new List<LogEntry>
+                {
+                    new LogEntry { Message = "Assets/A.cs(3,1): error CS0103: x" },
+                    new LogEntry { Message = "Assets/A.cs(4,1): error CS0103: y" },
+                    new LogEntry { Message = "Assets/B.cs(1,1): warning CS0168: z" }
+                };
+                NexusCompileErrorsResult grouped = GroupCompileErrorsCommand.Execute(3);
+                Assert.AreEqual(2, grouped.TotalErrors, "Execute must group the list ReadErrorLogs returned.");
+                Assert.AreEqual(1, grouped.GroupCount);
+                Assert.AreEqual("Assets/A.cs", grouped.Groups[0].File);
             }
             finally
             {
@@ -214,7 +311,7 @@ namespace UnityMCP.Editor.Tests
                 {
                     ["width"] = 12,
                     ["height"] = 9,
-                    ["format"] = "png",
+                    ["encoding"] = "png",
                     ["quality"] = 40,
                     ["max_dimension"] = 100
                 }, CancellationToken.None);
@@ -322,9 +419,11 @@ namespace UnityMCP.Editor.Tests
             {
                 NexusCommandParameter spec = expected[i];
                 ParameterInfo parameter = actual[i];
-                object cliArg = AttributeNamed(parameter, "CliArgAttribute");
+                object cliArg = AttributeNamed(parameter, CliArgFullName);
                 Assert.IsNotNull(cliArg, command + " parameter " + parameter.Name + " is missing [CliArg].");
-                Assert.AreEqual(spec.Name, (string)Property(cliArg, "Name"), command + " parameter " + i);
+                string flag = (string)Property(cliArg, "Name");
+                Assert.AreEqual(spec.Name.Replace('_', '-'), flag, command + " parameter " + i + " must be the kebab-case wire name.");
+                CollectionAssert.DoesNotContain(ReservedPipelineOptions, flag, command + " --" + flag + " is reserved by Pipeline.");
                 Assert.AreEqual(spec.Description, (string)Property(cliArg, "Description"), command + " " + spec.Name);
                 Assert.IsFalse((bool)Property(cliArg, "Required"), command + " " + spec.Name + " must stay optional.");
                 Assert.AreEqual(ExactClrType(spec.JsonType), parameter.ParameterType, command + " " + spec.Name);
@@ -350,9 +449,10 @@ namespace UnityMCP.Editor.Tests
             return null;
         }
 
+        /// <summary>Matches by full name so a same-named decoy attribute in another namespace is not counted.</summary>
         private static object AttributeNamed(ICustomAttributeProvider provider, string typeName)
         {
-            return provider.GetCustomAttributes(false).FirstOrDefault(attribute => attribute.GetType().Name == typeName);
+            return provider.GetCustomAttributes(false).FirstOrDefault(attribute => attribute.GetType().FullName == typeName);
         }
 
         private static object Property(object attribute, string name)
