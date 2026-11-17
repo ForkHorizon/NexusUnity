@@ -38,6 +38,19 @@ class McpToolSchemaTests(unittest.TestCase):
                         self.assertIn(f"`{value}`", properties[key]["description"])
                     self.assertLessEqual(set(variant["properties"]), set(properties))
 
+    def test_shared_parameters_have_one_schema_across_actions(self) -> None:
+        # flatten_tool keeps the first definition of a shared parameter, so a differing one would be dropped silently.
+        for source in STATIC_TOOLS:
+            variants = source["inputSchema"].get("oneOf", [])
+            if not variants:
+                continue
+            flat = flatten_tool(source)["inputSchema"]
+            key = flat["required"][0]
+            shared = [(n, p) for v in variants for n, p in v.get("properties", {}).items() if n != key]
+            for name, prop in shared:
+                with self.subTest(tool=source["name"], parameter=name):
+                    self.assertEqual(flat["properties"][name], prop)
+
     def test_per_action_requirements_are_described(self) -> None:
         wait = next(tool for tool in MCP_TOOLS if tool["name"] == "unity_wait")
         condition = wait["inputSchema"]["properties"]["condition"]
