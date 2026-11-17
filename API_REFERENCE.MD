@@ -1,10 +1,10 @@
 # Nexus Unity API Reference
 
-Version: `1.6.1`
+Version: `1.6.2`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.1 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
+- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.2 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`. `tools/list` advertises flat object schemas (`MCP_TOOLS`) without top-level `oneOf`, because Claude's tool API rejects top-level combinators; the action key is a required `enum`, and each action's required parameters are listed in its description.
 
 ## Raw HTTP JSON-RPC
@@ -178,7 +178,7 @@ Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`,
 
 `get_server_status` includes an additive `runtime` object: `requested` and `effective` are `legacy`, `pipeline`, or `auto`; `eligible` is true when Unity 6000, the Pipeline package, Nexus command registration, a session port file, and a healthy loopback probe all pass. The Project Settings **Runtime** mode defaults to `auto`, which prefers Pipeline on eligible installs and Legacy otherwise. Set the mode to `legacy` to force HTTP immediately. Explicit `pipeline` does not silently fall back to HTTP. HTTP remains supported and is not removed.
 
-`runtime.legacy` publishes the sunset ledger: `deprecated` is false until maturity gates pass, `still_supported` is true, `sunset_status` is `announced`, and `removal` is `not_scheduled`. Removal requires a non-experimental `com.unity.pipeline` (any SemVer pre-release suffix counts as experimental) and one Nexus stable release after Pipeline-primary `auto`. `runtime.unity_cli` is informational (`detected`, `version`, `prerelease`, `stable_1_0_or_newer`); the Editor does not shell out to `unity --version`, so `detected` is `false`, the other fields are `null`, and the `unity_cli_stable` gate reports `not_probed_in_editor (1.0.x GA released upstream)`. `runtime.pipeline` includes `detected`, `version`, `experimental`, `supported`, plus health/session fields. `runtime.legacy_unavailable_reason` is `foreign_project` when another Unity project owns port 8081.
+`runtime.legacy` publishes the sunset ledger: `deprecated` is false until maturity gates pass, `still_supported` is true, `sunset_status` is `announced`, and `removal` is `not_scheduled`. Removal requires Unity CLI 1.0 stable, non-experimental `com.unity.pipeline`, and one Nexus stable release after Pipeline-primary `auto`. `runtime.unity_cli` is informational (`detected`, `version`, `prerelease`, `stable_1_0_or_newer`); the Editor does not shell out to `unity --version`. `runtime.pipeline` includes `detected`, `version`, `experimental`, `supported`, plus health/session fields. `runtime.legacy_unavailable_reason` is `foreign_project` when another Unity project owns port 8081.
 
 `list_tools` accepts optional `profile`: `core`, `visual`, `scene`, or `compat`. Canonical command ids are listed once; `nexus_*` aliases stay dispatchable without being advertised twice.
 
@@ -241,22 +241,10 @@ Invokes a C# method on a component through reflection.
 `arguments` is an optional positional JSON array. Omit it for parameterless methods.
 
 ### `unity_dump_scene_graph`
-Returns a recursive tree of the active scene. **Deprecated:** pass `compact: true`, a `root_id`, and a small `max_depth` (default 5). Output stops after `max_nodes` nodes (default 200, `0` = no limit); the result reports `node_count` and `truncated`, plus a `hint` when truncated. `compact_scene_snapshot` uses the same limit. A bounded `nexus_snapshot` replacement is planned; the tool stays available until then.
+Returns a recursive tree of the active scene.
 
 ### `unity_get_scene_dependencies`
 Returns a scene-wide dependency map.
 
 ### `unity_lint_project`
 Runs the deterministic project audit.
-
-## Canonical `nexus.*` commands
-
-| HTTP / MCP name | Unity CLI (Pipeline 1.0.0+) | Unity CLI (Pipeline < 1.0) | Parameters (HTTP key / CLI flag) |
-| --- | --- | --- | --- |
-| `nexus.project_map` | `unity command nexus project_map` | `unity command nexus_project_map` | `request_id` / `--request-id` |
-| `nexus.group_compile_errors` | `unity command nexus group_compile_errors` | `unity command nexus_group_compile_errors` | `max_logs` / `--max-logs` (default 50; `0` reads no entries), `request_id` |
-| `nexus.capture_game_view` | `unity command nexus capture_game_view` | `unity command nexus_capture_game_view` | `width`, `height`, `encoding` (`jpg` default or `png`), `quality`, `max_dimension` / `--max-dimension`, `view`, `target`, `instance_id` / `--instance-id`, `delivery` (`base64` or `file`), `request_id` |
-
-- CLI flags are the HTTP key in kebab-case. Pipeline 1.0.0 reserves `--format`, `--json`, `--fields`, `--verbose`, `--omit-nulls`, `--log-level`, and `--log-format` for itself, so the capture image encoding is `--encoding`, not `--format`.
-- On Pipeline 1.0.0+ all three commands declare `CommandEffect.ReadOnly`, so the command catalog reports `readOnly: true`.
-- HTTP still accepts the deprecated keys `format` (used only when `encoding` is absent) and `max_long_edge` (used only when `max_dimension` is absent).
