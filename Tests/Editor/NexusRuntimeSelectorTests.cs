@@ -81,6 +81,8 @@ namespace UnityMCP.Editor.Tests
             Assert.IsTrue(NexusLegacyDeprecation.StillSupported);
             Assert.IsTrue(NexusLegacyDeprecation.IsPreviewVersion("0.7.0-exp.1"));
             Assert.IsTrue(NexusLegacyDeprecation.IsPreviewVersion("1.0.0-beta.10"));
+            Assert.IsTrue(NexusLegacyDeprecation.IsPreviewVersion("1.0.0-pre.1"));
+            Assert.IsTrue(NexusLegacyDeprecation.IsPreviewVersion(null));
             Assert.IsFalse(NexusLegacyDeprecation.IsPreviewVersion("1.0.0"));
 
             var experimental = EligibleSnapshot();
@@ -91,10 +93,24 @@ namespace UnityMCP.Editor.Tests
             Assert.AreEqual(true, json["still_supported"]?.ToObject<bool>());
             Assert.AreEqual("announced", json["sunset_status"]?.ToString());
             Assert.AreEqual("not_scheduled", json["removal"]?.ToString());
-            Assert.AreEqual(false, json["gates"]?["unity_cli_stable"]?["passed"]?.ToObject<bool>());
+            Assert.AreEqual(true, json["gates"]?["unity_cli_stable"]?["passed"]?.ToObject<bool>());
             Assert.AreEqual(false, json["gates"]?["pipeline_non_experimental"]?["passed"]?.ToObject<bool>());
             Assert.AreEqual(false, json["gates"]?["stable_release_cycle_after_m4"]?["passed"]?.ToObject<bool>());
             Assert.AreEqual(true, json["gates"]?["capture_nexus_owned"]?["passed"]?.ToObject<bool>());
+        }
+
+        [Test]
+        public void LegacySunsetReportsPipelineGaWithoutStaleBetaProse()
+        {
+            var ga = EligibleSnapshot();
+            ga.PipelinePackageVersion = "1.0.0";
+            ga.PipelineExperimental = false;
+            var json = NexusLegacyDeprecation.ToStatusJson(ga);
+            Assert.AreEqual(true, json["gates"]?["pipeline_non_experimental"]?["passed"]?.ToObject<bool>());
+            Assert.AreEqual(false, json["deprecated"]?.ToObject<bool>());
+            Assert.AreEqual(false, json["unity_cli"]?["detected"]?.ToObject<bool>());
+            StringAssert.Contains("not_probed_in_editor", json["unity_cli"]?["note"]?.ToString());
+            StringAssert.DoesNotContain("beta", json.ToString());
         }
 
         [Test]

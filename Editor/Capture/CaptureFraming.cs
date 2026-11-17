@@ -175,7 +175,7 @@ namespace UnityMCP.Editor.Capture
 
         private static GameObject ById(int instanceId)
         {
-            var target = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+            var target = MCPServerMethods.IdToObject(MCPServerMethods.ConvertLegacyIntToEntityId(instanceId)) as GameObject;
             if (target == null)
             {
                 throw new CaptureException(CaptureErrorCode.TargetNotFound, "The target object was not found.");
