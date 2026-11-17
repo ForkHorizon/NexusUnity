@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.6.1`
+Version: `1.6.2`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -126,7 +126,7 @@ MCP bridge:
 
 ## Current Compatibility Decisions
 
-Version 1.6.1 preserves backward compatibility while correcting public contracts found during API stress validation:
+Version 1.6.2 preserves backward compatibility while correcting public contracts found during API stress validation:
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
@@ -198,7 +198,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Latest public release: `1.6.1`.
+- Latest public release: `1.6.2`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -210,7 +210,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.1`.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.2`.
 
 During normal development:
 
@@ -223,4 +223,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.6.1` for package version `1.6.1`.
+- Tag the release with the matching semantic GitHub version, for example `v1.6.2` for package version `1.6.2`.
