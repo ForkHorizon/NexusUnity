@@ -16,7 +16,7 @@ from .routes_base import (
     _invalid_action,
     _result_object,
 )
-from .schemas import STATIC_TOOLS
+from .schemas import MCP_TOOLS
 
 
 def _poll_test_results(
@@ -143,7 +143,7 @@ def _wait_for_compilation(timeout: float, start_time: float | None = None) -> Js
 
 
 def _route_list_tools(_: JsonObject) -> JsonRpcResponse:
-    return {"result": {"tools": STATIC_TOOLS}}
+    return {"result": {"tools": MCP_TOOLS}}
 
 
 def _route_write_and_compile(args: JsonObject) -> JsonRpcResponse:
