@@ -69,8 +69,8 @@ DIAGNOSTIC_TOOLS: list[JsonObject] = [
     {
         "name": "unity_dump_scene_graph",
         "description": (
-            "Deprecated: output is unbounded in breadth (one large scene can exceed 40 KB). "
-            "Prefer compact=true, a root_id, and a small max_depth (default 5). "
+            "Deprecated: prefer compact=true, a root_id, and a small max_depth (default 5). "
+            "Returns at most max_nodes nodes (default 200, 0 = no limit) and sets truncated. "
             "A bounded nexus_snapshot replacement is planned."
         ),
         "inputSchema": {
@@ -79,6 +79,7 @@ DIAGNOSTIC_TOOLS: list[JsonObject] = [
                 "root_id": {"type": "integer"},
                 "max_depth": {"type": "integer"},
                 "compact": {"type": "boolean"},
+                "max_nodes": {"type": "integer"},
                 "include_all_properties": {"type": "boolean"},
             },
         },

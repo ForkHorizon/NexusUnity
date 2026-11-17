@@ -81,13 +81,15 @@ namespace UnityMCP.Editor
                 ["root_id"] = new JObject { ["type"] = "integer", ["description"] = "Optional: instance_id of the root object to start from" },
                 ["max_depth"] = new JObject { ["type"] = "integer", ["description"] = "Maximum recursion depth (default: 5)" },
                 ["include_all_properties"] = new JObject { ["type"] = "boolean", ["description"] = "If true, serializes all component properties instead of just key fields" },
-                ["compact"] = new JObject { ["type"] = "boolean", ["description"] = "If true, only include name, instance_id, and component types (no properties)" }
+                ["compact"] = new JObject { ["type"] = "boolean", ["description"] = "If true, only include name, instance_id, and component types (no properties)" },
+                ["max_nodes"] = new JObject { ["type"] = "integer", ["description"] = "Maximum nodes returned (default: 200, 0 = no limit); sets truncated=true when reached" }
             }));
 
             tools.Add(CreateTool("compact_scene_snapshot", "Get a highly compressed hierarchy (name/id/component list only) for fast full-scene overview", new JObject
             {
                 ["root_id"] = new JObject { ["type"] = "integer", ["description"] = "Optional: instance_id of the root object to start from" },
-                ["max_depth"] = new JObject { ["type"] = "integer", ["description"] = "Maximum recursion depth (default: 5)" }
+                ["max_depth"] = new JObject { ["type"] = "integer", ["description"] = "Maximum recursion depth (default: 5)" },
+                ["max_nodes"] = new JObject { ["type"] = "integer", ["description"] = "Maximum nodes returned (default: 200, 0 = no limit)" }
             }));
 
             tools.Add(CreateTool("get_scene_dependencies", "Scans the scene for cross-object references and returns a dependency map", new JObject { }));
