@@ -14,9 +14,15 @@ import sys
 from functools import cache
 from pathlib import Path
 
-PROJ = Path(__file__).resolve().parents[3]  # Unity project root from Assets/NexusUnity/scripts
+PROJ = (
+    Path(__file__).resolve().parents[3]
+)  # Unity project root from Assets/NexusUnity/scripts
 if not (PROJ / "Assets").exists():
-    sys.exit("Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at " + str(PROJ) + ").")
+    sys.exit(
+        "Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at "
+        + str(PROJ)
+        + ")."
+    )
 
 
 def run_cmd(args: list[str], timeout: int = 60) -> dict:
@@ -25,7 +31,17 @@ def run_cmd(args: list[str], timeout: int = 60) -> dict:
     env["UNITY_NO_BANNER"] = "1"
     env["UNITY_NON_INTERACTIVE"] = "1"
     proc = subprocess.run(
-        ["unity", "command", "--project-path", str(PROJ), "--json", "--result-only", "--timeout", str(timeout), *args],
+        [
+            "unity",
+            "command",
+            "--project-path",
+            str(PROJ),
+            "--json",
+            "--result-only",
+            "--timeout",
+            str(timeout),
+            *args,
+        ],
         capture_output=True,
         text=True,
         env=env,
@@ -36,7 +52,11 @@ def run_cmd(args: list[str], timeout: int = 60) -> dict:
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        return {"success": False, "parse_error": raw[:800], "returncode": proc.returncode}
+        return {
+            "success": False,
+            "parse_error": raw[:800],
+            "returncode": proc.returncode,
+        }
 
 
 @cache
@@ -57,4 +77,6 @@ def nexus(name: str, *flags: str, timeout: int = 60) -> dict:
 
 def recompile(timeout: int = 180) -> dict:
     """Request a script recompile on any Pipeline version."""
-    return run_cmd(["script", "recompile"] if grouped() else ["recompile"], timeout=timeout)
+    return run_cmd(
+        ["script", "recompile"] if grouped() else ["recompile"], timeout=timeout
+    )

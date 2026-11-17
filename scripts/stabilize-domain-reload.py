@@ -73,7 +73,9 @@ def main() -> int:
         "cycles": cycles,
     }
     print(json.dumps(report, indent=2))
-    Path("stabilize-domain-reload-results.json").write_text(json.dumps(report, indent=2))
+    Path("stabilize-domain-reload-results.json").write_text(
+        json.dumps(report, indent=2)
+    )
     return 0 if report["success"] else 1
 
 
