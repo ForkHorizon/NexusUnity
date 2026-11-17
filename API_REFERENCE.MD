@@ -178,7 +178,7 @@ Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`,
 
 `get_server_status` includes an additive `runtime` object: `requested` and `effective` are `legacy`, `pipeline`, or `auto`; `eligible` is true when Unity 6000, the Pipeline package, Nexus command registration, a session port file, and a healthy loopback probe all pass. The Project Settings **Runtime** mode defaults to `auto`, which prefers Pipeline on eligible installs and Legacy otherwise. Set the mode to `legacy` to force HTTP immediately. Explicit `pipeline` does not silently fall back to HTTP. HTTP remains supported and is not removed.
 
-`runtime.legacy` publishes the sunset ledger: `deprecated` is false until maturity gates pass, `still_supported` is true, `sunset_status` is `announced`, and `removal` is `not_scheduled`. Removal requires Unity CLI 1.0 stable, non-experimental `com.unity.pipeline`, and one Nexus stable release after Pipeline-primary `auto`. `runtime.unity_cli` is informational (`detected`, `version`, `prerelease`, `stable_1_0_or_newer`); the Editor does not shell out to `unity --version`. `runtime.pipeline` includes `detected`, `version`, `experimental`, `supported`, plus health/session fields. `runtime.legacy_unavailable_reason` is `foreign_project` when another Unity project owns port 8081.
+`runtime.legacy` publishes the sunset ledger: `deprecated` is false until maturity gates pass, `still_supported` is true, `sunset_status` is `announced`, and `removal` is `not_scheduled`. Removal requires a non-experimental `com.unity.pipeline` (any SemVer pre-release suffix counts as experimental) and one Nexus stable release after Pipeline-primary `auto`. `runtime.unity_cli` is informational (`detected`, `version`, `prerelease`, `stable_1_0_or_newer`); the Editor does not shell out to `unity --version`, so `detected` is `false`, the other fields are `null`, and the `unity_cli_stable` gate reports `not_probed_in_editor (1.0.x GA released upstream)`. `runtime.pipeline` includes `detected`, `version`, `experimental`, `supported`, plus health/session fields. `runtime.legacy_unavailable_reason` is `foreign_project` when another Unity project owns port 8081.
 
 `list_tools` accepts optional `profile`: `core`, `visual`, `scene`, or `compat`. Canonical command ids are listed once; `nexus_*` aliases stay dispatchable without being advertised twice.
 
@@ -241,7 +241,7 @@ Invokes a C# method on a component through reflection.
 `arguments` is an optional positional JSON array. Omit it for parameterless methods.
 
 ### `unity_dump_scene_graph`
-Returns a recursive tree of the active scene.
+Returns a recursive tree of the active scene. **Deprecated:** pass `compact: true`, a `root_id`, and a small `max_depth` (default 5). Output stops after `max_nodes` nodes (default 200, `0` = no limit); the result reports `node_count` and `truncated`, plus a `hint` when truncated. `compact_scene_snapshot` uses the same limit. A bounded `nexus_snapshot` replacement is planned; the tool stays available until then.
 
 ### `unity_get_scene_dependencies`
 Returns a scene-wide dependency map.

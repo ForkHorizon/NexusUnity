@@ -13,6 +13,8 @@ namespace UnityMCP.Editor
     /// <remarks>
     /// Installer methods copy Python bridge files and documentation pointers, create project-root directories, run local CLI processes,
     /// update client configuration files, write Nexus editor logs, and display Unity editor dialogs when setup fails.
+    /// Frozen, maintenance-only: fix bugs, add no new clients. With com.unity.pipeline 1.0.0+ prefer
+    /// <c>unity setup &lt;client&gt;</c> and <c>unity mcp configure &lt;client&gt;</c>.
     /// </remarks>
     public static partial class MCPCliInstaller
     {

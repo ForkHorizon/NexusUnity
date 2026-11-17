@@ -10,7 +10,10 @@ namespace UnityMCP.Editor.Runtime
     {
         /// <summary>Human-readable removal prerequisites.</summary>
         public const string RemovalPrerequisite =
-            "Unity CLI 1.0 stable, non-experimental com.unity.pipeline, and one Nexus stable release after Pipeline-primary auto.";
+            "Non-experimental com.unity.pipeline and one Nexus stable release after Pipeline-primary auto.";
+
+        /// <summary>Unity CLI gate detail. The Editor never runs the unity executable, so the host CLI is not probed.</summary>
+        public const string UnityCliNote = "not_probed_in_editor (1.0.x GA released upstream)";
 
         /// <summary>Gets whether Legacy HTTP is fully deprecated. False while maturity gates fail.</summary>
         public static bool IsFullyDeprecated => false;
@@ -19,14 +22,11 @@ namespace UnityMCP.Editor.Runtime
         public static bool StillSupported => true;
 
         /// <summary>
-        /// True when a package version string is experimental, preview, alpha, or beta.
+        /// True when a package version is missing or carries a SemVer pre-release suffix (exp, pre, preview, alpha, beta).
         /// </summary>
         public static bool IsPreviewVersion(string version)
         {
-            if (string.IsNullOrEmpty(version)) return true;
-            string value = version.ToLowerInvariant();
-            return value.Contains("exp") || value.Contains("preview") ||
-                value.Contains("beta") || value.Contains("alpha");
+            return string.IsNullOrEmpty(version) || version.IndexOf('-') >= 0;
         }
 
         /// <summary>
@@ -50,18 +50,18 @@ namespace UnityMCP.Editor.Runtime
                 {
                     ["detected"] = false,
                     ["version"] = (string)null,
-                    ["prerelease"] = true,
-                    ["stable_1_0_or_newer"] = false,
-                    ["note"] = "Editor does not shell out to the unity executable. Host observation remains 1.0.0-beta.10."
+                    ["prerelease"] = null,
+                    ["stable_1_0_or_newer"] = null,
+                    ["note"] = UnityCliNote
                 },
                 ["gates"] = new JObject
                 {
-                    ["unity_cli_stable"] = Gate(false,
-                        "Unity CLI remains pre-release in this program (1.0.0-beta observed)."),
+                    ["unity_cli_stable"] = Gate(true, UnityCliNote),
                     ["pipeline_non_experimental"] = Gate(pipelineGa,
                         string.IsNullOrEmpty(snapshot?.PipelinePackageVersion)
                             ? "com.unity.pipeline is not installed."
-                            : snapshot.PipelinePackageVersion),
+                            : "com.unity.pipeline " + snapshot.PipelinePackageVersion +
+                              (pipelineGa ? " (non-experimental)." : " (pre-release).")),
                     ["command_api_registered"] = Gate(snapshot != null && snapshot.NexusCommandsRegistered,
                         "Canonical Nexus commands must remain registered for Pipeline projection."),
                     ["unity_version_supported"] = Gate(snapshot != null && snapshot.UnityVersionSupported,
