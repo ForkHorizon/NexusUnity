@@ -124,7 +124,7 @@ MCP bridge:
 
 ## Current Compatibility Decisions
 
-Version 1.6.1 preserves backward compatibility while correcting public contracts found during API stress validation:
+Version 1.6.2 preserves backward compatibility while correcting public contracts found during API stress validation:
 
 - `unity_write_and_compile` is the supported public MCP macro for write, wait, and compiler-feedback workflows. Any old documentation wording that says `unity_apply_code_change` should be treated as stale.
 - `update_component` should use a `properties` object for new callers; `json_data` remains accepted for existing callers.
@@ -221,4 +221,4 @@ During release preparation:
 - Choose the next semantic version based on accumulated changes.
 - Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, for example `v1.6.1` for package version `1.6.1`.
+- Tag the release with the matching semantic GitHub version, for example `v1.6.2` for package version `1.6.2`.

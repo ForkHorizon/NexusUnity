@@ -27,7 +27,7 @@ Use `CHANGELOG.md` as the source of truth during development:
 - Keep compatibility notes and migration guidance in the docs while the work is unreleased.
 - Prepare the next semantic version only when cutting a release branch or release commit.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.6.1`. GitHub release tags, titles, and announcements use the same semantic version, for example `v1.6.1`.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` in `package.json`, for example `1.6.2`. GitHub release tags, titles, and announcements use the same semantic version, for example `v1.6.2`.
 
 When preparing the release, choose the version by semantic versioning:
 

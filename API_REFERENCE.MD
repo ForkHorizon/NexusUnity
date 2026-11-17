@@ -4,7 +4,7 @@ Version: `1.6.2`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.1 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
+- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.2 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`. `tools/list` advertises flat object schemas (`MCP_TOOLS`) without top-level `oneOf`, because Claude's tool API rejects top-level combinators; the action key is a required `enum`, and each action's required parameters are listed in its description.
 
 ## Raw HTTP JSON-RPC
