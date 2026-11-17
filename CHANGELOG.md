@@ -11,6 +11,10 @@ All notable public changes to Nexus Unity are documented here.
 - On Pipeline 1.0.0 or newer, the three Nexus commands declare `CommandEffect.ReadOnly`, so `unity command` and MCP clients see them as read-only.
 - `get_server_status.runtime.legacy` no longer reports the stale `1.0.0-beta.10` Unity CLI observation. The `unity_cli_stable` gate passes with `not_probed_in_editor (1.0.x GA released upstream)`, `runtime.unity_cli.prerelease` and `stable_1_0_or_newer` are `null` (the Editor never runs the `unity` executable), and `requires` lists only the remaining prerequisites. Legacy HTTP stays supported and `deprecated` stays `false`.
 
+### Deprecated
+- `unity_dump_scene_graph` is deprecated because its breadth is unbounded (a full scene can exceed 40 KB). Its MCP description says so, and its schema now lists the existing `compact` flag. It stays available until a bounded `nexus_snapshot` ships.
+- The `Integrations` client installers (`MCPCliInstaller`) are frozen and maintenance-only. With `com.unity.pipeline` 1.0.0+, use `unity setup <client>` and `unity mcp configure <client>`.
+
 ### Fixed
 - `com.unity.pipeline` versions with any SemVer pre-release suffix (for example `1.0.0-pre.1`) now count as pre-release. Before, only `exp`, `preview`, `alpha`, and `beta` did.
 - Removed the `CS0618` warning for `EditorUtility.InstanceIDToObject` in capture target resolution on Unity 6000.3+.

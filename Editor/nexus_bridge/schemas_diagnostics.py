@@ -68,12 +68,17 @@ DIAGNOSTIC_TOOLS: list[JsonObject] = [
     },
     {
         "name": "unity_dump_scene_graph",
-        "description": "Dump recursive tree of active scene with components and key fields",
+        "description": (
+            "Deprecated: output is unbounded in breadth (one large scene can exceed 40 KB). "
+            "Prefer compact=true, a root_id, and a small max_depth (default 5). "
+            "A bounded nexus_snapshot replacement is planned."
+        ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "root_id": {"type": "integer"},
                 "max_depth": {"type": "integer"},
+                "compact": {"type": "boolean"},
                 "include_all_properties": {"type": "boolean"},
             },
         },

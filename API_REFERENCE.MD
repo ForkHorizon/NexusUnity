@@ -241,7 +241,7 @@ Invokes a C# method on a component through reflection.
 `arguments` is an optional positional JSON array. Omit it for parameterless methods.
 
 ### `unity_dump_scene_graph`
-Returns a recursive tree of the active scene.
+Returns a recursive tree of the active scene. **Deprecated:** depth defaults to 5 but breadth is unbounded, so a full scene can exceed 40 KB. Pass `compact: true`, a `root_id`, and a small `max_depth`. A bounded `nexus_snapshot` replacement is planned; the tool stays available until then.
 
 ### `unity_get_scene_dependencies`
 Returns a scene-wide dependency map.
