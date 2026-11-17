@@ -1,3 +1,4 @@
+// EditMode tests for the canonical Nexus command registry and descriptors.
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;

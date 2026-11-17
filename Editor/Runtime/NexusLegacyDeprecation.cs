@@ -1,3 +1,4 @@
+// Legacy HTTP sunset ledger reported by get_server_status.
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCP.Editor.Runtime

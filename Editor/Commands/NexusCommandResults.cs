@@ -1,3 +1,4 @@
+// Serializable result payloads returned by the canonical Nexus commands.
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;

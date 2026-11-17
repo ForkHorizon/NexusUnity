@@ -1,3 +1,4 @@
+// Registry of the canonical Nexus command instances.
 using System;
 using System.Collections.Generic;
 

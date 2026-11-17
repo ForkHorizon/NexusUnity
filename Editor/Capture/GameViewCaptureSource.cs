@@ -1,3 +1,4 @@
+// Acquires presented Game View pixels into a Nexus-owned render texture.
 using System.Linq;
 using System.Reflection;
 using UnityEditor;

@@ -1,3 +1,4 @@
+// Chooses the effective transport from the requested mode and Pipeline capabilities.
 namespace UnityMCP.Editor.Runtime
 {
     /// <summary>

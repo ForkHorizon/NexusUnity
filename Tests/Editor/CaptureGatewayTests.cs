@@ -1,3 +1,4 @@
+// EditMode tests for the Capture V2 gateway, readback and encoding.
 using System;
 using System.Collections;
 using System.IO;

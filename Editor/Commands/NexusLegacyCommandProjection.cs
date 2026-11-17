@@ -1,3 +1,4 @@
+// Registers the canonical Nexus commands in the Legacy HTTP dispatch tables.
 using System;
 using System.Collections.Generic;
 using System.Threading;

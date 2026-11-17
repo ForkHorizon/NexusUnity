@@ -1,3 +1,4 @@
+// Contract for canonical Nexus commands shared by the HTTP and Pipeline transports.
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;

@@ -1,3 +1,4 @@
+// Immutable Pipeline capability snapshot for one Editor session.
 namespace UnityMCP.Editor.Runtime
 {
     /// <summary>

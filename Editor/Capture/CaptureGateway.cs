@@ -1,3 +1,4 @@
+// Capture V2 gateway: copies the Game View or a framed Scene View into a Nexus render texture and reads it back.
 using System;
 using System.Diagnostics;
 using System.Threading;

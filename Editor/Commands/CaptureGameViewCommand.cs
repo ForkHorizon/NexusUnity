@@ -1,3 +1,4 @@
+// Canonical nexus.capture_game_view handler for Game View and framed Scene View images.
 using System;
 using System.Diagnostics;
 using System.Threading;

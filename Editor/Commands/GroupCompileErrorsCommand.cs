@@ -1,3 +1,4 @@
+// Canonical nexus.group_compile_errors handler that groups C# compiler errors by file.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

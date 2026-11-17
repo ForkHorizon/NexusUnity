@@ -1,3 +1,4 @@
+// Detects an installed, reachable Unity Pipeline without blocking Editor startup.
 using System;
 using System.Diagnostics;
 using System.IO;
