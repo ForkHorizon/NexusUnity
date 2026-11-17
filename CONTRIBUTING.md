@@ -65,22 +65,21 @@ Pull requests are checked by one GitHub check, `CI Scope`, posted by the CI Scop
 
 Contributor pull requests target `development`; `main` is release-only. Direct pushes to both are blocked and maintainers merge through GitHub. Review fork pull requests carefully before merge.
 
-- public/protected production C# types or methods without XML documentation;
-- XML summaries that are empty, too short, generic, or only repeat the symbol name;
-- production C# files over 450 lines;
-- production methods over 150 lines.
+The CI Scope check includes code rules (file, function, nesting and parameter limits; lint suppressions are forbidden), a one-line header comment on new source files, Python quality and tests, and test protection. Editing, deleting or moving an existing test needs owner approval in the CI Scope Inbox, so do not change existing tests to make a check pass. Fix the code instead.
 
-It warns on files over 300 lines and methods over 50 lines. Test methods are exempt from XML documentation requirements, but production code under `Editor/` and `Runtime/` is not.
+Python bridge tests run without Unity:
 
-The hook runs `scripts/prepush-validate.sh --quick`. This is the contributor default: static package checks always run, and `NEXUS_UNITY_HOOK_LIVE=auto` adds a short read-only live smoke check when the Nexus Unity server is available at `http://127.0.0.1:8081/`. If the server is temporarily unreachable or times out, the hook prints `NOTICE` and skips live smoke instead of blocking the push. Use `NEXUS_UNITY_HOOK_LIVE=required` to fail when the live server is unavailable, or `NEXUS_UNITY_HOOK_LIVE=off` to run only static checks.
+```bash
+python3 -m unittest discover -s Editor/tests -t Editor
+```
+
+For quick local feedback, run `scripts/prepush-validate.sh --quick`: static package checks always run, and `NEXUS_UNITY_HOOK_LIVE=auto` adds a short read-only live smoke check when the Nexus Unity server is available at `http://127.0.0.1:8081/`. If the server is temporarily unreachable or times out, it prints `NOTICE` and skips live smoke instead of failing. Use `NEXUS_UNITY_HOOK_LIVE=required` to fail when the live server is unavailable, or `NEXUS_UNITY_HOOK_LIVE=off` to run only static checks.
 
 Run full local integration validation explicitly when changing server behavior, bridge routing, or public API contracts:
 
 ```bash
 bash scripts/prepush-validate.sh --integration
 ```
-
-Run the required local AI documentation gate explicitly when operating the maintainer self-hosted runner:
 
 For a faster maintainer or agent check of bridge/UI observability, run:
 
@@ -89,8 +88,6 @@ python3 scripts/agent-tooling-smoke.py
 ```
 
 Integration tests require the Unity project to be open with the Nexus Unity server running. If this package is not checked out under a Unity project, set `NEXUS_UNITY_PROJECT_ROOT` before running integration validation.
-
-Run the slower local Ollama review before risky API, security, or release-readiness changes:
 
 ## Pull Request Checklist
 

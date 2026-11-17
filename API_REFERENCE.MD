@@ -18,7 +18,7 @@ curl -s http://127.0.0.1:8081/ \
   -d '{"jsonrpc":"2.0","method":"get_server_status","params":{},"id":1}'
 ```
 
-Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge; rerun Auto Setup after restarting Unity if the token is stale. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
+Call `list_tools` at runtime for full JSON schemas. Generated MCP configs set `NEXUS_UNITY_AUTH_TOKEN` for the Python bridge. The token persists across Unity restarts, and when it is missing or rejected the bridge rereads the project's `Library/NexusUnityAuthToken.txt`. MCP bridge aliases use the `unity_` prefix for the same raw method when directly routed.
 
 Schema compatibility notes:
 
