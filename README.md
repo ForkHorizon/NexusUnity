@@ -7,15 +7,15 @@
 Nexus Unity is an open source Unity Editor automation package. It runs a local JSON-RPC server inside the Unity Editor and exposes scene, asset, code, log, test, inspection, and UI automation tools to trusted local developer workflows.
 
 - Package id: `com.forkhorizon.nexus.unity`
-- Version: `1.7.0` (development)
+- Version: `1.6.1`
 - License: `MIT`
 - Public repository: `https://github.com/ForkHorizon/NexusUnity.git`
 
 ## Status
 
-Development line for the upcoming `1.7.0` release. Latest public release: `1.6.0`.
+Latest public release: `1.6.1`.
 
-The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[1.7.0] - Unreleased` in `CHANGELOG.md` until the next tagged release.
+The public API is maintained for local Unity Editor automation workflows, while new tools and bridge improvements are tracked under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
 ## Screenshot / Demo
 
@@ -260,9 +260,9 @@ For integration tests, open the Unity project, start the Nexus Unity server from
 
 ## Development Versioning
 
-The current development line is `1.7.0`, following the latest public release `1.6.0`. Record user-visible work under `[1.7.0] - Unreleased` in `CHANGELOG.md` until the next tagged release.
+The latest public release is `1.6.1`. Record user-visible work under `[Unreleased]` in `CHANGELOG.md` until the next tagged release.
 
-When maintainers prepare a release, move the accumulated `[1.7.0] - Unreleased` entries to the new dated release section, update the visible version strings, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.7.0` and `v1.7.0`. Reserve patch bumps for urgent compatible hotfixes.
+When maintainers prepare a release, move the accumulated `[Unreleased]` entries to the new dated release section, update the visible version strings, then tag the release. Unity Package Manager and GitHub releases both use semantic `MAJOR.MINOR.PATCH` versions such as `1.6.1` and `v1.6.1`. Reserve patch bumps for urgent compatible hotfixes.
 
 ## Community
 

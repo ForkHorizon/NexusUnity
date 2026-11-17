@@ -2,7 +2,9 @@
 
 All notable public changes to Nexus Unity are documented here.
 
-## [1.7.0] - Unreleased
+## [Unreleased]
+
+## [1.6.1] - 2026-11-17
 
 ### Added
 - Canonical Nexus commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (HTTP aliases `nexus_*`) share one handler and description each. When `com.unity.pipeline` is installed, optional `[CliCommand]` wrappers in `UnityMCP.Editor.Pipeline` project the same handlers; Pipeline is not a package dependency.

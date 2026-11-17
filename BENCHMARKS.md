@@ -1,7 +1,6 @@
 # Nexus Unity Benchmarks
 
-Current development line: `1.7.0`  
-Latest released version: `1.6.0`  
+Measured on the line released as `1.6.1`  
 Evidence date: 2026-09-22
 
 This is the public benchmark ledger for Nexus Unity. It deliberately separates measured performance numbers from repeatable validation evidence. No latency, CPU, memory, or throughput improvement is claimed until a before/after measurement exists.

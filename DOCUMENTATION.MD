@@ -1,6 +1,6 @@
 # Nexus Unity Technical Documentation
 
-Version: `1.7.0` (development)
+Version: `1.6.1`
 
 Nexus Unity is a Unity Editor automation package with two public interfaces:
 
@@ -196,8 +196,7 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 - Public repo: `https://github.com/ForkHorizon/NexusUnity.git`.
 - Package id: `com.forkhorizon.nexus.unity`.
-- Latest public release: `1.6.0`.
-- Current development target: `1.7.0`.
+- Latest public release: `1.6.1`.
 - License: `MIT`.
 - Required release docs: `SECURITY.md`, `CONTRIBUTING.md`, and `RELEASE.md`.
 - Repository funding metadata lives in `.github/FUNDING.yml` and configures the GitHub Sponsor button for `Daliys`.
@@ -209,17 +208,17 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 
 Nexus Unity follows semantic versioning for public releases, but the development branch should not bump the package version for every merged fix. Keep `package.json` and visible docs at the latest shipped public version until a release is being prepared.
 
-Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The current development package line is `1.7.0`; the latest released tag is `v1.6.0`.
+Unity Package Manager requires `MAJOR.MINOR.PATCH` values in `package.json`, and GitHub release tags and titles use the same semantic version. The latest released tag is `v1.6.1`.
 
 During normal development:
 
-- Add all user-visible API, behavior, docs, and validation changes to `[1.7.0] - Unreleased` in `CHANGELOG.md`.
-- Keep `package.json` and visible docs on `1.7.0` throughout this release-preparation line.
+- Add all user-visible API, behavior, docs, and validation changes to `[Unreleased]` in `CHANGELOG.md`.
+- Keep `package.json` and visible docs on the latest shipped version until a release is prepared.
 - Prefer compatibility fixes over breaking changes; if a breaking change is unavoidable, document the migration path before release.
 
 During release preparation:
 
 - Choose the next semantic version based on accumulated changes.
-- Move `[1.7.0] - Unreleased` entries into the new dated release section.
+- Move `[Unreleased]` entries into the new dated release section.
 - Update `package.json`, README badges/install examples, `DOCUMENTATION.MD`, and `API_REFERENCE.MD`.
-- Tag the release with the matching semantic GitHub version, `v1.7.0` for package version `1.7.0`.
+- Tag the release with the matching semantic GitHub version, for example `v1.6.1` for package version `1.6.1`.
