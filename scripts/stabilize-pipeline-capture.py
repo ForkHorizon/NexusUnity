@@ -16,9 +16,7 @@ from _unity_cli import nexus
 
 WARMUPS = 20
 MEASURED = 100
-BLOCKING_STALL_MS = (
-    40  # median main-thread stall above this counts as a blocking regression
-)
+BLOCKING_STALL_MS = 40  # median main-thread stall above this counts as a blocking regression
 NORMALIZE_SIZE = (1600, 900)
 
 
@@ -37,11 +35,7 @@ def measure() -> tuple[list[dict], int]:
         t0 = time.perf_counter()
         data = nexus("capture_game_view")
         rt = (time.perf_counter() - t0) * 1000.0
-        ok = (
-            bool(data.get("success"))
-            and data.get("encoding") == "jpg"
-            and data.get("width", 0) > 0
-        )
+        ok = bool(data.get("success")) and data.get("encoding") == "jpg" and data.get("width", 0) > 0
         if not ok:
             errors += 1
         if i >= WARMUPS:
@@ -79,11 +73,7 @@ def main() -> int:
     )
     bad = variant("--encoding", "bmp")
 
-    stalls = [
-        s["main_thread_stall_ms"]
-        for s in samples
-        if isinstance(s["main_thread_stall_ms"], (int, float))
-    ]
+    stalls = [s["main_thread_stall_ms"] for s in samples if isinstance(s["main_thread_stall_ms"], (int, float))]
     waits = [s["wait_ms"] for s in samples if isinstance(s["wait_ms"], (int, float))]
     rounds = [s["roundtrip_ms"] for s in samples]
     report = {
@@ -96,8 +86,7 @@ def main() -> int:
         "roundtrip_p50_ms": statistics.median(rounds) if rounds else None,
         "stall_p50_ms": statistics.median(stalls) if stalls else None,
         "wait_p50_ms": statistics.median(waits) if waits else None,
-        "blocking_regression": (statistics.median(stalls) if stalls else 0)
-        > BLOCKING_STALL_MS,
+        "blocking_regression": (statistics.median(stalls) if stalls else 0) > BLOCKING_STALL_MS,
         "png": {
             "ok": png.get("encoding") == "png" and png.get("success"),
             "width": png.get("width"),
@@ -112,14 +101,8 @@ def main() -> int:
         "unsupported_format_errors": not bool(bad.get("success")),
     }
     print(json.dumps(report, indent=2))
-    Path("stabilize-pipeline-capture-results.json").write_text(
-        json.dumps(report, indent=2)
-    )
-    return (
-        0
-        if errors == 0 and not report["blocking_regression"] and report["png"]["ok"]
-        else 1
-    )
+    Path("stabilize-pipeline-capture-results.json").write_text(json.dumps(report, indent=2))
+    return 0 if errors == 0 and not report["blocking_regression"] and report["png"]["ok"] else 1
 
 
 if __name__ == "__main__":

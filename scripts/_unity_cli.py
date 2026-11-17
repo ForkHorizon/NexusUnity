@@ -14,15 +14,9 @@ import sys
 from functools import cache
 from pathlib import Path
 
-PROJ = (
-    Path(__file__).resolve().parents[3]
-)  # Unity project root from Assets/NexusUnity/scripts
+PROJ = Path(__file__).resolve().parents[3]  # Unity project root from Assets/NexusUnity/scripts
 if not (PROJ / "Assets").exists():
-    sys.exit(
-        "Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at "
-        + str(PROJ)
-        + ")."
-    )
+    sys.exit("Run from Assets/NexusUnity/scripts inside a Unity project (Assets/ not found at " + str(PROJ) + ").")
 
 
 def run_cmd(args: list[str], timeout: int = 60) -> dict:
@@ -77,6 +71,4 @@ def nexus(name: str, *flags: str, timeout: int = 60) -> dict:
 
 def recompile(timeout: int = 180) -> dict:
     """Request a script recompile on any Pipeline version."""
-    return run_cmd(
-        ["script", "recompile"] if grouped() else ["recompile"], timeout=timeout
-    )
+    return run_cmd(["script", "recompile"] if grouped() else ["recompile"], timeout=timeout)
