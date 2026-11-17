@@ -38,8 +38,8 @@ def _read_package_version() -> str:
                 if ver:
                     return ver
     except (OSError, ValueError):
-        return "1.6.1"
-    return "1.6.1"
+        return "1.6.2"
+    return "1.6.2"
 
 
 BRIDGE_VERSION = _read_package_version()
@@ -71,7 +71,8 @@ logging.basicConfig(
 # Unity package, so it is imported only after the setup above.
 _schemas = importlib.import_module("nexus_bridge.schemas")
 _routing = importlib.import_module("nexus_bridge.routing")
-STATIC_TOOLS = _schemas.STATIC_TOOLS
+# tools/list advertises flat schemas: see nexus_bridge.schemas.MCP_TOOLS.
+STATIC_TOOLS = _schemas.MCP_TOOLS
 STATIC_RESOURCES = _schemas.STATIC_RESOURCES
 route_tool = _routing.route_tool
 
