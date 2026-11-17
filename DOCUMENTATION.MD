@@ -182,6 +182,8 @@ PlayerPrefs cleanup should use specific disposable keys. Bulk cleanup requires `
 ## Troubleshooting
 
 - Server does not start: change the port in project settings and restart the server window.
+- Client reports `Unity Server unreachable ... Nothing is listening`: the Nexus server is stopped. Open `Window > Nexus Unity` and click `Start Server`. Stopping the server, from the window or from code, also turns off auto-start for later editor sessions.
+- Client gets HTTP 401 or talks to the wrong project: remove any global `nexus-unity` entry (for example in the Claude Desktop config) that points to another project's bridge or holds an old token. Use the project-scoped `.mcp.json` from Auto Setup; the bridge reads the current token from the project `Library` folder.
 - MCP client cannot import `nexus_bridge`: redeploy the bridge from `Window > Nexus Unity > Server`, or point the client directly at the package path.
 - Tool returns `Method not found`: compare the raw Unity catalog from `list_tools` with the MCP catalog in `API_REFERENCE.MD`.
 - File write denied: ensure the target path resolves inside the Unity project root.
