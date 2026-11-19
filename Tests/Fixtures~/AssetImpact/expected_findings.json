@@ -1,0 +1,160 @@
+{
+  "schema": "nexus.asset_impact.expected/1",
+  "corpus_root": "Tests/Fixtures~/AssetImpact",
+  "serialization": "ForceText",
+  "generated_with": "Unity 6000.3.16f1 batchmode (FixtureGen.cs.txt) + hand-written Broken.prefab, Binary.asset, Malformed.asset",
+  "scripts": {
+    "782e3e064978d4288b566a9dfd804d6d": { "path": "Assets/Scripts/Health.cs", "type": "Fixture.Health", "base": "MonoBehaviour" },
+    "54ddca27266774d8faa793b9673ad2d3": { "path": "Assets/Scripts/Spawner.cs", "type": "Fixture.Spawner", "base": "MonoBehaviour" },
+    "53e980c9231434291ae0e0c311ada49d": { "path": "Assets/Scripts/GameConfig.cs", "type": "Fixture.GameConfig", "base": "ScriptableObject" }
+  },
+  "builtin_guids_never_dangling": [
+    "0000000000000000e000000000000000",
+    "0000000000000000f000000000000000"
+  ],
+  "references": [
+    {
+      "id": "R1",
+      "symbol": { "kind": "field", "type": "Fixture.Health", "name": "maxHealth" },
+      "csharp_default": "100",
+      "values": [
+        { "asset": "Assets/Prefabs/Player.prefab", "file_id": "5916826984724612618", "object_path": "Player", "source": "component", "value": "250", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/PlayerVariant.prefab", "file_id": "5565439769808516408", "object_path": "PlayerVariant", "source": "prefab_modification", "value": "500", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Squad.prefab", "file_id": "4873251245308424903", "object_path": "Squad", "source": "component", "value": "100", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Squad.prefab", "file_id": "3644043074114961751", "object_path": "Squad/Leader", "source": "prefab_modification", "value": "750", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "479924971", "object_path": "Player", "source": "prefab_modification", "value": "300", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "1132736883", "object_path": "Boss", "source": "component", "value": "1000", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Broken.prefab", "file_id": "104", "object_path": "Broken", "source": "component", "value": "42", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Animations/PlayerHit.anim", "file_id": "7400000", "object_path": "", "source": "animation_curve", "value": null, "differs_from_default": null, "confidence": "strong" }
+      ],
+      "unique_values": { "42": 1, "100": 1, "250": 1, "300": 1, "500": 1, "750": 1, "1000": 1 }
+    },
+    {
+      "id": "R2",
+      "symbol": { "kind": "field", "type": "Fixture.Health", "name": "speed" },
+      "csharp_default": "3.5",
+      "values": [
+        { "asset": "Assets/Prefabs/Player.prefab", "file_id": "5916826984724612618", "object_path": "Player", "source": "component", "value": "3.5", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Squad.prefab", "file_id": "4873251245308424903", "object_path": "Squad", "source": "component", "value": "3.5", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "1132736883", "object_path": "Boss", "source": "component", "value": "3.5", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Broken.prefab", "file_id": "104", "object_path": "Broken", "source": "component", "value": "9", "differs_from_default": true, "confidence": "exact" }
+      ],
+      "unique_values": { "3.5": 3, "9": 1 }
+    },
+    {
+      "id": "R3",
+      "symbol": { "kind": "field", "type": "Fixture.Spawner", "name": "count" },
+      "csharp_default": "1",
+      "values": [
+        { "asset": "Assets/Prefabs/Player.prefab", "file_id": "5203090180680894107", "object_path": "Player/SpawnPoint", "source": "component", "value": "1", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/PlayerVariant.prefab", "file_id": "5565439769808516408", "object_path": "PlayerVariant/SpawnPoint", "source": "prefab_modification", "value": "7", "differs_from_default": true, "confidence": "exact" },
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "1408503733", "object_path": "Manager", "source": "component", "value": "1", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Broken.prefab", "file_id": "105", "object_path": "Broken", "source": "component", "value": "1", "differs_from_default": false, "confidence": "exact" }
+      ],
+      "unique_values": { "1": 3, "7": 1 }
+    },
+    {
+      "id": "R4",
+      "symbol": { "kind": "field", "type": "Fixture.GameConfig", "name": "startingLives" },
+      "csharp_default": "3",
+      "values": [
+        { "asset": "Assets/Data/BaseConfig.asset", "file_id": "11400000", "object_path": "BaseConfig", "source": "component", "value": "3", "differs_from_default": false, "confidence": "exact" },
+        { "asset": "Assets/Data/HardConfig.asset", "file_id": "11400000", "object_path": "HardConfig", "source": "component", "value": "5", "differs_from_default": true, "confidence": "exact" }
+      ],
+      "unique_values": { "3": 1, "5": 1 },
+      "skipped": ["Assets/Data/Binary.asset"],
+      "unknown": ["Assets/Data/Malformed.asset"]
+    },
+    {
+      "id": "R5",
+      "symbol": { "kind": "method", "type": "Fixture.Spawner", "name": "Spawn" },
+      "bindings": [
+        { "asset": "Assets/Prefabs/Player.prefab", "file_id": "5916826984724612618", "event": "onDeath", "call_index": 0, "confidence": "exact" }
+      ]
+    },
+    {
+      "id": "R6",
+      "symbol": { "kind": "method", "type": "Fixture.Spawner", "name": "SpawnMany" },
+      "bindings": [
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "1132736883", "event": "onDeath", "call_index": 0, "confidence": "exact" }
+      ]
+    },
+    {
+      "id": "R7",
+      "symbol": { "kind": "method", "type": "Fixture.Health", "name": "Die" },
+      "bindings": [
+        { "asset": "Assets/Prefabs/Player.prefab", "file_id": "5916826984724612618", "event": "onDeath", "call_index": 1, "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Broken.prefab", "file_id": "104", "event": "onDeath", "call_index": 2, "confidence": "strong" }
+      ]
+    },
+    {
+      "id": "R8",
+      "symbol": { "kind": "type", "type": "Fixture.Health" },
+      "direct": [
+        { "asset": "Assets/Prefabs/Player.prefab", "file_id": "5916826984724612618", "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Squad.prefab", "file_id": "4873251245308424903", "confidence": "exact" },
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "1132736883", "confidence": "exact" },
+        { "asset": "Assets/Prefabs/Broken.prefab", "file_id": "104", "confidence": "exact" },
+        { "asset": "Assets/Animations/PlayerHit.anim", "file_id": "7400000", "confidence": "exact" }
+      ],
+      "via_prefab_instance": [
+        { "asset": "Assets/Prefabs/PlayerVariant.prefab", "file_id": "5565439769808516408", "source_prefab": "Assets/Prefabs/Player.prefab", "confidence": "strong" },
+        { "asset": "Assets/Prefabs/Squad.prefab", "file_id": "3644043074114961751", "source_prefab": "Assets/Prefabs/Player.prefab", "confidence": "strong" },
+        { "asset": "Assets/Scenes/Main.unity", "file_id": "479924971", "source_prefab": "Assets/Prefabs/Player.prefab", "confidence": "strong" }
+      ]
+    }
+  ],
+  "integrity": [
+    { "kind": "missing_script", "asset": "Assets/Prefabs/Broken.prefab", "file_id": "102", "detail": "m_Script fileID 0", "severity": "Error", "confidence": "exact" },
+    { "kind": "missing_script", "asset": "Assets/Prefabs/Broken.prefab", "file_id": "103", "detail": "unknown script guid 0badc0de0badc0de0badc0de0badc0de", "severity": "Error", "confidence": "exact" },
+    { "kind": "dangling_guid", "asset": "Assets/Prefabs/Broken.prefab", "file_id": "105", "detail": "prefab -> deadbeefdeadbeefdeadbeefdeadbeef", "severity": "Error", "confidence": "exact" },
+    { "kind": "broken_unityevent", "asset": "Assets/Prefabs/Broken.prefab", "file_id": "104", "detail": "onDeath[0] Fixture.Health.OldRespawn does not exist", "severity": "Error", "confidence": "exact" },
+    { "kind": "broken_unityevent", "asset": "Assets/Prefabs/Broken.prefab", "file_id": "104", "detail": "onDeath[1] type Legacy.Gone not found, target null", "severity": "Warning", "confidence": "strong" }
+  ],
+  "integrity_skipped": [
+    { "asset": "Assets/Data/Binary.asset", "status": "skipped", "reason": "UNSUPPORTED_SERIALIZATION" }
+  ],
+  "integrity_unknown": [
+    { "asset": "Assets/Data/Malformed.asset", "status": "unknown", "reason": "YAML_PARSE_ERROR" }
+  ],
+  "negatives": [
+    "Player.prefab onDeath[0] Spawner.Spawn and [1] Health.Die are valid bindings",
+    "Broken.prefab onDeath[2] has empty m_TargetAssemblyTypeName but its target (fileID 104) resolves to Fixture.Health.Die: valid",
+    "SerializeReference rid -2 with empty type is Unity's null sentinel, not a missing managed type",
+    "Builtin guids 0000000000000000e000000000000000 / 0000000000000000f000000000000000 are never dangling",
+    "Squad.prefab '--- !u!4 ... stripped' Transform is a prefab-instance stub, not a missing object",
+    "Player.prefab effect rid 5056679716371562500 type Fixture.BurnEffect (Assembly-CSharp) resolves"
+  ],
+  "impact": [
+    {
+      "id": "I1",
+      "op": "rename_field",
+      "symbol": { "type": "Fixture.Health", "name": "maxHealth", "new_name": "maxHp" },
+      "expect": "Warning/exact per stored non-default value that would reset to 100 without [FormerlySerializedAs(\"maxHealth\")]; Warning/strong for PlayerHit.anim curve binding (FormerlySerializedAs does not migrate animation bindings)",
+      "assets_losing_values": [
+        "Assets/Prefabs/Broken.prefab",
+        "Assets/Prefabs/Player.prefab",
+        "Assets/Prefabs/PlayerVariant.prefab",
+        "Assets/Prefabs/Squad.prefab",
+        "Assets/Scenes/Main.unity"
+      ],
+      "recommended_check": "[FormerlySerializedAs(\"maxHealth\")]"
+    },
+    {
+      "id": "I2",
+      "op": "delete_script",
+      "symbol": { "type": "Fixture.GameConfig" },
+      "expect": "Error/exact Missing Script for every stored instance",
+      "assets": ["Assets/Data/BaseConfig.asset", "Assets/Data/HardConfig.asset"],
+      "unknown": ["Assets/Data/Malformed.asset"],
+      "skipped": ["Assets/Data/Binary.asset"]
+    },
+    {
+      "id": "I3",
+      "op": "rename_method",
+      "symbol": { "type": "Fixture.Spawner", "name": "Spawn", "new_name": "SpawnOne" },
+      "expect": "Error/exact broken UnityEvent binding",
+      "assets": ["Assets/Prefabs/Player.prefab"]
+    }
+  ]
+}

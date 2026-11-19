@@ -1,0 +1,8 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: 53e980c9231434291ae0e0c311ada49d, type: 3
+  m_Name: Malformed
+    startingLives: [7, {
+  parent: {fileID: 11400000, guid: 2ee52f55ba2e64aa1b7c7f8e8a6e1415
