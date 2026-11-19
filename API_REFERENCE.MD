@@ -220,7 +220,9 @@ Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_
 Actions: `add`, `remove`, `inspect`, `get_schema`, `update_properties`, `set_property`, `set_enabled`.
 
 ### `unity_search_manager`
-Strategies: `regex`, `path`, `semantic`, `references`.
+Strategies: `regex`, `path`, `semantic`, `references`, `impact`.
+
+`references` with `symbol: {kind, type, name}` (or flat `kind`/`type`/`name`) calls `nexus.asset_impact` `find_references`; without it the target mode (`target_id` / `target_guid`) is unchanged. `impact` calls `analyze_change_impact` and needs `change` and `type` (`name` for field and method changes). Both accept `paths` and `max_results`.
 
 ### `unity_asset_manager`
 Actions: `search`, `explore`, `create_material`, `import`, `refresh`, `instantiate_prefab`, `create_prefab`, `apply_overrides`, `revert_overrides`.
@@ -267,4 +269,4 @@ Returns a recursive tree of the active scene.
 Returns a scene-wide dependency map.
 
 ### `unity_lint_project`
-Runs the deterministic project audit.
+Runs the deterministic project audit. `scope: "assets"` instead runs `nexus.asset_impact` `validate_asset_integrity` (Missing Scripts, dangling guids, broken UnityEvent bindings; optional `paths`, `changed_scripts`, `max_results`).

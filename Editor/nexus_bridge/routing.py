@@ -35,6 +35,7 @@ from .routes_managers import (
     _route_asset_manager,
     _route_component_manager,
     _route_hierarchy_manager,
+    _route_lint_project,
     _route_scene_manager,
     _route_search_manager,
 )
@@ -55,6 +56,7 @@ _HANDLERS = {
     "ui_automation": _route_ui_automation,
     "playerprefs_manager": _route_playerprefs_manager,
     "wait": _route_wait,
+    "lint_project": _route_lint_project,
 }
 
 
