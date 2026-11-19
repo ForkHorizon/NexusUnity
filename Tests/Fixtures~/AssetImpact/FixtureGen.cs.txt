@@ -1,0 +1,86 @@
+// Batchmode generator that wrote the Unity-authored AssetImpact fixtures (reference only, not compiled).
+using System.IO;
+using Fixture;
+using UnityEditor;
+using UnityEditor.Events;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Events;
+
+public static class FixtureGen
+{
+    static void SetField(Object o, string name, int v)
+    {
+        var so = new SerializedObject(o); so.FindProperty(name).intValue = v; so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    public static void Run()
+    {
+        EditorSettings.serializationMode = SerializationMode.ForceText;
+        foreach (var d in new[] { "Assets/Prefabs", "Assets/Scenes", "Assets/Data", "Assets/Animations" })
+            Directory.CreateDirectory(d);
+        AssetDatabase.Refresh();
+
+        // 1. Player.prefab: Health(maxHealth=250, default speed) + Spawner child, onDeath -> Spawner.Spawn (valid) + Health.OldRespawn (broken)
+        var player = new GameObject("Player");
+        var h = player.AddComponent<Health>();
+        h.maxHealth = 250;
+        h.displayName = "Hero";
+        h.effect = new BurnEffect { dps = 4f };
+        var spawnerGo = new GameObject("SpawnPoint");
+        spawnerGo.transform.SetParent(player.transform);
+        var sp = spawnerGo.AddComponent<Spawner>();
+        UnityEventTools.AddPersistentListener(h.onDeath, sp.Spawn);
+        UnityEventTools.AddVoidPersistentListener(h.onDeath, h.Die);
+        var prefab = PrefabUtility.SaveAsPrefabAsset(player, "Assets/Prefabs/Player.prefab");
+        Object.DestroyImmediate(player);
+
+        // 2. PlayerVariant.prefab: variant overriding maxHealth=500 and SpawnPoint count=7
+        var inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+        SetField(inst.GetComponent<Health>(), "maxHealth", 500);
+        SetField(inst.GetComponentInChildren<Spawner>(), "count", 7);
+        PrefabUtility.SaveAsPrefabAsset(inst, "Assets/Prefabs/PlayerVariant.prefab");
+        Object.DestroyImmediate(inst);
+
+        // 3. Squad.prefab: nested Player instance with maxHealth=750 override, own Health root (default values)
+        var squad = new GameObject("Squad");
+        squad.AddComponent<Health>();
+        var nested = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+        nested.name = "Leader";
+        nested.transform.SetParent(squad.transform);
+        SetField(nested.GetComponent<Health>(), "maxHealth", 750);
+        PrefabUtility.SaveAsPrefabAsset(squad, "Assets/Prefabs/Squad.prefab");
+        Object.DestroyImmediate(squad);
+
+        // 4. Main.unity: scene object Boss (maxHealth=1000), Player instance (maxHealth=300), Spawner with prefab ref
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var boss = new GameObject("Boss");
+        var bh = boss.AddComponent<Health>();
+        bh.maxHealth = 1000;
+        var pi = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+        SetField(pi.GetComponent<Health>(), "maxHealth", 300);
+        var mgr = new GameObject("Manager");
+        var ms = mgr.AddComponent<Spawner>();
+        ms.prefab = prefab;
+        UnityEventTools.AddIntPersistentListener(bh.onDeath, ms.SpawnMany, 3);
+        new GameObject("Plain");
+        EditorSceneManager.SaveScene(scene, "Assets/Scenes/Main.unity");
+
+        // 5. ScriptableObjects
+        var baseCfg = ScriptableObject.CreateInstance<GameConfig>();
+        AssetDatabase.CreateAsset(baseCfg, "Assets/Data/BaseConfig.asset");
+        var cfg = ScriptableObject.CreateInstance<GameConfig>();
+        cfg.startingLives = 5;
+        cfg.parent = baseCfg;
+        cfg.playerPrefab = prefab.GetComponent<Health>();
+        AssetDatabase.CreateAsset(cfg, "Assets/Data/HardConfig.asset");
+
+        // 6. AnimationClip animating Health.maxHealth on root
+        var clip = new AnimationClip();
+        AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve("", typeof(Health), "maxHealth"), AnimationCurve.Linear(0, 100, 1, 0));
+        AssetDatabase.CreateAsset(clip, "Assets/Animations/PlayerHit.anim");
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("FIXTUREGEN_DONE");
+    }
+}
