@@ -27,6 +27,7 @@ namespace UnityMCP.Editor.Commands
                 Register(new ProjectMapCommand());
                 Register(new GroupCompileErrorsCommand());
                 Register(new CaptureGameViewCommand());
+                Register(new AssetImpactCommand());
                 _ready = true;
             }
         }

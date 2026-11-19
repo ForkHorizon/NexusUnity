@@ -4,7 +4,7 @@ Version: `1.6.2`
 
 Nexus Unity exposes two supported public API surfaces:
 
-- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 3 canonical Nexus commands, for 120 visible `list_tools` names in the 1.6.2 schema. The 3 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
+- Raw HTTP JSON-RPC: 117 base Unity Editor methods plus 4 canonical Nexus commands, for 121 visible `list_tools` names. The 4 `nexus_*` transport aliases remain dispatchable but hidden from the visible schema.
 - MCP bridge: 14 consolidated `unity_` tools defined in `Editor/nexus_bridge/schemas.py`. `tools/list` advertises flat object schemas (`MCP_TOOLS`) without top-level `oneOf`, because Claude's tool API rejects top-level combinators; the action key is a required `enum`, and each action's required parameters are listed in its description.
 
 ## Raw HTTP JSON-RPC
@@ -77,6 +77,7 @@ Schema compatibility notes:
 - `nexus.project_map` / `unity_nexus.project_map`
 - `nexus.group_compile_errors` / `unity_nexus.group_compile_errors`
 - `nexus.capture_game_view` / `unity_nexus.capture_game_view`
+- `nexus.asset_impact` / `unity_nexus.asset_impact`
 - `generate_mermaid_diagram` / `unity_generate_mermaid_diagram`
 - `semantic_find` / `unity_semantic_find`
 - `enforce_forced_defaults` / `unity_enforce_forced_defaults`
@@ -166,13 +167,32 @@ Schema compatibility notes:
 
 `capture_game_view_screenshot` and `capture_inspector_screenshot` return `success`, `message`, and `duration_ms`, plus a `data` object containing `width`, `height`, `format`, and `image_base64`. The default Game View format remains `png`. Optional Game View parameters are `format` (`png` or `jpg`/`jpeg`), `quality` / `jpeg_quality` (1–100, JPEG only), `width`, `height`, `max_long_edge`, and `include_telemetry`. Output size is capped at 8192 pixels on the longest edge. The legacy top-level `status`, `format`, and successful `image_base64` fields remain available for existing raw clients; Inspector responses also retain `ui_layout`.
 
-Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`, and `nexus.capture_game_view` (and their `nexus_*` aliases) share one handler and description per command. Each returns the same envelope on Legacy HTTP and, when `com.unity.pipeline` is installed, from the optional Pipeline `[CliCommand]`. Those CLI parameters use the same name, description, order, and default as the canonical descriptor. `list_tools` still publishes type and description only.
+Canonical high-level commands `nexus.project_map`, `nexus.group_compile_errors`, `nexus.capture_game_view`, and `nexus.asset_impact` (and their `nexus_*` aliases) share one handler and description per command. Each returns the same envelope on Legacy HTTP and, when `com.unity.pipeline` is installed, from the optional Pipeline `[CliCommand]`. Those CLI parameters use the same name, description, order, and default as the canonical descriptor. `list_tools` still publishes type and description only.
 
 ```json
 {"ok": true, "data": {}, "error": null, "meta": {"ms": 0, "mode": "legacy", "gen": 1, "request_id": null}}
 ```
 
 `data` is the command payload. `nexus.capture_game_view` defaults to JPEG with a 768 px longest edge (`max_dimension` 1024 opts in; 0 keeps the source size). `view` is `game` or `scene`. A `target` name/path or `instance_id` crops Game View to that object, or frames the Scene View on it. `delivery:"file"` returns `file_path` and omits `base64`; the default returns `base64` only. `source` is `game_view` or `scene_view`. Aliases `nexus_look` and `nexus.look` call the same command and are not listed twice. `meta.gen` is the editor session generation (`sessionGeneration` on `get_server_status`), not `compile_epoch`. `meta.mode` is the effective runtime, `legacy` or `pipeline`. A string `request_id` argument is copied into `meta.request_id` and is not the JSON-RPC `id`. These reads are not cached.
+
+### Asset impact (`nexus.asset_impact`)
+
+Read-only static scan of Force Text `.prefab`, `.unity`, `.asset`, `.anim` and other text assets plus `.meta` guids and C# sources, including scenes and prefabs that are not loaded. It never imports, saves or reserializes. CLI: `unity command nexus asset_impact --op ... --type ... --name ...` (Pipeline 1.0.0+, read-only).
+
+| Parameter | Meaning |
+| --- | --- |
+| `op` | `find_references` (default), `analyze_change_impact`, `validate_asset_integrity` |
+| `change` | For `analyze_change_impact`: `rename_field`, `change_field_type`, `rename_method`, `delete_script`, `move_type` |
+| `kind` | `type`, `field` or `method` (inferred when omitted) |
+| `type` / `name` / `new_name` | C# type (full or simple name), member name, optional new name |
+| `paths` | Comma-separated string or array of folders/files under `Assets/`, `Packages/` or `ProjectSettings/` (default `Assets`); symlinks are resolved and must stay in the project |
+| `changed_scripts` | For `validate_asset_integrity`: only assets using these `.cs` files are checked |
+| `max_results` | 1-5000 entries per list (default 500) |
+
+- `find_references` with `kind:"field"` returns `csharp_default`, `values` (one entry per stored component value, Prefab Variant / nested prefab / scene-instance `m_Modifications` override, and `AnimationClip` curve binding, each with `asset`, `file_id`, `object_path`, `source`, `value`, `differs_from_default`, `confidence`, `evidence.line`/`evidence.yaml`), `unique_values` and a one-line `summary` such as `default=100; overrides: Player.prefab/Player=250, Main.unity/Boss=1000`. `kind:"method"` returns UnityEvent `bindings`; `kind:"type"` returns `direct` usages and `via_prefab_instance`.
+- `analyze_change_impact` and `validate_asset_integrity` return `findings` with `kind`, `severity` (`Error`, `Warning`, `Info`), `confidence` (`exact`, `strong`, `heuristic`), `consequence` and `recommended_check` (for example `[FormerlySerializedAs("maxHealth")]`), plus `counts`. `Error` is only ever reported with `exact` confidence. Integrity kinds: `missing_script`, `dangling_guid`, `broken_unityevent`.
+- Every result lists `skipped` (binary assets, `UNSUPPORTED_SERIALIZATION`) and `unknown` (unparsable YAML), `complete`, `truncated_reason` (`max_files`, `max_bytes`, `max_ms`, `max_results`), `scanned` and `serialization_mode`. A project not in Force Text adds an `UNSUPPORTED_SERIALIZATION` warning and `complete: false`.
+- Raw `find_references` keeps its old target mode; passing `symbol: {kind, type, name}` (optional `scope`, `max_results`) runs this scan and returns its envelope.
 
 `ok: false` is still a JSON-RPC `result`. `error` has `code`, `message`, `retryable`, and `hint`. Codes are `invalid_argument` (not retryable), `unavailable`, `busy`, `timeout` (a failed read, retryable), `capture_failed`, `partial` (compiler errors collected while the editor is compiling; `data` is kept and may be incomplete), `editor_not_ready`, and `internal` (not retryable). Read `ok` and `error`, not `data.success`. `data.success` only means the handler produced a payload. An unknown mutation outcome is `error.outcome: "unknown"` and is never retryable. Stack traces are omitted unless `NEXUS_DEBUG` is set. Legacy raw methods, including `capture_game_view_screenshot`, keep their current JSON. Transport failures such as parse errors and `Timeout waiting for Main Thread` stay JSON-RPC errors.
 
@@ -200,7 +220,9 @@ Aliases: `create`, `create_gameobject`, and `create_game_object` map to `create_
 Actions: `add`, `remove`, `inspect`, `get_schema`, `update_properties`, `set_property`, `set_enabled`.
 
 ### `unity_search_manager`
-Strategies: `regex`, `path`, `semantic`, `references`.
+Strategies: `regex`, `path`, `semantic`, `references`, `impact`.
+
+`references` with `symbol: {kind, type, name}` (or flat `kind`/`type`/`name`) calls `nexus.asset_impact` `find_references`; without it the target mode (`target_id` / `target_guid`) is unchanged. `impact` calls `analyze_change_impact` and needs `change` and `type` (`name` for field and method changes). Both accept `paths` and `max_results`.
 
 ### `unity_asset_manager`
 Actions: `search`, `explore`, `create_material`, `import`, `refresh`, `instantiate_prefab`, `create_prefab`, `apply_overrides`, `revert_overrides`.
@@ -247,4 +269,4 @@ Returns a recursive tree of the active scene.
 Returns a scene-wide dependency map.
 
 ### `unity_lint_project`
-Runs the deterministic project audit.
+Runs the deterministic project audit. `scope: "assets"` instead runs `nexus.asset_impact` `validate_asset_integrity` (Missing Scripts, dangling guids, broken UnityEvent bindings; optional `paths`, `changed_scripts`, `max_results`).

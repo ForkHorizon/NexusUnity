@@ -58,6 +58,7 @@ namespace UnityMCP.Editor.Tests
                 ProjectMapCommand.Alias,
                 GroupCompileErrorsCommand.Alias,
                 CaptureGameViewCommand.Alias,
+                AssetImpactCommand.Alias,
                 CaptureGameViewCommand.LookAlias,
                 CaptureGameViewCommand.LookDotAlias
             };
@@ -65,7 +66,7 @@ namespace UnityMCP.Editor.Tests
             CollectionAssert.IsEmpty(
                 registered.Except(InternalRegisteredMethods).Except(listed).Except(dispatchOnlyAliases).OrderBy(x => x).ToArray(),
                 "Every public registered raw method must be listed unless it is a canonical transport alias.");
-            Assert.AreEqual(120, listed.Count, "Open source API docs assume 117 raw tools plus 3 canonical Nexus command ids.");
+            Assert.AreEqual(121, listed.Count, "Open source API docs assume 117 raw tools plus 4 canonical Nexus command ids.");
         }
 
         [Test]

@@ -109,13 +109,49 @@ SEARCH_MANAGER_TOOL: JsonObject = {
                 "required": ["strategy", "query"],
             },
             {
-                "description": "Find all objects that reference a specific asset or component",
+                "description": (
+                    "Find all objects that reference a specific asset or component. With symbol (or type/name), "
+                    "statically list every prefab, variant, scene and ScriptableObject using a C# type, field "
+                    "(with each stored value vs the C# default) or UnityEvent method, loaded or not"
+                ),
                 "properties": {
                     "strategy": {"const": "references"},
                     "target_id": {"type": "integer"},
                     "target_guid": {"type": "string"},
+                    "symbol": {
+                        "type": "object",
+                        "properties": {
+                            "kind": {"type": "string", "enum": ["type", "field", "method"]},
+                            "type": {"type": "string"},
+                            "name": {"type": "string"},
+                        },
+                    },
+                    "kind": {"type": "string", "enum": ["type", "field", "method"]},
+                    "type": {"type": "string"},
+                    "name": {"type": "string"},
+                    "paths": {"type": "string"},
+                    "max_results": {"type": "integer"},
                 },
                 "required": ["strategy"],
+            },
+            {
+                "description": (
+                    "Before changing C# code: what breaks in prefabs, scenes and assets if a field is renamed or "
+                    "retyped, a method renamed, a script deleted or a type moved (severity, confidence, fix hint)"
+                ),
+                "properties": {
+                    "strategy": {"const": "impact"},
+                    "change": {
+                        "type": "string",
+                        "enum": ["rename_field", "change_field_type", "rename_method", "delete_script", "move_type"],
+                    },
+                    "type": {"type": "string"},
+                    "name": {"type": "string"},
+                    "new_name": {"type": "string"},
+                    "paths": {"type": "string"},
+                    "max_results": {"type": "integer"},
+                },
+                "required": ["strategy", "change", "type"],
             },
         ],
     },

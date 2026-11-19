@@ -70,7 +70,7 @@ namespace UnityMCP.Editor.Tests
             }
 
             CollectionAssert.AreEquivalent(
-                new[] { ProjectMapCommand.Alias, GroupCompileErrorsCommand.Alias, CaptureGameViewCommand.Alias },
+                new[] { ProjectMapCommand.Alias, GroupCompileErrorsCommand.Alias, CaptureGameViewCommand.Alias, AssetImpactCommand.Alias },
                 seen.ToArray());
             Assert.AreEqual("nexus_look", CaptureGameViewCommand.LookAlias);
             Assert.AreEqual("nexus.look", CaptureGameViewCommand.LookDotAlias);
@@ -397,8 +397,8 @@ namespace UnityMCP.Editor.Tests
             JObject response = JObject.Parse(MCPServerMethods.ProcessJsonRpc(request.ToString(Formatting.None)));
             JArray tools = response["result"] as JArray;
             Assert.IsNotNull(tools);
-            Assert.AreEqual(120, tools.Count);
-            foreach (string id in new[] { ProjectMapCommand.Id, GroupCompileErrorsCommand.Id, CaptureGameViewCommand.Id })
+            Assert.AreEqual(121, tools.Count);
+            foreach (string id in new[] { ProjectMapCommand.Id, GroupCompileErrorsCommand.Id, CaptureGameViewCommand.Id, AssetImpactCommand.Id })
             {
                 JObject tool = tools.OfType<JObject>().Single(item => item["name"]?.ToString() == id);
                 JObject properties = (JObject)tool["inputSchema"]["properties"];

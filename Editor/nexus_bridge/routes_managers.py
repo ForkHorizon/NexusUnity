@@ -146,24 +146,52 @@ def _route_component_manager(args: JsonObject) -> JsonRpcResponse:
     return _invalid_action(action, list(_COMPONENT_ACTIONS))
 
 
+_IMPACT_KEYS = ("change", "kind", "type", "name", "new_name", "paths", "changed_scripts", "max_results")
+
+
+def _asset_impact(op: str, args: JsonObject) -> JsonRpcResponse:
+    """Call the read-only nexus.asset_impact command; a nested symbol {kind, type, name} is flattened."""
+    symbol = args.get("symbol")
+    merged = {**symbol, **args} if isinstance(symbol, dict) else args
+    return _transport.call_unity(
+        "nexus.asset_impact", {"op": op, **_compact({key: merged.get(key) for key in _IMPACT_KEYS})}
+    )
+
+
+def _route_lint_project(args: JsonObject) -> JsonRpcResponse:
+    if args.get("scope") == "assets":
+        return _asset_impact("validate_asset_integrity", args)
+    return _transport.call_unity("lint_project", args)
+
+
+def _search_references(args: JsonObject) -> JsonRpcResponse:
+    if args.get("symbol") or args.get("type"):
+        return _asset_impact("find_references", args)
+    return _transport.call_unity(
+        "find_references", {"target_id": args.get("target_id"), "target_guid": args.get("target_guid")}
+    )
+
+
+_SEARCH_STRATEGIES: dict[str, ActionHandler] = {
+    "regex": lambda args: _transport.call_unity(
+        "find_objects", {"name": args.get("query"), "tag": args.get("tag"), "type": args.get("type")}
+    ),
+    "path": lambda args: _transport.call_unity("find_by_path", {"path": args.get("query")}),
+    "semantic": lambda args: _transport.call_unity("semantic_find", {"query": args.get("query")}),
+    "references": _search_references,
+    "impact": lambda args: _asset_impact("analyze_change_impact", args),
+}
+
+
 def _route_search_manager(args: JsonObject) -> JsonRpcResponse:
     strategy = args.get("strategy")
-    if strategy == "regex":
-        return _transport.call_unity(
-            "find_objects", {"name": args.get("query"), "tag": args.get("tag"), "type": args.get("type")}
-        )
-    if strategy == "path":
-        return _transport.call_unity("find_by_path", {"path": args.get("query")})
-    if strategy == "semantic":
-        return _transport.call_unity("semantic_find", {"query": args.get("query")})
-    if strategy == "references":
-        return _transport.call_unity(
-            "find_references", {"target_id": args.get("target_id"), "target_guid": args.get("target_guid")}
-        )
+    handler = _SEARCH_STRATEGIES.get(strategy) if isinstance(strategy, str) else None
+    if handler is not None:
+        return handler(args)
     return {
         "error": {
             "code": -32602,
-            "message": f"Invalid strategy: {strategy}. Valid strategies: regex, path, semantic, references",
+            "message": f"Invalid strategy: {strategy}. Valid strategies: {', '.join(_SEARCH_STRATEGIES)}",
         }
     }
 

@@ -91,8 +91,19 @@ DIAGNOSTIC_TOOLS: list[JsonObject] = [
     },
     {
         "name": "unity_lint_project",
-        "description": "Run Roslyn-based C# audit of the entire project",
-        "inputSchema": {"type": "object", "properties": {}},
+        "description": (
+            "Run Roslyn-based C# audit of the entire project. scope=assets instead checks text assets for "
+            "Missing Scripts, dangling guids and broken UnityEvent bindings (read-only)"
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "scope": {"type": "string", "enum": ["code", "assets"]},
+                "paths": {"type": "string"},
+                "changed_scripts": {"type": "string"},
+                "max_results": {"type": "integer"},
+            },
+        },
     },
 ]
 

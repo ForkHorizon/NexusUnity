@@ -60,7 +60,7 @@ namespace UnityMCP.Editor.Tests
             Assert.IsFalse(error["error"].ToString().Contains("retryable"));
 
             JObject tools = Rpc("list_tools", new JObject(), 1);
-            Assert.AreEqual(120, tools["result"].Count());
+            Assert.AreEqual(121, tools["result"].Count());
             Assert.IsNull(tools["result"].FirstOrDefault(token => token["name"]?.ToString() == "nexus_project_map"));
         }
 

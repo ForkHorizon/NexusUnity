@@ -12,7 +12,7 @@ namespace UnityMCP.Editor.Pipeline
     /// <remarks>
     /// This assembly is excluded when <c>com.unity.pipeline</c> is not installed. It must not contain Nexus business logic.
     /// Pipeline binds one CLI flag per method parameter and the ten capture flags are locked to the HTTP descriptor,
-    /// so this file is an approved exception to the parameter limit, kept as a CI Scope ignore on the website. Keep it a thin binding with no logic.
+    /// so this file is an approved exception to the parameter limit (capture and asset_impact), kept as a CI Scope ignore on the website. Keep it a thin binding with no logic.
     /// Capture returns <see cref="Task"/> so Pipeline can await GPU completion off the Unity main thread.
     /// On Pipeline 1.0.0+ (<c>NEXUS_PIPELINE_1_0_OR_NEWER</c>) commands live in the <c>nexus</c> group
     /// (<c>unity command nexus capture_game_view</c>) and declare <c>CommandEffect.ReadOnly</c>; older Pipelines have
@@ -53,6 +53,42 @@ namespace UnityMCP.Editor.Pipeline
             [CliArg("request-id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
             return GroupCompileErrorsCommand.ExecuteEnveloped(maxLogs, requestId);
+        }
+
+        /// <summary>
+        /// Pipeline projection of <see cref="AssetImpactCommand"/>: static C# &lt;-&gt; Unity YAML impact.
+        /// Read-only; it reads assets, .meta files and scripts from disk and does not modify the project.
+        /// </summary>
+#if NEXUS_PIPELINE_1_0_OR_NEWER
+        [CliCommand(Group, "asset_impact", AssetImpactCommand.Description, Effect = CommandEffect.ReadOnly, Tags = new[] { "nexus", "assets" })]
+#else
+        [CliCommand(AssetImpactCommand.Alias, AssetImpactCommand.Description, Tags = new[] { "nexus", "assets" })]
+#endif
+        public static NexusCommandEnvelope AssetImpact(
+            [CliArg("op", AssetImpactCommand.OpDescription)] string op = "find_references",
+            [CliArg("change", AssetImpactCommand.ChangeDescription)] string change = null,
+            [CliArg("kind", AssetImpactCommand.KindDescription)] string kind = null,
+            [CliArg("type", AssetImpactCommand.TypeDescription)] string type = null,
+            [CliArg("name", AssetImpactCommand.NameDescription)] string name = null,
+            [CliArg("new-name", AssetImpactCommand.NewNameDescription)] string newName = null,
+            [CliArg("paths", AssetImpactCommand.PathsDescription)] string paths = "Assets",
+            [CliArg("changed-scripts", AssetImpactCommand.ChangedScriptsDescription)] string changedScripts = null,
+            [CliArg("max-results", AssetImpactCommand.MaxResultsDescription)] int maxResults = AssetImpactCommand.DefaultMaxResults,
+            [CliArg("request-id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
+        {
+            return AssetImpactCommand.ExecuteEnveloped(new AssetImpactCommand.Request
+            {
+                Op = op,
+                Change = change,
+                Kind = kind,
+                Type = type,
+                Name = name,
+                NewName = newName,
+                Paths = paths,
+                ChangedScripts = changedScripts,
+                MaxResults = maxResults,
+                RequestId = requestId
+            });
         }
 
         /// <summary>
