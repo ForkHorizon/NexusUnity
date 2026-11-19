@@ -4,11 +4,15 @@ All notable public changes to Nexus Unity are documented here.
 
 ## [Unreleased]
 
+### Added
+- `nexus.asset_impact` (alias `nexus_asset_impact`, CLI `unity command nexus asset_impact`, read-only): static C# <-> Unity YAML impact over every text prefab, Prefab Variant, scene, ScriptableObject and AnimationClip, loaded or not. `find_references` lists each stored value of a field per asset and object (component values, variant / nested prefab / scene-instance overrides, curve bindings) against the C# default; `analyze_change_impact` reports what a field rename or type change, method rename, script delete or type move breaks, with `[FormerlySerializedAs]` hints; `validate_asset_integrity` finds Missing Scripts, dangling guids and broken UnityEvent bindings that `unity vcs hooks` does not. Binary and unparsable assets are listed as `skipped` / `unknown`; `Error` is only reported with `exact` confidence.
+- Raw `find_references` accepts `symbol: {kind, type, name}` and then returns the `nexus.asset_impact` envelope. The target mode is unchanged.
+
 ### Changed
 - **Breaking (Unity CLI):** with `com.unity.pipeline` 1.0.0 or newer, the Nexus Pipeline commands move into the `nexus` group: `unity command nexus project_map`, `unity command nexus group_compile_errors`, `unity command nexus capture_game_view`. The global `nexus_*` names remain on older Pipeline versions. HTTP and MCP names are unchanged.
 - **Breaking (Unity CLI):** Pipeline CLI flags are kebab-case on every Pipeline version: `--max-logs`, `--max-dimension`, `--instance-id`, `--request-id`. HTTP/MCP keys stay snake_case.
 - `nexus.capture_game_view` takes the image encoding as `encoding` (`jpg` or `png`). HTTP still accepts the deprecated `format` key when `encoding` is absent, and `max_long_edge` when `max_dimension` is absent. `list_tools` advertises `encoding`.
-- On Pipeline 1.0.0 or newer, the three Nexus commands declare `CommandEffect.ReadOnly`, so `unity command` and MCP clients see them as read-only.
+- On Pipeline 1.0.0 or newer, the Nexus commands declare `CommandEffect.ReadOnly`, so `unity command` and MCP clients see them as read-only.
 - `get_server_status.runtime.legacy` no longer reports the stale `1.0.0-beta.10` Unity CLI observation. The `unity_cli_stable` gate passes with `not_probed_in_editor (1.0.x GA released upstream)`, `runtime.unity_cli.prerelease` and `stable_1_0_or_newer` are `null` (the Editor never runs the `unity` executable), and `requires` lists only the remaining prerequisites. Legacy HTTP stays supported and `deprecated` stays `false`.
 - **Breaking for large scenes:** `dump_scene_graph` and `compact_scene_snapshot` return at most 200 nodes by default (depth-first). Results add `node_count` and `truncated`, and a `hint` when truncated. Pass `max_nodes: 0` for the previous unlimited output.
 

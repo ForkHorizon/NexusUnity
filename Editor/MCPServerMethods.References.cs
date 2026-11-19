@@ -10,6 +10,9 @@ namespace UnityMCP.Editor
     {
         private static JToken FindReferences(JToken p)
         {
+            if (p?["symbol"] is JObject symbol)
+                return FindSymbolReferences(p, symbol);
+
             string targetGuid = p?["target_guid"]?.ToString();
             EntityId targetId = MCPServerMethods.ExtractId(p, "target_id");
 
@@ -31,6 +34,26 @@ namespace UnityMCP.Editor
             result["asset_references"] = assetRefs;
             result["scene_references"] = sceneRefs;
             return result;
+        }
+
+        /// <summary>
+        /// Symbol mode (<c>symbol: {kind, type, name}</c>): static scan of prefabs, scenes, variants and ScriptableObjects
+        /// including unloaded ones, with stored values. Delegates to <c>nexus.asset_impact</c> and returns its envelope.
+        /// </summary>
+        private static JToken FindSymbolReferences(JToken p, JObject symbol)
+        {
+            int? max = p["max_results"]?.Type == JTokenType.Integer ? p["max_results"].Value<int>() : (int?)null;
+            var request = new Commands.AssetImpactCommand.Request
+            {
+                Op = "find_references",
+                Kind = symbol["kind"]?.ToString(),
+                Type = symbol["type"]?.ToString(),
+                Name = symbol["name"]?.ToString(),
+                Paths = p["scope"] is JArray scope ? string.Join(",", scope) : p["scope"]?.ToString(),
+                MaxResults = max ?? Commands.AssetImpactCommand.DefaultMaxResults,
+                RequestId = p["request_id"]?.ToString()
+            };
+            return Commands.AssetImpactCommand.ExecuteEnveloped(request).ToJson();
         }
 
         private static Object ResolveTargetObject(string targetGuid, EntityId targetId)

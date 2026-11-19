@@ -18,11 +18,11 @@ namespace UnityMCP.Editor.Tests
         }
 
         [Test]
-        public void RegistryExposesOnlyTheThreePocCommands()
+        public void RegistryExposesOnlyTheCanonicalCommands()
         {
             string[] ids = NexusCommandRegistry.All.Select(c => c.Descriptor.Id).ToArray();
             CollectionAssert.AreEquivalent(
-                new[] { ProjectMapCommand.Id, GroupCompileErrorsCommand.Id, CaptureGameViewCommand.Id },
+                new[] { ProjectMapCommand.Id, GroupCompileErrorsCommand.Id, CaptureGameViewCommand.Id, AssetImpactCommand.Id },
                 ids);
         }
 
