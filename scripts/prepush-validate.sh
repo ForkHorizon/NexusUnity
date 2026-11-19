@@ -131,6 +131,8 @@ ignored_folder_meta = []
 for path in tracked:
     if path.name.endswith(".meta"):
         target = pathlib.PurePosixPath(str(path)[:-5])
+        if str(path).startswith("Tests/Fixtures~/"):
+            continue  # fixture project trees: their .meta files are guid ground truth, not package metadata
         if is_unity_ignored_folder_path(target):
             ignored_folder_meta.append(str(path))
         elif str(target) not in tracked_set and target not in folders:
