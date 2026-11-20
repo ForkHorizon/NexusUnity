@@ -69,7 +69,14 @@ A/B agent efficacy (V3-13, 2026-11-20). 300-asset project, 8 rename/delete tasks
 | A: Unity CLI + `unity vcs` + grep | 8/8 | 0 | 1/8 found it unhinted | 75,490 | 74 s |
 | B: A + `nexus asset_impact` hint | 8/8 | 0 | 8/8 | 77,283 | 69 s |
 
-Agents adopt the tool when hinted, but it prevented no regressions here: strong agents grepping Force Text YAML with unique member names already found every stored value. The next step is the output shape: a compact default and verification with `level=editor` after `[FormerlySerializedAs]`. More features should wait. Details: `Research~/evidence/V3-13/impact_benchmark.md`.
+Rerun with a smaller model (Haiku agents, same tasks and grader, current build with `results: "auto"`):
+
+| Arm | Pass | Regressions | Tool adoption | Avg tokens | Avg wall time |
+|---|---:|---:|---:|---:|---:|
+| A: Unity CLI + `unity vcs` + grep | 8/8 | 0 | 0/8 | 82,382 | 61 s |
+| B: A + `nexus asset_impact` hint | 8/8 | 0 | 8/8 (50 calls) | 88,287 | 72 s |
+
+Agents adopt the tool when hinted, but in both runs it prevented no regressions: strong agents grepping Force Text YAML with unique member names already found every stored value. The next step is the output shape: a compact default and verification with `level=editor` after `[FormerlySerializedAs]`. More features should wait. Details: `Research~/evidence/V3-13/impact_benchmark.md`.
 
 ## What the current evidence supports
 

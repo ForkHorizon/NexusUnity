@@ -126,7 +126,8 @@ namespace UnityMCP.Editor.Commands
                 consequence = differs == false
                     ? "Stored value equals the C# default (" + fallback + "); nothing is lost on rename."
                     : "Stored value " + v["value"] + " resets to " + (fallback ?? "the C# default") + " on next load unless the old name is kept.";
-                check = "[FormerlySerializedAs(\"" + symbol.Name + "\")]";
+                // The key Unity must keep reading is the one in the asset, which differs from symbol.Name once it is already aliased.
+                check = "[FormerlySerializedAs(\"" + ((string)v["serialized_as"] ?? symbol.Name) + "\")]";
             }
             else
             {
