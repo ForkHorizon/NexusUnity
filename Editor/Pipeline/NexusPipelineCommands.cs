@@ -74,6 +74,7 @@ namespace UnityMCP.Editor.Pipeline
             [CliArg("paths", AssetImpactCommand.PathsDescription)] string paths = "Assets",
             [CliArg("changed-scripts", AssetImpactCommand.ChangedScriptsDescription)] string changedScripts = null,
             [CliArg("max-results", AssetImpactCommand.MaxResultsDescription)] int maxResults = AssetImpactCommand.DefaultMaxResults,
+            [CliArg("level", AssetImpactCommand.LevelDescription)] string level = "static",
             [CliArg("request-id", NexusCommandCodes.RequestIdDescription)] string requestId = null)
         {
             return AssetImpactCommand.ExecuteEnveloped(new AssetImpactCommand.Request
@@ -87,6 +88,7 @@ namespace UnityMCP.Editor.Pipeline
                 Paths = paths,
                 ChangedScripts = changedScripts,
                 MaxResults = maxResults,
+                Level = level,
                 RequestId = requestId
             });
         }
