@@ -126,7 +126,8 @@ namespace UnityMCP.Editor.Commands
                 consequence = differs == false
                     ? "Stored value equals the C# default (" + fallback + "); nothing is lost on rename."
                     : "Stored value " + v["value"] + " resets to " + (fallback ?? "the C# default") + " on next load unless the old name is kept.";
-                check = "[FormerlySerializedAs(\"" + symbol.Name + "\")]";
+                // The key Unity must keep reading is the one in the asset, which differs from symbol.Name once it is already aliased.
+                check = "[FormerlySerializedAs(\"" + ((string)v["serialized_as"] ?? symbol.Name) + "\")]";
             }
             else
             {
@@ -243,19 +244,24 @@ namespace UnityMCP.Editor.Commands
         private IEnumerable<JObject> FieldValues(List<ScriptInfo> scripts, string field, string fallback)
         {
             var guids = new HashSet<string>(scripts.Select(s => s.Guid), StringComparer.OrdinalIgnoreCase);
+            // Data still stored under a [FormerlySerializedAs] name loads into this field, so it is this field's value.
+            List<string> names = new[] { field }.Concat(scripts.SelectMany(s => FieldAliases(s, field))).Distinct().ToList();
             foreach (YamlAsset asset in Scanned())
             foreach (YamlDoc doc in Ordered(asset))
             {
                 if (doc.ClassId == 114 && !doc.Stripped && guids.Contains(AssetYamlIndex.GuidOf(doc.Field("m_Script")) ?? ""))
                 {
-                    if (!doc.Fields.TryGetValue(field, out YamlValue v)) continue;
+                    string stored = names.FirstOrDefault(n => doc.Fields.ContainsKey(n));
+                    if (stored == null) continue;
+                    YamlValue v = doc.Fields[stored];
                     string value = v.Text.Length > 0 ? v.Text : Block(asset, v.Line);
-                    yield return Value(Locate(asset, doc, null, v.Line), "component", value, fallback, "exact");
+                    yield return Alias(Value(Locate(asset, doc, null, v.Line), "component", value, fallback, "exact"), stored, field);
                 }
                 foreach (var mod in doc.List("m_Modification.m_Modifications"))
                 {
                     string path = Text(mod, "propertyPath");
-                    if (path != field && !path.StartsWith(field + ".", StringComparison.Ordinal)) continue;
+                    string stored = names.FirstOrDefault(n => path == n || path.StartsWith(n + ".", StringComparison.Ordinal));
+                    if (stored == null) continue;
                     string target = Text(mod, "target");
                     var resolved = ResolveDoc(AssetYamlIndex.GuidOf(target), AssetYamlIndex.FileIdOf(target), 0);
                     if (resolved.doc == null || !guids.Contains(AssetYamlIndex.GuidOf(resolved.doc.Field("m_Script")) ?? "")) continue;
@@ -263,12 +269,12 @@ namespace UnityMCP.Editor.Commands
                     if (value.Length == 0 && AssetYamlIndex.FileIdOf(Text(mod, "objectReference")) != 0) value = Text(mod, "objectReference");
                     JObject entry = Locate(asset, doc, null, mod["propertyPath"].Line);
                     entry["object_path"] = InstancePath(asset, doc, 0) + Relative(resolved.asset, resolved.doc);
-                    if (path != field) entry["property_path"] = path;
-                    yield return Value(entry, "prefab_modification", value, path == field ? fallback : null, "exact");
+                    if (path != stored) entry["property_path"] = path;
+                    yield return Alias(Value(entry, "prefab_modification", value, path == stored ? fallback : null, "exact"), stored, field);
                 }
                 foreach (var curve in Curves(doc))
                 {
-                    if (Text(curve, "attribute") != field || !guids.Contains(AssetYamlIndex.GuidOf(Text(curve, "script")) ?? "")) continue;
+                    if (!names.Contains(Text(curve, "attribute")) || !guids.Contains(AssetYamlIndex.GuidOf(Text(curve, "script")) ?? "")) continue;
                     JObject entry = Locate(asset, doc, null, curve["attribute"].Line);
                     entry["object_path"] = Text(curve, "path");
                     yield return Value(entry, "animation_curve", null, null, "strong");
