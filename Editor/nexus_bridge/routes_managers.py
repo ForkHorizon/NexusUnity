@@ -146,7 +146,18 @@ def _route_component_manager(args: JsonObject) -> JsonRpcResponse:
     return _invalid_action(action, list(_COMPONENT_ACTIONS))
 
 
-_IMPACT_KEYS = ("change", "kind", "type", "name", "new_name", "paths", "changed_scripts", "max_results", "level", "results")
+_IMPACT_KEYS = (
+    "change",
+    "kind",
+    "type",
+    "name",
+    "new_name",
+    "paths",
+    "changed_scripts",
+    "max_results",
+    "level",
+    "results",
+)
 
 
 def _asset_impact(op: str, args: JsonObject) -> JsonRpcResponse:
