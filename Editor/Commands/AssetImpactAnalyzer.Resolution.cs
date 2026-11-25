@@ -118,7 +118,7 @@ namespace UnityMCP.Editor.Commands
 
         private static string FieldDefault(ScriptInfo script, string field)
         {
-            Match m = Regex.Match(script.Source, @"(?m)^[^/\n(]*?\b([\w.<>\[\],]+)\s+" + Regex.Escape(field) + @"\s*(?:=\s*([^;]+))?;");
+            Match m = Regex.Match(script.Source, @"(?m)^\s*(?:\[[^\]\n]*\]\s*)*[^/\n(\[]*?\b([\w.<>\[\],]+)\s+" + Regex.Escape(field) + @"\s*(?:=\s*([^;]+))?;");
             if (!m.Success) return null;
             string type = m.Groups[1].Value;
             if (!m.Groups[2].Success)
@@ -129,6 +129,21 @@ namespace UnityMCP.Editor.Commands
             if (init.Length > 1 && init[0] == '"' && init[init.Length - 1] == '"') return init.Substring(1, init.Length - 2);
             string number = Regex.Replace(init, "[fFdDmMuUlL]+$", "");
             return double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out _) ? number : null;
+        }
+
+        /// <summary>Names in <c>[FormerlySerializedAs("...")]</c> on the declaration of <paramref name="field"/> (attributes may span lines).</summary>
+        private static IEnumerable<string> FieldAliases(ScriptInfo script, string field)
+        {
+            Match decl = Regex.Match(script.Source, @"((?:\[[^\]]*\]\s*)+)(?:\w+\s+)*?[\w.<>\[\],]+\s+" + Regex.Escape(field) + @"\s*[=;]");
+            if (!decl.Success) return Enumerable.Empty<string>();
+            return Regex.Matches(decl.Groups[1].Value, @"FormerlySerializedAs\(\s*""([^""]+)""").Cast<Match>().Select(a => a.Groups[1].Value);
+        }
+
+        /// <summary>Marks a value found under a former serialized name.</summary>
+        private static JObject Alias(JObject entry, string stored, string field)
+        {
+            if (stored != field) entry["serialized_as"] = stored;
+            return entry;
         }
 
         // ---------------------------------------------------------------- paths

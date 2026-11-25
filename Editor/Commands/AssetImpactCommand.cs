@@ -26,7 +26,7 @@ namespace UnityMCP.Editor.Commands
         public const string Description =
             "Static C# <-> Unity YAML impact: find_references (type/field/method usages with stored per-asset values vs the C# default), " +
             "analyze_change_impact (rename_field, change_field_type, rename_method, delete_script, move_type) and validate_asset_integrity " +
-            "(Missing Script, dangling guids, broken UnityEvent bindings). Read-only.";
+            "(Missing Script, dangling guids, broken UnityEvent bindings). level=editor adds Editor-truth (Layer B) values from loaded assets. Read-only.";
         /// <summary>Parameter descriptions shared with the Pipeline projection.</summary>
         public const string OpDescription = "find_references, analyze_change_impact or validate_asset_integrity.";
         public const string ChangeDescription = "For analyze_change_impact: rename_field, change_field_type, rename_method, delete_script or move_type.";
@@ -36,7 +36,9 @@ namespace UnityMCP.Editor.Commands
         public const string NewNameDescription = "Optional new name, echoed in findings.";
         public const string PathsDescription = "Comma-separated project-relative folders or files to scan. Default Assets.";
         public const string ChangedScriptsDescription = "For validate_asset_integrity: comma-separated .cs paths; only assets using them are checked.";
-        public const string MaxResultsDescription = "Maximum entries per result list (1-5000). Extra entries set complete=false.";
+        public const string MaxShapeDescription = "Maximum entries per result list (1-5000). Extra entries set complete=false.";
+        public const string ShapeDescription = "auto (default: every entry up to 50, else a per-asset summary), summary (first 10 entries per list + <list>_by_asset with every asset, lines and values) or full (every entry).";
+        public const string LevelDescription = "static (default, disk scan only), editor (also load assets in the Editor and report effective values under editor) or auto (editor check only for assets static left unknown or inexact).";
         /// <summary>Default and hard cap for <c>max_results</c>.</summary>
         public const int DefaultMaxResults = 500;
         private const int MaxResultsCap = 5000;
@@ -59,7 +61,9 @@ namespace UnityMCP.Editor.Commands
                 NexusCommandParameter.Optional("new_name", "string", NewNameDescription, null),
                 NexusCommandParameter.Optional("paths", "string", PathsDescription, "Assets"),
                 NexusCommandParameter.Optional("changed_scripts", "string", ChangedScriptsDescription, null),
-                NexusCommandParameter.Optional("max_results", "integer", MaxResultsDescription, DefaultMaxResults),
+                NexusCommandParameter.Optional("max_results", "integer", MaxShapeDescription, DefaultMaxResults),
+                NexusCommandParameter.Optional("level", "string", LevelDescription, "static"),
+                NexusCommandParameter.Optional("results", "string", ShapeDescription, "auto"),
                 NexusCommandParameter.Optional("request_id", "string", NexusCommandCodes.RequestIdDescription, null)
             }
         };
@@ -76,6 +80,8 @@ namespace UnityMCP.Editor.Commands
             public string Paths;
             public string ChangedScripts;
             public int MaxResults = DefaultMaxResults;
+            public string Level = "static";
+            public string Results = "auto";
             public string RequestId;
         }
 
@@ -90,10 +96,13 @@ namespace UnityMCP.Editor.Commands
                 !args.TryReadString("kind", out request.Kind) || !args.TryReadString("type", out request.Type) ||
                 !args.TryReadString("name", out request.Name) || !args.TryReadString("new_name", out request.NewName) ||
                 !ReadList(parameters, args, "paths", out request.Paths) || !ReadList(parameters, args, "changed_scripts", out request.ChangedScripts) ||
-                !args.TryReadInt("max_results", out int? max))
+                !args.TryReadInt("max_results", out int? max) || !args.TryReadString("level", out string level) ||
+                !args.TryReadString("results", out string results))
                 return Task.FromResult<JToken>(args.Rejected.ToJson());
             request.Op = op ?? request.Op;
             request.MaxResults = max ?? DefaultMaxResults;
+            request.Level = level ?? request.Level;
+            request.Results = results ?? request.Results;
             return Task.FromResult<JToken>(ExecuteEnveloped(request).ToJson());
         }
 
@@ -116,7 +125,15 @@ namespace UnityMCP.Editor.Commands
                 string root = Path.GetDirectoryName(Application.dataPath);
                 // ValidateAssetPath resolves symlinks/junctions and confines scopes to Assets/, Packages/ or ProjectSettings/.
                 List<string> scopes = Split(request.Paths ?? "Assets").Select(ValidateScope).ToList();
+                if (request.Level != "static" && request.Level != "editor" && request.Level != "auto")
+                    throw new ArgumentException("level must be static, editor or auto.");
                 JObject data = Run(request, root, scopes, AssetDatabaseKnows);
+                if (request.Level != "static")
+                {
+                    JObject editor = AssetImpactEditorTruth.Evaluate(data, request, scopes);
+                    if (editor != null) AssetImpactResults.Apply(editor, request.Results);
+                    if (editor != null) data["editor"] = editor;
+                }
                 SerializationMode mode = EditorSettings.serializationMode;
                 data["serialization_mode"] = mode.ToString();
                 if (mode != SerializationMode.ForceText)
@@ -150,6 +167,7 @@ namespace UnityMCP.Editor.Commands
                 throw new ArgumentException("max_results must be between 1 and " + MaxResultsCap + ".");
             if (request.Op != "find_references" && request.Op != "analyze_change_impact" && request.Op != "validate_asset_integrity")
                 throw new ArgumentException("op must be find_references, analyze_change_impact or validate_asset_integrity.");
+            AssetImpactResults.Validate(request.Results);
             var sw = Stopwatch.StartNew();
             AssetYamlIndex index = AssetYamlIndex.Build(root, scopes, Array.Empty<string>(), budget ?? new ScanBudget());
             index.ExternalGuid = externalGuid;
@@ -173,6 +191,7 @@ namespace UnityMCP.Editor.Commands
             data["op"] = request.Op;
             data["scope"] = new JArray(scopes);
             data["scanned"]["ms"] = sw.ElapsedMilliseconds;
+            AssetImpactResults.Apply(data, request.Results);
             return data;
         }
 

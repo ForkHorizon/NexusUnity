@@ -47,6 +47,37 @@ First numeric baseline: 2026-11-19, macOS (Apple Silicon), Unity 6000.3.16f1 har
 
 What these rows show: Nexus JPEG at 768 returns about 8× fewer bytes than Pipeline's 768 PNG, and about 20× fewer than a 1600×900 PNG. A Nexus capture takes about 210 ms longer per call than Pipeline's. The Nexus timing fields show the extra time: the capture spans two Editor ticks (`wait_ms` ≈ 300, `base64_ms` ≈ 317 while the Editor was not focused), while Pipeline captures in one tick. Fixing this is tracked for V3-22.
 
+### Asset impact (`nexus.asset_impact`, V3-13)
+
+2026-11-20, macOS (Apple Silicon), Unity 6000.3.16f1 batchmode scratch project (no harness Editor involved), `rework3/V3-12` (`1a53493`), `com.unity.pipeline` 1.0.0. A seeded generator writes 40% base prefabs (Health + Spawner wired by a UnityEvent), 25% Prefab Variants, 10% nested prefabs, 25% ScriptableObjects and one scene that is left unloaded. In-process `ExecuteEnveloped` timing, one sample per cell (single run, no p95). "Cold" is the first call after generation; the OS file cache is already warm. "1-script change" edits `Health.cs` on disk without an import. Layer A has no cache, so that call is a full rescan. `max_results` is the default 500. Allocation and peak RSS were not measured: Mono returns 0 for per-thread allocation, and the process peak (~0.9–1.3 GB) is the Unity Editor itself. Raw output and generator: `Research~/evidence/V3-13/`.
+
+| Assets | Query | Static cold | Static warm | After 1-script change | `level=editor` cold (Layer B part) | `level=editor` warm (Layer B part) | Response bytes (static / editor) | Complete |
+|---:|---|---:|---:|---:|---:|---:|---:|---|
+| 20 | `find_references` field | 22 ms | 5 ms | 5 ms | 12 ms (6) | 6 ms (0) | 8,228 / 10,920 | yes |
+| 300 | `find_references` field | 75 ms | 58 ms | 62 ms | 89 ms (25) | 66 ms (4) | 83,110 / 120,983 | yes |
+| 2,000 | `find_references` field | 461 ms | 412 ms | 411 ms | 594 ms (157) | 458 ms (41) | 178,467 / 263,278 | no (`max_results`) |
+| 2,000 | `validate_asset_integrity` | — | 392 ms | — | — | 454 ms (28) | 352 / 574 | yes |
+
+What these rows show: Layer A scales roughly linearly, about 0.2 ms per asset. Layer B adds about 0.08 ms per asset cold and 0.02 ms warm. At 2,000 assets the field query returns 178–263 KB even after the 500-entry cap. That is about 45–65k tokens if an agent reads it whole, so `unique_values`/`summary` (or a lower `max_results`) is the shape to steer agents to before promoting `#213` into skills.
+
+Output shape after the V3-13 fix (`results: "auto"`, same generator and machine, warm): `find_references` field 83,290 → 35,894 B at 300 assets and 178,614 → 73,033 B at 2,000; `analyze_change_impact rename_field` 106,640 → 28,130 B and 226,936 → 55,004 B; `level=editor` field 120,983 → 52,898 B at 300. Every asset is still listed in `<list>_by_asset`; `results: "full"` returns the old shape. Raw: `Research~/evidence/V3-13/shape/`.
+
+A/B agent efficacy (V3-13, 2026-11-20). 300-asset project, 8 rename/delete tasks per arm, blind batchmode oracle over 1,249 stored values and 235 UnityEvent calls:
+
+| Arm | Pass | Regressions | Tool adoption | Avg tokens | Avg wall time |
+|---|---:|---:|---:|---:|---:|
+| A: Unity CLI + `unity vcs` + grep | 8/8 | 0 | 1/8 found it unhinted | 75,490 | 74 s |
+| B: A + `nexus asset_impact` hint | 8/8 | 0 | 8/8 | 77,283 | 69 s |
+
+Rerun with a smaller model (Haiku agents, same tasks and grader, current build with `results: "auto"`):
+
+| Arm | Pass | Regressions | Tool adoption | Avg tokens | Avg wall time |
+|---|---:|---:|---:|---:|---:|
+| A: Unity CLI + `unity vcs` + grep | 8/8 | 0 | 0/8 | 82,382 | 61 s |
+| B: A + `nexus asset_impact` hint | 8/8 | 0 | 8/8 (50 calls) | 88,287 | 72 s |
+
+Agents adopt the tool when hinted, but in both runs it prevented no regressions: strong agents grepping Force Text YAML with unique member names already found every stored value. The next step is the output shape: a compact default and verification with `level=editor` after `[FormerlySerializedAs]`. More features should wait. Details: `Research~/evidence/V3-13/impact_benchmark.md`.
+
 ## What the current evidence supports
 
 The current data supports these engineering claims:
