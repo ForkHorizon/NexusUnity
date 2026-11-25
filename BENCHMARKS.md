@@ -60,6 +60,8 @@ What these rows show: Nexus JPEG at 768 returns about 8× fewer bytes than Pipel
 
 What these rows show: Layer A scales roughly linearly, about 0.2 ms per asset. Layer B adds about 0.08 ms per asset cold and 0.02 ms warm. At 2,000 assets the field query returns 178–263 KB even after the 500-entry cap. That is about 45–65k tokens if an agent reads it whole, so `unique_values`/`summary` (or a lower `max_results`) is the shape to steer agents to before promoting `#213` into skills.
 
+Output shape after the V3-13 fix (`results: "auto"`, same generator and machine, warm): `find_references` field 83,290 → 35,894 B at 300 assets and 178,614 → 73,033 B at 2,000; `analyze_change_impact rename_field` 106,640 → 28,130 B and 226,936 → 55,004 B; `level=editor` field 120,983 → 52,898 B at 300. Every asset is still listed in `<list>_by_asset`; `results: "full"` returns the old shape. Raw: `Research~/evidence/V3-13/shape/`.
+
 A/B agent efficacy (V3-13, 2026-11-20). 300-asset project, 8 rename/delete tasks per arm, blind batchmode oracle over 1,249 stored values and 235 UnityEvent calls:
 
 | Arm | Pass | Regressions | Tool adoption | Avg tokens | Avg wall time |
@@ -67,7 +69,14 @@ A/B agent efficacy (V3-13, 2026-11-20). 300-asset project, 8 rename/delete tasks
 | A: Unity CLI + `unity vcs` + grep | 8/8 | 0 | 1/8 found it unhinted | 75,490 | 74 s |
 | B: A + `nexus asset_impact` hint | 8/8 | 0 | 8/8 | 77,283 | 69 s |
 
-Agents adopt the tool when hinted, but it prevented no regressions here: strong agents grepping Force Text YAML with unique member names already found every stored value. The next step is the output shape: a compact default and verification with `level=editor` after `[FormerlySerializedAs]`. More features should wait. Details: `Research~/evidence/V3-13/impact_benchmark.md`.
+Rerun with a smaller model (Haiku agents, same tasks and grader, current build with `results: "auto"`):
+
+| Arm | Pass | Regressions | Tool adoption | Avg tokens | Avg wall time |
+|---|---:|---:|---:|---:|---:|
+| A: Unity CLI + `unity vcs` + grep | 8/8 | 0 | 0/8 | 82,382 | 61 s |
+| B: A + `nexus asset_impact` hint | 8/8 | 0 | 8/8 (50 calls) | 88,287 | 72 s |
+
+Agents adopt the tool when hinted, but in both runs it prevented no regressions: strong agents grepping Force Text YAML with unique member names already found every stored value. The next step is the output shape: a compact default and verification with `level=editor` after `[FormerlySerializedAs]`. More features should wait. Details: `Research~/evidence/V3-13/impact_benchmark.md`.
 
 ## What the current evidence supports
 

@@ -103,6 +103,7 @@ DIAGNOSTIC_TOOLS: list[JsonObject] = [
                 "changed_scripts": {"type": "string"},
                 "max_results": {"type": "integer"},
                 "level": {"type": "string", "enum": ["static", "editor", "auto"]},
+                "results": {"type": "string", "enum": ["auto", "summary", "full"]},
             },
         },
     },
